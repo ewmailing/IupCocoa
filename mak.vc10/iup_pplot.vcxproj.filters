@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="inc">
+      <UniqueIdentifier>{8b3540ab-9c28-4f8f-91f2-3c078c59d13f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{817de125-ce48-441e-bea1-983ade53ec4f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\srcpplot\iupPPlot.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcpplot\iuppplot.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcpplot\iupPPlotInteraction.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iup_pplot.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\srcpplot\iup_pplot.cpp" />
+    <ClCompile Include="..\srcpplot\iupPPlot.cpp" />
+    <ClCompile Include="..\srcpplot\iupPPlotInteraction.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="..\srcpplot\iup_pplot.def" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,4 @@
+EXPORTS
+  iup_plotlua_open
+  luaopen_iuplua_plot
+  IupPlotSetFormula

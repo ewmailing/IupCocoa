@@ -1,0 +1,32 @@
+EXPORTS
+  iuplua_open
+  iuplua_close
+  iuplua_plugstate
+  iuplua_getstate
+  iuplua_checkihandle
+  iuplua_call
+  iuplua_call_ret_s
+  iuplua_call_ret_d
+  iuplua_call_raw
+  iuplua_get_env
+  iuplua_pushihandle
+  iuplua_pushihandle_raw
+  iuplua_dofile
+  iuplua_dostring
+  iuplua_dobuffer
+  iupkey_open
+  iuplua_opencall_internal
+  luaopen_iuplua
+  iuplua_register
+  iuplua_regstring
+  iuplua_checkstring_array
+  iuplua_checkint_array
+  iuplua_checkfloat_array
+  iuplua_checkdouble_array
+  iuplua_checkuchar_array
+  iuplua_checkihandle_array
+  iuplua_checkihandleornil
+  iuplua_call_start
+  iuplua_register_cb
+  iuplua_getglobaltable
+  

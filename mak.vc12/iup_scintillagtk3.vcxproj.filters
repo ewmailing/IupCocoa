@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\srcscintilla\iup_scintilla.cpp" />
+    <ClCompile Include="..\srcscintilla\gtk\PlatGTK.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\gtk\scintilla-marshal.c">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\gtk\ScintillaGTK.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Scintilla">
+      <UniqueIdentifier>{75c2ef43-b9cf-4259-b0ee-b93eac7bb388}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

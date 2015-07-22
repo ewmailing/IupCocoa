@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\srcmatrixex\iup_matrixex.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_clipboard.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_busy.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_visible.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_export.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_copy.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_units.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_undo.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_find.c" />
+    <ClCompile Include="..\srcmatrixex\iupmatex_sort.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="..\srcmatrixex\iupmatrixex.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\srcmatrixex\iup_matrixex.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iupmatrixex.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="inc">
+      <UniqueIdentifier>{9daef96b-243a-49df-bd80-af193abee58a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="inc">
+      <UniqueIdentifier>{2f26233b-51aa-41c8-8a52-7daf5ec0e11b}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{8b80e538-1bd7-457b-b85c-18de7b3a8226}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{0821a5b6-5efe-4822-9c57-34004cd42f13}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\srcole\tAmbientProperties.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tDispatch.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tLegacy.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tOleClientSite.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tOleControlSite.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tOleHandler.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tOleInPlaceFrame.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcole\tOleInPlaceSite.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iupole.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\srcole\iup_olecontrol.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tAmbientProperties.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tDispatch.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tLegacy.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tOleClientSite.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tOleControlSite.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tOleHandler.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tOleInPlaceFrame.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcole\tOleInPlaceSite.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\srcole\iupole.def" />
+  </ItemGroup>
+</Project>

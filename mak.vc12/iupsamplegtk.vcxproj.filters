@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="C">
+      <UniqueIdentifier>{611de2ff-5ef1-4c12-bdcc-09cbe9b665b1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\html\examples\C\alarm.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\button.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\canvas1.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\canvas2.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\canvas3.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\cbox.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\cells_checkboard.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\cells_degrade.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\cells_numbering.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\colorbar.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\colorbrowser.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\dialog1.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\dialog2.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\filedlg.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\fill.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\frame.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\gauge.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\getattribute.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\getcolor.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\getfile.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\getparam.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\glcanvas.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\hbox.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\idle.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\image.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\item.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\label.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\list1.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\list2.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\listdialog.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\lua_init.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\mask.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\matrix.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\mdi.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\menu.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\message.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\multiline1.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\multiline2.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\ole_browser.cpp">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\pplot.cpp">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\progressbar.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\radio.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\sample.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\sbox1.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\sbox2.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\scanf.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\scrollbar.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\separator.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\submenu.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\tabs.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\text.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\timer.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\toggle.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\tree.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\val.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\vbox.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\zbox.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\scintilla.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\list3.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\detachbox.c">
+      <Filter>C</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

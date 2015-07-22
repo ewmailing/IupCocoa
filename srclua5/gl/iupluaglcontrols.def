@@ -1,0 +1,4 @@
+EXPORTS
+  iupglcontrolslua_open
+  luaopen_iupluaglcontrols
+  

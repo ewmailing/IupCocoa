@@ -1,0 +1,26 @@
+EXPORTS
+  IupPlotOpen
+  IupPlot
+  IupPlotBegin
+  IupPlotAdd
+  IupPlotAddStr
+  IupPlotAddSegment
+  IupPlotEnd
+  IupPlotLoadData
+  IupPlotInsert
+  IupPlotInsertStr
+  IupPlotInsertSegment
+  IupPlotTransform
+  IupPlotTransformTo
+  IupPlotPaintTo
+  IupPlotInsertStrSamples
+  IupPlotInsertSamples
+  IupPlotAddSamples
+  IupPlotAddStrSamples
+  IupPlotGetSample
+  IupPlotGetSampleStr
+  IupPlotGetSampleSelection
+  IupPlotSetSample
+  IupPlotSetSampleStr
+  IupPlotSetSampleSelection
+  IupPlotFindSample

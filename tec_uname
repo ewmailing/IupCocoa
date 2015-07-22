@@ -1,0 +1,199 @@
+#!/bin/bash
+
+Pause()
+{
+  echo -n Press Enter to continue or Ctrl+C to abort...
+  read contscr
+  echo ' '
+}
+
+ComputeTecUname()
+{
+  # Base Definitions
+  TEC_SYSNAME=`uname -s`
+  TEC_SYSVERSION=`uname -r|cut -f1 -d.`
+  TEC_SYSMINOR=`uname -r|cut -f2 -d.`
+  TEC_SYSARCH=`uname -m`
+
+  # Fixes
+  if [ $TEC_SYSNAME == SunOS ]; then
+    TEC_SYSARCH=`uname -p`
+  fi
+  if [ $TEC_SYSNAME == IRIX ]; then
+    TEC_SYSARCH=`uname -p`
+  fi
+  if [ $TEC_SYSNAME == FreeBSD ]; then
+    TEC_SYSMINOR=`uname -r|cut -f2 -d.|cut -f1 -d-`
+  fi
+  if [ $TEC_SYSNAME == GNU/kFreeBSD ]; then
+    TEC_SYSNAME=kFreeBSD
+    TEC_SYSMINOR=`uname -r|cut -f2 -d.|cut -f1 -d-`
+  fi
+  if [ $TEC_SYSNAME == AIX ]; then
+    TEC_SYSVERSION=`uname -v`
+    TEC_SYSMINOR=`uname -r`
+    TEC_SYSARCH=ppc
+  fi
+  if [ $TEC_SYSNAME == Darwin ]; then
+    TEC_SYSNAME=MacOS
+    TEC_SYSVERSION=`sw_vers -productVersion|cut -f1 -d.`
+    TEC_SYSMINOR=`sw_vers -productVersion|cut -f2 -d.`
+    TEC_SYSARCH=`uname -p`
+  fi
+ 
+  if [ $TEC_SYSARCH == i686 ]; then
+    TEC_SYSARCH=x86
+  fi
+  if [ $TEC_SYSARCH == i386 ]; then
+    TEC_SYSARCH=x86
+  fi
+  if [ $TEC_SYSARCH == powerpc ]; then
+    TEC_SYSARCH=ppc
+  fi
+  if [ $TEC_SYSARCH == x86_64 ]; then
+    TEC_SYSARCH=x64
+  fi
+  if [ $TEC_SYSARCH == amd64 ]; then
+    TEC_SYSARCH=x64
+  fi
+  
+  # Compose
+  TEC_UNAME=$TEC_SYSNAME$TEC_SYSVERSION$TEC_SYSMINOR
+
+  # Cygwin
+  CYGW=`uname -s|cut -f1 -d-`
+  if [ $CYGW == CYGWIN_NT ]; then
+    TEC_SYSNAME=CYGWIN
+    TEC_UNAME='cygw'$TEC_SYSVERSION$TEC_SYSMINOR
+  fi
+  
+  # Linux 2.4 and GCC 3.x
+  if [ $TEC_UNAME == Linux24 ]; then
+    GCCVER=`gcc -dumpversion|cut -f1 -d.`
+    if [ $GCCVER == 3 ]; then
+      TEC_UNAME=$TEC_UNAME'g3'
+    fi
+  fi
+
+  # Linux 2.6 and GCC 4.x
+  if [ $TEC_UNAME == Linux26 ]; then
+    GCCVER=`gcc -dumpversion|cut -f1 -d.`
+    if [ $GCCVER == 4 ]; then
+      TEC_UNAME=$TEC_UNAME'g4'
+    fi
+  fi
+
+  if [ $TEC_SYSNAME == Linux ]; then
+    # Linux and PowerPC
+    if [ $TEC_SYSARCH == ppc ]; then
+      TEC_UNAME=$TEC_UNAME'ppc'
+    fi
+
+    # 64-bits Linux
+    if [ $TEC_SYSARCH == x64 ]; then
+      BUILD_64=Yes
+      TEC_UNAME=$TEC_UNAME'_64'
+    fi
+
+    # Itanium Linux
+    if [ $TEC_SYSARCH == ia64 ]; then
+      BUILD_64=Yes
+      TEC_UNAME=$TEC_UNAME'_ia64'
+    fi
+    
+    # Linux Distribution
+    TEC_DISTNAME=`lsb_release -is`
+    TEC_DISTVERSION=`lsb_release -rs|cut -f1 -d.`
+    TEC_DIST=$TEC_DISTNAME$TEC_DISTVERSION
+  fi
+
+  # 64-bits FreeBSD
+  if [ $TEC_SYSNAME == FreeBSD ]; then
+    if [ $TEC_SYSARCH == x64 ]; then
+      BUILD_64=Yes
+      TEC_UNAME=$TEC_UNAME'_64'
+    fi
+  fi
+
+  # Solaris and Intel
+  if [ $TEC_SYSNAME == SunOS ]; then
+    if [ $TEC_SYSARCH == x86 ]; then
+      TEC_UNAME=$TEC_UNAME'x86'
+    fi
+  fi
+
+  # MacOS and Intel
+  if [ $TEC_SYSNAME == MacOS ]; then
+    if [ $TEC_SYSMINOR == 5 ]; then
+      if [ $TEC_SYSARCH == x86 ]; then
+        TEC_UNAME=$TEC_UNAME'x86'
+      fi
+    else
+      if [ $TEC_SYSMINOR == 4 ]; then
+        if [ $TEC_SYSARCH == x86 ]; then
+          TEC_UNAME=$TEC_UNAME'x86'
+        fi
+      else
+        TEC_SYSARCH=x64
+      fi
+    fi
+  fi
+}
+
+ComputeSystemPaths()
+{
+  if [ $TEC_SYSARCH == x64 ]; then
+    if [ -d /usr/lib64 ]; then
+      TEC_SYSTEM_LIB=/usr/lib64
+    else
+      TEC_SYSTEM_LIB=/usr/lib
+    fi
+  else
+    TEC_SYSTEM_LIB=/usr/lib
+  fi
+
+  TEC_SYSTEM_INC=/usr/include
+  
+  if [ $TEC_SYSNAME == Haiku ]; then
+    TEC_SYSTEM_LIB=`finddir B_SYSTEM_LIB_DIRECTORY`
+    TEC_SYSTEM_INC=`finddir B_SYSTEM_HEADERS_DIRECTORY`
+  fi
+
+  TEC_LUA_LIB=$TEC_SYSTEM_LIB/lua/$LUA_VER
+}
+
+ComputeLuaVersion()
+{
+  if [ -n "$USE_LUA51" ]; then
+    LUA_VER=5.1
+    LUA_SFX=51
+  fi
+
+  if [ -n "$USE_LUA52" ]; then
+    LUA_VER=5.2
+    LUA_SFX=52
+  fi
+  
+  if [ -n "$USE_LUA53" ]; then
+    LUA_VER=5.3
+    LUA_SFX=53
+  fi
+
+  # Default Lua version  
+  if [ -z "$LUA_VER" ]; then
+    LUA_VER=5.1
+    LUA_SFX=51
+  fi
+}
+
+PrintInfo()
+{
+  echo ' '
+  echo '  Info:'
+  echo 'TEC_SYSNAME='$TEC_SYSNAME
+  echo 'TEC_SYSVERSION='$TEC_SYSVERSION
+  echo 'TEC_SYSMINOR='$TEC_SYSMINOR
+  echo 'TEC_SYSARCH='$TEC_SYSARCH
+  echo 'TEC_SYSTEM_LIB='$TEC_SYSTEM_LIB
+  echo 'TEC_SYSTEM_INC='$TEC_SYSTEM_INC
+}

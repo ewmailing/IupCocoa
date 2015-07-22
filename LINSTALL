@@ -1,0 +1,26 @@
+INSTALL for IUP on Linux
+
+  The IUP documentation contains a guide to help you build and install the major Tecgraf libraries in Linux. It is available in "Guide"/"Building in Linux". There you will find the external dependencies you need to install to build from sources and how to use the available scripts to install the necessary files in the system.
+  
+  Only the simplest installation procedure is described here.
+  
+  Download the pre-compile binaries, usually "iup-X.X_Linux26g4_lib.tar.gz" or "iup-X.X_Linux26g4_64_lib.tar.gz".
+  
+  Create a folder and unpack the files:
+  
+    mkdir iup
+    cd iup
+    tar -xpvzf ../iup-X.X_Linux26g4_lib.tar.gz
+  
+  To install the run time libraries (dynamic libraries), run the "install" script.
+  
+  To install the development files (includes and static libraries), run the "install_dev" script.
+  
+  To configure the run time libraries as Lua modules, run the "config_lua_module" script. This needs to be used only if the Lua modules have 51/52/.. suffixes. The script is pre-configured for Lua 5.1, to use it for other Lua versions define USE_LUA52=Yes, or USE_LUA53=Yes.
+  
+  All scripts don't need parameters. They need root privileges. If they fail check the Guide at the documentation.
+
+  For complete information, visit IUP's web site at http://www.tecgraf.puc-rio.br/iup
+  or access its documentation in the HTML folder.
+
+(end of INSTALL)

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Include TEC_UNAME definitions
+source ./tec_uname
+
+echo ' '
+echo '  This script will configure the Tecgraf libraries in the system'
+echo '  to be used from Lua. It was tested in Ubuntu and in Fedora.'
+echo ' '
+echo '  The current Lua version is defined by the variables:'
+echo '    USE_LUA51 (default) or USE_LUA52 or USE_LUA52'
+echo ' '
+echo '  The Run Time libraries must be already installed on the system (see the install script).'
+echo '  It assumes that Lua binaries are installed using system packages.'
+echo ' '
+echo '  Must be run with "sudo", or install will fail,'
+echo '  for example:'
+echo '     sudo ./config_lua_module'
+echo ' '
+
+Make_Lua_Link()
+{
+  ln -fsv $TEC_SYSTEM_LIB/lib$1$LUA_PFX.so $1.so
+}
+
+# From tec_uname script
+ComputeTecUname
+ComputeLuaVersion
+ComputeSystemPaths
+#PrintInfo
+
+Pause
+mkdir -p $TEC_LUA_LIB
+cd $TEC_LUA_LIB
+
+Make_Lua_Link iuplua
+Make_Lua_Link iupluacontrols
+Make_Lua_Link iupluacd
+Make_Lua_Link iupluagl
+Make_Lua_Link iuplua_pplot
+Make_Lua_Link iupluaim
+Make_Lua_Link iupluaimglib
+Make_Lua_Link iupluatuio

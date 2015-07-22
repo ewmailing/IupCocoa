@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Include TEC_UNAME definitions
+source ./tec_uname
+
+echo ' '
+echo '  This script will uninstall both the >>Run Time<< libraries'
+echo '  and the >>Development<< files from the system'
+echo '  It was tested in Ubuntu and in Fedora.'
+echo ' '
+echo '  Must be run with "sudo" at the library folder, or install will fail:'
+echo '     sudo ./uninstall'
+echo ' '
+
+Remove_Lua_Mod()
+{
+  rm -fv $TEC_LUA_LIB/$1*.so
+}
+
+Remove_Extra_CD()
+{
+  # Do NOT remove FreeType
+  
+  rm -fv $TEC_SYSTEM_LIB/libpdflib.a 
+  rm -fv $TEC_SYSTEM_LIB/libftgl.a
+  rm -fv $TEC_SYSTEM_LIB/libpdflib.so 
+  rm -fv $TEC_SYSTEM_LIB/libftgl.so
+}
+
+Remove_From_System()
+{
+  rm -frv $TEC_SYSTEM_INC/$1
+  rm -fv $TEC_SYSTEM_LIB/lib$1*.a
+  rm -fv $TEC_SYSTEM_LIB/lib$1*.so 
+  
+  if [ $1 == cd ]; then
+    Remove_Extra_CD
+  fi
+  
+  Remove_Lua_Mod $1lua
+}
+
+# From tec_uname script
+ComputeTecUname
+ComputeSystemPaths
+#PrintInfo
+
+Pause
+Remove_From_System iup

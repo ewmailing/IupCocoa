@@ -1,0 +1,14 @@
+EXPORTS
+  cdContextIup
+  cdContextIupDBuffer
+  cdContextIupDBufferRGB
+
+  cdIupCalcShadows
+  cdIupConvertColor
+  cdIupDrawSunkenRect
+  cdIupDrawRaiseRect
+  cdIupDrawVertSunkenMark
+  cdIupDrawHorizSunkenMark
+  cdIupDrawImage
+  IupCdDrawFocusRect
+  IupCdSetFont

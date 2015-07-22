@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="inc">
+      <UniqueIdentifier>{0ed6e286-e88f-4504-9895-ed42b9c0411b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{60a1aeb3-2ab7-4d2b-ae45-bcc3e7c4d1c0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\srcimglib\iup_imglib_bitmaps.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_bitmaps8.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_bitmapsgtk.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_icons.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_icons8.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_logos.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_logos8.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_logosw32.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\srcimglib\iup_imglib_bitmaps.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_bitmaps8.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_bitmapsgtk.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_icons.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_icons8.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_logos.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_logos8.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_logosw32.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_image_library.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="..\srcimglib\iupimglib.def" />
+  </ItemGroup>
+</Project>

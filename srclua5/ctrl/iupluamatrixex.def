@@ -1,0 +1,4 @@
+EXPORTS
+  iupmatrixexlua_open
+  luaopen_iupluamatrixex
+  

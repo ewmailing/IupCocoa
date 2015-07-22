@@ -1,0 +1,7 @@
+EXPORTS
+  iupcontrolslua_open
+  iupcontrolslua_close
+  luaopen_iupluacontrols
+  IupMatrixSetFormula
+  IupMatrixSetDynamic
+  

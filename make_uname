@@ -1,0 +1,83 @@
+#This builds all the libraries for 1 uname
+
+cd src
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srccd
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srccontrols
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcmatrixex 
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcgl
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcglcontrols
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcplot
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcpplot
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcmglplot
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcscintilla
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcim
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcimglib
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srctuio 
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcweb
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcledc
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcview
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srclua5
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname USE_LUA51=Yes $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname USE_LUA52=Yes $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname USE_LUA53=Yes $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd srcconsole
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname USE_LUA51=Yes $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname USE_LUA52=Yes $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname USE_LUA53=Yes $1 $2 $3 $4 $5 $6 $7 $8
+cd ..
+
+cd test
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ..

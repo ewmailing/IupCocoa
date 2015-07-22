@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Include TEC_UNAME definitions
+source ./tec_uname
+
+echo ' '
+echo '  This script will install the >>Run Time<< libraries in the system'
+echo '  from the build directories or from the unpacked download.'
+echo '  It was tested in Ubuntu and in Fedora.'
+echo ' '
+echo '  Must be run with "sudo" at the library folder, or install will fail:'
+echo '     sudo ./install'
+echo ' '
+
+EchoDownloadTip()
+{
+  echo '  The downloaded package must already be unpacked in the current directory.'
+  echo '  Do NOT unpack different packages in the same directory.'
+  echo '  For example:'
+  echo '     mkdir iup'
+  echo '     cd iup'
+  echo '     tar -xpvzf ../iup-X.X_Linux26g4_lib.tar.gz'
+  echo ' '
+}
+
+Copy_RunTime_Extra_CD()
+{
+  # Do NOT overwrite for FreeType
+  cp -fn $1libfreetype.so $TEC_SYSTEM_LIB
+  
+  cp -fv $1libpdflib.so $TEC_SYSTEM_LIB
+  cp -fv $1libftgl.so $TEC_SYSTEM_LIB
+}
+
+Copy_RunTime_To_System()
+{
+  cp -fv $2lib$1*.so $TEC_SYSTEM_LIB
+  
+  if [ $1 == cd ]; then
+    Copy_RunTime_Extra_CD $2
+  fi
+}
+
+Install_RunTime()
+{
+  if [ -d lib/$TEC_UNAME ]; then
+    echo '  Installing from build directory' lib/$TEC_UNAME
+    echo ' '
+    Pause
+    Copy_RunTime_To_System $1 lib/$TEC_UNAME/
+  else
+    echo '  The directory' lib/$TEC_UNAME 'was not found,'
+    echo '  so installing from unpacked download.'
+    echo ' '
+    EchoDownloadTip
+    Pause
+    Copy_RunTime_To_System $1
+  fi
+}
+
+# From tec_uname script
+ComputeTecUname
+ComputeSystemPaths
+#PrintInfo
+
+Install_RunTime iup
