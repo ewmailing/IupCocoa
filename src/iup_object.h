@@ -69,6 +69,9 @@ typedef struct _GtkWidget InativeHandle;
 typedef struct _WidgetRec InativeHandle;
 #elif defined(WINVER)
 typedef struct HWND__ InativeHandle;
+#elif defined(__APPLE__)
+#import <CoreFoundation/CoreFoundation.h>
+	typedef CFTypeRef InativeHandle;
 #else
 typedef struct _InativeHandle InativeHandle;
 #endif

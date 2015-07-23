@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 #include <langinfo.h>
 
-#include <gtk/gtk.h>
+//#include <gtk/gtk.h>
 
 #include "iup.h" 
 

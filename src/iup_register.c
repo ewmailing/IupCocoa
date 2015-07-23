@@ -78,6 +78,7 @@ void iupRegisterClass(Iclass* ic)
 
 void iupRegisterInternalClasses(void)
 {
+#if 1
   iupRegisterClass(iupDialogNewClass());
   iupRegisterClass(iupMessageDlgNewClass());
   iupRegisterClass(iupColorDlgNewClass());
@@ -129,4 +130,5 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupBackgroundBoxNewClass());
   iupRegisterClass(iupLinkNewClass());
   iupRegisterClass(iupGridBoxNewClass());
+#endif
 }
