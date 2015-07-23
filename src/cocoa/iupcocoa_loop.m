@@ -38,6 +38,14 @@ int IupMainLoopLevel(void)
   return mac_main_loop;
 }
 
+#if 1
+int IupMainLoop(void)
+{
+	[NSApp run];
+	return IUP_NOERROR;
+
+}
+#else
 int IupMainLoop(void)
 {
   NSEvent *event;
@@ -94,6 +102,8 @@ int IupMainLoop(void)
   mac_main_loop--;
   return IUP_NOERROR;
 }
+#endif
+
 
 int IupLoopStepWait(void)
 {

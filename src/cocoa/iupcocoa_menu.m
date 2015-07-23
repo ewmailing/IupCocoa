@@ -4,7 +4,7 @@
  * See Copyright Notice in "iup.h"
  */
 
-#include <Cocoa/Cocoa.h>
+#import <Cocoa/Cocoa.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -58,6 +58,20 @@ int iupdrvMenuGetMenuBarSize(Ihandle* ih)
 
 void iupdrvMenuInitClass(Iclass* ic)
 {
+	
+	id menubar = [[NSMenu new] autorelease];
+	id appMenuItem = [[NSMenuItem new] autorelease];
+	[menubar addItem:appMenuItem];
+	[NSApp setMainMenu:menubar];
+	id appMenu = [[NSMenu new] autorelease];
+	id appName = [[NSProcessInfo processInfo] processName];
+	id quitTitle = [@"Quit " stringByAppendingString:appName];
+	id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle
+												  action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+	[appMenu addItem:quitMenuItem];
+	[appMenuItem setSubmenu:appMenu];
+	
+	
 #if 0
   /* Driver Dependent Class functions */
   ic->Map = gtkMenuMapMethod;

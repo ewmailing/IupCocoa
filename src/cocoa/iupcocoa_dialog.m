@@ -5,6 +5,7 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
 
 #ifdef HILDON
 #include <hildon/hildon-program.h>
@@ -36,8 +37,61 @@
 #include "iup_image.h"
 #include "iup_assert.h"
 
+static const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+/*
+@interface NSWindow () 
+@property(readwrite, unsafe_unretained) Ihandle* iupIhandle;
+@end
+
+@implementation NSWindow
+@synthesize iupIhandle = _iupIhandle;
+@end
+ */
 
 
+
+
+@interface IupCocoaWindowDelegate : NSObject <NSWindowDelegate>
+- (BOOL) windowShouldClose:(id)the_sender;
+@end
+
+@implementation IupCocoaWindowDelegate
+
+- (BOOL) windowShouldClose:(id)the_sender
+{
+	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
+	
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
+	
+	/* even when ACTIVE=NO the dialog gets this evt */
+#if 0
+	if (!iupdrvIsActive(ih)) // not implemented yet
+	{
+		return YES;
+	}
+#endif
+	
+	Icallback callback_function = IupGetCallback(ih, "CLOSE_CB");
+	if(callback_function)
+	{
+		int ret = callback_function(ih);
+		if (ret == IUP_IGNORE)
+		{
+			return YES;
+		}
+		if (ret == IUP_CLOSE)
+		{
+			IupExitLoop();
+		}
+	}
+	
+	IupHide(ih); /* default: close the window */
+
+	return YES; /* do not propagate */
+	
+}
+
+@end
 
 /****************************************************************
  Utilities
@@ -84,14 +138,51 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
  Callbacks and Events
  ****************************************************************/
 
+static int cocoaDialogMapMethod(Ihandle* ih)
+{
+	
+	
+	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
+													styleMask:NSTitledWindowMask|NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
+	[the_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
+//	[window setTitle:appName];
+	[the_window makeKeyAndOrderFront:nil];
+	
+	ih->handle = (__unsafe_unretained void*)the_window;
+	
+	IupCocoaWindowDelegate* window_delegate = [[IupCocoaWindowDelegate alloc] init];
+//	[window setIupIhandle:ih];
+	
+	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
+	objc_setAssociatedObject(the_window, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 
+	
+	[the_window setDelegate:window_delegate];
+	
+	
+	return IUP_NOERROR;
 
+}
+
+static void cocoaDialogUnMapMethod(Ihandle* ih)
+{
+
+	NSWindow* the_window = (__bridge NSWindow*)ih->handle;
+	[the_window close];
+	
+	IupCocoaWindowDelegate* window_delegate = [the_window delegate];
+	[the_window setDelegate:nil];
+	[window_delegate release];
+
+	[the_window release];
+	
+}
 void iupdrvDialogInitClass(Iclass* ic)
 {
-#if 0
 	/* Driver Dependent Class methods */
-	ic->Map = gtkDialogMapMethod;
-	ic->UnMap = gtkDialogUnMapMethod;
+	ic->Map = cocoaDialogMapMethod;
+	ic->UnMap = cocoaDialogUnMapMethod;
+#if 0
 	ic->LayoutUpdate = gtkDialogLayoutUpdateMethod;
 	ic->GetInnerNativeContainerHandle = gtkDialogGetInnerNativeContainerHandleMethod;
 	ic->SetChildrenPosition = gtkDialogSetChildrenPositionMethod;
