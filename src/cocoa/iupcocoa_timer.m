@@ -4,6 +4,10 @@
  * See Copyright Notice in "iup.h"
  */
 
+
+// TODO: FEATURE: Support Apple 'tolerance' property which controls battery vs. accuracy.
+
+
 #import <Cocoa/Cocoa.h>
  
 #include <stdio.h>
@@ -18,66 +22,97 @@
 #include "iup_assert.h"
 #include "iup_timer.h"
 
-@interface MyTimerController : NSObject {
-  NSTimer *timer;
-}
-@property (retain)NSTimer *timer;
-- (void)targetMethod:(NSTimer*)theTimer;
+@interface IupCocoaTimerController : NSObject
+// CFTimeInterval is a double
+@property (assign) CFTimeInterval startTime;
+@property (retain) NSTimer* theTimer;
+- (void) onTimerCallback:(NSTimer*)theTimer;
 @end
-@implementation MyTimerController
-@synthesize timer;
-- (void)targetMethod:(NSTimer*)theTimer {
-  Icallback cb;
-  Ihandle* ih = (Ihandle*)[[theTimer userInfo] pointerValue];
-  cb = IupGetCallback(ih, "ACTION_CB");
-  if(cb)
+
+@implementation IupCocoaTimerController
+@synthesize theTimer;
+
+- (void) onTimerCallback:(NSTimer*)theTimer
+{
+  Icallback callback_function;
+  Ihandle* ih = (Ihandle*)[[[self theTimer] userInfo] pointerValue];
+  callback_function = IupGetCallback(ih, "ACTION_CB");
+	
+  if(callback_function)
   {
-    if (cb(ih) == IUP_CLOSE)
-      IupExitLoop();
+	  CFTimeInterval start_time = [self startTime];
+	  double current_time = CACurrentMediaTime();
+	  NSUInteger elapsed_time = (NSUInteger)(((current_time - start_time) * 1000.0) + 0.5);
+	  iupAttribSetInt(ih, "ELAPSEDTIME", (int)elapsed_time);
+	  
+    if(callback_function(ih) == IUP_CLOSE)
+	{
+		IupExitLoop();
+	}
   }
 }
 
-void iupdrvTimerRun(Ihandle *ih)
+@end
+
+
+void iupdrvTimerRun(Ihandle* ih)
 {
-	// BROKEN: serial is an int which is not large enough to hold a pointer
-#if 0
   unsigned int time_ms;
 
-  if (ih->serial != 0) /* timer already started */
-    return;
-
-  time_ms = iupAttribGetInt(ih, "TIME");
-  if (time_ms > 0)
+  if (ih->handle != nil) /* timer already started */
   {
-    MyTimerController *timerController = [MyTimerController new];
-    NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:(time_ms/1000.0) target:timerController 
-        selector:@selector(targetMethod:)
-        userInfo:(id)[NSValue valueWithPointer:ih] repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:timer
-      forMode:NSModalPanelRunLoopMode];
-    timerController.timer = timer;
-    ih->serial = (int)timerController;
+	  return;
   }
-#endif
+  time_ms = iupAttribGetInt(ih, "TIME");
+  if(time_ms > 0)
+  {
+	  IupCocoaTimerController* timer_controller = [[IupCocoaTimerController alloc] init];
+	  // CACurrentMediaTime is tied to a real time clock. It uses mach_absolute_time() under the hood.
+	  // GNUStep: Neither of these is likely directly portable (CACurrentMediaTime more likely), so we may need an #ifdef here.
+	  // [[NSDate date] timeIntervalSince1970]; isn't so great because it is affected by network clock changes and so forth.
+	  double start_time = CACurrentMediaTime();
+
+	  NSTimer* the_timer = [NSTimer scheduledTimerWithTimeInterval:(time_ms/1000.0)
+		target:timer_controller
+        selector:@selector(onTimerCallback:)
+        userInfo:(id)[NSValue valueWithPointer:ih]
+		repeats:YES
+	];
+	  
+
+	[[NSRunLoop currentRunLoop] addTimer:the_timer
+      forMode:NSModalPanelRunLoopMode];
+
+	[timer_controller setTheTimer:the_timer];
+	  [timer_controller setStartTime:start_time];
+
+	  ih->handle = (__unsafe_unretained void*)timer_controller;
+  }
+	
 }
 
 void iupdrvTimerStop(Ihandle* ih)
 {
-	// BROKEN: serial is an int which is not large enough to hold a pointer
-#if 0
-  if (ih->serial != 0)
-  {
-    MyTimerController *timerController = (MyTimerController*)ih->serial;
-    [timerController.timer invalidate];
-    ih->serial = 0;
-  }
-#endif
+
+
+	if(nil != ih->handle)
+	{
+		IupCocoaTimerController* timer_controller = (IupCocoaTimerController*)ih->handle;
+		NSTimer* the_timer = [timer_controller theTimer];
+	  
+		[the_timer invalidate];
+		
+		// This will also release the timer instance
+		[timer_controller release];
+		
+		ih->handle = nil;
+	}
+
 }
 
 void iupdrvTimerInitClass(Iclass* ic)
 {
-  (void)ic;
+	(void)ic;
 }
 
-@end
 
