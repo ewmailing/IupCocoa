@@ -58,9 +58,16 @@ int iupdrvOpen(int *argc, char ***argv)
   (void)argc; /* unused in the mac driver */
   (void)argv;
 
-	s_autoreleasePool = [[NSAutoreleasePool alloc] init];
+	// Assuming we're always on the main thread.
+	// Using a singleton pattern because draining is causing problems.
+	// Not using dispatch_once thinking about GNUStep
+	if(nil == s_autoreleasePool)
+	{
+		s_autoreleasePool = [[NSAutoreleasePool alloc] init];
+	}
+
 	[NSApplication sharedApplication];
-	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+//	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 	/*
 	id menubar = [[NSMenu new] autorelease];
 	id appMenuItem = [[NSMenuItem new] autorelease];
@@ -82,7 +89,7 @@ int iupdrvOpen(int *argc, char ***argv)
 	[window setTitle:appName];
 	[window makeKeyAndOrderFront:nil];
 	 */
-	[NSApp activateIgnoringOtherApps:YES];
+//	[NSApp activateIgnoringOtherApps:YES];
 	
 	
 	
@@ -99,9 +106,14 @@ int iupdrvOpen(int *argc, char ***argv)
 
 void iupdrvClose(void)
 {
-//  iupmacReleaseConvertUTF8();
-	[s_autoreleasePool drain];
-	s_autoreleasePool = nil;
+
+	// Hmmm...there could a problem. Objects might get called to be Destroyed after the close.
+	// They shouldn't do this.
+	// But if it happens, maybe we either never drain and do a dispatch_once.
+	// More info: I'm actually crashing here with a single window app on shutdown. I'm not sure why.
+	// Moving to a singleton pattern sidesteps everything.
+//	[s_autoreleasePool drain];
+//	s_autoreleasePool = nil;
 	
 	
 }

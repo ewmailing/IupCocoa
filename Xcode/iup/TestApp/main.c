@@ -42,9 +42,12 @@ int main(int argc, const char* argv[])
 	IupShowXY(dialog, IUP_CENTER, IUP_CENTER);
 	
 	IupMainLoop();
+	IupDestroy(dialog);
+
+	IupDestroy(timer1);
+
 	IupClose();
 	
-	IupDestroy(timer1);
 	
 	return 0;
 }

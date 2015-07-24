@@ -24,7 +24,8 @@ void iupdrvSetIdleFunction(Icallback f)
 
 void IupExitLoop(void)
 {
-  [NSApp terminate:nil];
+//  [NSApp terminate:nil];
+	[NSApp stop:nil];
 }
 
 static int macLoopProcessMessage(NSEvent *event)

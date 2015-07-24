@@ -54,11 +54,16 @@ int iupdrvMenuGetMenuBarSize(Ihandle* ih)
 }
 
 
+static void cocoaReleaseMenuClass(Iclass* ic)
+{
+	// Not sure if I should tear this down. Typically apps just quit and leave all this stuff.
+	[NSApp setMainMenu:nil];
+
+}
 
 
 void iupdrvMenuInitClass(Iclass* ic)
 {
-	
 	id menubar = [[NSMenu new] autorelease];
 	id appMenuItem = [[NSMenuItem new] autorelease];
 	[menubar addItem:appMenuItem];
@@ -70,8 +75,8 @@ void iupdrvMenuInitClass(Iclass* ic)
 												  action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
 	[appMenu addItem:quitMenuItem];
 	[appMenuItem setSubmenu:appMenu];
-	
-	
+
+	ic->Release = cocoaReleaseMenuClass;
 #if 0
   /* Driver Dependent Class functions */
   ic->Map = gtkMenuMapMethod;

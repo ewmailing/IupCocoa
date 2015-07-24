@@ -32,6 +32,12 @@
 @implementation IupCocoaTimerController
 @synthesize theTimer;
 
+- (void) dealloc
+{
+	[self setTheTimer:nil];
+	[super dealloc];
+}
+
 - (void) onTimerCallback:(NSTimer*)theTimer
 {
   Icallback callback_function;
@@ -91,28 +97,36 @@ void iupdrvTimerRun(Ihandle* ih)
 	
 }
 
-void iupdrvTimerStop(Ihandle* ih)
+static void cocoaTimerDestroy(Ihandle* ih)
 {
-
-
 	if(nil != ih->handle)
 	{
 		IupCocoaTimerController* timer_controller = (IupCocoaTimerController*)ih->handle;
 		NSTimer* the_timer = [timer_controller theTimer];
-	  
+		
 		[the_timer invalidate];
 		
-		// This will also release the timer instance
+		// This will also release the timer instance via the dealloc
 		[timer_controller release];
 		
 		ih->handle = nil;
 	}
+}
+
+void iupdrvTimerStop(Ihandle* ih)
+{
+
+	cocoaTimerDestroy(ih);
 
 }
 
 void iupdrvTimerInitClass(Iclass* ic)
 {
 	(void)ic;
+	// This must be UnMap and not Destroy because we're using the ih->handle and UnMap will clear the pointer to NULL before we reach Destroy.
+	ic->UnMap = cocoaTimerDestroy;
+
+	
 }
 
 

@@ -94,10 +94,11 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 			IupExitLoop();
 		}
 	}
-	
-//	IupHide(ih); /* default: close the window */
 
-	IupDestroy(ih);
+	// I think??? we need to hide and not destroy because the user is supposed to call IupDestroy explicitly
+	IupHide(ih); /* default: close the window */
+
+//	IupDestroy(ih);
 	
 	return YES; /* do not propagate */
 	
@@ -158,6 +159,8 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	
 	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
 													styleMask:NSTitledWindowMask|NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
+	[the_window setReleasedWhenClosed:NO];
+	
 	[the_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
 //	[window setTitle:appName];
 	[the_window makeKeyAndOrderFront:nil];
