@@ -19,6 +19,8 @@
 
 #include "iupcocoa_drv.h"
 
+static NSAutoreleasePool* s_autoreleasePool = nil;
+
 #if 0
 char* iupmacGetNativeWindowHandle(Ihandle* ih)
 {
@@ -56,7 +58,7 @@ int iupdrvOpen(int *argc, char ***argv)
   (void)argc; /* unused in the mac driver */
   (void)argv;
 
-	[NSAutoreleasePool new];
+	s_autoreleasePool = [[NSAutoreleasePool alloc] init];
 	[NSApplication sharedApplication];
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 	/*
@@ -98,4 +100,8 @@ int iupdrvOpen(int *argc, char ***argv)
 void iupdrvClose(void)
 {
 //  iupmacReleaseConvertUTF8();
+	[s_autoreleasePool drain];
+	s_autoreleasePool = nil;
+	
+	
 }
