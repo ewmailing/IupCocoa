@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>1901B755-9B89-49FB-8DFE-E20366F9B091</string>
+	<key>IDESourceControlProjectName</key>
+	<string>iup</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>3BD3808F2402D391ED2F7698FEC2BC8DA1DBA3A5</key>
+		<string>github.com:ewmailing/IupCocoa.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Xcode/iup/iup.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>3BD3808F2402D391ED2F7698FEC2BC8DA1DBA3A5</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:ewmailing/IupCocoa.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>3BD3808F2402D391ED2F7698FEC2BC8DA1DBA3A5</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>3BD3808F2402D391ED2F7698FEC2BC8DA1DBA3A5</string>
+			<key>IDESourceControlWCCName</key>
+			<string>iup315</string>
+		</dict>
+	</array>
+</dict>
+</plist>
