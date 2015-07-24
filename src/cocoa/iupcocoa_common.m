@@ -76,12 +76,12 @@ void iupdrvSetVisible(Ihandle* ih, int visible)
 
 int iupdrvIsVisible(Ihandle* ih)
 {
-	return 0;
+	return 1;
 }
 
 int iupdrvIsActive(Ihandle *ih)
 {
-  return 0;
+  return 1;
 }
 
 void iupdrvSetActive(Ihandle* ih, int enable)

@@ -47,13 +47,23 @@ static const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; /
 @synthesize iupIhandle = _iupIhandle;
 @end
  */
-
-
-
-
 @interface IupCocoaWindowDelegate : NSObject <NSWindowDelegate>
 - (BOOL) windowShouldClose:(id)the_sender;
 @end
+
+static void cocoaCleanUpWindow(Ihandle* ih)
+{
+	NSWindow* the_window = (__bridge NSWindow*)ih->handle;
+	[the_window close];
+	
+	IupCocoaWindowDelegate* window_delegate = [the_window delegate];
+	[the_window setDelegate:nil];
+	[window_delegate release];
+	
+	[the_window release];
+}
+
+
 
 @implementation IupCocoaWindowDelegate
 
@@ -77,7 +87,7 @@ static const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; /
 		int ret = callback_function(ih);
 		if (ret == IUP_IGNORE)
 		{
-			return YES;
+			return NO;
 		}
 		if (ret == IUP_CLOSE)
 		{
@@ -85,8 +95,10 @@ static const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; /
 		}
 	}
 	
-	IupHide(ih); /* default: close the window */
+//	IupHide(ih); /* default: close the window */
 
+	IupDestroy(ih);
+	
 	return YES; /* do not propagate */
 	
 }
@@ -116,10 +128,12 @@ void iupdrvDialogSetVisible(Ihandle* ih, int visible)
 
 void iupdrvDialogGetPosition(Ihandle *ih, InativeHandle* handle, int *x, int *y)
 {
+	
 }
 
 void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 {
+	
 }
 
 
@@ -167,14 +181,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 static void cocoaDialogUnMapMethod(Ihandle* ih)
 {
 
-	NSWindow* the_window = (__bridge NSWindow*)ih->handle;
-	[the_window close];
-	
-	IupCocoaWindowDelegate* window_delegate = [the_window delegate];
-	[the_window setDelegate:nil];
-	[window_delegate release];
-
-	[the_window release];
+	cocoaCleanUpWindow(ih);
 	
 }
 void iupdrvDialogInitClass(Iclass* ic)
