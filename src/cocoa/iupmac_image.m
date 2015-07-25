@@ -121,89 +121,207 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
   if (!image)
+  {
     return NULL;
-  unsigned char *red,*green,*blue,*alpha;
-	unsigned char* source_pixel;
-  void *theArray[1];
-//  unsigned char *pixels = malloc(width*height*bpp);
-	unsigned char *pixels = malloc(width*height*32);
-  theArray[0] = (void*)pixels;
-  int planesize = width*height;
-
-	source_pixel = imgdata;
-	red = imgdata;
-
-	/*
-green = imgdata+planesize;
-  blue = imgdata+2*planesize;
-  alpha = imgdata+3*planesize;
-*/
-	green = imgdata+1;
-	blue = imgdata+2;
-	alpha = imgdata+3;
+  }
 	
+	NSBitmapImageRep* bitmap_image = nil;
+
+	
+	if(32 == bpp)
+	{
+		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+														 pixelsWide:width pixelsHigh:height bitsPerSample:8
+													samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+													 colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width*4
+													   bitsPerPixel:32
+						];
+	}
+	else if(24 == bpp)
+	{
+		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+															   pixelsWide:width pixelsHigh:height bitsPerSample:8
+														  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
+														   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width*3
+													   bitsPerPixel:24
+						];
+	}
+	else if(8 == bpp)
+	{
+		
+		[image release];
+		return NULL;
+		/*
+		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+															   pixelsWide:width pixelsHigh:height bitsPerSample:8
+														  samplesPerPixel:1 hasAlpha:NO isPlanar:NO
+														   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width
+													   bitsPerPixel:8
+						];
+		 */
+	}
+	else
+	{
+		[image release];
+		return NULL;
+	}
+	
+	
+	
+	if(32 == bpp)
+	{
+		//  unsigned char *red,*green,*blue,*alpha;
+		unsigned char* source_pixel;
+
+		//  unsigned char *pixels = malloc(width*height*bpp);
+		unsigned char *pixels = [bitmap_image bitmapData];
+
+
+		
+		source_pixel = imgdata;
+
+		
   for(y=0;y<height;y++){
-    for(x=0;x<width;x++) {
-/*
-		*pixels++ = *red++;
-      *pixels++ = *green++;
-      *pixels++ = *blue++;
-*/
-		*pixels = *source_pixel;
-		pixels++;
-		source_pixel++;
-		
-		*pixels = *source_pixel;
-		pixels++;
-		source_pixel++;
-
-		*pixels = *source_pixel;
-		pixels++;
-		source_pixel++;
-
-		
-		if(make_inactive) {
-        unsigned char r = *(pixels-3),
-                      g = *(pixels-2),
-                      b = *(pixels-1);
-        iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-      }
-      if(bpp==32)
-	  {
-     //   *pixels++ = *alpha++;
+	  for(x=0;x<width;x++) {
+		  /*
+		   *pixels++ = *red++;
+		   *pixels++ = *green++;
+		   *pixels++ = *blue++;
+		   */
+		  *pixels = *source_pixel;
+		  pixels++;
+		  source_pixel++;
 		  
 		  *pixels = *source_pixel;
 		  pixels++;
 		  source_pixel++;
-	  }
-      else
-	  {
-  //      *pixels++ = 255;
 		  
-		  *pixels = 255;
+		  *pixels = *source_pixel;
 		  pixels++;
+		  source_pixel++;
+		  
+		  
+		  if(make_inactive) {
+			  unsigned char r = *(pixels-3),
+			  g = *(pixels-2),
+			  b = *(pixels-1);
+			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+		  }
+		  if(bpp==32)
+		  {
+     //   *pixels++ = *alpha++;
+			  
+			  *pixels = *source_pixel;
+			  pixels++;
+			  source_pixel++;
+		  }
+		  else
+		  {
+			  //      *pixels++ = 255;
+			  
+			  *pixels = 255;
+			  pixels++;
+		  }
 	  }
-    }
   }
-	NSBitmapImageRep *theRep;
+
+		
+		
+		
+		
+	}
+	else if(24 == bpp)
+	{
+		//  unsigned char *red,*green,*blue,*alpha;
+		unsigned char* source_pixel;
+		
+		//  unsigned char *pixels = malloc(width*height*bpp);
+		unsigned char *pixels = [bitmap_image bitmapData];
+		
+		
+		
+		source_pixel = imgdata;
+		
+		
+  for(y=0;y<height;y++){
+	  for(x=0;x<width;x++) {
+		  /*
+		   *pixels++ = *red++;
+		   *pixels++ = *green++;
+		   *pixels++ = *blue++;
+		   */
+		  *pixels = *source_pixel;
+		  pixels++;
+		  source_pixel++;
+		  
+		  *pixels = *source_pixel;
+		  pixels++;
+		  source_pixel++;
+		  
+		  *pixels = *source_pixel;
+		  pixels++;
+		  source_pixel++;
+		  
+		  
+		  if(make_inactive) {
+			  unsigned char r = *(pixels-3),
+			  g = *(pixels-2),
+			  b = *(pixels-1);
+			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+		  }
+
+		  
+	  }
+  }
+		
+		
+
+	}
+	else if(8 == bpp)
+	{
+#if 0
+		//  unsigned char *red,*green,*blue,*alpha;
+		unsigned char* source_pixel;
+		
+		//  unsigned char *pixels = malloc(width*height*bpp);
+		unsigned char *pixels = [bitmap_image bitmapData];
+		
+		
+		
+		source_pixel = imgdata;
+		
+		
+  for(y=0;y<height;y++){
+	  for(x=0;x<width;x++) {
+
+		  
+		  *pixels = *source_pixel;
+		  pixels++;
+		  source_pixel++;
+		  
+		  /*
+		  if(make_inactive) {
+			  unsigned char r = *(pixels-3),
+			  g = *(pixels-2),
+			  b = *(pixels-1);
+			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+		  }
+		   */
+	  }
+  }
+#endif
+		
+	}
+	else
+	{
+
+		
+	}
 	
-	/*
-	theRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-			pixelsWide:width pixelsHigh:height bitsPerSample:8
-				samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:GetRowBytes(width,4)
-				bitsPerPixel:32];
-	*/
+
 	
 	
-	theRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-													 pixelsWide:width pixelsHigh:height bitsPerSample:8
-												samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-												 colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width*4
-												   bitsPerPixel:32];
-	
-	
-  [image addRepresentation:theRep];
+  [image addRepresentation:bitmap_image];
   if (bgcolor_depend || make_inactive)
     iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
 
