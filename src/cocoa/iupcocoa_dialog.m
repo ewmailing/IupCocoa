@@ -153,12 +153,35 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
  Callbacks and Events
  ****************************************************************/
 
+static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+
+	if(value)
+	{
+		NSString* ns_string = [NSString stringWithUTF8String:value];
+
+		[the_window setTitle:ns_string];
+
+	}
+	else
+	{
+		[the_window setTitle:nil];
+
+	}
+
+	
+	return 1;
+}
+
 static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
 	
 	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
-													styleMask:NSTitledWindowMask|NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO];
+													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
+
+	// We are manually managing the memory, so don't let the window release itself
 	[the_window setReleasedWhenClosed:NO];
 	
 	[the_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
@@ -215,10 +238,14 @@ void iupdrvDialogInitClass(Iclass* ic)
 	/* Base Container */
 	iupClassRegisterAttribute(ic, "CLIENTSIZE", gtkDialogGetClientSizeAttrib, iupDialogSetClientSizeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);  /* dialog is the only not read-only */
 	iupClassRegisterAttribute(ic, "CLIENTOFFSET", gtkDialogGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+#endif
+	
 	
 	/* Special */
-	iupClassRegisterAttribute(ic, "TITLE", NULL, gtkDialogSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaDialogSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	
+	
+#if 0
 	/* IupDialog only */
 	iupClassRegisterAttribute(ic, "BACKGROUND", NULL, gtkDialogSetBackgroundAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "ICON", NULL, gtkDialogSetIconAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);

@@ -41,6 +41,8 @@ int main(int argc, const char* argv[])
 
 //	Ihandle* dialog = IupDialog(NULL);
 	Ihandle* dialog = IupDialog(label);
+	IupSetAttribute(dialog, "TITLE", "Test Window");
+
 /*
 	if (IupGetInt(NULL, "UTF8MODE"))
 		IupSetAttribute(label, "TITLE", "Text Labels (√ß√£√µ√°√≥√©)");
