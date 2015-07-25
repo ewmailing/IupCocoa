@@ -32,10 +32,10 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
   NSBitmapImageRep *bitmap = nil;
   if([[image representations] count]>0) bitmap = [[image representations] objectAtIndex:0];
   if(bitmap==nil) return;
-	int w = [bitmap pixelsWide];
-  int h = [bitmap pixelsHigh];
-  int bpp = [bitmap bitsPerPixel];
-  int planesize = w*h;
+	NSInteger w = [bitmap pixelsWide];
+  NSInteger h = [bitmap pixelsHigh];
+  NSInteger bpp = [bitmap bitsPerPixel];
+  NSInteger planesize = w*h;
   unsigned char *bits = [bitmap bitmapData]; 
   red = imgdata;
   green = imgdata+planesize;
@@ -79,7 +79,7 @@ void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors
   NSBitmapImageRep *theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
 			pixelsWide:width pixelsHigh:height bitsPerSample:8
 				samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-				colorSpaceName:NSDeviceBlackColorSpace bytesPerRow:GetRowBytes(width,3)
+				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:GetRowBytes(width,3)
 				bitsPerPixel:bpp];
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
   [image addRepresentation:theRep];
@@ -133,11 +133,24 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
         *pixels++ = 255;
     }
   }
-  NSBitmapImageRep *theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
+	NSBitmapImageRep *theRep;
+	
+	/*
+	theRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
 			pixelsWide:width pixelsHigh:height bitsPerSample:8
 				samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-				colorSpaceName:NSDeviceBlackColorSpace bytesPerRow:GetRowBytes(width,3)
+				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:GetRowBytes(width,4)
 				bitsPerPixel:32];
+	*/
+	
+	
+	theRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
+													 pixelsWide:width pixelsHigh:height bitsPerSample:8
+												samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+												 colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width*4
+												   bitsPerPixel:32];
+	
+	
   [image addRepresentation:theRep];
   if (bgcolor_depend || make_inactive)
     iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");

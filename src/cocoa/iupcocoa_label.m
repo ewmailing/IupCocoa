@@ -41,12 +41,14 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 			NSString* ns_string = nil;
 			if(value)
 			{
+				// This will return nil if the string can't be converted.
 				ns_string = [NSString stringWithUTF8String:value];
 			}
 			else
 			{
 				ns_string = @"";
 			}
+			// This will throw an exception for a nil string.
 			[the_label setStringValue:ns_string];
 			[the_label sizeToFit];
 		}
@@ -68,13 +70,19 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 		{
 			ih->data->type = IUP_LABEL_SEP_HORIZ;
 
+			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 250.0, 1.0)];
+			[horizontal_separator setBoxType:NSBoxSeparator];
+			the_label = horizontal_separator;
 			
 		}
 		else /* "VERTICAL" */
 		{
 			ih->data->type = IUP_LABEL_SEP_VERT;
 
-			
+			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 1.0, 250.0)];
+			[vertical_separator setBoxType:NSBoxSeparator];
+			the_label = vertical_separator;
+
 		}
 	}
 	else
@@ -83,6 +91,57 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 		if (value)
 		{
 			ih->data->type = IUP_LABEL_IMAGE;
+			
+			char *name;
+			int make_inactive = 0;
+			
+			if (iupdrvIsActive(ih))
+    name = iupAttribGet(ih, "IMAGE");
+			else
+			{
+    name = iupAttribGet(ih, "IMINACTIVE");
+    if (!name)
+	{
+		name = iupAttribGet(ih, "IMAGE");
+		make_inactive = 1;
+	}
+			}
+			
+			
+			id the_bitmap;
+			the_bitmap = iupImageGetImage(name, ih, make_inactive);
+			int width;
+			int height;
+			int bpp;
+			
+			iupdrvImageGetInfo(the_bitmap, &width, &height, &bpp);
+
+			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+			[image_view setImage:the_bitmap];
+			
+			
+			the_label = image_view;
+			
+#if 0
+			if (!the_bitmap)
+					return;
+			
+			/* must use this info, since image can be a driver image loaded from resources */
+			iupdrvImageGetInfo(hBitmap, &width, &height, &bpp);
+
+			
+			NSBitmapImageRep* bitmap_image = [[NSBitmapImageRep alloc]
+									 initWithBitmapDataPlanes:NULL
+									 pixelsWide: width
+									 pixelsHigh: height
+									 bitsPerSample: 8
+									 samplesPerPixel: 4
+									 hasAlpha: YES
+									 isPlanar: NO
+									 colorSpaceName: NSCalibratedRGBColorSpace
+									 bytesPerRow: width * 4
+									 bitsPerPixel: 32]
+#endif
 
 		}
 		else
