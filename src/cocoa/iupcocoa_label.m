@@ -25,6 +25,8 @@
 #include "iup_image.h"
 #include "iup_focus.h"
 
+#include "iup_childtree.h"
+
 #include "iupcocoa_drv.h"
 
 static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
@@ -36,7 +38,15 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 		
 		if([the_label respondsToSelector:@selector(setStringValue:)])
 		{
-			NSString* ns_string = [NSString stringWithUTF8String:value];
+			NSString* ns_string = nil;
+			if(value)
+			{
+				ns_string = [NSString stringWithUTF8String:value];
+			}
+			else
+			{
+				ns_string = @"";
+			}
 			[the_label setStringValue:ns_string];
 			[the_label sizeToFit];
 		}
@@ -49,7 +59,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 {
 	char* value;
 	// using id because we may be using different types depending on the case
-	id the_label;
+	id the_label = nil;
 	
 	value = iupAttribGet(ih, "SEPARATOR");
 	if (value)
@@ -105,8 +115,12 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 	/* add to the parent, all GTK controls must call this. */
 //	iupgtkAddToParent(ih);
 	
-	Ihandle* ih_parent = ih->parent;
-	id parent_native_handle = ih_parent->handle;
+	
+//	Ihandle* ih_parent = ih->parent;
+//	id parent_native_handle = ih_parent->handle;
+	
+	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
+
 	
 	if([parent_native_handle isKindOfClass:[NSWindow class]])
 	{

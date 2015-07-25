@@ -113,9 +113,15 @@ void LabelTest(void)
 
   label = IupLabel(NULL);
   if (IupGetInt(NULL, "UTF8MODE"))
+  {
     IupSetAttribute(label, "TITLE", "Text Labels (Γ§Γ£ΓµΓ΅Γ³Γ©)");
+  }
   else
-    IupSetAttribute(label, "TITLE", "Text Labels (ηγυασι)");
+  {
+	  printf("FIXME: What encoding is this for Cocoa?");
+//    IupSetAttribute(label, "TITLE", "Text Labels (ηγυασι)");
+	  IupSetAttribute(label, "TITLE", "Text Labels (Γ§Γ£ΓµΓ΅Γ³Γ©)");
+  }
   //IupSetAttribute(label, "BGCOLOR", IupGetGlobal("DLGBGCOLOR"));
   IupSetAttribute(label, "PADDING", "0x0");
   IupSetAttribute(label, "TIP", "Text Label");
