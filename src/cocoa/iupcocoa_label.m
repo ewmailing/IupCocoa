@@ -27,13 +27,129 @@
 
 #include "iupcocoa_drv.h"
 
+static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
+{
+	id the_label = ih->handle;
+	if(the_label)
+	{
+		// This could be a NSTextField, some kind of image, or something else.
+		
+		if([the_label respondsToSelector:@selector(setStringValue:)])
+		{
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			[the_label setStringValue:ns_string];
+			[the_label sizeToFit];
+		}
+	}
+	return 1;
 
+}
+
+static int cocoaLabelMapMethod(Ihandle* ih)
+{
+	char* value;
+	// using id because we may be using different types depending on the case
+	id the_label;
+	
+	value = iupAttribGet(ih, "SEPARATOR");
+	if (value)
+	{
+		if (iupStrEqualNoCase(value, "HORIZONTAL"))
+		{
+			ih->data->type = IUP_LABEL_SEP_HORIZ;
+
+			
+		}
+		else /* "VERTICAL" */
+		{
+			ih->data->type = IUP_LABEL_SEP_VERT;
+
+			
+		}
+	}
+	else
+	{
+		value = iupAttribGet(ih, "IMAGE");
+		if (value)
+		{
+			ih->data->type = IUP_LABEL_IMAGE;
+
+		}
+		else
+		{
+			ih->data->type = IUP_LABEL_TEXT;
+
+			the_label = [[NSTextField alloc] initWithFrame:NSZeroRect];
+//			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
+
+			[the_label setBezeled:NO];
+			[the_label setDrawsBackground:NO];
+			[the_label setEditable:NO];
+			[the_label setSelectable:NO];
+			
+		
+		
+		}
+	}
+	
+	if (!the_label)
+	{
+		return IUP_ERROR;
+	}
+	
+	
+	ih->handle = the_label;
+
+	
+	
+	/* add to the parent, all GTK controls must call this. */
+//	iupgtkAddToParent(ih);
+	
+	Ihandle* ih_parent = ih->parent;
+	id parent_native_handle = ih_parent->handle;
+	
+	if([parent_native_handle isKindOfClass:[NSWindow class]])
+	{
+		NSWindow* parent_window = (NSWindow*)parent_native_handle;
+		NSView* window_view = [parent_window contentView];
+		[window_view addSubview:the_label];
+	}
+	else if([parent_native_handle isKindOfClass:[NSWindow class]])
+	{
+		NSView* parent_view = (NSView*)parent_native_handle;
+	
+		[parent_view addSubview:the_label];
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for parent widget");
+	}
+		
+	/* configure for DRAG&DROP of files */
+	if (IupGetCallback(ih, "DROPFILES_CB"))
+	{
+		iupAttribSet(ih, "DROPFILESTARGET", "YES");
+	}
+	
+	return IUP_NOERROR;
+}
+
+
+static void cocoaLabelUnMapMethod(Ihandle* ih)
+{
+	id the_label = ih->handle;
+	[the_label release];
+	ih->handle = nil;
+
+}
 
 void iupdrvLabelInitClass(Iclass* ic)
 {
-#if 0
   /* Driver Dependent Class functions */
-  ic->Map = gtkLabelMapMethod;
+  ic->Map = cocoaLabelMapMethod;
+	ic->UnMap = cocoaLabelUnMapMethod;
+
+#if 0
 
   /* Driver Dependent Attribute functions */
 
@@ -45,8 +161,11 @@ void iupdrvLabelInitClass(Iclass* ic)
 
   /* Special */
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iupdrvBaseSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
-  iupClassRegisterAttribute(ic, "TITLE", NULL, gtkLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-
+	
+#endif
+	
+  iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#if 0
   /* IupLabel only */
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
   iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);

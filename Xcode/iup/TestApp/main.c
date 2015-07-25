@@ -37,14 +37,24 @@ int main(int argc, const char* argv[])
 {
 
 	IupOpen(&argc, &argv);
-	Ihandle* dialog = IupDialog(NULL);
-	TimerTest();
+	Ihandle* label = IupLabel("Hello");
+
+//	Ihandle* dialog = IupDialog(NULL);
+	Ihandle* dialog = IupDialog(label);
+/*
+	if (IupGetInt(NULL, "UTF8MODE"))
+		IupSetAttribute(label, "TITLE", "Text Labels (√ß√£√µ√°√≥√©)");
+	else
+		IupSetAttribute(label, "TITLE", "Text Labels (Á„ı·ÛÈ)");
+*/
+	
+//	TimerTest();
 	IupShowXY(dialog, IUP_CENTER, IUP_CENTER);
 	
 	IupMainLoop();
 	IupDestroy(dialog);
 
-	IupDestroy(timer1);
+//	IupDestroy(timer1);
 
 	IupClose();
 	
