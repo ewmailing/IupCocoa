@@ -19,10 +19,12 @@
 
 #include "iupcocoa_drv.h"
 
+/*
 int GetRowBytes(int width,int inPixelDepth)
 {
 	return (((width * inPixelDepth + 15) / 16) * 2);
 }
+ */
 
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 {
@@ -76,11 +78,24 @@ void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors
         *pixels++ = *alpha;
     }
   }
-  NSBitmapImageRep *theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
+	NSBitmapImageRep* theRep;
+	
+if(bpp==32)
+{
+ theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
 			pixelsWide:width pixelsHigh:height bitsPerSample:8
-				samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:GetRowBytes(width,3)
+				samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
 				bitsPerPixel:bpp];
+}
+else
+{
+	theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
+												   pixelsWide:width pixelsHigh:height bitsPerSample:8
+											  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
+											   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
+												 bitsPerPixel:bpp];
+}
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
   [image addRepresentation:theRep];
   return (void*)CFBridgingRetain(image);
@@ -108,29 +123,66 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
   if (!image)
     return NULL;
   unsigned char *red,*green,*blue,*alpha;
+	unsigned char* source_pixel;
   void *theArray[1];
-  unsigned char *pixels = malloc(width*height*bpp);
+//  unsigned char *pixels = malloc(width*height*bpp);
+	unsigned char *pixels = malloc(width*height*32);
   theArray[0] = (void*)pixels;
   int planesize = width*height;
-  red = imgdata;
-  green = imgdata+planesize;
+
+	source_pixel = imgdata;
+	red = imgdata;
+
+	/*
+green = imgdata+planesize;
   blue = imgdata+2*planesize;
   alpha = imgdata+3*planesize;
+*/
+	green = imgdata+1;
+	blue = imgdata+2;
+	alpha = imgdata+3;
+	
   for(y=0;y<height;y++){
     for(x=0;x<width;x++) {
-      *pixels++ = *red++;
+/*
+		*pixels++ = *red++;
       *pixels++ = *green++;
       *pixels++ = *blue++;
-      if(make_inactive) {
+*/
+		*pixels = *source_pixel;
+		pixels++;
+		source_pixel++;
+		
+		*pixels = *source_pixel;
+		pixels++;
+		source_pixel++;
+
+		*pixels = *source_pixel;
+		pixels++;
+		source_pixel++;
+
+		
+		if(make_inactive) {
         unsigned char r = *(pixels-3),
                       g = *(pixels-2),
                       b = *(pixels-1);
         iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
       }
       if(bpp==32)
-        *pixels++ = *alpha++;
+	  {
+     //   *pixels++ = *alpha++;
+		  
+		  *pixels = *source_pixel;
+		  pixels++;
+		  source_pixel++;
+	  }
       else
-        *pixels++ = 255;
+	  {
+  //      *pixels++ = 255;
+		  
+		  *pixels = 255;
+		  pixels++;
+	  }
     }
   }
 	NSBitmapImageRep *theRep;
