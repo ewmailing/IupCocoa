@@ -59,7 +59,7 @@ int iupdrvOpen(int *argc, char ***argv)
   (void)argv;
 
 	// Assuming we're always on the main thread.
-	// Using a singleton pattern because draining is causing problems.
+	// This will be using a singleton pattern depending if iupdrvClose drains it or not.
 	// Not using dispatch_once thinking about GNUStep
 	if(nil == s_autoreleasePool)
 	{
@@ -110,10 +110,8 @@ void iupdrvClose(void)
 	// Hmmm...there could a problem. Objects might get called to be Destroyed after the close.
 	// They shouldn't do this.
 	// But if it happens, maybe we either never drain and do a dispatch_once.
-	// More info: I'm actually crashing here with a single window app on shutdown. I'm not sure why.
-	// Moving to a singleton pattern sidesteps everything.
-//	[s_autoreleasePool drain];
-//	s_autoreleasePool = nil;
+	[s_autoreleasePool drain];
+	s_autoreleasePool = nil;
 	
 	
 }
