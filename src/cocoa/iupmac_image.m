@@ -26,6 +26,35 @@ int GetRowBytes(int width,int inPixelDepth)
 }
  */
 
+/* Adapted from SDL (zlib)
+ * Calculate the pad-aligned scanline width of a surface
+ */
+static int CalculateBytesPerRow(int width, int bytes_per_pixel)
+{
+	int pitch;
+	int bits_per_pixel = bytes_per_pixel * 8;
+	/* Surface should be 4-byte aligned for speed */
+	pitch = width * bytes_per_pixel;
+	switch (bits_per_pixel) {
+		case 1:
+			pitch = (pitch + 7) / 8;
+			break;
+		case 4:
+			pitch = (pitch + 1) / 2;
+			break;
+		default:
+			break;
+	}
+	pitch = (pitch + 3) & ~3;   /* 4-byte aligning */
+	return (pitch);
+}
+
+static int CalculateRowLength(int width, int bytes_per_pixel)
+{
+	int pitch = CalculateBytesPerRow(width, bytes_per_pixel);
+	return pitch/bytes_per_pixel;
+}
+
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 {
   int x,y;
@@ -133,7 +162,8 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 														 pixelsWide:width pixelsHigh:height bitsPerSample:8
 													samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-													 colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width*4
+													 colorSpaceName:NSDeviceRGBColorSpace
+														bytesPerRow:CalculateBytesPerRow(width, 4)
 													   bitsPerPixel:32
 						];
 	}
@@ -142,23 +172,23 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 															   pixelsWide:width pixelsHigh:height bitsPerSample:8
 														  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-														   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width*3
+														   colorSpaceName:NSDeviceRGBColorSpace
+															  bytesPerRow:CalculateBytesPerRow(width, 3)
 													   bitsPerPixel:24
 						];
 	}
 	else if(8 == bpp)
 	{
 		
-		[image release];
-		return NULL;
-		/*
+		// We'll make a full 32-bit image for this case
 		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 															   pixelsWide:width pixelsHigh:height bitsPerSample:8
-														  samplesPerPixel:1 hasAlpha:NO isPlanar:NO
-														   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width
-													   bitsPerPixel:8
+														  samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+														   colorSpaceName:NSDeviceRGBColorSpace
+															  bytesPerRow:CalculateBytesPerRow(width, 4)
+													   bitsPerPixel:32
 						];
-		 */
+		
 	}
 	else
 	{
@@ -175,55 +205,56 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 
 		//  unsigned char *pixels = malloc(width*height*bpp);
 		unsigned char *pixels = [bitmap_image bitmapData];
+		int row_length = CalculateRowLength(width, 4);
 
 
 		
 		source_pixel = imgdata;
 
 		
-  for(y=0;y<height;y++){
-	  for(x=0;x<width;x++) {
-		  /*
-		   *pixels++ = *red++;
-		   *pixels++ = *green++;
-		   *pixels++ = *blue++;
-		   */
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  
-		  if(make_inactive) {
-			  unsigned char r = *(pixels-3),
-			  g = *(pixels-2),
-			  b = *(pixels-1);
-			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+		  for(y=0;y<height;y++){
+			  for(x=0;x<row_length;x++) {
+				  /*
+				   *pixels++ = *red++;
+				   *pixels++ = *green++;
+				   *pixels++ = *blue++;
+				   */
+				  *pixels = *source_pixel;
+				  pixels++;
+				  source_pixel++;
+				  
+				  *pixels = *source_pixel;
+				  pixels++;
+				  source_pixel++;
+				  
+				  *pixels = *source_pixel;
+				  pixels++;
+				  source_pixel++;
+				  
+				  
+				  if(make_inactive) {
+					  unsigned char r = *(pixels-3),
+					  g = *(pixels-2),
+					  b = *(pixels-1);
+					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				  }
+				  if(bpp==32)
+				  {
+			 //   *pixels++ = *alpha++;
+					  
+					  *pixels = *source_pixel;
+					  pixels++;
+					  source_pixel++;
+				  }
+				  else
+				  {
+					  //      *pixels++ = 255;
+					  
+					  *pixels = 255;
+					  pixels++;
+				  }
+			  }
 		  }
-		  if(bpp==32)
-		  {
-     //   *pixels++ = *alpha++;
-			  
-			  *pixels = *source_pixel;
-			  pixels++;
-			  source_pixel++;
-		  }
-		  else
-		  {
-			  //      *pixels++ = 255;
-			  
-			  *pixels = 255;
-			  pixels++;
-		  }
-	  }
-  }
 
 		
 		
@@ -238,13 +269,13 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		//  unsigned char *pixels = malloc(width*height*bpp);
 		unsigned char *pixels = [bitmap_image bitmapData];
 		
-		
+		int row_length = CalculateRowLength(width, 3);
 		
 		source_pixel = imgdata;
 		
 		
   for(y=0;y<height;y++){
-	  for(x=0;x<width;x++) {
+	  for(x=0;x<row_length;x++) {
 		  /*
 		   *pixels++ = *red++;
 		   *pixels++ = *green++;
@@ -279,36 +310,76 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 	}
 	else if(8 == bpp)
 	{
-#if 0
+#if 1
 		//  unsigned char *red,*green,*blue,*alpha;
 		unsigned char* source_pixel;
 		
 		//  unsigned char *pixels = malloc(width*height*bpp);
 		unsigned char *pixels = [bitmap_image bitmapData];
 		
+		int row_length = CalculateRowLength(width, 4);
+
+		int colors_count = 0;
+		iupColor colors[256];
+		
+		int has_alpha = iupImageInitColorTable(ih, colors, &colors_count);
+
+		
+
+		
 		
 		
 		source_pixel = imgdata;
 		
 		
-  for(y=0;y<height;y++){
-	  for(x=0;x<width;x++) {
+		  for(y=0;y<height;y++){
+			  for(x=0;x<row_length;x++) {
 
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  /*
-		  if(make_inactive) {
-			  unsigned char r = *(pixels-3),
-			  g = *(pixels-2),
-			  b = *(pixels-1);
-			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				  unsigned char index = *source_pixel;
+				  iupColor* c = &colors[index];
+
+				  *pixels = c->r;
+				  pixels++;
+				  *pixels = c->g;
+				  pixels++;
+				  *pixels = c->b;
+				  pixels++;
+				  
+				  if (has_alpha)
+				  {
+					  *pixels = c->a;
+				  }
+				  else
+				  {
+					  *pixels = 255;
+				  }
+				  pixels++;
+				  source_pixel++;
+
+				  
+				  
+				  if(make_inactive) {
+					  unsigned char r = *(pixels-3),
+					  g = *(pixels-2),
+					  b = *(pixels-1);
+					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				  }
+
+				  
+				  
+				  /*
+				  if(make_inactive) {
+					  unsigned char r = *(pixels-3),
+					  g = *(pixels-2),
+					  b = *(pixels-1);
+					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				  }
+				   */
+			  }
 		  }
-		   */
-	  }
-  }
+		
+
+		
 #endif
 		
 	}
