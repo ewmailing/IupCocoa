@@ -135,6 +135,8 @@ int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colo
   return iupdrvImageGetInfo(handle, w, h, bpp);
 }
 
+
+// NOTE: Returns an autoreleased NSImage.
 void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive)
 {
   int y, x, bpp, bgcolor_depend = 0,
@@ -393,7 +395,12 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
   if (bgcolor_depend || make_inactive)
     iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
 
-  return (void*)CFBridgingRetain(image);
+//  return (void*)CFBridgingRetain(image);
+
+	// Doing an autorelease because the typical pattern is to call image = iupImageGetImage(),
+	// and then call [foo setImage:image];
+	// It is easy to forget to release the image for Cocoa because the API doesn't use new/create/alloc in the name.
+	return [image autorelease];
 }
 
 void* iupdrvImageCreateIcon(Ihandle *ih)

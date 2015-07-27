@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+	
+void iupCocoaAddToParent(Ihandle* ih);
+	
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
 extern int iupmac_utf8autoconvert;         

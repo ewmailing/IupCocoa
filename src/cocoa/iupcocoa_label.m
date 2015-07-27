@@ -116,9 +116,15 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			
 			iupdrvImageGetInfo(the_bitmap, &width, &height, &bpp);
 
-			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+			static int woffset = 0;
+			static int hoffset = 0;
+			
+//			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(woffset, hoffset, width, height)];
 			[image_view setImage:the_bitmap];
 			
+			woffset += 30;
+			hoffset += 30;
 			
 			the_label = image_view;
 			
@@ -178,26 +184,9 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 //	Ihandle* ih_parent = ih->parent;
 //	id parent_native_handle = ih_parent->handle;
 	
-	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
-
+	iupCocoaAddToParent(ih);
 	
-	if([parent_native_handle isKindOfClass:[NSWindow class]])
-	{
-		NSWindow* parent_window = (NSWindow*)parent_native_handle;
-		NSView* window_view = [parent_window contentView];
-		[window_view addSubview:the_label];
-	}
-	else if([parent_native_handle isKindOfClass:[NSWindow class]])
-	{
-		NSView* parent_view = (NSView*)parent_native_handle;
 	
-		[parent_view addSubview:the_label];
-	}
-	else
-	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-	}
-		
 	/* configure for DRAG&DROP of files */
 	if (IupGetCallback(ih, "DROPFILES_CB"))
 	{

@@ -26,12 +26,14 @@
 #include "iup_image.h"
 #include "iup_key.h"
 
+#include "iupcocoa_drv.h"
 
 
 static int cocoaButtonMapMethod(Ihandle* ih)
 {
-	int impress;
 	char* value;
+#if 0
+	int impress;
 	
 	value = iupAttribGet(ih, "IMAGE");
 	if (value)
@@ -126,6 +128,65 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	{
 
 	}
+#else
+
+	NSButton* the_button = [[NSButton alloc] initWithFrame:NSZeroRect];
+	value = iupAttribGet(ih, "IMAGE");
+	if(value && *value!=0)
+	{
+		ih->data->type |= IUP_BUTTON_IMAGE;
+		
+		[the_button setButtonType:NSMomentaryChangeButton];
+		NSImage* the_bitmap;
+		int make_inactive = 0;
+		
+
+		if(!iupAttribGet(ih, "IMINACTIVE"))
+		{
+			make_inactive = 1;
+		}
+			
+		the_bitmap = iupImageGetImage(value, ih, make_inactive);
+		[the_button setImage:the_bitmap];
+		
+		
+		value = iupAttribGet(ih, "IMPRESS");
+		if(value && *value!=0)
+		{
+			the_bitmap = iupImageGetImage(value, ih, make_inactive);
+			[the_button setAlternateImage:the_bitmap];
+		}
+	}
+	
+	
+	value = iupAttribGet(ih, "TITLE");
+	if(value && *value!=0)
+	{
+		ih->data->type |= IUP_BUTTON_TEXT;
+		NSString* ns_string = [NSString stringWithUTF8String:value];
+		[the_button setTitle:ns_string];
+		if(ih->data->type | IUP_BUTTON_IMAGE)
+		{
+			// TODO: FEATURE: Cocoa allows text to be placed in different positions
+			// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Button/Tasks/SettingButtonImage.html
+			[the_button setImagePosition:NSImageLeft];
+		}
+		else
+		{
+			[the_button setImagePosition:NSNoImage];
+			
+		}
+
+	}
+	
+	[the_button sizeToFit];
+	
+	ih->handle = the_button;
+	
+	iupCocoaAddToParent(ih);
+
+	
+#endif
 	
 	
 

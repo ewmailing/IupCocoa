@@ -28,6 +28,47 @@
 
 #include "iupcocoa_drv.h"
 
+void iupCocoaAddToParent(Ihandle* ih)
+{
+	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
+	
+	id child_handle = ih->handle;
+	if([child_handle isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)child_handle;
+		
+		
+		
+		if([parent_native_handle isKindOfClass:[NSWindow class]])
+		{
+			NSWindow* parent_window = (NSWindow*)parent_native_handle;
+			NSView* window_view = [parent_window contentView];
+			[window_view addSubview:the_view];
+		}
+		else if([parent_native_handle isKindOfClass:[NSWindow class]])
+		{
+			NSView* parent_view = (NSView*)parent_native_handle;
+			
+			[parent_view addSubview:the_view];
+		}
+		else
+		{
+			NSCAssert(1, @"Unexpected type for parent widget");
+			@throw @"Unexpected type for parent widget";
+		}
+	}
+	else if([parent_native_handle isKindOfClass:[CALayer class]])
+	{
+		NSCAssert(1, @"CALayer not implemented");
+		@throw @"CALayer not implemented";
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for parent widget");
+		@throw @"Unexpected type for parent widget";
+	}
+	
+}
 
 
 void iupdrvActivate(Ihandle* ih)
