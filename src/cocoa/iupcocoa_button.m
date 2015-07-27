@@ -4,6 +4,7 @@
  * See Copyright Notice in "iup.h"
  */
 
+#import <Cocoa/Cocoa.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,6 +28,124 @@
 
 
 
+static int cocoaButtonMapMethod(Ihandle* ih)
+{
+	int impress;
+	char* value;
+	
+	value = iupAttribGet(ih, "IMAGE");
+	if (value)
+	{
+		ih->data->type = IUP_BUTTON_IMAGE;
+		
+		value = iupAttribGet(ih, "TITLE");
+		if (value && *value!=0)
+		{
+			ih->data->type |= IUP_BUTTON_TEXT;
+		}
+	}
+	else
+	{
+		ih->data->type = IUP_BUTTON_TEXT;
+	}
+		
+	if (ih->data->type == IUP_BUTTON_IMAGE &&
+		iupAttribGet(ih, "IMPRESS") &&
+		!iupAttribGetBoolean(ih, "IMPRESSBORDER"))
+	{
+
+		
+	}
+	else
+	{
+//		ih->handle = gtk_button_new();
+	}
+	
+	
+	
+	if (!ih->handle)
+	{
+		return IUP_ERROR;
+	}
+	
+	if (ih->data->type & IUP_BUTTON_IMAGE)
+	{
+	/*
+		if (!iupAttribGet(ih, "_IUPGTK_EVENTBOX"))
+		{
+			gtk_button_set_image((GtkButton*)ih->handle, gtk_image_new());
+			
+			if (ih->data->type & IUP_BUTTON_TEXT)
+			{
+				GtkSettings* settings = gtk_widget_get_settings(ih->handle);
+				g_object_set(settings, "gtk-button-images", (int)TRUE, NULL);
+				
+				gtk_button_set_label((GtkButton*)ih->handle, iupgtkStrConvertToSystem(iupAttribGet(ih, "TITLE")));
+				
+
+	 
+			}
+		}
+*/
+	}
+	else
+	{
+		char* title = iupAttribGet(ih, "TITLE");
+		if (!title)
+		{
+			if (iupAttribGet(ih, "BGCOLOR"))
+			{
+				
+			}
+			else
+			{
+//				gtk_button_set_label((GtkButton*)ih->handle, "");
+			}
+		}
+		else
+		{
+//			gtk_button_set_label((GtkButton*)ih->handle, iupgtkStrConvertToSystem(title));
+		}
+	}
+	
+	/* add to the parent, all GTK controls must call this. */
+//	iupgtkAddToParent(ih);
+	
+	if (!iupAttribGetBoolean(ih, "CANFOCUS"))
+	{
+//		iupgtkSetCanFocus(ih->handle, 0);
+	}
+	
+	value = iupAttribGet(ih, "IMPRESS");
+	impress = (ih->data->type & IUP_BUTTON_IMAGE && value)? 1: 0;
+	if (!impress && iupAttribGetBoolean(ih, "FLAT"))
+	{
+
+	}
+	else
+	{
+
+	}
+	
+	
+
+	
+	
+//	gtk_widget_realize(ih->handle);
+	
+	/* update a mnemonic in a label if necessary */
+//	iupgtkUpdateMnemonic(ih);
+	
+	return IUP_NOERROR;
+}
+
+static void cocoaButtonUnMapMethod(Ihandle* ih)
+{
+	id the_button = ih->handle;
+	[the_button release];
+	ih->handle = NULL;
+	
+}
 
 void iupdrvButtonAddBorders(int *x, int *y)
 {
@@ -36,9 +155,12 @@ void iupdrvButtonAddBorders(int *x, int *y)
 
 void iupdrvButtonInitClass(Iclass* ic)
 {
-#if 0
 	/* Driver Dependent Class functions */
-	ic->Map = gtkButtonMapMethod;
+	ic->Map = cocoaButtonMapMethod;
+	ic->UnMap = cocoaButtonUnMapMethod;
+	
+#if 0
+
 	ic->LayoutUpdate = gtkButtonLayoutUpdateMethod;
 	
 	/* Driver Dependent Attribute functions */
