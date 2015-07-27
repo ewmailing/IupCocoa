@@ -86,8 +86,20 @@ void iupdrvTimerRun(Ihandle* ih)
 	];
 	  
 
-	[[NSRunLoop currentRunLoop] addTimer:the_timer
-      forMode:NSModalPanelRunLoopMode];
+
+	  // Cocoa seems to block timers or events sometimes. This can be seen
+	  // when I'm animating (via a timer) and you open an popup box or move a slider.
+	  // Apparently, sheets and dialogs can also block (try printing).
+	  // To work around this, Cocoa provides different run-loop modes. I need to
+	  // specify the modes to avoid the blockage.
+	  // NSDefaultRunLoopMode seems to be the default. I don't think I need to explicitly
+	  // set this one, but just in case, I will set it anyway.
+	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSDefaultRunLoopMode];
+	  // This seems to be the one for preventing blocking on other events (popup box, slider, etc)
+	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSEventTrackingRunLoopMode];
+	  // This seems to be the one for dialogs.
+	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSModalPanelRunLoopMode];
+	  
 
 	[timer_controller setTheTimer:the_timer];
 	  [timer_controller setStartTime:start_time];
