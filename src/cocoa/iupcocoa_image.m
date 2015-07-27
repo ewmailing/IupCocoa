@@ -19,12 +19,6 @@
 
 #include "iupcocoa_drv.h"
 
-/*
-int GetRowBytes(int width,int inPixelDepth)
-{
-	return (((width * inPixelDepth + 15) / 16) * 2);
-}
- */
 
 /* Adapted from SDL (zlib)
  * Calculate the pad-aligned scanline width of a surface
@@ -55,6 +49,8 @@ static int CalculateRowLength(int width, int bytes_per_pixel)
 	return pitch/bytes_per_pixel;
 }
 
+
+// FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 {
   int x,y;
@@ -86,6 +82,7 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
   }
 }
 
+// FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
 void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
 {
   int x,y;

@@ -203,7 +203,7 @@
 		00E3A8D51B60906F00BEC175 /* iupcocoa_val.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A91B605A7500BEC175 /* iupcocoa_val.m */; };
 		00E3A8D61B6090BE00BEC175 /* iupcocoa_messagedlg.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A51B605A7500BEC175 /* iupcocoa_messagedlg.m */; };
 		00E3A8D71B60914A00BEC175 /* iupmac_globalattrib.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */; };
-		00E3A8D81B60923D00BEC175 /* iupmac_image.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A11B605A7500BEC175 /* iupmac_image.m */; };
+		00E3A8D81B60923D00BEC175 /* iupcocoa_image.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */; };
 		00E3A8DA1B6094C300BEC175 /* iupcocoa_frame.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8D91B6094C300BEC175 /* iupcocoa_frame.m */; };
 		00E3A8DC1B60952400BEC175 /* iupcocoa_menu.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8DB1B60952400BEC175 /* iupcocoa_menu.m */; };
 		00E3A8DE1B6095DA00BEC175 /* iupcocoa_label.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8DD1B6095DA00BEC175 /* iupcocoa_label.m */; };
@@ -429,7 +429,7 @@
 		00E3A89E1B605A7500BEC175 /* iupcocoa_fontdlg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_fontdlg.m; sourceTree = "<group>"; };
 		00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_globalattrib.m; sourceTree = "<group>"; };
 		00E3A8A01B605A7500BEC175 /* iupmac_help.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_help.c; sourceTree = "<group>"; };
-		00E3A8A11B605A7500BEC175 /* iupmac_image.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_image.m; sourceTree = "<group>"; };
+		00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_image.m; sourceTree = "<group>"; };
 		00E3A8A21B605A7500BEC175 /* iupmac_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_info.c; sourceTree = "<group>"; };
 		00E3A8A31B605A7500BEC175 /* iupmac_key.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_key.c; sourceTree = "<group>"; };
 		00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_loop.m; sourceTree = "<group>"; };
@@ -784,7 +784,7 @@
 				00E3A89E1B605A7500BEC175 /* iupcocoa_fontdlg.m */,
 				00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */,
 				00E3A8A01B605A7500BEC175 /* iupmac_help.c */,
-				00E3A8A11B605A7500BEC175 /* iupmac_image.m */,
+				00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */,
 				00E3A8A21B605A7500BEC175 /* iupmac_info.c */,
 				00E3A8A31B605A7500BEC175 /* iupmac_key.c */,
 				00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */,
@@ -1185,7 +1185,7 @@
 				00E3A7DE1B60583600BEC175 /* iup_tree.c in Sources */,
 				00E3A7D21B60583600BEC175 /* iup_strmessage.c in Sources */,
 				00E3A8C81B60744200BEC175 /* iupcocoa_draw.m in Sources */,
-				00E3A8D81B60923D00BEC175 /* iupmac_image.m in Sources */,
+				00E3A8D81B60923D00BEC175 /* iupcocoa_image.m in Sources */,
 				00E3A7711B60583600BEC175 /* iup_attrib.c in Sources */,
 				00E3A7791B60583600BEC175 /* iup_canvas.c in Sources */,
 				00E3A8D61B6090BE00BEC175 /* iupcocoa_messagedlg.m in Sources */,
@@ -1480,6 +1480,7 @@
 				00E3A6051B60578300BEC175 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		00E3A6061B60578300BEC175 /* Build configuration list for PBXNativeTarget "iupTests" */ = {
 			isa = XCConfigurationList;
@@ -1488,6 +1489,7 @@
 				00E3A6081B60578300BEC175 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		00E3A90C1B609B8800BEC175 /* Build configuration list for PBXNativeTarget "TestApp" */ = {
 			isa = XCConfigurationList;
@@ -1496,6 +1498,7 @@
 				00E3A90E1B609B8800BEC175 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		00E3A90F1B609B8800BEC175 /* Build configuration list for PBXNativeTarget "TestAppTests" */ = {
 			isa = XCConfigurationList;
@@ -1504,6 +1507,7 @@
 				00E3A9111B609B8800BEC175 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
