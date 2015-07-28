@@ -27,6 +27,48 @@
 #include "iupcocoa_drv.h"
 
 
+
+static int cocoaFrameMapMethod(Ihandle* ih)
+{
+
+//	NSBox* the_frame = [[NSBox alloc] initWithFrame:NSZeroRect];
+	NSBox* the_frame = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
+
+	{
+		char* title;
+		title = iupAttribGet(ih, "TITLE");
+		if(title && *title!=0)
+		{
+			NSString* ns_string = [NSString stringWithUTF8String:title];
+			[the_frame setTitle:ns_string];
+		}
+	}
+	
+	
+	
+	
+	ih->handle = the_frame;
+	
+	
+	
+	iupCocoaAddToParent(ih);
+	
+
+	
+	return IUP_NOERROR;
+}
+
+
+static void cocoaFrameUnMapMethod(Ihandle* ih)
+{
+	id the_frame = ih->handle;
+	[the_frame release];
+	ih->handle = nil;
+	
+}
+
+
+
 void iupdrvFrameGetDecorOffset(int *x, int *y)
 {
 	*x = 2;
@@ -42,9 +84,10 @@ int iupdrvFrameHasClientOffset(void)
 
 void iupdrvFrameInitClass(Iclass* ic)
 {
-#if 0
 	/* Driver Dependent Class functions */
-	ic->Map = gtkFrameMapMethod;
+	ic->Map = cocoaFrameMapMethod;
+	ic->UnMap = cocoaFrameUnMapMethod;
+#if 0
 	ic->GetInnerNativeContainerHandle = gtkFrameGetInnerNativeContainerHandleMethod;
 	
 	/* Driver Dependent Attribute functions */

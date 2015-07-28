@@ -48,7 +48,7 @@ void iupCocoaAddToParent(Ihandle* ih)
 			NSView* window_view = [parent_window contentView];
 			[window_view addSubview:the_view];
 		}
-		else if([parent_native_handle isKindOfClass:[NSWindow class]])
+		else if([parent_native_handle isKindOfClass:[NSView class]])
 		{
 			NSView* parent_view = (NSView*)parent_native_handle;
 			

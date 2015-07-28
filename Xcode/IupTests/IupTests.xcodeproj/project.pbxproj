@@ -19,6 +19,10 @@
 		00346C221B66D1C60045148B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A9261B62D7A900BEC175 /* Images.xcassets */; };
 		00346C241B66D1C60045148B /* iup.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00346C2D1B66D1ED0045148B /* button.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A94C1B62D93700BEC175 /* button.c */; };
+		00346C341B6766EC0045148B /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; };
+		00346C361B6766EC0045148B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A9261B62D7A900BEC175 /* Images.xcassets */; };
+		00346C381B6766EC0045148B /* iup.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		00346C3E1B6766F80045148B /* frame.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A9641B62D93700BEC175 /* frame.c */; };
 		00E3A9441B62D8A700BEC175 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A9261B62D7A900BEC175 /* Images.xcassets */; };
 		00E3A99C1B62D94600BEC175 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A9941B62D93700BEC175 /* timer.c */; };
 		00E3A9BC1B62DA4100BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; };
@@ -41,6 +45,13 @@
 			remoteInfo = iup;
 		};
 		00346C1C1B66D1C60045148B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00E3A9AC1B62D9A200BEC175 /* iup.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 00E3A5EC1B60578300BEC175;
+			remoteInfo = iup;
+		};
+		00346C301B6766EC0045148B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00E3A9AC1B62D9A200BEC175 /* iup.xcodeproj */;
 			proxyType = 1;
@@ -118,6 +129,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C371B6766EC0045148B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				00346C381B6766EC0045148B /* iup.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9C11B62DC2200BEC175 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -138,6 +160,8 @@
 		00019C401B6369D000DC5171 /* label.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = label.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/label.plist; sourceTree = "<absolute>"; };
 		00346C281B66D1C60045148B /* button.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = button.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00346C291B66D1C70045148B /* button.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = button.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/button.plist; sourceTree = "<absolute>"; };
+		00346C3C1B6766EC0045148B /* frame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = frame.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00346C3D1B6766EC0045148B /* frame.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = frame.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/frame.plist; sourceTree = "<absolute>"; };
 		00E3A9261B62D7A900BEC175 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		00E3A9481B62D8A700BEC175 /* timer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = timer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A9491B62D8A700BEC175 /* timer.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = timer.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/timer.plist; sourceTree = "<absolute>"; };
@@ -249,6 +273,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C331B6766EC0045148B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00346C341B6766EC0045148B /* iup.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9421B62D8A700BEC175 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -271,6 +303,7 @@
 				00019C2F1B62E63300DC5171 /* dialog.plist */,
 				00019C401B6369D000DC5171 /* label.plist */,
 				00346C291B66D1C70045148B /* button.plist */,
+				00346C3D1B6766EC0045148B /* frame.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -281,6 +314,7 @@
 				00019C2E1B62E63200DC5171 /* dialog.app */,
 				00019C3F1B6369D000DC5171 /* label.app */,
 				00346C281B66D1C60045148B /* button.app */,
+				00346C3C1B6766EC0045148B /* frame.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -452,6 +486,25 @@
 			productReference = 00346C281B66D1C60045148B /* button.app */;
 			productType = "com.apple.product-type.application";
 		};
+		00346C2E1B6766EC0045148B /* frame */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00346C391B6766EC0045148B /* Build configuration list for PBXNativeTarget "frame" */;
+			buildPhases = (
+				00346C311B6766EC0045148B /* Sources */,
+				00346C331B6766EC0045148B /* Frameworks */,
+				00346C351B6766EC0045148B /* Resources */,
+				00346C371B6766EC0045148B /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				00346C2F1B6766EC0045148B /* PBXTargetDependency */,
+			);
+			name = frame;
+			productName = IupTests;
+			productReference = 00346C3C1B6766EC0045148B /* frame.app */;
+			productType = "com.apple.product-type.application";
+		};
 		00E3A93F1B62D8A700BEC175 /* timer */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E3A9451B62D8A700BEC175 /* Build configuration list for PBXNativeTarget "timer" */;
@@ -503,6 +556,7 @@
 				00019C201B62E63200DC5171 /* dialog */,
 				00019C311B6369D000DC5171 /* label */,
 				00346C1A1B66D1C60045148B /* button */,
+				00346C2E1B6766EC0045148B /* frame */,
 			);
 		};
 /* End PBXProject section */
@@ -563,6 +617,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C351B6766EC0045148B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00346C361B6766EC0045148B /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9431B62D8A700BEC175 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -598,6 +660,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C311B6766EC0045148B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00346C3E1B6766F80045148B /* frame.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9401B62D8A700BEC175 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -623,6 +693,11 @@
 			isa = PBXTargetDependency;
 			name = iup;
 			targetProxy = 00346C1C1B66D1C60045148B /* PBXContainerItemProxy */;
+		};
+		00346C2F1B6766EC0045148B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = iup;
+			targetProxy = 00346C301B6766EC0045148B /* PBXContainerItemProxy */;
 		};
 		00E3A9C01B62DC2200BEC175 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -695,6 +770,28 @@
 				INFOPLIST_FILE = button.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = button;
+			};
+			name = Release;
+		};
+		00346C3A1B6766EC0045148B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = frame.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = frame;
+			};
+			name = Debug;
+		};
+		00346C3B1B6766EC0045148B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = frame.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = frame;
 			};
 			name = Release;
 		};
@@ -835,6 +932,15 @@
 			buildConfigurations = (
 				00346C261B66D1C60045148B /* Debug */,
 				00346C271B66D1C60045148B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00346C391B6766EC0045148B /* Build configuration list for PBXNativeTarget "frame" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00346C3A1B6766EC0045148B /* Debug */,
+				00346C3B1B6766EC0045148B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
