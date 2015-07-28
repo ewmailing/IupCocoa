@@ -38,9 +38,11 @@ int main(int argc, const char* argv[])
 
 	IupOpen(&argc, &argv);
 	Ihandle* label = IupLabel("Hello");
+	Ihandle* button = IupButton("Hello", NULL);
 
 //	Ihandle* dialog = IupDialog(NULL);
-	Ihandle* dialog = IupDialog(label);
+//	Ihandle* dialog = IupDialog(label);
+	Ihandle* dialog = IupDialog(button);
 	IupSetAttribute(dialog, "TITLE", "Test Window");
 
 /*

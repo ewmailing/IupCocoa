@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+// the point of this is we have a unique memory address for an identifier
+extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
+
 	
 void iupCocoaAddToParent(Ihandle* ih);
 	

@@ -37,7 +37,8 @@
 #include "iup_image.h"
 #include "iup_assert.h"
 
-static const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+#include "iupcocoa_drv.h"
+
 /*
 @interface NSWindow () 
 @property(readwrite, unsafe_unretained) Ihandle* iupIhandle;

@@ -28,6 +28,9 @@
 
 #include "iupcocoa_drv.h"
 
+const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+
+
 void iupCocoaAddToParent(Ihandle* ih)
 {
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
