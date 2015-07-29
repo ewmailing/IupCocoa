@@ -305,7 +305,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
 	
-	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 100, 100)
+	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
 													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
 
 	// We are manually managing the memory, so don't let the window release itself
@@ -328,8 +328,8 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	
 	
 	
-	ih->currentwidth = 100;
-	ih->currentheight = 100;
+	ih->currentwidth = 200;
+	ih->currentheight = 200;
 	
 	return IUP_NOERROR;
 

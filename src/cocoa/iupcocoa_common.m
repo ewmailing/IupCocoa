@@ -60,7 +60,7 @@ void iupCocoaAddToParent(Ihandle* ih)
 			@throw @"Unexpected type for parent widget";
 		}
 	}
-	else if([parent_native_handle isKindOfClass:[CALayer class]])
+	else if([child_handle isKindOfClass:[CALayer class]])
 	{
 		NSCAssert(1, @"CALayer not implemented");
 		@throw @"CALayer not implemented";
@@ -107,18 +107,97 @@ void iupdrvReparent(Ihandle* ih)
 
 void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 {
+
+	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
+	NSView* parent_view = nil;
+	if([parent_native_handle isKindOfClass:[NSWindow class]])
+	{
+		NSWindow* parent_window = (NSWindow*)parent_native_handle;
+		parent_view = [parent_window contentView];
+	}
+	else if([parent_native_handle isKindOfClass:[NSView class]])
+	{
+		parent_view = (NSView*)parent_native_handle;
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for parent widget");
+		@throw @"Unexpected type for parent widget";
+	}
+	
+	
+	
+	id child_handle = ih->handle;
+	NSView* the_view = nil;
+	if([child_handle isKindOfClass:[NSView class]])
+	{
+		the_view = (NSView*)child_handle;
+	}
+	else if([child_handle isKindOfClass:[CALayer class]])
+	{
+		NSCAssert(1, @"CALayer not implemented");
+		@throw @"CALayer not implemented";
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for parent widget");
+		@throw @"Unexpected type for parent widget";
+	}
+	
+	CGSize fitting_size = [the_view fittingSize];
+	ih->currentwidth = fitting_size.width;
+	ih->currentheight = fitting_size.height;
+
+	NSRect parent_rect = [parent_view frame];
+
+	NSRect the_rect = NSMakeRect(
+		ih->x,
+		parent_rect.size.height - ih->y,
+		ih->currentwidth,
+		ih->currentheight
+	);
+	[the_view setFrame:the_rect];
+//	[the_view setBounds:the_rect];
+	
+	
 }
 
 void iupdrvBaseUnMapMethod(Ihandle* ih)
 {
+	// Why do I need this when everything else has its own UnMap method?
+	NSLog(@"iupdrvBaseUnMapMethod not implemented. Might be leaking");
 }
 
 void iupdrvDisplayUpdate(Ihandle *ih)
 {
+	id the_handle = ih->handle;
+	
+	if([the_handle isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)the_handle;
+		[the_view setNeedsDisplay:YES];
+	}
+	else if([the_handle isKindOfClass:[NSWindow class]])
+	{
+		// Cocoa generally does this automatically
+//		[the_handle display];
+	}
+	else if([the_handle isKindOfClass:[CALayer class]])
+	{
+		NSCAssert(1, @"CALayer not implemented");
+		@throw @"CALayer not implemented";
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for parent widget");
+		@throw @"Unexpected type for parent widget";
+	}
+
 }
 
 void iupdrvDisplayRedraw(Ihandle *ih)
 {
+	iupdrvDisplayUpdate(ih);
 }
 
 void iupdrvScreenToClient(Ihandle* ih, int *x, int *y)
