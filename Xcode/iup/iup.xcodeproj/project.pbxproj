@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
@@ -188,7 +189,6 @@
 		00E3A8C11B606D0900BEC175 /* iupcocoa_common.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8991B605A7500BEC175 /* iupcocoa_common.m */; };
 		00E3A8C31B606FDD00BEC175 /* iupcocoa_dialog.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8C21B606FDD00BEC175 /* iupcocoa_dialog.m */; };
 		00E3A8C41B6071F200BEC175 /* iupmac_help.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6301B60583500BEC175 /* iupmac_help.c */; };
-		00E3A8C51B6071F400BEC175 /* iupmac_info.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6311B60583500BEC175 /* iupmac_info.c */; };
 		00E3A8C61B60724900BEC175 /* iupcocoa_font.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A89D1B605A7500BEC175 /* iupcocoa_font.m */; };
 		00E3A8C81B60744200BEC175 /* iupcocoa_draw.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8C71B60744200BEC175 /* iupcocoa_draw.m */; };
 		00E3A8C91B6075C400BEC175 /* iupcocoa_tips.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A81B605A7500BEC175 /* iupcocoa_tips.m */; };
@@ -239,6 +239,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00346C3F1B6880140045148B /* iupcocoa_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_info.m; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A5F81B60578300BEC175 /* iupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -760,6 +761,7 @@
 		00E3A8971B605A7500BEC175 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				00346C3F1B6880140045148B /* iupcocoa_info.m */,
 				00E3A8EC1B609AE000BEC175 /* iupcocoa_clipboard.m */,
 				00E3A8E81B6098D300BEC175 /* iupcocoa_text.m */,
 				00E3A8E91B6098D300BEC175 /* iupcocoa_toggle.m */,
@@ -1114,7 +1116,6 @@
 				00E3A7781B60583600BEC175 /* iup_callback.c in Sources */,
 				00E3A8D11B6088B800BEC175 /* iupcocoa_filedlg.m in Sources */,
 				00E3A76B1B60583600BEC175 /* iup.c in Sources */,
-				00E3A8C51B6071F400BEC175 /* iupmac_info.c in Sources */,
 				00E3A79B1B60583600BEC175 /* iup_globalattrib.c in Sources */,
 				00E3A8C11B606D0900BEC175 /* iupcocoa_common.m in Sources */,
 				00E3A8C31B606FDD00BEC175 /* iupcocoa_dialog.m in Sources */,
@@ -1187,6 +1188,7 @@
 				00E3A8C81B60744200BEC175 /* iupcocoa_draw.m in Sources */,
 				00E3A8D81B60923D00BEC175 /* iupcocoa_image.m in Sources */,
 				00E3A7711B60583600BEC175 /* iup_attrib.c in Sources */,
+				00346C401B6880140045148B /* iupcocoa_info.m in Sources */,
 				00E3A7791B60583600BEC175 /* iup_canvas.c in Sources */,
 				00E3A8D61B6090BE00BEC175 /* iupcocoa_messagedlg.m in Sources */,
 				00E3A8C91B6075C400BEC175 /* iupcocoa_tips.m in Sources */,

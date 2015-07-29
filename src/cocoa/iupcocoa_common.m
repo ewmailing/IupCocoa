@@ -73,6 +73,25 @@ void iupCocoaAddToParent(Ihandle* ih)
 	
 }
 
+int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height)
+{
+	// Do I want the full screen height or the visible height?
+	NSRect screen_rect = [[NSScreen mainScreen] frame];
+//	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
+	CGFloat inverted_height = screen_rect.size.height - iup_height;
+	return (int)(inverted_height+0.5);
+}
+
+int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height)
+{
+	// Do I want the full screen height or the visible height?
+	NSRect screen_rect = [[NSScreen mainScreen] frame];
+//	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
+	CGFloat inverted_height = screen_rect.size.height - cartesian_height;
+	return (int)(inverted_height+0.5);
+}
+
+
 
 void iupdrvActivate(Ihandle* ih)
 {
@@ -143,13 +162,14 @@ char* iupdrvBaseGetYAttrib(Ihandle *ih)
   return NULL;
 }
 
+/*
 char* iupdrvBaseGetClientSizeAttrib(Ihandle *ih)
 {
 
-	
     return NULL;
 
 }
+ */
 
 int iupdrvBaseSetBgColorAttrib(Ihandle* ih, const char* value)
 {

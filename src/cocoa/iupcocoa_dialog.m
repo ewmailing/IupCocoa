@@ -7,9 +7,6 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
-#ifdef HILDON
-#include <hildon/hildon-program.h>
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -50,6 +47,7 @@
  */
 @interface IupCocoaWindowDelegate : NSObject <NSWindowDelegate>
 - (BOOL) windowShouldClose:(id)the_sender;
+- (NSSize) windowWillResize:(NSWindow*)the_sender toSize:(NSSize)frame_size;
 @end
 
 static void cocoaCleanUpWindow(Ihandle* ih)
@@ -105,6 +103,30 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 	
 }
 
+- (NSSize) windowWillResize:(NSWindow*)the_sender toSize:(NSSize)frame_size
+{
+	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
+	
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
+	
+	/* even when ACTIVE=NO the dialog gets this evt */
+#if 0
+	if (!iupdrvIsActive(ih)) // not implemented yet
+	{
+		return YES;
+	}
+#endif
+	
+//	iupdrvDialogGetSize(ih, NULL, &(ih->currentwidth), &(ih->currentheight));
+
+	ih->currentwidth = frame_size.width;
+	ih->currentheight = frame_size.height;
+	
+	return frame_size;
+	
+}
+
+
 @end
 
 /****************************************************************
@@ -113,29 +135,56 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 
 int iupdrvDialogIsVisible(Ihandle* ih)
 {
-	return iupdrvIsVisible(ih);
+//	return iupdrvIsVisible(ih);
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	int ret_val = (int)[the_window isVisible];
+	return ret_val;
 }
+
 
 void iupdrvDialogGetSize(Ihandle* ih, InativeHandle* handle, int *w, int *h)
 {
-
-	if (w) *w = 640;
-	if (h) *h = 480;
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSRect the_rect = [the_window frame];
+	
+	if (w) *w = the_rect.size.width;
+	if (h) *h = the_rect.size.height;
 }
 
 void iupdrvDialogSetVisible(Ihandle* ih, int visible)
 {
+	NSWindow* the_window = (NSWindow*)ih->handle;
 
+	if(visible)
+	{
+		[the_window makeKeyAndOrderFront:nil];
+
+	}
+	else
+	{
+
+		[the_window orderOut:nil];
+	}
 }
 
 void iupdrvDialogGetPosition(Ihandle *ih, InativeHandle* handle, int *x, int *y)
 {
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSRect the_rect = [the_window frame];
 	
+	if (x) *x = the_rect.origin.x;
+	if (y) *y = iupCocoaComputeIupScreenHeightFromCartesian(the_rect.origin.y);
 }
 
 void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 {
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSRect the_rect = [the_window frame];
 	
+	int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(y);
+
+	[the_window setFrame:NSMakeRect(x, inverted_height, the_rect.size.width , the_rect.size.height) display:YES];
+
 }
 
 
@@ -145,6 +194,83 @@ void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu
 
 int iupdrvDialogSetPlacement(Ihandle* ih)
 {
+	
+	char* placement;
+	
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSRect the_rect = [the_window frame];
+	
+	
+	int old_state = ih->data->show_state;
+	ih->data->show_state = IUP_SHOW;
+	
+	if (iupAttribGetBoolean(ih, "FULLSCREEN"))
+	{
+
+		NSUInteger masks = [the_window styleMask];
+		if ( masks & NSFullScreenWindowMask)
+		{
+			// Do something
+		}
+		else
+		{
+			[the_window toggleFullScreen:nil];
+		}
+		
+		
+		return 1;
+	}
+	
+	placement = iupAttribGet(ih, "PLACEMENT");
+	if (!placement)
+	{
+		if (old_state == IUP_MAXIMIZE || old_state == IUP_MINIMIZE)
+			ih->data->show_state = IUP_RESTORE;
+		
+//		gtk_window_unmaximize((GtkWindow*)ih->handle);
+//		gtk_window_deiconify((GtkWindow*)ih->handle);
+		return 0;
+	}
+	
+	if (iupStrEqualNoCase(placement, "MINIMIZED"))
+	{
+//		ih->data->show_state = IUP_MINIMIZE;
+//		gtk_window_iconify((GtkWindow*)ih->handle);
+	}
+	else if (iupStrEqualNoCase(placement, "MAXIMIZED"))
+	{
+//		ih->data->show_state = IUP_MAXIMIZE;
+//		gtk_window_maximize((GtkWindow*)ih->handle);
+	}
+	else if (iupStrEqualNoCase(placement, "FULL"))
+	{
+#if 0
+		int width, height, x, y;
+		int border, caption, menu;
+		iupdrvDialogGetDecoration(ih, &border, &caption, &menu);
+		
+		/* position the decoration outside the screen */
+		x = -(border);
+		y = -(border+caption+menu);
+		
+		/* the dialog client area will cover the task bar */
+		iupdrvGetFullSize(&width, &height);
+		
+		height += menu; /* menu is inside the client area. */
+		
+		/* set the new size and position */
+		/* The resize evt will update the layout */
+		gtk_window_move((GtkWindow*)ih->handle, x, y);
+		gtk_window_resize((GtkWindow*)ih->handle, width, height);
+		
+		if (old_state == IUP_MAXIMIZE || old_state == IUP_MINIMIZE)
+			ih->data->show_state = IUP_RESTORE;
+#endif
+	}
+	
+	iupAttribSet(ih, "PLACEMENT", NULL); /* reset to NORMAL */
+	
+
 
 	return 1;
 }
@@ -179,7 +305,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
 	
-	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
+	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 100, 100)
 													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
 
 	// We are manually managing the memory, so don't let the window release itself
@@ -201,6 +327,10 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	[the_window setDelegate:window_delegate];
 	
 	
+	
+	ih->currentwidth = 100;
+	ih->currentheight = 100;
+	
 	return IUP_NOERROR;
 
 }
@@ -211,11 +341,40 @@ static void cocoaDialogUnMapMethod(Ihandle* ih)
 	cocoaCleanUpWindow(ih);
 	
 }
+
+static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
+{
+#if 0
+	if (ih->data->ignore_resize)
+		return;
+	
+	ih->data->ignore_resize = 1;
+	
+	/* for dialogs the position is not updated here */
+	SetWindowPos(ih->handle, 0, 0, 0, ih->currentwidth, ih->currentheight,
+				 SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOSENDCHANGING);
+	
+	ih->data->ignore_resize = 0;
+#endif
+	
+	NSWindow* the_window = (NSWindow*)ih->handle;
+//	NSRect the_rect = [the_window frame];
+	
+	int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(ih->y);
+
+	[the_window setFrame:NSMakeRect(ih->x, inverted_height, ih->currentwidth , ih->currentheight) display:YES];
+
+}
+
+
+
 void iupdrvDialogInitClass(Iclass* ic)
 {
 	/* Driver Dependent Class methods */
 	ic->Map = cocoaDialogMapMethod;
 	ic->UnMap = cocoaDialogUnMapMethod;
+	ic->LayoutUpdate = cocoaDialogLayoutUpdateMethod;
+
 #if 0
 	ic->LayoutUpdate = gtkDialogLayoutUpdateMethod;
 	ic->GetInnerNativeContainerHandle = gtkDialogGetInnerNativeContainerHandleMethod;
