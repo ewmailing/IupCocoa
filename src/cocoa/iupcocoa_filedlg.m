@@ -244,9 +244,11 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 		
 		// HACK: Iup wants this method to block, but this method returns immediately (the completion handler blocks).
 		// This spin-blocking might work for the basic case, but I'm worried it's going to be buggy in complex cases.
-		// For example, what if other window buttons are still exposed; the user can interact with thos.
+		// For example, what if other window buttons are still exposed; the user can interact with those.
+		// Or the user can hit Quit in the menu.
 		while(NO == up_val_did_complete)
 		{
+#if 0
 			NSEvent* ns_event;
 			ns_event = [NSApp
 					 nextEventMatchingMask:NSAnyEventMask
@@ -255,7 +257,10 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 					 dequeue:YES
 			];
 			[NSApp sendEvent:ns_event];
-
+#else
+			
+			IupLoopStep();
+#endif
 		}
 		
 
