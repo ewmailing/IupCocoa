@@ -23,6 +23,10 @@
 		00346C361B6766EC0045148B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A9261B62D7A900BEC175 /* Images.xcassets */; };
 		00346C381B6766EC0045148B /* iup.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00346C3E1B6766F80045148B /* frame.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A9641B62D93700BEC175 /* frame.c */; };
+		00346C471B69DF3E0045148B /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; };
+		00346C491B69DF3E0045148B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A9261B62D7A900BEC175 /* Images.xcassets */; };
+		00346C4B1B69DF3E0045148B /* iup.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		00346C511B69DF9F0045148B /* predialogs.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A9821B62D93700BEC175 /* predialogs.c */; };
 		00E3A9441B62D8A700BEC175 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A9261B62D7A900BEC175 /* Images.xcassets */; };
 		00E3A99C1B62D94600BEC175 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A9941B62D93700BEC175 /* timer.c */; };
 		00E3A9BC1B62DA4100BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A9B41B62D9A200BEC175 /* iup.framework */; };
@@ -52,6 +56,13 @@
 			remoteInfo = iup;
 		};
 		00346C301B6766EC0045148B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00E3A9AC1B62D9A200BEC175 /* iup.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 00E3A5EC1B60578300BEC175;
+			remoteInfo = iup;
+		};
+		00346C431B69DF3E0045148B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00E3A9AC1B62D9A200BEC175 /* iup.xcodeproj */;
 			proxyType = 1;
@@ -140,6 +151,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C4A1B69DF3E0045148B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				00346C4B1B69DF3E0045148B /* iup.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9C11B62DC2200BEC175 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -162,6 +184,8 @@
 		00346C291B66D1C70045148B /* button.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = button.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/button.plist; sourceTree = "<absolute>"; };
 		00346C3C1B6766EC0045148B /* frame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = frame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00346C3D1B6766EC0045148B /* frame.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = frame.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/frame.plist; sourceTree = "<absolute>"; };
+		00346C4F1B69DF3E0045148B /* predialogs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = predialogs.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00346C501B69DF3E0045148B /* predialogs.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = predialogs.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/predialogs.plist; sourceTree = "<absolute>"; };
 		00E3A9261B62D7A900BEC175 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		00E3A9481B62D8A700BEC175 /* timer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = timer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A9491B62D8A700BEC175 /* timer.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = timer.plist; path = /Volumes/DataPartition/Users/ewing/Source/GIT/IupMac/iup315/Xcode/IupTests/timer.plist; sourceTree = "<absolute>"; };
@@ -281,6 +305,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C461B69DF3E0045148B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00346C471B69DF3E0045148B /* iup.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9421B62D8A700BEC175 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -304,6 +336,7 @@
 				00019C401B6369D000DC5171 /* label.plist */,
 				00346C291B66D1C70045148B /* button.plist */,
 				00346C3D1B6766EC0045148B /* frame.plist */,
+				00346C501B69DF3E0045148B /* predialogs.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -315,6 +348,7 @@
 				00019C3F1B6369D000DC5171 /* label.app */,
 				00346C281B66D1C60045148B /* button.app */,
 				00346C3C1B6766EC0045148B /* frame.app */,
+				00346C4F1B69DF3E0045148B /* predialogs.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -505,6 +539,25 @@
 			productReference = 00346C3C1B6766EC0045148B /* frame.app */;
 			productType = "com.apple.product-type.application";
 		};
+		00346C411B69DF3E0045148B /* predialogs */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00346C4C1B69DF3E0045148B /* Build configuration list for PBXNativeTarget "predialogs" */;
+			buildPhases = (
+				00346C441B69DF3E0045148B /* Sources */,
+				00346C461B69DF3E0045148B /* Frameworks */,
+				00346C481B69DF3E0045148B /* Resources */,
+				00346C4A1B69DF3E0045148B /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				00346C421B69DF3E0045148B /* PBXTargetDependency */,
+			);
+			name = predialogs;
+			productName = IupTests;
+			productReference = 00346C4F1B69DF3E0045148B /* predialogs.app */;
+			productType = "com.apple.product-type.application";
+		};
 		00E3A93F1B62D8A700BEC175 /* timer */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E3A9451B62D8A700BEC175 /* Build configuration list for PBXNativeTarget "timer" */;
@@ -557,6 +610,7 @@
 				00019C311B6369D000DC5171 /* label */,
 				00346C1A1B66D1C60045148B /* button */,
 				00346C2E1B6766EC0045148B /* frame */,
+				00346C411B69DF3E0045148B /* predialogs */,
 			);
 		};
 /* End PBXProject section */
@@ -625,6 +679,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C481B69DF3E0045148B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00346C491B69DF3E0045148B /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9431B62D8A700BEC175 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -668,6 +730,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00346C441B69DF3E0045148B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00346C511B69DF9F0045148B /* predialogs.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A9401B62D8A700BEC175 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -698,6 +768,11 @@
 			isa = PBXTargetDependency;
 			name = iup;
 			targetProxy = 00346C301B6766EC0045148B /* PBXContainerItemProxy */;
+		};
+		00346C421B69DF3E0045148B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = iup;
+			targetProxy = 00346C431B69DF3E0045148B /* PBXContainerItemProxy */;
 		};
 		00E3A9C01B62DC2200BEC175 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -792,6 +867,28 @@
 				INFOPLIST_FILE = frame.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = frame;
+			};
+			name = Release;
+		};
+		00346C4D1B69DF3E0045148B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = predialogs.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = predialogs;
+			};
+			name = Debug;
+		};
+		00346C4E1B69DF3E0045148B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = predialogs.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = predialogs;
 			};
 			name = Release;
 		};
@@ -941,6 +1038,15 @@
 			buildConfigurations = (
 				00346C3A1B6766EC0045148B /* Debug */,
 				00346C3B1B6766EC0045148B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00346C4C1B69DF3E0045148B /* Build configuration list for PBXNativeTarget "predialogs" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00346C4D1B69DF3E0045148B /* Debug */,
+				00346C4E1B69DF3E0045148B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

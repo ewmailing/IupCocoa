@@ -24,6 +24,7 @@ static int timer_cb(Ihandle* ih)
 
 
 
+
 void TimerTest()
 {
 	timer1 = IupTimer();
@@ -33,12 +34,46 @@ void TimerTest()
 	
 }
 
+
+void FileDialog()
+{
+	Ihandle *dlg = IupFileDlg();
+	
+	IupSetAttribute(dlg, "DIALOGTYPE", "OPEN");
+	IupSetAttribute(dlg, "TITLE", "IupFileDlg Test");
+	IupSetAttributes(dlg, "FILTER = \"*.bmp\", FILTERINFO = \"Bitmap Files\"");
+//	IupSetCallback(dlg, "HELP_CB", (Icallback)help_cb);
+	
+	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
+	
+	if (IupGetInt(dlg, "STATUS") != -1)
+	{
+  printf("OK\n");
+  printf("  VALUE(%s)\n", IupGetAttribute(dlg, "VALUE"));
+	}
+	else
+	{
+  printf("CANCEL\n");
+	}
+	IupDestroy(dlg);
+}
+
+static int button_cb(Ihandle* ih)
+{
+	FileDialog();
+	
+	return IUP_DEFAULT;
+	
+}
+
+
 int main(int argc, const char* argv[])
 {
 
 	IupOpen(&argc, &argv);
 	Ihandle* label = IupLabel("Hello");
 	Ihandle* button = IupButton("Hello", NULL);
+	IupSetCallback(button, "ACTION", (Icallback)button_cb);
 
 //	Ihandle* dialog = IupDialog(NULL);
 //	Ihandle* dialog = IupDialog(label);
