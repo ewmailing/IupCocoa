@@ -203,8 +203,71 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 
   }
 	
-	ret_val = [file_panel runModal];
+	
+	// FIXME: Supporting PARENTDIALOG might not work.
+	// Iup assumes that this method blocks and is completely modal.
+	// Cocoa doesn't really like modal windows at all.
+	// The modal sheets will only block for a specific window, but in theory, other windows should still be interactive, plus the menu.
+	// Cocoa wants to return immediately from creating a sheet which violates Iup assupmtions.
+	// I have a hack in place to block the executtion flow, but I think it may break down in complex window states.
+	// We may need to disable this feature.
+	value = iupAttribGet(ih, "PARENTDIALOG");
+	if(value)
+	{
+		InativeHandle* parent = iupDialogGetNativeParent(ih);
+//		InativeHandle* parent = IupGetParent(ih);
 
+		NSWindow* parent_window = nil;
+		if([(id)parent isKindOfClass:[NSWindow class]])
+		{
+			parent_window = parent;
+			
+		}
+		else if([(id)parent isKindOfClass:[NSView class]])
+		{
+			parent_window = [(id)parent window];
+		}
+		else
+		{
+		}
+		__block NSInteger up_val_result = -1;
+		__block BOOL up_val_did_complete = NO;
+
+		[file_panel beginSheetModalForWindow:parent_window
+			completionHandler:^(NSInteger the_result)
+			{
+				up_val_result = the_result;
+				up_val_did_complete = YES;
+			}
+		 ];
+		
+		
+		// HACK: Iup wants this method to block, but this method returns immediately (the completion handler blocks).
+		// This spin-blocking might work for the basic case, but I'm worried it's going to be buggy in complex cases.
+		// For example, what if other window buttons are still exposed; the user can interact with thos.
+		while(NO == up_val_did_complete)
+		{
+			NSEvent* ns_event;
+			ns_event = [NSApp
+					 nextEventMatchingMask:NSAnyEventMask
+					 untilDate:[NSDate dateWithTimeIntervalSinceNow:0.0]
+					 inMode:NSDefaultRunLoopMode
+					 dequeue:YES
+			];
+			[NSApp sendEvent:ns_event];
+
+		}
+		
+
+		
+		
+		 ret_val = up_val_result;
+		
+	}
+	else
+	{
+		ret_val = [file_panel runModal];
+	}
 	
 	if(ret_val == NSModalResponseOK)
 	{

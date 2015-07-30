@@ -43,7 +43,8 @@ void FileDialog()
 	IupSetAttribute(dlg, "TITLE", "IupFileDlg Test");
 	IupSetAttributes(dlg, "FILTER = \"*.bmp\", FILTERINFO = \"Bitmap Files\"");
 //	IupSetCallback(dlg, "HELP_CB", (Icallback)help_cb);
-	
+	IupSetAttribute(dlg, "PARENTDIALOG", "_MAIN_DIALOG_TEST_");
+
 	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
 	
 	if (IupGetInt(dlg, "STATUS") != -1)
@@ -78,6 +79,8 @@ int main(int argc, const char* argv[])
 //	Ihandle* dialog = IupDialog(NULL);
 //	Ihandle* dialog = IupDialog(label);
 	Ihandle* dialog = IupDialog(button);
+	IupSetHandle("_MAIN_DIALOG_TEST_", dialog);
+
 	IupSetAttribute(dialog, "TITLE", "Test Window");
 
 /*
