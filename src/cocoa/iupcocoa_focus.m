@@ -23,6 +23,17 @@
 void iupdrvSetFocus(Ihandle *ih)
 {               
 //  [ih->handle makeFirstResponder: self];
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSView class]])
+	{
+		[[(NSView*)the_object window] makeFirstResponder:the_object];
+	}
+	else if([the_object isKindOfClass:[NSWindow class]])
+	{
+		[(NSWindow*)the_object makeKeyAndOrderFront:nil];
+	}
+
+	
 }
 
 void iupmacFocusInOutEvent(Ihandle *ih)
