@@ -19,8 +19,8 @@
 
 static int macMessageDlgPopup(Ihandle* ih, int x, int y)
 {
-#if 0
-  InativeHandle* parent = iupDialogGetNativeParent(ih);
+#if 1
+//  InativeHandle* parent = iupDialogGetNativeParent(ih);
   char *icon, *buttons;
   NSInteger result;
   NSAlert *alert = [[NSAlert new] autorelease];  
@@ -30,26 +30,35 @@ static int macMessageDlgPopup(Ihandle* ih, int x, int y)
 
   icon = iupAttribGetStr(ih, "DIALOGTYPE");
   if (iupStrEqualNoCase(icon, "ERROR"))
+  {
     nsStyle = NSCriticalAlertStyle;
+  }
   else if (iupStrEqualNoCase(icon, "WARNING"))
+  {
     nsStyle = NSWarningAlertStyle;
+  }
   else if (iupStrEqualNoCase(icon, "INFORMATION"))
+  {
     nsStyle = NSInformationalAlertStyle;
+  }
   else if (iupStrEqualNoCase(icon, "QUESTION"))
-    nsStyle = NSInformationalAlertStyle; 
-  [alert setAlertStyle:nsStyle]; 
+  {
+    nsStyle = NSInformationalAlertStyle;
+  }
+  [alert setAlertStyle:nsStyle];
    
   buttons = iupAttribGetStr(ih, "BUTTONS");     
   if (iupStrEqualNoCase(buttons, "OKCANCEL")) {  
-	[alert addButtonWithTitle:[NSString stringWithUTF8String:iupStrMessageGet("IUP_CANCEL")]];
-	[alert addButtonWithTitle:[NSString stringWithUTF8String:"OK"]];
+	  [alert addButtonWithTitle:NSLocalizedString(@"OK", @"OK")];
+	[alert addButtonWithTitle:NSLocalizedString(@"Cancel", @"Cancel")];
+	  
   } else if (iupStrEqualNoCase(buttons, "YESNO")) {
-	[alert addButtonWithTitle:[NSString stringWithUTF8String:iupStrMessageGet("IUP_NO")]];
-	[alert addButtonWithTitle:[NSString stringWithUTF8String:iupStrMessageGet("IUP_YES")]];
+	  [alert addButtonWithTitle:NSLocalizedString(@"Yes", @"Yes")];
+	[alert addButtonWithTitle:NSLocalizedString(@"No", @"No")];
   } else
   {
-	[alert addButtonWithTitle:[NSString stringWithUTF8String:"OK"]];
-    num_but = 1;
+	  [alert addButtonWithTitle:NSLocalizedString(@"OK", @"OK")];
+//    num_but = 1;
   }       
   [alert setInformativeText: [NSString stringWithUTF8String:iupAttribGet(ih, "VALUE")]];
   [alert setMessageText:     [NSString stringWithUTF8String:iupAttribGet(ih, "TITLE")]];

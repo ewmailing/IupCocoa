@@ -47,16 +47,59 @@ void FileDialog()
 
 	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
 	
+	char* selected_file = NULL;
+	int is_selected = 0;
 	if (IupGetInt(dlg, "STATUS") != -1)
 	{
   printf("OK\n");
   printf("  VALUE(%s)\n", IupGetAttribute(dlg, "VALUE"));
+		selected_file = IupGetAttribute(dlg, "VALUE");
+		is_selected = 1;
 	}
 	else
 	{
   printf("CANCEL\n");
 	}
+	
+	
+	// must copy VALUE before dialog destroy
+	char message[2048];
+	if(NULL == selected_file)
+	{
+		sprintf(message, "File selection was cancelled");
+	}
+	else
+	{
+		sprintf(message, "Selected file:\n%s", selected_file);
+		printf("  VALUE(%s)\n", selected_file);
+		
+	}
+	
 	IupDestroy(dlg);
+	
+	
+	dlg = IupMessageDlg();
+	IupSetAttribute(dlg, "DIALOGTYPE", "INFORMATION");
+	IupSetAttribute(dlg, "TITLE", "IupMessageDlg Test");
+	if(is_selected)
+	{
+//		IupSetAttribute(dlg, "BUTTONS", "OKCANCEL");
+		IupSetAttribute(dlg, "BUTTONS", "YESNO");
+	}
+	else
+	{
+		IupSetAttribute(dlg, "BUTTONS", "OK");
+
+	}
+
+	IupSetStrAttribute(dlg, "VALUE", message);
+//	IupSetCallback(dlg, "HELP_CB", (Icallback)help_cb);
+	
+	IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
+	
+	printf("BUTTONRESPONSE(%s)\n", IupGetAttribute(dlg, "BUTTONRESPONSE"));
+	IupDestroy(dlg);
+
 }
 
 static int button_cb(Ihandle* ih)
