@@ -144,11 +144,11 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 		@throw @"Unexpected type for parent widget";
 	}
 	
-	/*
+	
 	CGSize fitting_size = [the_view fittingSize];
 	ih->currentwidth = fitting_size.width;
 	ih->currentheight = fitting_size.height;
-*/
+
 	NSRect parent_rect = [parent_view frame];
 
 	NSRect the_rect = NSMakeRect(
