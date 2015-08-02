@@ -93,6 +93,7 @@ static ImacFont* macFindFont(const char *standardfont)
   		[attributes setValue:[NSNumber numberWithInt:NSUnderlinePatternSolid|NSUnderlineStyleSingle] 
 		forKey:NSStrikethroughStyleAttributeName];   
   [attributes setValue:hFont forKey:NSFontAttributeName];
+	
   if (!hFont)
     return NULL;
 
@@ -101,11 +102,13 @@ static ImacFont* macFindFont(const char *standardfont)
 
   strcpy(fonts[i].standardfont, standardfont);
   fonts[i].hFont = hFont;          
-  fonts[i].attributes = attributes;
+  fonts[i].attributes = [attributes copy];
   fonts[i].charheight = (int)([hFont ascender] + [hFont descender]);      
   NSRect rect = [hFont boundingRectForFont];
   fonts[i].charwidth = (int)rect.size.width;
 
+	[attributes release];
+	
   return &fonts[i];
 }
 
@@ -227,8 +230,14 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
     {
       nextstr = iupStrNextLine(curstr, &len);  
 	  NSString *str = [[NSString alloc] initWithBytes:curstr length:len encoding:NSUTF8StringEncoding];
-	  NSSize size = [str sizeWithAttributes: macfont->attributes];
-      max_w = iupMAX(max_w, size.width);
+//	  NSSize size = [str sizeWithAttributes: macfont->attributes];
+
+		NSSize size = [str sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSFont systemFontOfSize:11], NSFontAttributeName, nil]];
+
+
+		
+		
+		max_w = iupMAX(max_w, size.width);
 
       curstr = nextstr;
       if (*nextstr)
@@ -243,6 +252,9 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 {
+	
+//	return 40;
+	
   NSDictionary *attributes;
   int len;
   char* line_end;
@@ -251,9 +263,15 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
     return 0;
 
   attributes = (NSDictionary*)iupmacGetHFontAttrib(ih);
-  if (!attributes)
-    return 0;
+	NSLog(@"disabled iupdrvFontGetStringWidth due to crash");
+	return 0;
 
+	
+  if (!attributes || ([attributes count] == 0))
+  {
+	  NSLog(@"missing font attributes");
+    return 0;
+  }
 
   line_end = strchr(str, '\n');
   if (line_end)

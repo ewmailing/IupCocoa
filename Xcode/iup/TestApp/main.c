@@ -111,6 +111,16 @@ static int button_cb(Ihandle* ih)
 }
 
 
+void TextTest()
+{
+	Ihandle* text_obj = IupText(NULL);
+
+	
+	
+}
+
+
+
 int main(int argc, const char* argv[])
 {
 
@@ -119,9 +129,12 @@ int main(int argc, const char* argv[])
 	Ihandle* button = IupButton("Hello", NULL);
 	IupSetCallback(button, "ACTION", (Icallback)button_cb);
 
+	Ihandle* text_obj = IupText(NULL);
+
 //	Ihandle* dialog = IupDialog(NULL);
 //	Ihandle* dialog = IupDialog(label);
-	Ihandle* dialog = IupDialog(button);
+//	Ihandle* dialog = IupDialog(button);
+	Ihandle* dialog = IupDialog(text_obj);
 	IupSetHandle("_MAIN_DIALOG_TEST_", dialog);
 
 	IupSetAttribute(dialog, "TITLE", "Test Window");

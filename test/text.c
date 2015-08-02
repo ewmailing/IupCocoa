@@ -352,7 +352,7 @@ void TextTest(void)
     formattag = IupUser();
     IupSetAttribute(formattag, "ALIGNMENT", "CENTER");
     IupSetAttribute(formattag, "SPACEAFTER", "10");
-    IupSetAttribute(formattag, "FONTSIZE", "24");
+//    IupSetAttribute(formattag, "FONTSIZE", "24");
     IupSetAttribute(formattag, "SELECTION", "3,1:3,50");
     IupSetAttribute(mltline, "ADDFORMATTAG_HANDLE", (char*)formattag);
 

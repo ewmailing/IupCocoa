@@ -140,13 +140,15 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		{
 			
 			//text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
-			text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 140, 40)];
+			text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(50, 50, 140, 40)];
 			
 			
 		}
 		the_view = text_field;
 
 
+		[text_field setPlaceholderString:@"Placeholder Text"];
+		
 		if(iupAttribGetBoolean(ih, "SPIN"))
 		{
 			// TODO: NSStepper
@@ -176,12 +178,14 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		/* formatting is never supported when MULTILINE=NO */
 		ih->data->has_formatting = 0;
 		
+		
+//		[text_field sizeToFit];
+
 
 	}
 	
 	
 	
-	[the_view sizeToFit];
 	
 	
 	
@@ -227,7 +231,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 }
 
 
-static void cocoaToggleUnMapMethod(Ihandle* ih)
+static void cocoaTextUnMapMethod(Ihandle* ih)
 {
 	id the_view = ih->handle;
 	/*
@@ -245,6 +249,7 @@ void iupdrvTextInitClass(Iclass* ic)
 {
   /* Driver Dependent Class functions */
   ic->Map = cocoaTextMapMethod;
+	ic->UnMap = cocoaTextUnMapMethod;
 
 #if 0
 
