@@ -125,16 +125,18 @@ int main(int argc, const char* argv[])
 {
 
 	IupOpen(&argc, &argv);
-	Ihandle* label = IupLabel("Hello");
+//	Ihandle* label = IupLabel("Hello");
 	Ihandle* button = IupButton("Hello", NULL);
 	IupSetCallback(button, "ACTION", (Icallback)button_cb);
 
-	Ihandle* text_obj = IupText(NULL);
+//	Ihandle* text_obj = IupText(NULL);
+//	Ihandle* list_obj = IupList(NULL);
 
 //	Ihandle* dialog = IupDialog(NULL);
 //	Ihandle* dialog = IupDialog(label);
-//	Ihandle* dialog = IupDialog(button);
-	Ihandle* dialog = IupDialog(text_obj);
+	Ihandle* dialog = IupDialog(button);
+//	Ihandle* dialog = IupDialog(text_obj);
+//	Ihandle* dialog = IupDialog(list_obj);
 	IupSetHandle("_MAIN_DIALOG_TEST_", dialog);
 
 	IupSetAttribute(dialog, "TITLE", "Test Window");

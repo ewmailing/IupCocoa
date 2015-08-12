@@ -120,11 +120,203 @@ int iupdrvListSetImageHandle(Ihandle* ih, int id, void* hImage)
 
 
 
+
+static int cocoaListMapMethod(Ihandle* ih)
+{
+
+	NSView* the_view;
+	NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(30, 30, 190, 40)];
+	the_view = popup_button;
+	
+	if (ih->data->is_dropdown)
+	{
+		if (ih->data->has_editbox)
+		{
+
+			
+		}
+		else
+		{
+//			ih->handle = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+		}
+		
+
+
+		
+		
+		if(ih->data->show_image)
+		{
+
+			
+		}
+		
+		if (ih->data->has_editbox)
+		{
+
+			
+			if (!iupAttribGetBoolean(ih, "CANFOCUS"))
+			{
+//				iupgtkSetCanFocus(ih->handle, 0);
+			}
+			
+
+			
+		}
+		else
+		{
+
+			
+
+			
+			
+			if (!iupAttribGetBoolean(ih, "CANFOCUS"))
+			{
+
+				
+			}
+			else
+			{
+
+				
+			}
+		}
+	
+	}
+	else
+	{
+
+		
+		
+		if (ih->data->has_editbox)
+		{
+
+			
+//			iupgtkSetCanFocus(ih->handle, 0);  /* focus goes only to the edit box */
+			if (!iupAttribGetBoolean(ih, "CANFOCUS"))
+			{
+//				iupgtkSetCanFocus(entry, 0);
+			}
+
+		}
+		else
+		{
+			
+			if (!iupAttribGetBoolean(ih, "CANFOCUS"))
+			{
+//				iupgtkSetCanFocus(ih->handle, 0);
+			}
+		}
+		
+		if (ih->data->show_image)
+		{
+
+		}
+		
+		
+		if (ih->data->sb)
+		{
+			if (iupAttribGetBoolean(ih, "AUTOHIDE"))
+			{
+//				scrollbar_policy = GTK_POLICY_AUTOMATIC;
+			}
+			else
+			{
+//				scrollbar_policy = GTK_POLICY_ALWAYS;
+			}
+		}
+		else
+		{
+//			scrollbar_policy = GTK_POLICY_NEVER;
+		}
+
+		
+		
+		if (!ih->data->has_editbox && ih->data->is_multiple)
+		{
+
+			
+		}
+		else
+		{
+		}
+
+	}
+	
+	/* Enable internal drag and drop support */
+	if(ih->data->show_dragdrop && !ih->data->is_dropdown && !ih->data->is_multiple)
+	{
+
+	}
+	
+	if (iupAttribGetBoolean(ih, "SORT"))
+	{
+//		gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(store), IUPGTK_LIST_TEXT, GTK_SORT_ASCENDING);
+	}
+	/* add to the parent, all GTK controls must call this. */
+//	iupgtkAddToParent(ih);
+	
+	
+	ih->handle = the_view;
+	
+#if 0
+	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
+	objc_setAssociatedObject(the_toggle, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+	// I also need to track the memory of the buttion action receiver.
+	// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
+	// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
+	// This is generally not good Cocoa as Toggles don't retain their receivers, but this seems like the best option.
+	// Be careful of retain cycles.
+	IupCocoaToggleReceiver* toggle_receiver = [[IupCocoaToggleReceiver alloc] init];
+	[the_toggle setTarget:toggle_receiver];
+	[the_toggle setAction:@selector(myToggleClickAction:)];
+	// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
+	// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
+	// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
+	objc_setAssociatedObject(the_toggle, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, (id)toggle_receiver, OBJC_ASSOCIATION_ASSIGN);
+	
+#endif
+	// All Cocoa views shoud call this to add the new view to the parent view.
+	iupCocoaAddToParent(ih);
+
+	
+
+	/* configure for DRAG&DROP */
+	if (IupGetCallback(ih, "DROPFILES_CB"))
+	{
+//		iupAttribSet(ih, "DROPFILESTARGET", "YES");
+	}
+	
+//	IupSetCallback(ih, "_IUP_XY2POS_CB", (Icallback)gtkListConvertXYToPos);
+	
+//	iupListSetInitialItems(ih);
+	
+	/* update a mnemonic in a label if necessary */
+//	iupgtkUpdateMnemonic(ih);
+	
+	return IUP_NOERROR;
+}
+
+
+static void cocoaListUnMapMethod(Ihandle* ih)
+{
+	id the_view = ih->handle;
+	/*
+	 id text_receiver = objc_getAssociatedObject(the_view, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY);
+	 objc_setAssociatedObject(the_view, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
+	 [text_receiver release];
+	 */
+	[the_view release];
+	ih->handle = NULL;
+	
+}
+
+
 void iupdrvListInitClass(Iclass* ic)
 {
-#if 0
   /* Driver Dependent Class functions */
-  ic->Map = gtkListMapMethod;
+	ic->Map = cocoaListMapMethod;
+	ic->UnMap = cocoaListUnMapMethod;
+#if 0
 
   /* Driver Dependent Attribute functions */
 

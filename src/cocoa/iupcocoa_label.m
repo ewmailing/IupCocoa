@@ -70,7 +70,8 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 		{
 			ih->data->type = IUP_LABEL_SEP_HORIZ;
 
-			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 250.0, 1.0)];
+//			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 250.0, 1.0)];
+			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(0.0, 0.0, 250.0, 1.0)];
 			[horizontal_separator setBoxType:NSBoxSeparator];
 			the_label = horizontal_separator;
 			
@@ -79,7 +80,8 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 		{
 			ih->data->type = IUP_LABEL_SEP_VERT;
 
-			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 1.0, 250.0)];
+//			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 1.0, 250.0)];
+			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(0.0, 0.0, 1.0, 250.0)];
 			[vertical_separator setBoxType:NSBoxSeparator];
 			the_label = vertical_separator;
 
@@ -116,15 +118,15 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			
 			iupdrvImageGetInfo(the_bitmap, &width, &height, &bpp);
 
-			static int woffset = 0;
-			static int hoffset = 0;
+//			static int woffset = 0;
+//			static int hoffset = 0;
 			
-//			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
-			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(woffset, hoffset, width, height)];
+			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+//			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(woffset, hoffset, width, height)];
 			[image_view setImage:the_bitmap];
 			
-			woffset += 30;
-			hoffset += 30;
+//			woffset += 30;
+//			hoffset += 30;
 			
 			the_label = image_view;
 			
@@ -160,8 +162,12 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			[the_label setBezeled:NO];
 			[the_label setDrawsBackground:NO];
 			[the_label setEditable:NO];
-			[the_label setSelectable:NO];
+//			[the_label setSelectable:NO];
+			// TODO: FEATURE: I think this is really convenient for users so it should be the default
+			[the_label setSelectable:YES];
 			
+			NSFont* the_font = [the_label font];
+			NSLog(@"font %@", the_font);
 		
 		
 		}

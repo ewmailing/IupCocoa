@@ -145,15 +145,22 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	}
 	
 	
+//	iupgtkNativeContainerMove((GtkWidget*)parent, widget, x, y);
+
+//	iupgtkSetPosSize(GTK_CONTAINER(parent), widget, ih->x, ih->y, ih->currentwidth, ih->currentheight);
+
+	/*
 	CGSize fitting_size = [the_view fittingSize];
 	ih->currentwidth = fitting_size.width;
 	ih->currentheight = fitting_size.height;
-
+*/
+	
 	NSRect parent_rect = [parent_view frame];
 
 	NSRect the_rect = NSMakeRect(
 		ih->x,
-		parent_rect.size.height - ih->y,
+		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
+		parent_rect.size.height - ih->y - ih->currentheight,
 		ih->currentwidth,
 		ih->currentheight
 	);
