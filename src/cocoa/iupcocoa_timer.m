@@ -94,12 +94,8 @@ void iupdrvTimerRun(Ihandle* ih)
 	  // specify the modes to avoid the blockage.
 	  // NSDefaultRunLoopMode seems to be the default. I don't think I need to explicitly
 	  // set this one, but just in case, I will set it anyway.
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSDefaultRunLoopMode];
-	  // This seems to be the one for preventing blocking on other events (popup box, slider, etc)
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSEventTrackingRunLoopMode];
-	  // This seems to be the one for dialogs.
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSModalPanelRunLoopMode];
-	  
+	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSRunLoopCommonModes];
+
 
 	[timer_controller setTheTimer:the_timer];
 	  [timer_controller setStartTime:start_time];
