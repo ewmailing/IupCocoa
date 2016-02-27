@@ -221,12 +221,39 @@ int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value)
 
 void iupdrvSetVisible(Ihandle* ih, int visible)
 {
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSWindow class]])
+	{
+		// NOT IMPLEMENTED
+
+	}
+	else if([the_object isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)the_object;
+		bool is_hidden = !(bool)visible;
+		[the_view setHidden:is_hidden];
+	}
+	
 	
 }
 
 int iupdrvIsVisible(Ihandle* ih)
 {
-	return 1;
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSWindow class]])
+	{
+		// NOT IMPLEMENTED
+		return 1;
+	}
+	else if([the_object isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)the_object;
+		return [the_view isHidden];
+	}
+	else
+	{
+		return 1;
+	}
 }
 
 int iupdrvIsActive(Ihandle *ih)
