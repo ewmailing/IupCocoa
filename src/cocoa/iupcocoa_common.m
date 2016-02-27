@@ -40,7 +40,17 @@ void iupCocoaAddToParent(Ihandle* ih)
 	{
 		NSView* the_view = (NSView*)child_handle;
 		
-		
+		// From David Phillip Oster:
+		/* 
+		 now, when you resize the window, you see the hidden content. This makes the subviews preserve their relative x,y offset from the top left of the window, instead of the Mac default of the bottom left. It probably isn't the right way to do it, since there's probably some iup property that is specifying somethign more complex.
+		 
+		 
+		 If I had set [the_view setAutoresizingMask:NSViewMinXMargin|NSViewWidthSizable|NSViewMaxXMargin];
+		 
+		 Then, as the window widens, that view widens along with it.
+		 */
+		[the_view setAutoresizingMask:NSViewMaxXMargin|NSViewMinYMargin];
+
 		
 		if([parent_native_handle isKindOfClass:[NSWindow class]])
 		{
