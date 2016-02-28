@@ -162,6 +162,8 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 														 pixelsWide:width pixelsHigh:height bitsPerSample:8
 													samplesPerPixel:4 hasAlpha:YES isPlanar:NO
 													 colorSpaceName:NSDeviceRGBColorSpace
+															// I thought this should be 0 because I thought I want pre-multipled alpha, but some png's I'm testing render better with this flag.
+															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
 														bytesPerRow:CalculateBytesPerRow(width, 4)
 													   bitsPerPixel:32
 						];
@@ -172,6 +174,8 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 															   pixelsWide:width pixelsHigh:height bitsPerSample:8
 														  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
 														   colorSpaceName:NSDeviceRGBColorSpace
+															// untested
+															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
 															  bytesPerRow:CalculateBytesPerRow(width, 3)
 													   bitsPerPixel:24
 						];
@@ -184,6 +188,8 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 															   pixelsWide:width pixelsHigh:height bitsPerSample:8
 														  samplesPerPixel:4 hasAlpha:YES isPlanar:NO
 														   colorSpaceName:NSDeviceRGBColorSpace
+															// untested
+															bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
 															  bytesPerRow:CalculateBytesPerRow(width, 4)
 													   bitsPerPixel:32
 						];
@@ -229,7 +235,6 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 				  *pixels = *source_pixel;
 				  pixels++;
 				  source_pixel++;
-				  
 				  
 				  if(make_inactive) {
 					  unsigned char r = *(pixels-3),
