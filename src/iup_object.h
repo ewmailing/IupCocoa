@@ -69,6 +69,11 @@ typedef struct _GtkWidget InativeHandle;
 typedef struct _WidgetRec InativeHandle;
 #elif defined(WINVER)
 typedef struct HWND__ InativeHandle;
+#elif defined(__APPLE__)
+//#import <CoreFoundation/CoreFoundation.h>
+	// Problem: The usage of InativeHandle always appends a '*'.
+	// Both id and CFTypeRef are already pointers so I don't want a double pointer.
+	typedef void InativeHandle;
 #else
 typedef struct _InativeHandle InativeHandle;
 #endif
