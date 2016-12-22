@@ -9,22 +9,25 @@
 #import <UIKit/UIKit.h>
 
 #import "IupAppDelegate.h"
+#import "IupLaunchViewController.h"
+
+extern void IupEntry();
 
 @implementation IupAppDelegate
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+	CGRect window_bounds = [[UIScreen mainScreen] bounds];
+	UIWindow* the_window = [[UIWindow alloc] initWithFrame:window_bounds];
 	
-	
-	
-	self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+	IupLaunchViewController* view_controller = [[[IupLaunchViewController alloc] init] autorelease];
+	[the_window setRootViewController:view_controller];
 
-	
-	
-	self.window.rootViewController = [[UIViewController alloc] init];
-	[self.window makeKeyAndVisible];
+	[self setWindow:the_window];
+	[the_window makeKeyAndVisible];
 
+	IupEntry();
 	
 	return YES;
 }
@@ -54,6 +57,12 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+// This is intended to allow us to use multiple UIWindows in the future.
+- (UIWindow*) currentWindow
+{
+	return [self window];
 }
 
 @end

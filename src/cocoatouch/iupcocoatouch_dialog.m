@@ -35,6 +35,8 @@
 #include "iup_assert.h"
 
 #include "iupcocoatouch_drv.h"
+#include "IupAppDelegateProtocol.h"
+#include "IupLaunchViewController.h"
 
 /*
 @interface UIWindow () 
@@ -46,17 +48,17 @@
 @end
  */
 #if 0
-@interface IupCocoaWindowDelegate : NSObject <UIWindowDelegate>
+@interface IupcocoaTouchWindowDelegate : NSObject <UIWindowDelegate>
 - (BOOL) windowShouldClose:(id)the_sender;
 - (NSSize) windowWillResize:(UIWindow*)the_sender toSize:(NSSize)frame_size;
 @end
 
-static void cocoaCleanUpWindow(Ihandle* ih)
+static void cocoaTouchCleanUpWindow(Ihandle* ih)
 {
 	UIWindow* the_window = (__bridge UIWindow*)ih->handle;
 	[the_window close];
 	
-	IupCocoaWindowDelegate* window_delegate = [the_window delegate];
+	IupcocoaTouchWindowDelegate* window_delegate = [the_window delegate];
 	[the_window setDelegate:nil];
 	[window_delegate release];
 	
@@ -65,7 +67,7 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 
 
 
-@implementation IupCocoaWindowDelegate
+@implementation IupcocoaTouchWindowDelegate
 
 - (BOOL) windowShouldClose:(id)the_sender
 {
@@ -182,7 +184,7 @@ void iupdrvDialogGetPosition(Ihandle *ih, InativeHandle* handle, int *x, int *y)
 	CGRect the_rect = [the_window frame];
 	
 	if (x) *x = the_rect.origin.x;
-	if (y) *y = iupCocoaComputeIupScreenHeightFromCartesian(the_rect.origin.y);
+	if (y) *y = iupcocoaTouchComputeIupScreenHeightFromCartesian(the_rect.origin.y);
 #endif
 }
 
@@ -192,7 +194,7 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 	UIWindow* the_window = (UIWindow*)ih->handle;
 	CGRect the_rect = [the_window frame];
 	
-	int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(y);
+	int inverted_height = iupcocoaTouchComputeCartesianScreenHeightFromIup(y);
 
 	[the_window setFrame:NSMakeRect(x, inverted_height, the_rect.size.width , the_rect.size.height) display:YES];
 #endif
@@ -291,7 +293,7 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
  Callbacks and Events
  ****************************************************************/
 
-static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
+static int cocoaTouchDialogSetTitleAttrib(Ihandle* ih, const char* value)
 {
 	UIWindow* the_window = (UIWindow*)ih->handle;
 
@@ -312,8 +314,46 @@ static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
-static int cocoaDialogMapMethod(Ihandle* ih)
+static int cocoaTouchDialogMapMethod(Ihandle* ih)
 {
+	UIResponder<IupAppDelegateProtocol>* app_delegate = (UIResponder<IupAppDelegateProtocol>*)[[UIApplication sharedApplication] delegate];
+	
+	UIWindow* the_window = [app_delegate currentWindow];
+	
+	UIViewController* root_view_controller = [the_window rootViewController];
+	
+	// If we still have our placeholder class, time to replace it.
+	if([root_view_controller isKindOfClass:[IupLaunchViewController class]])
+	{
+		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		CGRect window_bounds = [[UIScreen mainScreen] bounds];
+		UIView* root_view = [[UIView alloc] initWithFrame:window_bounds];
+		[root_view setBackgroundColor:[UIColor redColor]];
+		[new_view_controller setView:root_view];
+
+		
+		
+		UINavigationController* navigation_controller = [[[UINavigationController alloc] initWithRootViewController:new_view_controller] autorelease];
+		
+		[the_window setRootViewController:navigation_controller];
+		
+		ih->handle = [new_view_controller retain];
+		
+	}
+	else
+	{
+		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		CGRect window_bounds = [[UIScreen mainScreen] bounds];
+		UIView* root_view = [[UIView alloc] initWithFrame:window_bounds];
+		[root_view setBackgroundColor:[UIColor greenColor]];
+		[new_view_controller setView:root_view];
+	
+		[root_view_controller pushViewController:new_view_controller animated:YES];
+
+		ih->handle = [new_view_controller retain];
+
+	}
+	
 #if 0
 	iupAttribSet(ih, "RASTERSIZE", "500x400");
 	
@@ -329,7 +369,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	
 	ih->handle = (__unsafe_unretained void*)the_window;
 	
-	IupCocoaWindowDelegate* window_delegate = [[IupCocoaWindowDelegate alloc] init];
+	IupcocoaTouchWindowDelegate* window_delegate = [[IupcocoaTouchWindowDelegate alloc] init];
 //	[window setIupIhandle:ih];
 	
 	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...UIWindow might be too big/complicated and is expecting me to define Apple stuff.
@@ -347,14 +387,19 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 
 }
 
-static void cocoaDialogUnMapMethod(Ihandle* ih)
+static void cocoaTouchDialogUnMapMethod(Ihandle* ih)
 {
 
-//	cocoaCleanUpWindow(ih);
+	UIViewController* view_controller = ih->handle;
+	
+	[view_controller release];
+	
+
+//	cocoaTouchCleanUpWindow(ih);
 	
 }
 
-static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
+static void cocoaTouchDialogLayoutUpdateMethod(Ihandle* ih)
 {
 #if 0
 #if 0
@@ -373,7 +418,7 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 	UIWindow* the_window = (UIWindow*)ih->handle;
 //	CGRect the_rect = [the_window frame];
 	
-	int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(ih->y);
+	int inverted_height = iupcocoaTouchComputeCartesianScreenHeightFromIup(ih->y);
 
 	[the_window setFrame:NSMakeRect(ih->x, inverted_height, ih->currentwidth , ih->currentheight) display:YES];
 #endif
@@ -384,9 +429,9 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 void iupdrvDialogInitClass(Iclass* ic)
 {
 	/* Driver Dependent Class methods */
-	ic->Map = cocoaDialogMapMethod;
-	ic->UnMap = cocoaDialogUnMapMethod;
-	ic->LayoutUpdate = cocoaDialogLayoutUpdateMethod;
+	ic->Map = cocoaTouchDialogMapMethod;
+	ic->UnMap = cocoaTouchDialogUnMapMethod;
+	ic->LayoutUpdate = cocoaTouchDialogLayoutUpdateMethod;
 
 #if 0
 	ic->LayoutUpdate = gtkDialogLayoutUpdateMethod;
@@ -415,7 +460,7 @@ void iupdrvDialogInitClass(Iclass* ic)
 	
 	
 	/* Special */
-	iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaDialogSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaTouchDialogSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	
 	
 #if 0

@@ -125,6 +125,7 @@
 		0070FB8E1E0291F9009A8631 /* libiup.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070F8FE1E025C88009A8631 /* libiup.a */; };
 		0070FB911E02921A009A8631 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
 		0070FB931E029221009A8631 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
+		0070FB961E0BEDCB009A8631 /* IupLaunchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -363,6 +364,9 @@
 		0070FB8A1E02913A009A8631 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0070FB901E02921A009A8631 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		0070FB921E029221009A8631 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		0070FB941E0BEDCB009A8631 /* IupLaunchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupLaunchViewController.h; sourceTree = "<group>"; };
+		0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupLaunchViewController.m; sourceTree = "<group>"; };
+		0070FB971E0BF4B6009A8631 /* IupAppDelegateProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegateProtocol.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -643,7 +647,10 @@
 				0070F95B1E025CED009A8631 /* iupmac_info.m */,
 				0070F95C1E025CED009A8631 /* iupcocoatouch_key.m */,
 				0070FB701E027A1F009A8631 /* IupAppDelegate.h */,
+				0070FB971E0BF4B6009A8631 /* IupAppDelegateProtocol.h */,
 				0070FB711E027A1F009A8631 /* IupAppDelegate.m */,
+				0070FB941E0BEDCB009A8631 /* IupLaunchViewController.h */,
+				0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */,
 			);
 			path = cocoatouch;
 			sourceTree = "<group>";
@@ -856,6 +863,7 @@
 				0070FB051E025CEE009A8631 /* iup_mask.c in Sources */,
 				0070FB151E025CEE009A8631 /* iup_scanf.c in Sources */,
 				0070FA8D1E025CEE009A8631 /* iupcocoatouch_text.m in Sources */,
+				0070FB961E0BEDCB009A8631 /* IupLaunchViewController.m in Sources */,
 				0070FAE11E025CEE009A8631 /* iup_button.c in Sources */,
 				0070FA941E025CEE009A8631 /* iupcocoatouch_help.c in Sources */,
 				0070FB1E1E025CEE009A8631 /* iup_text.c in Sources */,
@@ -1071,6 +1079,7 @@
 				0070F9091E025C88009A8631 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0070FB8B1E02913A009A8631 /* Build configuration list for PBXNativeTarget "TestApp" */ = {
 			isa = XCConfigurationList;
@@ -1079,6 +1088,7 @@
 				0070FB8D1E02913A009A8631 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
