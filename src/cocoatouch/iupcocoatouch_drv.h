@@ -14,6 +14,10 @@ extern "C" {
 // the point of this is we have a unique memory address for an identifier
 extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 
+
+UIWindow* cocoaTouchFindCurrentWindow();
+UIViewController* cocoaTouchFindCurrentRootViewController();
+UINavigationController* cocoaTouchFindCurrentRootNavigationViewController();
 	
 void iupCocoaAddToParent(Ihandle* ih);
 // Cocoa is in Cartesian (a.k.a. math book, aka OpenGL coordinates, aka y increases upwards), but Iup is y increases downwards.

@@ -27,8 +27,59 @@
 #include "iup_drv.h"
 
 #include "iupcocoatouch_drv.h"
+#import "IupAppDelegateProtocol.h"
 
 const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+
+
+UIWindow* cocoaTouchFindCurrentWindow()
+{
+	// I'm expecting the app delegate to conform to IupAppDelegateProtocol,
+	// just in case users try to use Iup in existing app infrastructures.
+	// They will be required to implement the needed methods.
+	// I also don't want to be too rigid and force pedantic protocol conformance.
+	// An informal protocol conformance like simply adding a category is sufficient.
+	UIResponder<IupAppDelegateProtocol>* app_delegate = (UIResponder<IupAppDelegateProtocol>*)[[UIApplication sharedApplication] delegate];
+	
+	UIWindow* the_window = nil;
+	
+	// Common expected case
+	if([app_delegate respondsToSelector:@selector(currentWindow)])
+	{
+		the_window = [app_delegate currentWindow];
+	}
+	// Not sure what to do here. But the user is probably trying to use Iup in an existing program.
+	// We could try to create a new UIWindow, but I don't have any place to store it.
+	else
+	{
+		the_window = [[UIApplication sharedApplication] keyWindow];
+	}
+	
+	return the_window;
+}
+
+UIViewController* cocoaTouchFindCurrentRootViewController()
+{
+	UIWindow* the_window = cocoaTouchFindCurrentWindow();
+	UIViewController* root_view_controller = [the_window rootViewController];
+	
+	return root_view_controller;
+}
+
+UINavigationController* cocoaTouchFindCurrentRootNavigationViewController()
+{
+	UIWindow* the_window = cocoaTouchFindCurrentWindow();
+	UIViewController* root_view_controller = [the_window rootViewController];
+	
+	if([root_view_controller isKindOfClass:[UINavigationController class]])
+	{
+		return (UINavigationController*)root_view_controller;
+	}
+	else
+	{
+		return nil;
+	}
+}
 
 
 void iupCocoaAddToParent(Ihandle* ih)

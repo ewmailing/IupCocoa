@@ -295,33 +295,38 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
 
 static int cocoaTouchDialogSetTitleAttrib(Ihandle* ih, const char* value)
 {
-	UIWindow* the_window = (UIWindow*)ih->handle;
-
-	if(value)
+	// I'm assuming this is a ViewController, but I guess anything that responds to setTitle is fine.
+	id the_dialog = (id)ih->handle;
+	if([the_dialog respondsToSelector:@selector(setTitle:)])
 	{
-		NSString* ns_string = [NSString stringWithUTF8String:value];
-
-		[the_window setTitle:ns_string];
-
+		if(value)
+		{
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			[the_dialog setTitle:ns_string];
+		}
+		else
+		{
+			[the_dialog setTitle:nil];
+		}
 	}
-	else
-	{
-		[the_window setTitle:nil];
-
-	}
-
 	
 	return 1;
 }
 
+
+
+
 static int cocoaTouchDialogMapMethod(Ihandle* ih)
 {
-	UIResponder<IupAppDelegateProtocol>* app_delegate = (UIResponder<IupAppDelegateProtocol>*)[[UIApplication sharedApplication] delegate];
+	// TODO: Allow for iOS specific properties if users want to request other behaviors,
+	// e.g. UIWindows instead of navigation controllers.
 	
-	UIWindow* the_window = [app_delegate currentWindow];
 	
+	
+	UIWindow* the_window = cocoaTouchFindCurrentWindow();
 	UIViewController* root_view_controller = [the_window rootViewController];
 	
+
 	// If we still have our placeholder class, time to replace it.
 	if([root_view_controller isKindOfClass:[IupLaunchViewController class]])
 	{
@@ -340,7 +345,8 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 		ih->handle = [new_view_controller retain];
 		
 	}
-	else
+	// This is the expected common case where we have replaced the root view controller with a navigation view controller
+	else if([root_view_controller isKindOfClass:[UINavigationController class]])
 	{
 		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
@@ -351,6 +357,32 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 		[root_view_controller pushViewController:new_view_controller animated:YES];
 
 		ih->handle = [new_view_controller retain];
+
+	}
+	// I'm not sure what to do here. But my thinking is it would be nice to support using Iup in existing iOS apps.
+	// So we need a convention where IUP code can be used within somebody else's application structure.
+	// My thinking is their application delegate must conform to IupAppDelegateProtocol.
+	// But after that, I'm not sure what should happen.
+	// Should we swap in a navigation controller?
+	// Or should we create a separate UIWindow?
+	else
+	{
+		// swapping in a navigation controller for now
+		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		CGRect window_bounds = [[UIScreen mainScreen] bounds];
+		UIView* root_view = [[UIView alloc] initWithFrame:window_bounds];
+		[root_view setBackgroundColor:[UIColor whiteColor]];
+		[new_view_controller setView:root_view];
+		
+		
+		
+		UINavigationController* navigation_controller = [[[UINavigationController alloc] initWithRootViewController:root_view_controller] autorelease];
+		
+		[the_window setRootViewController:navigation_controller];
+		
+		ih->handle = [new_view_controller retain];
+
+		[root_view_controller pushViewController:new_view_controller animated:YES];
 
 	}
 	
@@ -389,14 +421,30 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 
 static void cocoaTouchDialogUnMapMethod(Ihandle* ih)
 {
-
-	UIViewController* view_controller = ih->handle;
+	id the_dialog = ih->handle;
+	if([the_dialog isKindOfClass:[UIViewController class]])
+	{
+		UIViewController* view_controller = (UIViewController*)the_dialog;
+		
+		UINavigationController* root_navigation_controller = cocoaTouchFindCurrentRootNavigationViewController();
+		if(root_navigation_controller)
+		{
+			// This view controller may or may not be in the navigation stack depending if the programmer is trying to remove it explicitly or if this function is being called because the user popped it and we're doing clean up.
+			NSMutableArray* view_controller_stack = [[root_navigation_controller viewControllers] mutableCopy];
+			
+			[view_controller_stack removeObject:view_controller];
+			
+			// If the view controller was removed, then make that the new view controller array
+			if([view_controller_stack count] != [[root_navigation_controller viewControllers] count])
+			{
+				[root_navigation_controller setViewControllers:view_controller_stack];
+			}
+		}
+	}
+	//TODO?: else if([the_dialog isKindOfClass:[UIWindow class]])
 	
-	[view_controller release];
 	
-
-//	cocoaTouchCleanUpWindow(ih);
-	
+	[the_dialog release];
 }
 
 static void cocoaTouchDialogLayoutUpdateMethod(Ihandle* ih)
