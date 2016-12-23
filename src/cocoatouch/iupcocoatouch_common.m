@@ -82,7 +82,7 @@ UINavigationController* cocoaTouchFindCurrentRootNavigationViewController()
 }
 
 
-void iupCocoaAddToParent(Ihandle* ih)
+void iupCocoaTouchAddToParent(Ihandle* ih)
 {
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	
@@ -103,16 +103,22 @@ void iupCocoaAddToParent(Ihandle* ih)
 		[the_view setAutoresizingMask:UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleTopMargin];
 
 		
-		if([parent_native_handle isKindOfClass:[UIWindow class]])
+		if([parent_native_handle isKindOfClass:[UIViewController class]])
+		{
+			UIViewController* parent_view_controller = (UIViewController*)parent_native_handle;
+			UIView* root_view = [parent_view_controller view];
+			[root_view addSubview:the_view];
+		}
+		else if([parent_native_handle isKindOfClass:[UIWindow class]])
 		{
 			UIWindow* parent_window = (UIWindow*)parent_native_handle;
-			UIView* window_view = [parent_window contentView];
-			[window_view addSubview:the_view];
+			UIViewController* parent_view_controller = (UIViewController*)parent_native_handle;
+			UIView* root_view = [parent_view_controller view];
+			[root_view addSubview:the_view];
 		}
 		else if([parent_native_handle isKindOfClass:[UIView class]])
 		{
 			UIView* parent_view = (UIView*)parent_native_handle;
-			
 			[parent_view addSubview:the_view];
 		}
 		else
@@ -173,10 +179,17 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	UIView* parent_view = nil;
-	if([parent_native_handle isKindOfClass:[UIWindow class]])
+	
+	if([parent_native_handle isKindOfClass:[UIViewController class]])
+	{
+		UIViewController* parent_view_controller = (UIViewController*)parent_native_handle;
+		parent_view = [parent_view_controller view];
+		
+	}
+	else if([parent_native_handle isKindOfClass:[UIWindow class]])
 	{
 		UIWindow* parent_window = (UIWindow*)parent_native_handle;
-		parent_view = [parent_window contentView];
+		parent_view = [[parent_window rootViewController] view];
 	}
 	else if([parent_native_handle isKindOfClass:[UIView class]])
 	{
@@ -220,13 +233,32 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	
 	CGRect parent_rect = [parent_view frame];
 
+	CGFloat status_bar_height = [[UIApplication sharedApplication] statusBarFrame].size.height;
+
+	UINavigationController* navigation_controller = cocoaTouchFindCurrentRootNavigationViewController();
+	UINavigationBar* navigation_bar = [navigation_controller navigationBar];
+	CGFloat navigation_bar_height = 0.0;
+	if(![navigation_bar isHidden])
+	{
+		navigation_bar_height = [navigation_bar frame].size.height;
+	}
+	
+	
+	CGFloat total_height = status_bar_height + navigation_bar_height;
+	
+//	total_height += 20.0;
+	
+#if 1
 	CGRect the_rect = CGRectMake(
 		ih->x,
-		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left iUItead of upper-left.
-		parent_rect.size.height - ih->y - ih->currentheight,
+		ih->y + total_height,
 		ih->currentwidth,
 		ih->currentheight
 	);
+#else
+	CGRect the_rect = CGRectMake(0, 50, 70, 70);
+#endif
+	
 	[the_view setFrame:the_rect];
 //	[the_view setBounds:the_rect];
 	

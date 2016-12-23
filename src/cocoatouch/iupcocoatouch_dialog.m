@@ -445,6 +445,7 @@ static void cocoaTouchDialogUnMapMethod(Ihandle* ih)
 	
 	
 	[the_dialog release];
+	ih->handle = NULL;
 }
 
 static void cocoaTouchDialogLayoutUpdateMethod(Ihandle* ih)
