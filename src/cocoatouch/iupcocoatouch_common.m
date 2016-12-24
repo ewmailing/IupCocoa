@@ -140,6 +140,28 @@ void iupCocoaTouchAddToParent(Ihandle* ih)
 	
 }
 
+void iupCocoaTouchRemoveFromParent(Ihandle* ih)
+{
+	
+	id child_handle = ih->handle;
+	if([child_handle isKindOfClass:[UIView class]])
+	{
+		UIView* the_view = (UIView*)child_handle;
+		[the_view removeFromSuperview];
+	}
+	else if([child_handle isKindOfClass:[CALayer class]])
+	{
+		CALayer* the_layer = (CALayer*)child_handle;
+		[the_layer removeFromSuperlayer];
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for widget");
+		@throw @"Unexpected type for widget";
+	}
+}
+
+
 #if 0
 int iupCocoaComputeCartesiaUIcreenHeightFromIup(int iup_height)
 {

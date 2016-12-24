@@ -180,7 +180,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 static void cocoaLabelUnMapMethod(Ihandle* ih)
 {
 	id the_label = ih->handle;
-	[the_label removeFromSuperview];
+	iupCocoaTouchRemoveFromParent(ih);
 	[the_label release];
 	ih->handle = nil;
 

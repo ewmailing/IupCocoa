@@ -240,7 +240,7 @@ static void cocoaTouchButtonUnMapMethod(Ihandle* ih)
 	
 	[the_button release];
 */
-	[the_button removeFromSuperview];
+	iupCocoaTouchRemoveFromParent(ih);
 	[the_button release];
 
 	ih->handle = NULL;
