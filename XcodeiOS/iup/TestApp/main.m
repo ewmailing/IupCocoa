@@ -59,7 +59,6 @@ int OnButtonCallback()
 
 void IupEntry()
 {
-	IupOpen(0, NULL);
 
 	Ihandle* button = IupButton("Iup Button", "");
 	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
@@ -88,6 +87,8 @@ void IupEntry()
 
 int main(int argc, char * argv[])
 {
+	IupOpen(0, NULL);
+	IupSetFunction("ENTRY_POINT", (Icallback)IupEntry);
 /*
 	@autoreleasepool {
 	    return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));

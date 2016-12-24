@@ -43,6 +43,17 @@ int IupMainLoopLevel(void)
 
 int IupMainLoop(void)
 {
+	// If the application delegate doesn't exist yet, then the main loop hasn't been started.
+	// Otherwise, it has been started and we shouldn't call UIApplicationMain again.
+	// Create an autorelease pool because if the app hasn't been started yet, there may not be an autorelease pool.
+	@autoreleasepool
+	{
+		if([[UIApplication sharedApplication] delegate] == nil)
+		{
+			return IUP_OPENED;
+		}
+	}
+	
 	@autoreleasepool
 	{
 		return UIApplicationMain(0, NULL, nil, NSStringFromClass([IupAppDelegate class]));
