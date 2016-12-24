@@ -206,6 +206,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 static void cocoaLabelUnMapMethod(Ihandle* ih)
 {
 	id the_label = ih->handle;
+	iupCocoaRemoveFromParent(ih);
 	[the_label release];
 	ih->handle = nil;
 

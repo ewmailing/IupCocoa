@@ -175,6 +175,7 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 static void cocoaProgressBarUnMapMethod(Ihandle* ih)
 {
 	id progress_bar = ih->handle;
+	iupCocoaRemoveFromParent(ih);
 	[progress_bar release];
 	ih->handle = NULL;
 	

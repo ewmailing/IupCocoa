@@ -83,6 +83,27 @@ void iupCocoaAddToParent(Ihandle* ih)
 	
 }
 
+void iupCocoaRemoveFromParent(Ihandle* ih)
+{
+	
+	id child_handle = ih->handle;
+	if([child_handle isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)child_handle;
+		[the_view removeFromSuperview];
+	}
+	else if([child_handle isKindOfClass:[CALayer class]])
+	{
+		CALayer* the_layer = (CALayer*)child_handle;
+		[the_layer removeFromSuperlayer];
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for widget");
+		@throw @"Unexpected type for widget";
+	}
+}
+
 int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height)
 {
 	// Do I want the full screen height or the visible height?

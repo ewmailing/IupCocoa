@@ -255,6 +255,8 @@ static void cocoaToggleUnMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_toggle, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 	[butten_receiver release];
 	
+	iupCocoaRemoveFromParent(ih);
+
 	[the_toggle release];
 	ih->handle = NULL;
 	

@@ -239,6 +239,7 @@ static void cocoaTextUnMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_view, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 	[text_receiver release];
 	*/
+	iupCocoaRemoveFromParent(ih);
 	[the_view release];
 	ih->handle = NULL;
 	

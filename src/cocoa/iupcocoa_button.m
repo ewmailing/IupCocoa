@@ -315,6 +315,8 @@ static void cocoaButtonUnMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_button, IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 	[butten_receiver release];
 	
+	iupCocoaRemoveFromParent(ih);
+
 	[the_button release];
 	ih->handle = NULL;
 	

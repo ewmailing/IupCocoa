@@ -62,9 +62,9 @@ static int cocoaFrameMapMethod(Ihandle* ih)
 static void cocoaFrameUnMapMethod(Ihandle* ih)
 {
 	id the_frame = ih->handle;
+	iupCocoaRemoveFromParent(ih);
 	[the_frame release];
 	ih->handle = nil;
-	
 }
 
 
