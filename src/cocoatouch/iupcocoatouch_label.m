@@ -29,15 +29,14 @@
 
 #include "iupcocoatouch_drv.h"
 
-#if 0
 static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
 	id the_label = ih->handle;
 	if(the_label)
 	{
-		// This could be a NSTextField, some kind of image, or something else.
+		// This could be a UILabel, some kind of image, or something else.
 		
-		if([the_label respondsToSelector:@selector(setStringValue:)])
+		if([the_label respondsToSelector:@selector(setText:)])
 		{
 			NSString* ns_string = nil;
 			if(value)
@@ -45,12 +44,8 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 				// This will return nil if the string can't be converted.
 				ns_string = [NSString stringWithUTF8String:value];
 			}
-			else
-			{
-				ns_string = @"";
-			}
-			// This will throw an exception for a nil string.
-			[the_label setStringValue:ns_string];
+			// It's OK if ns_string is nil.
+			[the_label setText:ns_string];
 			[the_label sizeToFit];
 		}
 	}
@@ -72,8 +67,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			ih->data->type = IUP_LABEL_SEP_HORIZ;
 
 //			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 250.0, 1.0)];
-			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(0.0, 0.0, 250.0, 1.0)];
-			[horizontal_separator setBoxType:NSBoxSeparator];
+			UIView* horizontal_separator= [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, 250.0, 1.0)];
 			the_label = horizontal_separator;
 			
 		}
@@ -82,8 +76,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			ih->data->type = IUP_LABEL_SEP_VERT;
 
 //			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 1.0, 250.0)];
-			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(0.0, 0.0, 1.0, 250.0)];
-			[vertical_separator setBoxType:NSBoxSeparator];
+			UIView* vertical_separator=[[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 250.0)];
 			the_label = vertical_separator;
 
 		}
@@ -122,7 +115,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 //			static int woffset = 0;
 //			static int hoffset = 0;
 			
-			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+			UIImageView* image_view = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
 //			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(woffset, hoffset, width, height)];
 			[image_view setImage:the_bitmap];
 			
@@ -157,17 +150,12 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 		{
 			ih->data->type = IUP_LABEL_TEXT;
 
-			the_label = [[NSTextField alloc] initWithFrame:NSZeroRect];
+			the_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
 //			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
 
-			[the_label setBezeled:NO];
-			[the_label setDrawsBackground:NO];
-			[the_label setEditable:NO];
 //			[the_label setSelectable:NO];
-			// TODO: FEATURE: I think this is really convenient for users so it should be the default
-			[the_label setSelectable:YES];
 			
-			NSFont* the_font = [the_label font];
+			UIFont* the_font = [the_label font];
 			NSLog(@"font %@", the_font);
 		
 		
@@ -182,23 +170,8 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 	
 	ih->handle = the_label;
 
-	
-	
-	/* add to the parent, all GTK controls must call this. */
-//	iupgtkAddToParent(ih);
-	
-	
-//	Ihandle* ih_parent = ih->parent;
-//	id parent_native_handle = ih_parent->handle;
-	
-	iupCocoaAddToParent(ih);
-	
-	
-	/* configure for DRAG&DROP of files */
-	if (IupGetCallback(ih, "DROPFILES_CB"))
-	{
-		iupAttribSet(ih, "DROPFILESTARGET", "YES");
-	}
+	// All cocoaTouch views should call this to add the new view to the parent view.
+	iupCocoaTouchAddToParent(ih);
 	
 	return IUP_NOERROR;
 }
@@ -207,18 +180,18 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 static void cocoaLabelUnMapMethod(Ihandle* ih)
 {
 	id the_label = ih->handle;
+	[the_label removeFromSuperview];
 	[the_label release];
 	ih->handle = nil;
 
 }
 
-#endif
 
 void iupdrvLabelInitClass(Iclass* ic)
 {
   /* Driver Dependent Class functions */
-//  ic->Map = cocoaLabelMapMethod;
-//	ic->UnMap = cocoaLabelUnMapMethod;
+  ic->Map = cocoaLabelMapMethod;
+  ic->UnMap = cocoaLabelUnMapMethod;
 
 #if 0
 
@@ -235,7 +208,7 @@ void iupdrvLabelInitClass(Iclass* ic)
 	
 #endif
 	
- // iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 #if 0
   /* IupLabel only */
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */

@@ -209,7 +209,7 @@ static int cocoaTouchButtonMapMethod(Ihandle* ih)
 
 	
 	
-	// All cocoaTouch views shoud call this to add the new view to the parent view.
+	// All cocoaTouch views should call this to add the new view to the parent view.
 	iupCocoaTouchAddToParent(ih);
 
 	
@@ -240,6 +240,7 @@ static void cocoaTouchButtonUnMapMethod(Ihandle* ih)
 	
 	[the_button release];
 */
+	[the_button removeFromSuperview];
 	[the_button release];
 
 	ih->handle = NULL;

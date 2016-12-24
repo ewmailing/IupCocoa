@@ -62,15 +62,14 @@ void IupEntry()
 
 	Ihandle* button = IupButton("Iup Button", "");
 	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
-/*
-	Ihandle* vb=IupVbox(button, NULL);
+	Ihandle* label = IupLabel("Iup Label");
+
+	Ihandle* vb=IupVbox(button, label, NULL);
 	IupSetAttribute(vb, "GAP", "10");
 	IupSetAttribute(vb, "MARGIN", "10x10");
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
-*/
-//	Ihandle* dialog = IupDialog(vb);
 //	Ihandle* dialog = IupDialog(NULL);
-	Ihandle* dialog = IupDialog(button);
+	Ihandle* dialog = IupDialog(vb);
 
 	//	IupMap(dialog);
 	IupSetAttribute(dialog, "TITLE", "Iup Activity Title");
