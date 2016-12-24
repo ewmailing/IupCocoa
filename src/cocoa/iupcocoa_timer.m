@@ -78,7 +78,7 @@ void iupdrvTimerRun(Ihandle* ih)
 	  // [[NSDate date] timeIntervalSince1970]; isn't so great because it is affected by network clock changes and so forth.
 	  double start_time = CACurrentMediaTime();
 
-	  NSTimer* the_timer = [NSTimer scheduledTimerWithTimeInterval:(time_ms/1000.0)
+	  NSTimer* the_timer = [NSTimer timerWithTimeInterval:(time_ms/1000.0)
 		target:timer_controller
         selector:@selector(onTimerCallback:)
         userInfo:(id)[NSValue valueWithPointer:ih]
