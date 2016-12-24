@@ -48,7 +48,7 @@ int IupMainLoop(void)
 	// Create an autorelease pool because if the app hasn't been started yet, there may not be an autorelease pool.
 	@autoreleasepool
 	{
-		if([[UIApplication sharedApplication] delegate] == nil)
+		if([[UIApplication sharedApplication] delegate] != nil)
 		{
 			return IUP_OPENED;
 		}
