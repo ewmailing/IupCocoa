@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
+		0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0070FB981E0E0B79009A8631 /* IupAppDelegate.h */; };
+		0070FB9B1E0E0B79009A8631 /* IupAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB991E0E0B79009A8631 /* IupAppDelegate.m */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
@@ -139,7 +141,7 @@
 		00E3A7E91B60583600BEC175 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6D21B60583600BEC175 /* Makefile */; };
 		00E3A8691B60595300BEC175 /* iup.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83B1B60595300BEC175 /* iup.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A86A1B60595300BEC175 /* iup_class_cbs.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83C1B60595300BEC175 /* iup_class_cbs.hpp */; };
-		00E3A86B1B60595300BEC175 /* iup_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83D1B60595300BEC175 /* iup_config.h */; };
+		00E3A86B1B60595300BEC175 /* iup_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83D1B60595300BEC175 /* iup_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A86C1B60595300BEC175 /* iup_mglplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83E1B60595300BEC175 /* iup_mglplot.h */; };
 		00E3A86D1B60595300BEC175 /* iup_plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83F1B60595300BEC175 /* iup_plot.h */; };
 		00E3A86E1B60595300BEC175 /* iup_pplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8401B60595300BEC175 /* iup_pplot.h */; };
@@ -240,6 +242,8 @@
 
 /* Begin PBXFileReference section */
 		00346C3F1B6880140045148B /* iupcocoa_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_info.m; sourceTree = "<group>"; };
+		0070FB981E0E0B79009A8631 /* IupAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegate.h; sourceTree = "<group>"; };
+		0070FB991E0E0B79009A8631 /* IupAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupAppDelegate.m; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A5F81B60578300BEC175 /* iupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -795,6 +799,8 @@
 				00E3A8A71B605A7500BEC175 /* iupcocoa_timer.m */,
 				00E3A8A81B605A7500BEC175 /* iupcocoa_tips.m */,
 				00E3A8A91B605A7500BEC175 /* iupcocoa_val.m */,
+				0070FB981E0E0B79009A8631 /* IupAppDelegate.h */,
+				0070FB991E0E0B79009A8631 /* IupAppDelegate.m */,
 			);
 			path = cocoa;
 			sourceTree = "<group>";
@@ -863,6 +869,7 @@
 				00E3A8691B60595300BEC175 /* iup.h in Headers */,
 				00E3A78C1B60583600BEC175 /* iup_drvfont.h in Headers */,
 				00E3A8891B60595300BEC175 /* iupluaole.h in Headers */,
+				0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */,
 				00E3A86E1B60595300BEC175 /* iup_pplot.h in Headers */,
 				00E3A7A91B60583600BEC175 /* iup_ledlex.h in Headers */,
 				00E3A7931B60583600BEC175 /* iup_focus.h in Headers */,
@@ -1167,6 +1174,7 @@
 				00E3A7D41B60583600BEC175 /* iup_table.c in Sources */,
 				00E3A8E21B6096EC00BEC175 /* iupcocoa_progressbar.m in Sources */,
 				00E3A7A71B60583600BEC175 /* iup_layoutdlg.c in Sources */,
+				0070FB9B1E0E0B79009A8631 /* IupAppDelegate.m in Sources */,
 				00E3A7801B60583600BEC175 /* iup_classattrib.c in Sources */,
 				00E3A77B1B60583600BEC175 /* iup_cbox.c in Sources */,
 				00E3A7901B60583600BEC175 /* iup_fill.c in Sources */,
@@ -1403,7 +1411,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1419,7 +1426,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = TestApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";

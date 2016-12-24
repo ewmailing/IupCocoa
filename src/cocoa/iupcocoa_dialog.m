@@ -304,6 +304,7 @@ static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
+	iupAttribSet(ih, "RASTERSIZE", "500x400");
 	
 	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
 													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
@@ -327,9 +328,9 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	[the_window setDelegate:window_delegate];
 	
 	
-	
-	ih->currentwidth = 200;
-	ih->currentheight = 200;
+
+//	ih->currentwidth = 200;
+//	ih->currentheight = 200;
 	
 	return IUP_NOERROR;
 

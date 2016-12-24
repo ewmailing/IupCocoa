@@ -19,6 +19,9 @@
 
 #include "iupcocoa_drv.h"
 
+#import "IupAppDelegate.h"
+
+
 static NSAutoreleasePool* s_autoreleasePool = nil;
 
 #if 0
@@ -91,7 +94,8 @@ int iupdrvOpen(int *argc, char ***argv)
 	 */
 //	[NSApp activateIgnoringOtherApps:YES];
 	
-	
+	[NSApp setDelegate:[[IupAppDelegate alloc] init]];
+
 	
   IupSetGlobal("DRIVER", "MAC");
 

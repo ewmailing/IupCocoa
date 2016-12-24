@@ -10,6 +10,7 @@
 struct _cdCanvas;
 
 typedef int (*IFidle)(void);  /* idle */
+typedef void (*IFentry)(void);  /* entry */
 
 typedef void(*IFi)(int); /* globalentermodal_cb, globalleavemodal_cb,  */
 typedef void(*IFii)(int, int); /* globalkeypress_cb */
