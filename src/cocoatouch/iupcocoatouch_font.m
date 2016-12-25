@@ -20,20 +20,33 @@
 #include "iup_drvfont.h"
 #include "iup_assert.h"
 
+static UIFont *cocoaFontFromHandle(Ihandle* ih) {
+	id native_object = ih->handle;
+	if ([native_object respondsToSelector:@selector(titleLabel)]) {
+		return [[native_object titleLabel] font];
+	} else if ([native_object respondsToSelector:@selector(font)]) {
+		return [native_object font];
+	} else {
+		NSLog(@"cocoaFontFromHandle not implemented for %@", [native_object class]);
+	}
+	return nil;
+}
+
 
 char* iupdrvGetSystemFont(void)
 {
 	static char systemfont[200] = "";
-	UIFont *font = [UIFont systemFontOfSize:[UIFont labelFontSize]];;
+	UIFont* font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
 	NSLog(@"systemfont: %@", font);
-	char* name = [[font familyName] UTF8String];
+	NSString* nameSize = [NSString stringWithFormat:@"%@,%g", [font familyName], [font pointSize]];
+	char* name = [nameSize UTF8String];
 	if(*name)
 	{
-		strlcpy(systemfont, name, 200);
+		strlcpy(systemfont, name, sizeof systemfont);
 	}
 	else
 	{
-		strlcpy(systemfont, "San Francisco, 17", 200);
+		strlcpy(systemfont, "Helvetica,17", sizeof systemfont);
 	}
 	return systemfont;
 }
@@ -41,18 +54,39 @@ char* iupdrvGetSystemFont(void)
 
 int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
 {
-	NSLog(@"iupdrvSetStandardFontAttrib not implemented");
+	id native_object = ih->handle;
+	NSString* fontNameSize = [NSString stringWithUTF8String:value];
+	NSScanner* scanner = [NSScanner scannerWithString:fontNameSize];
+	NSString* fontName = nil;
+	float size;
+	if ([scanner scanUpToString:@"," intoString:&fontName] &&
+		[scanner scanString:@"," intoString:NULL] &&
+		[scanner scanFloat:&size])
+	{
+		UIFont* font = [UIFont fontWithName:fontName size:size];
+		if ([native_object respondsToSelector:@selector(setFont:)])
+		{
+			[native_object setFont:font];
+		}
+		else if ([native_object respondsToSelector:@selector(titleLabel)])
+		{
+			[[native_object titleLabel] setFont:font];
+		}
+		else
+		{
+			NSLog(@"iupdrvSetStandardFontAttrib not implemented for %@", [ih->handle class]);
+		}
+	}
 	return 1;
 }
 
 void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int* h)
 {
-	NSLog(@"iupdrvFontGetMultiLineStringSize only partially implemented. (Needs to support user specified font & size");
-
-	UIFont* the_font = nil;
-	// FIXME: Use font set by user
-	
-	the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+	UIFont* the_font = cocoaFontFromHandle(ih);
+	if (the_font == nil)
+	{
+		the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+	}
 	
 	NSString* ns_string = [NSString stringWithUTF8String:str];
 	
@@ -76,19 +110,28 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int*
 		context:nil
 	];
 	
+	CGSize margin = CGSizeZero;
+	if ([native_object isKindOfClass:[UIButton class]])
+	{
+		margin = CGSizeMake(10, 5);
+	}
+	else if([native_object isKindOfClass:[UILabel class]])
+	{
+		margin = CGSizeMake(5, 5);
+	}
 	// Should I always round up or to the nearest?
-	if (w) *w = (int)(bounding_rect.size.width + 0.5f);
-	if (h) *h = (int)(bounding_rect.size.height + 0.5f);
+	if (w) *w = (int)(bounding_rect.size.width + 0.5f + margin.width);
+	if (h) *h = (int)(bounding_rect.size.height + 0.5f + margin.height);
 
 }
 
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 {
-	NSLog(@"iupdrvFontGetStringWidth only partially implemented. (Needs to support user specified font & size");
-	UIFont* the_font = nil;
-	// FIXME: Use font set by user
-	
-	the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+	UIFont* the_font = cocoaFontFromHandle(ih);
+	if (the_font == nil)
+	{
+		the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+	}
 	
 	NSString* ns_string = [NSString stringWithUTF8String:str];
 	
@@ -96,8 +139,7 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 	CGRect bounding_rect = [ns_string boundingRectWithSize:size_bounds
 		options:NSStringDrawingUsesLineFragmentOrigin
 		attributes:@{NSFontAttributeName:the_font}
-		context:nil
-	];
+		context:nil];
 	return bounding_rect.size.width;
 	
 }

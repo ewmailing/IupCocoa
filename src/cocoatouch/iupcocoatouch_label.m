@@ -151,6 +151,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			ih->data->type = IUP_LABEL_TEXT;
 
 			the_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
+			[the_label setNumberOfLines:0];
 //			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
 
 //			[the_label setSelectable:NO];
@@ -183,7 +184,48 @@ static void cocoaLabelUnMapMethod(Ihandle* ih)
 	iupCocoaTouchRemoveFromParent(ih);
 	[the_label release];
 	ih->handle = nil;
+}
 
+// TODO: move this to a routine that can be appied to any view.
+static int cocoaLabelSetBgColorAttrib(Ihandle* ih, char *iColor)
+{
+	unsigned char r, g, b, a;
+	if (iupStrToRGBA(iColor, &r, &g, &b, &a))
+	{
+		CGFloat red = r/255., green = g/255., blue = b/255., alpha = a/255.;
+		UIColor *color = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+		UILabel* the_label = ih->handle;
+		[the_label setBackgroundColor:color];
+		return 1;
+	}
+	return 0;
+}
+
+static int cocoaLabelSetFGColorAttrib(Ihandle* ih, char *iColor)
+{
+	unsigned char r, g, b, a;
+	if (iupStrToRGBA(iColor, &r, &g, &b, &a))
+	{
+		CGFloat red = r/255., green = g/255., blue = b/255., alpha = a/255.;
+		UIColor *color = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+		UILabel* the_label = ih->handle;
+		[the_label setTextColor:color];
+		return 1;
+	}
+	return 0;
+}
+
+static char*cocoaLabelGetFGColorAttrib(Ihandle* ih)
+{
+	UILabel* the_label = ih->handle;
+	UIColor *textColor = [the_label textColor];
+	CGFloat red, green, blue, alpha;
+	if ([textColor getRed:&red green:&green blue:&blue alpha:&alpha])
+	{
+		unsigned char r = red*255, g = green*255, b = blue*255, a = alpha*255;
+		return iupStrReturnRGBA(r, g, b, a);
+	}
+	return NULL;
 }
 
 
@@ -199,14 +241,13 @@ void iupdrvLabelInitClass(Iclass* ic)
 
   /* Overwrite Visual */
   iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, gtkLabelSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
-
-  /* Visual */
-  iupClassRegisterAttribute(ic, "BGCOLOR", iupBaseNativeParentGetBgColorAttrib, gtkLabelSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
-
-  /* Special */
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iupdrvBaseSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
 	
 #endif
+  /* Visual */
+  iupClassRegisterAttribute(ic, "BGCOLOR", iupBaseNativeParentGetBgColorAttrib, cocoaLabelSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
+
+  /* Special */
+  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaLabelGetFGColorAttrib, cocoaLabelSetFGColorAttrib, "DLGFGCOLOR", IUPAF_DEFAULT);
 	
   iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 #if 0

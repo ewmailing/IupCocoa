@@ -415,7 +415,8 @@
 				0070F90A1E025CD1009A8631 /* include */,
 				0070F9391E025CED009A8631 /* src */,
 			);
-			path = iup;
+			name = iup;
+			path = ../..;
 			sourceTree = "<group>";
 		};
 		0070F90A1E025CD1009A8631 /* include */ = {
@@ -468,8 +469,7 @@
 				0070F9371E025CD1009A8631 /* iupval.h */,
 				0070F9381E025CD1009A8631 /* iupweb.h */,
 			);
-			name = include;
-			path = ../../../include;
+			path = include;
 			sourceTree = "<group>";
 		};
 		0070F9391E025CED009A8631 /* src */ = {
@@ -605,8 +605,7 @@
 				0070FA221E025CED009A8631 /* make_uname.bat */,
 				0070FA231E025CED009A8631 /* Makefile */,
 			);
-			name = src;
-			path = ../../../src;
+			path = src;
 			sourceTree = "<group>";
 		};
 		0070F93A1E025CED009A8631 /* cocoatouch */ = {
