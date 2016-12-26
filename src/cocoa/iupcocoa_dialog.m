@@ -136,6 +136,20 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 int iupdrvDialogIsVisible(Ihandle* ih)
 {
 //	return iupdrvIsVisible(ih);
+
+	// This is a little bit of a hack.
+	// iupDialogShowXY needs to increment the number of visible windows.
+	// When this window is being created, without this check, Cocoa will return true.
+	// But Iup then seems to bypass the initialization routine because it assumes it had already gone through the init process.
+	// This hack works because I set first_show to 1 in my Map function.
+	// After Iup goes through its initialization, it also will set first_show to 1 again.
+	// Without this hack, even if I have a bunch of windows open, IUP thinks I closed the last one
+	// and will call IupExitLoop().
+	if(ih->data->first_show)
+	{
+		return 0;
+	}
+
 	NSWindow* the_window = (NSWindow*)ih->handle;
 	int ret_val = (int)[the_window isVisible];
 	return ret_val;
@@ -180,10 +194,44 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 {
 	NSWindow* the_window = (NSWindow*)ih->handle;
 	NSRect the_rect = [the_window frame];
+
+	if(ih->data->first_show)
+	{
+		int is_first_window = IupGetInt(ih, "_FIRST_WINDOW");
+		if(is_first_window)
+		{
+			[the_window center];
+			
+			
+			NSPoint new_pos = [the_window frame].origin;
+			
+			ih->x = new_pos.x;
+			ih->y = iupCocoaComputeIupScreenHeightFromCartesian(new_pos.y);
+		}
+		else
+		{
+		
+			ih->x = IupGetInt(ih, "CASCADE_X");
+			ih->y = IupGetInt(ih, "CASCADE_Y");
+		///		int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(ih->y);
+		
+		//		[the_window setFrame:NSMakeRect(ih->x, inverted_height, ih->currentwidth , ih->currentheight) display:YES];
+		//		[the_window setFrameTopLeftPoint:NSMakePoint(ih->x, ih->y)];
+		//	[the_window setFrameTopLeftPoint:NSMakePoint(90, 90)];
+		
+		}
+		ih->data->first_show = 0;
+	}
+	else
+	{
+		int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(ih->y);
+		
+		[the_window setFrame:NSMakeRect(ih->x, inverted_height, ih->currentwidth , ih->currentheight) display:YES];
+	}
+	
 	
 	int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(y);
 
-	[the_window setFrame:NSMakeRect(x, inverted_height, the_rect.size.width , the_rect.size.height) display:YES];
 
 }
 
@@ -306,28 +354,78 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	
 	iupAttribSet(ih, "RASTERSIZE", "500x400");
 	
-	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
+
+	
+	
+	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 500, 400)
 													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
 
 	// We are manually managing the memory, so don't let the window release itself
 	[the_window setReleasedWhenClosed:NO];
+
+	static _Bool s_isFirstWindow = true;
+
+	static NSPoint last_cascade_point = {0, 0};
+	NSPoint new_cascade_point = {0, 0};
 	
-	[the_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
+	
+	if(s_isFirstWindow)
+	{
+		// I would like to detect if this is the very first window created and center the window in this case.
+		// TODO: Save window locations between runs
+		[the_window center];
+		last_cascade_point = [the_window cascadeTopLeftFromPoint:NSZeroPoint];
+		IupSetInt(ih, "_FIRST_WINDOW", 1);
+		s_isFirstWindow = false;
+
+	}
+	else
+	{
+		
+		NSWindow* key_window = [[NSApplication sharedApplication] keyWindow];
+		if(nil != key_window)
+		{
+			//		last_cascade_point = [key_window frame].origin;
+			//		last_cascade_point.y = iupCocoaComputeCartesianScreenHeightFromIup(last_cascade_point.y);
+			
+			// Just in case the user moved the window from the last time we saved the variable
+			last_cascade_point = [key_window cascadeTopLeftFromPoint:NSZeroPoint];
+			
+			
+			//   new_cascade_point = [the_window cascadeTopLeftFromPoint:last_cascade_point];
+			new_cascade_point = [the_window cascadeTopLeftFromPoint:last_cascade_point];
+			IupSetInt(ih, "_FIRST_WINDOW", 0);
+			
+			new_cascade_point = [the_window cascadeTopLeftFromPoint:last_cascade_point];
+			//ih->x = cascade_point.x;
+			//ih->y = iupCocoaComputeIupScreenHeightFromCartesian(cascade_point.y);
+			IupSetInt(ih, "CASCADE_X", last_cascade_point.x);
+			//	IupSetInt(ih, "CASCADE_Y", iupCocoaComputeIupScreenHeightFromCartesian(last_cascade_point.y));
+			IupSetInt(ih, "CASCADE_Y", last_cascade_point.y);
+			last_cascade_point = new_cascade_point;
+			
+		}
+		
+	}
+	
+    
+	ih->data->first_show = 1;
+
+
 //	[window setTitle:appName];
-	[the_window makeKeyAndOrderFront:nil];
 	
 	ih->handle = (__unsafe_unretained void*)the_window;
 	
 	IupCocoaWindowDelegate* window_delegate = [[IupCocoaWindowDelegate alloc] init];
+	[the_window setDelegate:window_delegate];
 //	[window setIupIhandle:ih];
 	
 	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
 	objc_setAssociatedObject(the_window, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 
 	
-	[the_window setDelegate:window_delegate];
 	
-	
+	[the_window makeKeyAndOrderFront:nil];
 
 //	ih->currentwidth = 200;
 //	ih->currentheight = 200;
@@ -360,10 +458,8 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 	
 	NSWindow* the_window = (NSWindow*)ih->handle;
 //	NSRect the_rect = [the_window frame];
-	
-	int inverted_height = iupCocoaComputeCartesianScreenHeightFromIup(ih->y);
 
-	[the_window setFrame:NSMakeRect(ih->x, inverted_height, ih->currentwidth , ih->currentheight) display:YES];
+
 
 }
 
