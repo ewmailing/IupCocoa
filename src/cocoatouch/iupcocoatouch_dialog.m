@@ -333,7 +333,8 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
 		UIView* root_view = [[UIView alloc] initWithFrame:window_bounds];
-		[root_view setBackgroundColor:[UIColor redColor]];
+//		[root_view setBackgroundColor:[UIColor redColor]];
+		[root_view setBackgroundColor:[UIColor whiteColor]];
 		[new_view_controller setView:root_view];
 
 		
@@ -351,7 +352,11 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
 		UIView* root_view = [[UIView alloc] initWithFrame:window_bounds];
-		[root_view setBackgroundColor:[UIColor greenColor]];
+//		[root_view setBackgroundColor:[UIColor greenColor]];
+//		[root_view setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
+		[root_view setBackgroundColor:[UIColor whiteColor]];
+
+		
 		[new_view_controller setView:root_view];
 	
 		[root_view_controller pushViewController:new_view_controller animated:YES];
