@@ -161,6 +161,58 @@ void iupCocoaTouchRemoveFromParent(Ihandle* ih)
 	}
 }
 
+UIColor *iupCocoaTouchToNativeColor(char *iColor)
+{
+	unsigned char r, g, b, a;
+	if (iupStrToRGBA(iColor, &r, &g, &b, &a))
+	{
+		CGFloat red = r/255., green = g/255., blue = b/255., alpha = a/255.;
+		return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+	}
+	return nil;
+}
+
+char *iupCocoaTouchColorFromNative(UIColor *color)
+{
+	CGFloat red, green, blue, alpha;
+	if ([color getRed:&red green:&green blue:&blue alpha:&alpha])
+	{
+		unsigned char r = red*255, g = green*255, b = blue*255, a = alpha*255;
+		return iupStrReturnRGBA(r, g, b, a);
+	}
+	return NULL;
+}
+
+int iupCocoaTouchSetBgColorAttrib(Ihandle* ih, char *iColor)
+{
+	UIColor *color = iupCocoaTouchToNativeColor(iColor);
+	if (color)
+	{
+		UIView* the_view = ih->handle;
+		[the_view setBackgroundColor:color];
+		return 1;
+	}
+	return 0;
+}
+
+char* iupCocoaTouchGetBGColorAttrib(Ihandle* ih)
+{
+	UIView* the_view = ih->handle;
+	return iupCocoaTouchColorFromNative([the_view backgroundColor]);
+}
+
+int iupCocoaTouchSetActiveAttrib(Ihandle* ih, int enabled)
+{
+	UIButton* the_button = ih->handle;
+	if ([the_button respondsToSelector:@selector(setEnabled:)])
+	{
+		[the_button setEnabled:enabled];
+		return 1;
+	}
+	return 0;
+}
+
+
 
 #if 0
 int iupCocoaComputeCartesiaUIcreenHeightFromIup(int iup_height)

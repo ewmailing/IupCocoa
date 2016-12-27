@@ -6,14 +6,13 @@
 //  Copyright © 2016 Tecgraf, PUC-Rio, Brazil. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-#import "AppDelegate.h"
-#include "iup.h"
+
 
 
 #include "iup.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #if __ANDROID__
 #include <android/log.h>
@@ -44,7 +43,7 @@ int OnButtonCallback()
 	
 	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
 	Ihandle* dialog = IupDialog(button);
-	snprintf(temp_string, 1024, "Iup Activity Title %d", button_count);
+	snprintf(temp_string, 1024, "Iup ViewController Title %d", button_count);
 	
 	IupSetStrAttribute(dialog, "TITLE", temp_string);
 	
@@ -57,28 +56,28 @@ int OnButtonCallback()
 	return IUP_DEFAULT;
 }
 
-void IupEntry()
+void IupEntryPoint()
 {
 
 	Ihandle* button = IupButton("Iup Button", "");
 	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
 	Ihandle* label = IupLabel("Iup Label");
-
-	Ihandle* vb=IupVbox(button, label, NULL);
+	IupSetAttribute(label,"FGCOLOR","255 255 255");
+	IupSetAttribute(label,"BGCOLOR","120 0 128");
+	Ihandle* label2 = IupLabel("Iup Label line one\nline two");
+	
+	Ihandle* vb=IupVbox(button, label, label2, NULL);
 	IupSetAttribute(vb, "GAP", "10");
 	IupSetAttribute(vb, "MARGIN", "10x10");
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
-//	Ihandle* dialog = IupDialog(NULL);
+	//	Ihandle* dialog = IupDialog(NULL);
 	Ihandle* dialog = IupDialog(vb);
-
+	
 	//	IupMap(dialog);
-	IupSetAttribute(dialog, "TITLE", "Iup Activity Title");
+	IupSetAttribute(dialog, "TITLE", "Iup ViewController Title");
 	
 	
 	IupShow(dialog);
-	
-	
-//	OnButtonCallback();
 }
 
 
@@ -87,12 +86,6 @@ void IupEntry()
 int main(int argc, char * argv[])
 {
 	IupOpen(0, NULL);
-	IupSetFunction("ENTRY_POINT", (Icallback)IupEntry);
-/*
-	@autoreleasepool {
-	    return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
-	}
-*/
-//	IupEntry();
+	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
 	IupMainLoop();
 }

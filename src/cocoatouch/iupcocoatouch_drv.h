@@ -18,13 +18,20 @@ extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 UIWindow* cocoaTouchFindCurrentWindow();
 UIViewController* cocoaTouchFindCurrentRootViewController();
 UINavigationController* cocoaTouchFindCurrentRootNavigationViewController();
+
+UIColor *iupCocoaTouchToNativeColor(char *inColor);
+char *iupCocoaTouchColorFromNative(UIColor *color);
 	
 void iupCocoaTouchAddToParent(Ihandle* ih);
 void iupCocoaTouchRemoveFromParent(Ihandle* ih);
 // Cocoa is in Cartesian (a.k.a. math book, aka OpenGL coordinates, aka y increases upwards), but Iup is y increases downwards.
 int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height);
 int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height);
-	
+
+int iupCocoaTouchSetBgColorAttrib(Ihandle* ih, char *iColor);
+char* iupCocoaTouchGetBGColorAttrib(Ihandle* ih);
+
+int iupCocoaTouchSetActiveAttrib(Ihandle* ih, int enabled);
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */

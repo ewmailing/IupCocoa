@@ -82,6 +82,26 @@ static const void* IUP_COCOATOUCH_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOATOUCH_BUTT
 
 #endif
 
+static int cocoaTouchButtonSetTitleAttrib(Ihandle* ih, const char* value)
+{
+	UIButton *the_button = ih->handle;
+	if([the_button respondsToSelector:@selector(titleLabel)])
+	{
+		NSString* ns_string = nil;
+		if(value)
+		{
+			// This will return nil if the string can't be converted.
+			ns_string = [NSString stringWithUTF8String:value];
+		}
+		// It's OK if ns_string is nil.
+		[the_button.titleLabel setText:ns_string];
+		[the_button sizeToFit];
+	}
+	return 1;
+
+}
+
+
 static int cocoaTouchButtonMapMethod(Ihandle* ih)
 {
 #if 1
@@ -253,6 +273,27 @@ void iupdrvButtonAddBorders(int *x, int *y)
 	
 }
 
+static int cocoaButtonSetFgColorAttrib(Ihandle* ih, char *iColor)
+{
+	UIColor *color = iupCocoaTouchToNativeColor(iColor);
+	if (color)
+	{
+		UIButton* the_button = ih->handle;
+		[the_button.titleLabel setTextColor:color];
+		return 1;
+	}
+	return 0;
+}
+
+
+static char* cocoaButtonGetFGColorAttrib(Ihandle* ih)
+{
+	UIButton* the_button = ih->handle;
+	UIColor *textColor = [the_button.titleLabel textColor];
+	return iupCocoaTouchColorFromNative(textColor);
+}
+
+
 void iupdrvButtonInitClass(Iclass* ic)
 {
 	/* Driver Dependent Class functions */
@@ -267,17 +308,17 @@ void iupdrvButtonInitClass(Iclass* ic)
 	
 	/* Overwrite Common */
 	iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, gtkButtonSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+#endif
 	
 	/* Overwrite Visual */
-	iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, gtkButtonSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
-	
+	iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, iupCocoaTouchSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 	/* Visual */
-	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, gtkButtonSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
+	iupClassRegisterAttribute(ic, "BGCOLOR", iupBaseNativeParentGetBgColorAttrib, iupCocoaTouchSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
 	
 	/* Special */
-	iupClassRegisterAttribute(ic, "FGCOLOR", NULL, gtkButtonSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
-	iupClassRegisterAttribute(ic, "TITLE", NULL, gtkButtonSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-	
+	iupClassRegisterAttribute(ic, "FGCOLOR", cocoaButtonGetFGColorAttrib, cocoaButtonSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
+	iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaTouchButtonSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#if 0
 	/* IupButton only */
 	iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkButtonSetAlignmentAttrib, "ACENTER:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
 	iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkButtonSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
