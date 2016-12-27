@@ -47,8 +47,8 @@ void IupImageLibOpen(void)
     iupImglibBitmapsOpen();
 #endif  
 
-  if (gtk)
-    iupImglibBitmapsGtkOpen();
+//  if (gtk)
+//    iupImglibBitmapsGtkOpen();
 
   /***************** Icons *****************/
 
@@ -77,8 +77,8 @@ void IupImageLibOpen(void)
   }
 #endif  
 
-  if (gtk)
-    iupImglibLogosGtkOpen();
+//  if (gtk)
+//    iupImglibLogosGtkOpen();
 #endif  
 #endif  
 }

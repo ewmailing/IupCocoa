@@ -53,6 +53,19 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 
 }
 
+static char* cocoaLabelGetTitleAttrib(Ihandle* ih) {
+	UILabel* the_label = ih->handle;
+	if([the_label respondsToSelector:@selector(text)])
+	{
+		NSString *title = the_label.text;
+		if (title)
+		{
+			return iupStrReturnStr([title UTF8String]);
+		}
+	}
+	return NULL;
+}
+
 static int cocoaLabelMapMethod(Ihandle* ih)
 {
 	char* value;
@@ -186,7 +199,6 @@ static void cocoaLabelUnMapMethod(Ihandle* ih)
 	ih->handle = nil;
 }
 
-// TODO: move this to a routine that can be appied to any view.
 static int cocoaLabelSetBgColorAttrib(Ihandle* ih, char *iColor)
 {
 	unsigned char r, g, b, a;
@@ -196,23 +208,26 @@ static int cocoaLabelSetBgColorAttrib(Ihandle* ih, char *iColor)
 		UIColor *color = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
 		UILabel* the_label = ih->handle;
 		[the_label setBackgroundColor:color];
-		return 1;
+		return IUP_NOERROR;
 	}
-	return 0;
+	return IUP_ERROR;
 }
 
 static int cocoaLabelSetFGColorAttrib(Ihandle* ih, char *iColor)
 {
-	unsigned char r, g, b, a;
-	if (iupStrToRGBA(iColor, &r, &g, &b, &a))
+	UILabel* the_label = ih->handle;
+	if ([the_label respondsToSelector:@selector(textColor)])
 	{
-		CGFloat red = r/255., green = g/255., blue = b/255., alpha = a/255.;
-		UIColor *color = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
-		UILabel* the_label = ih->handle;
-		[the_label setTextColor:color];
-		return 1;
+		unsigned char r, g, b, a;
+		if (iupStrToRGBA(iColor, &r, &g, &b, &a))
+		{
+			CGFloat red = r/255., green = g/255., blue = b/255., alpha = a/255.;
+			UIColor *color = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+			[the_label setTextColor:color];
+			return IUP_NOERROR;
+		}
 	}
-	return 0;
+	return IUP_ERROR;
 }
 
 static char*cocoaLabelGetFGColorAttrib(Ihandle* ih)
@@ -247,9 +262,9 @@ void iupdrvLabelInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "BGCOLOR", iupBaseNativeParentGetBgColorAttrib, cocoaLabelSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
 
   /* Special */
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaLabelGetFGColorAttrib, cocoaLabelSetFGColorAttrib, "DLGFGCOLOR", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "FGCOLOR", cocoaLabelGetFGColorAttrib, cocoaLabelSetFGColorAttrib, "0 0 0", "DLGFGCOLOR", IUPAF_DEFAULT);
 	
-  iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", cocoaLabelGetTitleAttrib, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 #if 0
   /* IupLabel only */
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */

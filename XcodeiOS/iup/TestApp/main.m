@@ -56,7 +56,7 @@ int OnButtonCallback()
 	return IUP_DEFAULT;
 }
 
-void IupEntryPoint()
+static void TestEntryPoint()
 {
 
 	Ihandle* button = IupButton("Iup Button", "");
@@ -86,6 +86,6 @@ void IupEntryPoint()
 int main(int argc, char * argv[])
 {
 	IupOpen(0, NULL);
-	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+	TestEntryPoint();
 	IupMainLoop();
 }
