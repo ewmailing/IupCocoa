@@ -39,25 +39,7 @@
 #define RTLD_DEFAULT    ((void *) -2)   /* Use default search algorithm. */
 #endif
 
-typedef void (^IUPClosure)();
 
-static NSMutableArray *gIupEntryBlocks = nil;
-
-void IupAppExecuteWhenReady(IUPClosure closure)
-{
-	UIWindow *win = [[UIApplication sharedApplication] keyWindow];
-	if (win)
-	{
-		closure();
-	} else
-	{
-		if (gIupEntryBlocks == nil)
-		{
-			gIupEntryBlocks = [[NSMutableArray alloc] init];
-		}
-		[gIupEntryBlocks addObject:[[closure copy] autorelease]];
-	}
-}
 
 
 @implementation IupAppDelegate
@@ -77,25 +59,18 @@ void IupAppExecuteWhenReady(IUPClosure closure)
 	
 	
 	// Invoke the IupEntry callback function to start the user code.
-	if ([gIupEntryBlocks count])
-	{
-		for (IUPClosure closure in gIupEntryBlocks) {
-			closure();
-		}
-		[gIupEntryBlocks release];
-		gIupEntryBlocks = nil;
-	}
+	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
 	
 	// If no entry point has been defined, we can try to fallback and use dsym to look up a hardcoded function name.
-	else
+	if(NULL == entry_callback)
 	{
-		IFentry entry_callback = (IFentry)dlsym(RTLD_DEFAULT, "IupEntryPoint");
-		if(NULL != entry_callback)
-		{
-			entry_callback();
-		}
+		entry_callback = (IFentry)dlsym(RTLD_DEFAULT, "IupEntryPoint");
 	}
 
+	if(NULL != entry_callback)
+	{
+		entry_callback();
+	}
 	
 	return YES;
 }

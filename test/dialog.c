@@ -447,7 +447,7 @@ int main(int argc, char* argv[])
 {
   IupOpen(&argc, &argv);
 
-  DialogTest();
+  IupSetFunction("ENTRY_POINT", (Icallback)DialogTest);
 
   IupMainLoop();
 

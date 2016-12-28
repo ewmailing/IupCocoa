@@ -9,13 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "IupAppDelegateProtocol.h"
 
-typedef void (^IUPClosure)();
-typedef struct Ihandle_ Ihandle;
-
-// If the app is initialized execute the closure immediately, else add it to an array to do
-// when the app is initialized.
-void IupAppExecuteWhenReady(IUPClosure closure);
-
 @interface IupAppDelegate : UIResponder <UIApplicationDelegate, IupAppDelegateProtocol>
 
 // TODO: Consider advanced APIs that allow multiple UIWindows instead of ViewControllers

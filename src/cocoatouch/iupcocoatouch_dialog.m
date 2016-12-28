@@ -36,7 +36,6 @@
 
 #include "iupcocoatouch_drv.h"
 #include "IupAppDelegateProtocol.h"
-#include "IupAppDelegate.h"
 #include "IupLaunchViewController.h"
 
 /*
@@ -311,42 +310,59 @@ static int cocoaTouchDialogSetTitleAttrib(Ihandle* ih, const char* value)
 		}
 	}
 	
-	return IUP_NOERROR;
+	return 1;
 }
 
-// deferred until after the app is initialized.
-static void cocoaTouchDialogMapMethodAfterLaunch(Ihandle* ih)
+
+
+
+static int cocoaTouchDialogMapMethod(Ihandle* ih)
 {
 	// TODO: Allow for iOS specific properties if users want to request other behaviors,
 	// e.g. UIWindows instead of navigation controllers.
 	
 	
+	
 	UIWindow* the_window = cocoaTouchFindCurrentWindow();
-	UINavigationController* root_view_controller = [the_window rootViewController];
+	UIViewController* root_view_controller = [the_window rootViewController];
 	
 
 	// If we still have our placeholder class, time to replace it.
 	if([root_view_controller isKindOfClass:[IupLaunchViewController class]])
 	{
-		UIViewController *vc = (UIViewController*)ih->handle;
-		// For the root of the nav controller, move the subviews down, so they aren't hidden by the nav
-		// bar. Only this root view needs this.
-		for (UIView *v in vc.view.subviews) {
-			CGRect frame = v.frame;
-			frame.origin.y += 44+10;
-			v.frame = frame;
-		}
-		UINavigationController* navigation_controller = [[[UINavigationController alloc] initWithRootViewController:vc] autorelease];
+		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		CGRect window_bounds = [[UIScreen mainScreen] bounds];
+		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
+//		[root_view setBackgroundColor:[UIColor redColor]];
+		[root_view setBackgroundColor:[UIColor whiteColor]];
+		[new_view_controller setView:root_view];
+
+		
+		
+		UINavigationController* navigation_controller = [[[UINavigationController alloc] initWithRootViewController:new_view_controller] autorelease];
 		
 		[the_window setRootViewController:navigation_controller];
+		
+		ih->handle = [new_view_controller retain];
+		
 	}
 	// This is the expected common case where we have replaced the root view controller with a navigation view controller
 	else if([root_view_controller isKindOfClass:[UINavigationController class]])
 	{
-		if( ! [[root_view_controller viewControllers] containsObject:ih->handle])
-		{
-			[root_view_controller pushViewController:(UIViewController*)ih->handle animated:YES];
-		}
+		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		CGRect window_bounds = [[UIScreen mainScreen] bounds];
+		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
+//		[root_view setBackgroundColor:[UIColor greenColor]];
+//		[root_view setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
+		[root_view setBackgroundColor:[UIColor whiteColor]];
+
+		
+		[new_view_controller setView:root_view];
+	
+		[root_view_controller pushViewController:new_view_controller animated:YES];
+
+		ih->handle = [new_view_controller retain];
+
 	}
 	// I'm not sure what to do here. But my thinking is it would be nice to support using Iup in existing iOS apps.
 	// So we need a convention where IUP code can be used within somebody else's application structure.
@@ -359,7 +375,7 @@ static void cocoaTouchDialogMapMethodAfterLaunch(Ihandle* ih)
 		// swapping in a navigation controller for now
 		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
-		UIView* root_view = [[UIView alloc] initWithFrame:window_bounds];
+		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
 		[root_view setBackgroundColor:[UIColor whiteColor]];
 		[new_view_controller setView:root_view];
 		
@@ -404,25 +420,8 @@ static void cocoaTouchDialogMapMethodAfterLaunch(Ihandle* ih)
 //	ih->currentwidth = 200;
 //	ih->currentheight = 200;
 #endif
-
-}
-
-static int cocoaTouchDialogMapMethod(Ihandle* ih)
-{
-	if (ih->handle == nil)
-	{
-		UIViewController* new_view_controller = [[UIViewController alloc] init];
-		new_view_controller.edgesForExtendedLayout = UIRectEdgeNone;
-		CGRect window_bounds = [[UIScreen mainScreen] bounds];
-		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
-		[root_view setBackgroundColor:[UIColor whiteColor]];
-		[new_view_controller setView:root_view];
-		ih->handle = new_view_controller;
-	}
-	IupAppExecuteWhenReady(^{
-		cocoaTouchDialogMapMethodAfterLaunch(ih);
-	});
 	return IUP_NOERROR;
+
 }
 
 static void cocoaTouchDialogUnMapMethod(Ihandle* ih)
