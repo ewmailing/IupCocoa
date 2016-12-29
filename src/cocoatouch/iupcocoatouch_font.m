@@ -82,34 +82,37 @@ int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
 
 void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int* h)
 {
-	UIFont* the_font = cocoaFontFromHandle(ih);
-	if (the_font == nil)
+	CGRect bounding_rect = CGRectZero;
+	id native_object = ih->handle;
+	if (str)
 	{
-		the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
-	}
-	
-	NSString* ns_string = [NSString stringWithUTF8String:str];
-	
-	CGSize size_bounds = [[UIScreen mainScreen] bounds].size;
- 	id native_object = ih->handle;
-	// This is making the view too small.
-	// I already made the view fit for a UIButton.
-	// Doing boundingRectWithSize with the new bounds results in a much smaller rect, instead of the same rect.
-/*
-	if([native_object isKindOfClass:[UIView class]])
-	{
-		UIView* the_view = (UIView*)native_object;
-		size_bounds = [the_view bounds].size;
+		UIFont* the_font = cocoaFontFromHandle(ih);
+		if (the_font == nil)
+		{
+			the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+		}
+		
+		NSString* ns_string = [NSString stringWithUTF8String:str];
+		
+		CGSize size_bounds = [[UIScreen mainScreen] bounds].size;
+		// This is making the view too small.
+		// I already made the view fit for a UIButton.
+		// Doing boundingRectWithSize with the new bounds results in a much smaller rect, instead of the same rect.
+	/*
+		if([native_object isKindOfClass:[UIView class]])
+		{
+			UIView* the_view = (UIView*)native_object;
+			size_bounds = [the_view bounds].size;
 
+		}
+	*/
+		// Using mainScreen bounds is still giving a smaller height than when I used MAX for the previous call. Why???
+		bounding_rect = [ns_string boundingRectWithSize:size_bounds
+			options:NSStringDrawingUsesLineFragmentOrigin
+			attributes:@{NSFontAttributeName:the_font}
+			context:nil
+		];
 	}
-*/
-	// Using mainScreen bounds is still giving a smaller height than when I used MAX for the previous call. Why???
-	CGRect bounding_rect = [ns_string boundingRectWithSize:size_bounds
-		options:NSStringDrawingUsesLineFragmentOrigin
-		attributes:@{NSFontAttributeName:the_font}
-		context:nil
-	];
-	
 	CGSize margin = CGSizeZero;
 	if ([native_object isKindOfClass:[UIButton class]])
 	{
@@ -146,7 +149,9 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 
 void iupdrvFontGetCharSize(Ihandle* ih, int* charwidth, int* charheight)
 {
-	NSLog(@"iupdrvFontGetCharSize not implemented.");
+//	NSLog(@"iupdrvFontGetCharSize not implemented.");
+	if (charwidth) *charwidth = 17;
+	if (charheight) *charheight = 17;
 
 }
 

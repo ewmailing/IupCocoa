@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 {
   IupOpen(&argc, &argv);
 
-  HboxTest();
+  IupSetFunction("ENTRY_POINT", (Icallback)HboxTest);
 
   IupMainLoop();
 
