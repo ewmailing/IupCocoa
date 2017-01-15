@@ -47,11 +47,11 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 	{
 		iupStrToDouble(value, &(ih->data->value));
 	}
-	
+
 	iProgressBarCropValue(ih);
-	
+
 	[progress_bar setMinValue:ih->data->vmin];
-	[progress_bar setMinValue:ih->data->vmax];
+	[progress_bar setMaxValue:ih->data->vmax];
 	[progress_bar setDoubleValue:ih->data->value];
 	// Not sure if I really need this, but
 	// https://developer.apple.com/library/mac/qa/qa1473/_index.html
