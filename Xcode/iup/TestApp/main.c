@@ -471,6 +471,112 @@ void IupExitCallback()
 	
 }
 
+
+Ihandle* progressbar1;
+Ihandle* progressbar2;
+static float increment_amt = 1.0f;
+const float MAX_BAR = 360.0f;
+//static float increment_percent = 0.01f;
+static Ihandle *btn_pause;
+static Ihandle *timer = NULL;
+
+
+static int time_cb(void)
+{
+	float value = IupGetFloat(progressbar2, "VALUE");
+//	value += increment*MAX_BAR;
+	value += increment_amt;
+	if (value > MAX_BAR) value = 0; /* start over */
+	IupSetfAttribute(progressbar2, "VALUE", "%g", (double)value);
+	return IUP_DEFAULT;
+}
+void ProgressbarTest(void)
+{
+	Ihandle *dlg, *vbox, *hbox;
+	Ihandle *btn_restart, *btn_accelerate, *btn_decelerate, *btn_show1, *btn_show2;
+	
+	/* timer to update progressbar2 */
+	
+	if (timer)
+		IupDestroy(timer);
+	timer = IupTimer();
+	IupSetCallback(timer, "ACTION_CB", (Icallback)time_cb);
+	IupSetAttribute(timer, "TIME", "2000");
+	
+	
+	progressbar1 = IupProgressBar();
+	progressbar2 = IupProgressBar();
+ 
+	IupSetAttribute(progressbar1, "EXPAND", "YES");
+	IupSetAttribute(progressbar2, "EXPAND", "YES");
+	IupSetAttribute(progressbar1, "MARQUEE", "YES");
+	IupSetAttribute(progressbar2, "ORIENTATION", "VERTICAL");
+	/*
+	IupSetAttribute(progressbar2, "BGCOLOR", "255 0 128");
+	IupSetAttribute(progressbar2, "FGCOLOR", "0 128 0");
+	IupSetAttribute(progressbar2, "RASTERSIZE", "30x100");
+	 */
+//	IupSetAttribute(progressbar2, "MAX", "360");
+	IupSetFloat(progressbar2, "MAX", MAX_BAR);
+	IupSetAttribute(progressbar2, "VALUE", "25");
+	//IupSetAttribute(progressbar2, "DASHED", "YES");
+	
+	btn_restart = IupButton(NULL, NULL);
+	Ihandle* btn_pause = IupButton(NULL, NULL);
+	btn_accelerate = IupButton(NULL, NULL);
+	btn_decelerate = IupButton(NULL, NULL);
+	btn_show1 = IupButton("Dashed", NULL);
+	btn_show2 = IupButton("Marquee", NULL);
+	
+	
+	IupSetAttribute(btn_restart, "IMAGE", "img_restart");
+	IupSetAttribute(btn_restart, "TIP", "Restart" );
+	IupSetAttribute(btn_pause, "IMAGE", "img_pause");
+	IupSetAttribute(btn_pause, "TIP", "Play/Pause");
+	IupSetAttribute(btn_accelerate, "IMAGE", "img_forward");
+	IupSetAttribute(btn_accelerate, "TIP", "Accelerate");
+	IupSetAttribute(btn_decelerate, "IMAGE", "img_rewind");
+	IupSetAttribute(btn_decelerate, "TIP", "Decelerate");
+	IupSetAttribute(btn_show1, "TIP", "Dashed or Continuous");
+	IupSetAttribute(btn_show2, "TIP", "Marquee or Defined");
+	
+	hbox = IupHbox
+	(
+	 IupFill(),
+	 btn_pause,
+	 btn_restart,
+	 btn_decelerate,
+	 btn_accelerate,
+	 btn_show1,
+	 btn_show2,
+	 IupFill(),
+	 NULL
+	 );
+	
+//	vbox = IupHbox(IupVbox(progressbar1, hbox, NULL), progressbar2, NULL);
+	vbox = IupHbox(IupVbox(progressbar2, hbox, NULL), progressbar1, NULL);
+	IupSetAttribute(vbox, "MARGIN", "10x10");
+	IupSetAttribute(vbox, "GAP", "5");
+	
+	dlg = IupDialog(vbox);
+/*
+	IupSetAttribute(dlg, "TITLE", "IupProgressBar Test");
+	IupSetCallback(dlg, "UNMAP_CB", (Icallback) unmap_cb);
+	
+	IupSetCallback(btn_pause, "ACTION", (Icallback) btn_pause_cb);
+	IupSetCallback(btn_restart, "ACTION", (Icallback) btn_restart_cb);
+	IupSetCallback(btn_accelerate, "ACTION", (Icallback) btn_accelerate_cb);
+	IupSetCallback(btn_decelerate, "ACTION", (Icallback) btn_decelerate_cb);
+	IupSetCallback(btn_show1, "ACTION", (Icallback) btn_show1_cb);
+	IupSetCallback(btn_show2, "ACTION", (Icallback) btn_show2_cb);
+*/
+	IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
+	
+	IupSetAttribute(timer, "RUN", "YES");
+}
+
+
+
 void IupEntryPoint()
 {
 	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
@@ -487,6 +593,7 @@ void IupEntryPoint()
 	
 	IupShow(dialog);
 	
+	ProgressbarTest();
 	
 }
 

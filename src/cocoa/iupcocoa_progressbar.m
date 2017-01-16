@@ -29,51 +29,7 @@
 
 // TODO: FEATURE: Cocoa provides spinner style
 
-#import <objc/runtime.h>
-
 #import <QuartzCore/QuartzCore.h>
-const void* IHANDLE_ASSOCIATED_OBJ_LAYER_DELEGATE_KEY = @"IHANDLE_ASSOCIATED_OBJ_LAYER_DELEGATE_KEY"; // the point of this is we have a unique memory address for an identifier
-
-@interface LayerDelegate : NSObject <CALayerDelegate>
-{
-	float currentAngle;
-}
-@property(assign) float currentAngle;
-@end
-
-@implementation LayerDelegate
-@synthesize currentAngle;
-/*
-- (id)initWithView:(UIView *)view {
-	self = [super init];
-	if (self != nil) {
-		_view = view;
-	}
-	return self;
-}
-*/
-
-- (void)displayLayer:(CALayer *)bar_layer
-{
-	NSLog(@"displayLayer");
-	[bar_layer setAnchorPoint:CGPointMake(0.5, 0.5)];
-	//	CGAffineTransform transform = progress_bar.layer.affineTransform;
-	CGAffineTransform transform = CGAffineTransformIdentity;
-	transform = CGAffineTransformRotate(transform, M_PI/180.0 * currentAngle);
-	//	transform = CGAffineTransformRotate(transform, ih->data->value);
-	[bar_layer setAffineTransform:transform];
-}
-- (void)drawLayer:(CALayer *)bar_layer inContext:(CGContextRef)context {
-	NSLog(@"drawLayer");
-	[bar_layer setAnchorPoint:CGPointMake(0.5, 0.5)];
-	//	CGAffineTransform transform = progress_bar.layer.affineTransform;
-	CGAffineTransform transform = CGAffineTransformIdentity;
-	transform = CGAffineTransformRotate(transform, M_PI/180.0 * currentAngle);
-	//	transform = CGAffineTransformRotate(transform, ih->data->value);
-	[bar_layer setAffineTransform:transform];
-}
-
-@end
 
 static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 {
@@ -102,17 +58,8 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 	//	[progress_bar setFrameCenterRotation:ih->data->value];
 //	[progress_bar setFrameCenterRotation:M_PI/180.0 * ih->data->value];
 
-//	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
-
-	
 	CALayer* bar_layer = [progress_bar layer];
-	LayerDelegate* layer_delegate = [bar_layer delegate];
-	if(layer_delegate)
-	{
-		[layer_delegate setCurrentAngle:ih->data->value];
-		[bar_layer setNeedsDisplay];
-	}
-/*
+	
 //	[[progress_bar superview] setWantsLayer:YES];
 	[bar_layer setAnchorPoint:CGPointMake(0.5, 0.5)];
 //	CGAffineTransform transform = progress_bar.layer.affineTransform;
@@ -120,7 +67,7 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 	transform = CGAffineTransformRotate(transform, M_PI/180.0 * ih->data->value);
 //	transform = CGAffineTransformRotate(transform, ih->data->value);
 	progress_bar.layer.affineTransform = transform;
-*/
+	
 	// Not sure if I really need this, but
 	// https://developer.apple.com/library/mac/qa/qa1473/_index.html
 	[progress_bar displayIfNeeded];
@@ -181,14 +128,10 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	if (iupStrEqualNoCase(iupAttribGetStr(ih, "ORIENTATION"), "VERTICAL"))
 	{
 		// This might require layer-backed views to be active
-		[progress_indicator setWantsLayer:YES];
+//		[progress_indicator setWantsLayer:YES];
 //		[progress_indicator setFrameCenterRotation:M_PI/180.0 * 90.0];
 //		[progress_indicator setFrameCenterRotation:90.0];
 
-		LayerDelegate* layer_delegate = [[LayerDelegate alloc] init];
-		CALayer* bar_layer = [progress_indicator layer];
-		[bar_layer setDelegate:layer_delegate];
-//		objc_setAssociatedObject(progress_indicator, IHANDLE_ASSOCIATED_OBJ_LAYER_DELEGATE_KEY, layer_delegate, OBJC_ASSOCIATION_ASSIGN);
 
 		
 		if (ih->userheight < ih->userwidth)
@@ -200,7 +143,7 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	}
 	else
 	{
-		[progress_indicator setWantsLayer:NO];
+//		[progress_indicator setWantsLayer:NO];
 
 		
 	}
