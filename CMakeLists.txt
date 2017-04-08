@@ -3,7 +3,12 @@
 # mkdir BUILD; cd BUILD;
 # cmake -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE=Release ..
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+# For Mac, you must use the Xcode generator. Makefile is currently broken.
+# mkdir BUILD; cd BUILD;
+# cmake -GXcode ..
+
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 PROJECT(IUP)
 
 INCLUDE(CMakeDependentOption)
@@ -378,8 +383,8 @@ ELSEIF(IUP_USE_COCOATOUCH)
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_val.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.m
-		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_globalattrib.m
-		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_info.m
+#		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_globalattrib.m
+#		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_info.m
 	)
 
 	LIST(APPEND IUP_SOURCE_FILES
@@ -429,12 +434,14 @@ ELSEIF(IUP_USE_COCOA)
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_tree.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_val.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_globalattrib.m
-		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_help.c
-		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_info.c
-		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_key.c
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_help.m
+		# This file was replaced with iupcocoa_info.m
+#		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_info.m
+		# File does not compile
+#		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_key.m
 
 		# Stop gap
-		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
+#		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
 	)
 
 	LIST(APPEND IUP_SOURCE_FILES
@@ -442,8 +449,10 @@ ELSEIF(IUP_USE_COCOA)
 	)
 	# Not sure how to handle GNUStep
 	FIND_LIBRARY(APPLE_COCOA_LIBRARY Cocoa)
+	FIND_LIBRARY(APPLE_QUARTZCORE_LIBRARY QuartzCore)
 	LIST(APPEND IUP_LINK_LIBRARIES 
 		${APPLE_COCOA_LIBRARY}
+		${APPLE_QUARTZCORE_LIBRARY}
 	)
 
 ELSEIF(IUP_USE_WIN32)
@@ -620,32 +629,30 @@ HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWO
 # Decided to put everything in this CMakeLists.txt to make keeping in sync easier since this isn't official.
 #ADD_SUBDIRECTORY(test)
 
-
-
-IF(IUP_BUILD_TESTS)
-
-	HELPER_CREATE_EXECUTABLE(button 
-		"${CMAKE_SOURCE_DIR}/test/button.c"
+function(BUILD_IUP_TEST exe_name source_list)
+	HELPER_CREATE_EXECUTABLE(${exe_name} 
+		"${source_list}"
 		"${WANTS_BUILD_SHARED_LIBRARY}"
 		"iup"
 		"${IUP_LINK_LIBRARIES}"
 		"${IUPEXE_C_FLAGS}"
 		"${IUPEXE_LINK_FLAGS}"
 	)
+endfunction()
+
+
+IF(IUP_BUILD_TESTS)
+
+	BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/test/button.c")
 
 
 ENDIF()
 
 # Hack: Used to build simple test programs as we bootstrap each new implementation
 if(IUP_USE_EMSCRIPTEN)
-	HELPER_CREATE_EXECUTABLE(dev_test 
-		"${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c"
-		"${WANTS_BUILD_SHARED_LIBRARY}"
-		"iup"
-		"${IUP_LINK_LIBRARIES}"
-		"${IUPEXE_C_FLAGS}"
-		"${IUPEXE_LINK_FLAGS}"
-	)
+	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
+elseif(IUP_USE_COCOA)
+	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
 endif()
 
 
