@@ -36,9 +36,8 @@
 		0070FA901E025CEE009A8631 /* iupcocoatouch_toggle.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9561E025CED009A8631 /* iupcocoatouch_toggle.m */; };
 		0070FA911E025CEE009A8631 /* iupcocoatouch_tree.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9571E025CED009A8631 /* iupcocoatouch_tree.m */; };
 		0070FA921E025CEE009A8631 /* iupcocoatouch_val.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9581E025CED009A8631 /* iupcocoatouch_val.m */; };
-		0070FA931E025CEE009A8631 /* iupmac_globalattrib.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9591E025CED009A8631 /* iupmac_globalattrib.m */; };
+		0070FA931E025CEE009A8631 /* iupcocoatouch_globalattrib.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9591E025CED009A8631 /* iupcocoatouch_globalattrib.m */; };
 		0070FA941E025CEE009A8631 /* iupcocoatouch_help.c in Sources */ = {isa = PBXBuildFile; fileRef = 0070F95A1E025CED009A8631 /* iupcocoatouch_help.c */; };
-		0070FA951E025CEE009A8631 /* iupmac_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F95B1E025CED009A8631 /* iupmac_info.m */; };
 		0070FA961E025CEE009A8631 /* iupcocoatouch_key.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F95C1E025CED009A8631 /* iupcocoatouch_key.m */; };
 		0070FADB1E025CEE009A8631 /* iup.c in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9A51E025CED009A8631 /* iup.c */; };
 		0070FADC1E025CEE009A8631 /* iup_array.c in Sources */ = {isa = PBXBuildFile; fileRef = 0070F9A71E025CED009A8631 /* iup_array.c */; };
@@ -125,7 +124,7 @@
 		0070FB911E02921A009A8631 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
 		0070FB931E029221009A8631 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
 		0070FB961E0BEDCB009A8631 /* IupLaunchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */; };
-		6320A6F51E123DC600273302 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7A1E02913A009A8631 /* main.m */; };
+		6320A6F51E123DC600273302 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7A1E02913A009A8631 /* main.c */; };
 		6320A6F81E1247FD00273302 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB801E02913A009A8631 /* ViewController.m */; };
 		6320A6FA1E1247FD00273302 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7D1E02913A009A8631 /* AppDelegate.m */; };
 		6320A6FC1E1247FD00273302 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
@@ -261,9 +260,8 @@
 		0070F9561E025CED009A8631 /* iupcocoatouch_toggle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoatouch_toggle.m; sourceTree = "<group>"; };
 		0070F9571E025CED009A8631 /* iupcocoatouch_tree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoatouch_tree.m; sourceTree = "<group>"; };
 		0070F9581E025CED009A8631 /* iupcocoatouch_val.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoatouch_val.m; sourceTree = "<group>"; };
-		0070F9591E025CED009A8631 /* iupmac_globalattrib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_globalattrib.m; sourceTree = "<group>"; };
+		0070F9591E025CED009A8631 /* iupcocoatouch_globalattrib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoatouch_globalattrib.m; sourceTree = "<group>"; };
 		0070F95A1E025CED009A8631 /* iupcocoatouch_help.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupcocoatouch_help.c; sourceTree = "<group>"; };
-		0070F95B1E025CED009A8631 /* iupmac_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_info.m; sourceTree = "<group>"; };
 		0070F95C1E025CED009A8631 /* iupcocoatouch_key.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoatouch_key.m; sourceTree = "<group>"; };
 		0070F95D1E025CED009A8631 /* config.mak */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = config.mak; sourceTree = "<group>"; };
 		0070F9A51E025CED009A8631 /* iup.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup.c; sourceTree = "<group>"; };
@@ -396,7 +394,7 @@
 		0070FB701E027A1F009A8631 /* IupAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegate.h; sourceTree = "<group>"; };
 		0070FB711E027A1F009A8631 /* IupAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupAppDelegate.m; sourceTree = "<group>"; };
 		0070FB771E029139009A8631 /* TestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		0070FB7A1E02913A009A8631 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0070FB7A1E02913A009A8631 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		0070FB7C1E02913A009A8631 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		0070FB7D1E02913A009A8631 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		0070FB7F1E02913A009A8631 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
@@ -752,9 +750,8 @@
 				0070F9561E025CED009A8631 /* iupcocoatouch_toggle.m */,
 				0070F9571E025CED009A8631 /* iupcocoatouch_tree.m */,
 				0070F9581E025CED009A8631 /* iupcocoatouch_val.m */,
-				0070F9591E025CED009A8631 /* iupmac_globalattrib.m */,
+				0070F9591E025CED009A8631 /* iupcocoatouch_globalattrib.m */,
 				0070F95A1E025CED009A8631 /* iupcocoatouch_help.c */,
-				0070F95B1E025CED009A8631 /* iupmac_info.m */,
 				0070F95C1E025CED009A8631 /* iupcocoatouch_key.m */,
 				0070FB701E027A1F009A8631 /* IupAppDelegate.h */,
 				0070FB971E0BF4B6009A8631 /* IupAppDelegateProtocol.h */,
@@ -784,7 +781,7 @@
 		0070FB791E02913A009A8631 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				0070FB7A1E02913A009A8631 /* main.m */,
+				0070FB7A1E02913A009A8631 /* main.c */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -1062,8 +1059,7 @@
 				0070FB0D1E025CEE009A8631 /* iup_open.c in Sources */,
 				0070FA881E025CEE009A8631 /* iupcocoatouch_menu.m in Sources */,
 				0070FAF01E025CEE009A8631 /* iup_fill.c in Sources */,
-				0070FA931E025CEE009A8631 /* iupmac_globalattrib.m in Sources */,
-				0070FA951E025CEE009A8631 /* iupmac_info.m in Sources */,
+				0070FA931E025CEE009A8631 /* iupcocoatouch_globalattrib.m in Sources */,
 				0070FA7C1E025CEE009A8631 /* iupcocoatouch_dragdrop.m in Sources */,
 				0070FA7E1E025CEE009A8631 /* iupcocoatouch_filedlg.m in Sources */,
 				0070FB0A1E025CEE009A8631 /* iup_names.c in Sources */,
@@ -1153,7 +1149,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0070FB811E02913A009A8631 /* ViewController.m in Sources */,
-				6320A6F51E123DC600273302 /* main.m in Sources */,
+				6320A6F51E123DC600273302 /* main.c in Sources */,
 				0070FB7E1E02913A009A8631 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
