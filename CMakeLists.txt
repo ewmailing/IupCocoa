@@ -339,6 +339,53 @@ IF(IUP_USE_EMSCRIPTEN)
 ELSEIF(IUP_USE_ANDROID)
 	
 ELSEIF(IUP_USE_COCOATOUCH)
+
+	SET(IUP_COCOATOUCH_SOURCE_FILES 
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegate.h
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegate.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegateProtocol.h
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_button.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_canvas.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_clipboard.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_colordlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_common.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_dialog.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_dragdrop.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_draw.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_drv.h
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_filedlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_focus.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_font.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_fontdlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_frame.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_help.c
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_image.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_info.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_key.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_label.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_list.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_loop.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_menu.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_messagedlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_open.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_progressbar.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_tabs.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_text.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_timer.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_tips.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_toggle.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_tree.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_val.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.h
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_globalattrib.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_info.m
+	)
+
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_COCOATOUCH_SOURCE_FILES}
+	)
+
 	FIND_LIBRARY(APPLE_UIKIT_LIBRARY UIKit)
 	FIND_LIBRARY(APPLE_FOUNDATION_LIBRARY Foundation)
 	LIST(APPEND IUP_LINK_LIBRARIES 
@@ -347,6 +394,49 @@ ELSEIF(IUP_USE_COCOATOUCH)
 	)
 
 ELSEIF(IUP_USE_COCOA)
+
+	SET(IUP_COCOA_SOURCE_FILES 
+		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.h
+		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_button.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_canvas.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_clipboard.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_colordlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_common.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_dialog.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_dragdrop.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_draw.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_drv.h
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_filedlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_focus.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_font.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_fontdlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_frame.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_image.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_info.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_label.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_list.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_loop.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_menu.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_messagedlg.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_open.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_progressbar.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_tabs.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_text.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_timer.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_tips.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_toggle.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_tree.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_val.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_globalattrib.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_help.c
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_info.c
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_key.c
+
+		# Stop gap
+		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
+	)
+
 	LIST(APPEND IUP_SOURCE_FILES
 		${IUP_COCOA_SOURCE_FILES}
 	)
@@ -358,6 +448,58 @@ ELSEIF(IUP_USE_COCOA)
 
 ELSEIF(IUP_USE_WIN32)
 
+
+	SET(IUP_WIN32_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_brush.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_brush.h
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_button.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_canvas.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_clipboard.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_colordlg.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_common.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_dialog.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_dragdrop.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_draw.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_draw.h
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_drv.h
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_filedlg.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_focus.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_font.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_fontdlg.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_frame.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_globalattrib.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_handle.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_handle.h
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_image.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_info.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_info.h
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_key.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_label.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_list.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_loop.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_menu.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_messagedlg.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_open.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_progressbar.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_str.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_str.h
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_tabs.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_text.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_timer.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_tips.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_toggle.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_touch.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_tree.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_val.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwindows_help.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwindows_info.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwindows_main.c
+	)
+
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_WIN32_SOURCE_FILES}
+	)
+
 	FIND_LIBRARY(WINDOWS_COMCTL_LIBRARY comtl32)
 	LIST(APPEND IUP_LINK_LIBRARIES 
 		${WINDOWS_COMCTL_LIBRARY}
@@ -366,10 +508,102 @@ ELSEIF(IUP_USE_WIN32)
 		ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
 	ENDIF()
 
-ELSEIF(IUP_USE_GTK3)
-ELSEIF(IUP_USE_GTK2)
+ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
+
+	SET(IUP_GTK_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_button.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_canvas.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_clipboard.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_colordlg.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_common.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_dialog.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_dragdrop.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw_cairo.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_drv.h
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_filedlg.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_focus.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_font.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_fontdlg.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_frame.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_globalattrib.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_help.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_image.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_key.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_label.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_list.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_loop.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_menu.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_messagedlg.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_open.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_progressbar.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_str.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_tabs.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_text.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_timer.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_tips.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_toggle.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_tree.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_val.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_info.c
+	)
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_GTK_SOURCE_FILES}
+	)
+
+	IF(IUP_USE_GTK2)
+
+	ELSEIF(IUP_USE_GTK3)
+		
+	ELSE()
+		MESSAGE("Unsupported GTK version")
+	ENDIF()
 
 ELSEIF(IUP_USE_MOTIF)
+
+	SET(IUP_MOTIF_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_button.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_canvas.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_clipboard.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_color.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_color.h
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_colordlg.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_common.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_dialog.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_dragdrop.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_draw.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_drv.h
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_filedlg.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_focus.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_font.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_fontdlg.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_frame.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_globalattrib.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_image.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_key.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_label.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_list.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_loop.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_menu.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_messagedlg.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_open.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_progressbar.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_str.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_tabs.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_text.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_timer.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_tips.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_toggle.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_tree.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_val.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupunix_help.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupunix_info.c
+	)
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_MOTIF_SOURCE_FILES}
+	)
+
 
 ELSE()
 	MESSAGE(FATAL_ERROR "Unhandled platform backend")
