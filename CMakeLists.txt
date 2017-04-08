@@ -12,8 +12,14 @@
 # cmake -DCMAKE_TOOLCHAIN_FILE=../CMakeModules/iOS.toolchain.cmake -GXcode ..
 
 
+if(APPLE)
+	# We're using the new Mac RPATH policy.
+	CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+else()
+	# Ubuntu 12.04 LTS ships 2.8.7
+	CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+endif()
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 PROJECT(IUP)
 
 INCLUDE(CMakeDependentOption)
@@ -86,14 +92,43 @@ ELSEIF(WIN32)
 	OPTION(IUP_OPTION_WIN32 "Use Win32 backend" ON)
 
 ELSEIF(UNIX)
+	# WARNING: I know GTK can be used on Windows and Mac, 
+	# but this file currently does not support that configuration.
+	# To make that work, the FIND stuff needs to be re-run 
+
 	OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
 	OPTION(IUP_OPTION_COCOA "Use Cocoa backend" OFF)
 	OPTION(IUP_OPTION_COCOATOUCH "Use CocoaTouch backend" OFF)
 	OPTION(IUP_OPTION_EMSCRIPTEN "Use Emscripten backend" OFF)		
-	OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" ON)
-	OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" OFF)
-	OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
 	OPTION(IUP_OPTION_WIN32 "Use Win32 backend" OFF)
+
+	
+	# Not sure the best way of doing this.
+	# Find both GTK2 and GTK3 in case the user wants to change the config.
+	# Otherwise I might accidentally prevent detection.
+	find_package(GTK2 2.0 QUIET COMPONENTS gtk)
+	# Use the package PkgConfig to detect GTK+ headers/library files
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(GTK3 gtk+-3.0)
+
+	find_package(Motif QUIET)
+
+	if(GTK2_FOUND)
+		OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" ON)
+		OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" OFF)
+		OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
+	elseif(GTK3_FOUND)
+		OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" OFF)
+		OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" ON)
+		OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
+	elseif(MOTIF_FOUND)
+		OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" OFF)
+		OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" OFF)
+		OPTION(IUP_OPTION_MOTIF "Use Motif backend" ON)
+	else()
+		MESSAGE(FATAL_ERROR "Platform backend dependencies were not found.")
+	endif()
+
 ENDIF()
 
 IF(IUP_OPTION_EMSCRIPTEN)
@@ -106,10 +141,39 @@ ELSEIF(IUP_OPTION_COCOATOUCH)
 	SET(IUP_USE_COCOATOUCH 1)
 ELSEIF(IUP_OPTION_GTK2)
 	SET(IUP_USE_GTK2 1)
+
+	# NOTE: This has limited effect since I already ran these for the Option selections on Unix.
+	# This is here only for people who select this on the platforms where GTK is non-native (Mac, Windows)
+	find_package(GTK2 2.0 REQUIRED COMPONENTS gtk)
+
+	if(NOT GTK2_FOUND)
+		MESSAGE(FATAL_ERROR "GTK2 dependencies not found")
+	endif()
+
 ELSEIF(IUP_OPTION_GTK3)
 	SET(IUP_USE_GTK3 1)
+
+	# NOTE: This has limited effect since I already ran these for the Option selections on Unix.
+	# This is here only for people who select this on the platforms where GTK is non-native (Mac, Windows)
+	# Use the package PkgConfig to detect GTK+ headers/library files
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+
+	if(NOT GTK3_FOUND)
+		MESSAGE(FATAL_ERROR "GTK3 dependencies not found")
+	endif()
+
 ELSEIF(IUP_OPTION_MOTIF)
 	SET(IUP_USE_MOTIF 1)
+
+	# NOTE: This has limited effect since I already ran these for the Option selections on Unix.
+	# This is here only for people who select this on the platforms where GTK is non-native (Mac, Windows)
+	find_package(Motif REQUIRED)
+
+	if(NOT MOTIF_FOUND)
+		MESSAGE(FATAL_ERROR "Motif dependencies not found")
+	endif()
+
 ELSEIF(IUP_OPTION_WIN32)
 	SET(IUP_USE_WIN32 1)
 ELSE()
@@ -146,9 +210,9 @@ IF(IUP_USE_EMSCRIPTEN)
 
 ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
 	IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
+#		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 	ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
+#		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 	ENDIF()
 	
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY")
@@ -538,8 +602,6 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_common.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_dialog.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_dragdrop.c
-		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw.c
-		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw_cairo.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_drv.h
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_filedlg.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_focus.c
@@ -547,7 +609,6 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_fontdlg.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_frame.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_globalattrib.c
-		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_help.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_image.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_key.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_label.c
@@ -565,16 +626,56 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_toggle.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_tree.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_val.c
-		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
-		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_info.c
 	)
 	LIST(APPEND IUP_SOURCE_FILES
 		${IUP_GTK_SOURCE_FILES}
 	)
 
+	SET(IUP_GTK2_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw.c
+	)
+
+	SET(IUP_GTK3_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw_cairo.c
+	)
+
+	# These files are platform specific for the GTK backend
+	IF(APPLE)
+		LIST(APPEND IUP_SOURCE_FILES
+			${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
+			${CMAKE_SOURCE_DIR}/src/gtk/iupmac_info.c
+		)
+	ELSEIF(WIN32)
+		LIST(APPEND IUP_SOURCE_FILES
+			${CMAKE_SOURCE_DIR}/src/win/iupwindows_help.c
+			${CMAKE_SOURCE_DIR}/src/win/iupwindows_info.c
+			${CMAKE_SOURCE_DIR}/src/win/iupwindows_main.c
+		)
+	ELSEIF(UNIX)
+		LIST(APPEND IUP_SOURCE_FILES
+			${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_help.c
+			${CMAKE_SOURCE_DIR}/src/mot/iupunix_info.c
+		)
+
+	ENDIF()
+
 	IF(IUP_USE_GTK2)
+		LIST(APPEND IUP_SOURCE_FILES
+			${IUP_GTK2_SOURCE_FILES}
+		)
+		INCLUDE_DIRECTORIES(${GTK2_INCLUDE_DIRS})
+		LIST(APPEND IUP_LINK_LIBRARIES 
+			${GTK2_LIBRARIES}
+		)
 
 	ELSEIF(IUP_USE_GTK3)
+		LIST(APPEND IUP_SOURCE_FILES
+			${IUP_GTK3_SOURCE_FILES}
+		)
+		INCLUDE_DIRECTORIES(${GTK3_INCLUDE_DIRS})
+		LIST(APPEND IUP_LINK_LIBRARIES 
+			${GTK3_LIBRARIES}
+		)
 		
 	ELSE()
 		MESSAGE("Unsupported GTK version")
@@ -623,7 +724,10 @@ ELSEIF(IUP_USE_MOTIF)
 	LIST(APPEND IUP_SOURCE_FILES
 		${IUP_MOTIF_SOURCE_FILES}
 	)
-
+	INCLUDE_DIRECTORIES(${MOTIF_INCLUDE_DIRS})
+	LIST(APPEND IUP_LINK_LIBRARIES 
+		${MOTIF_LIBRARIES}
+	)
 
 ELSE()
 	MESSAGE(FATAL_ERROR "Unhandled platform backend")
