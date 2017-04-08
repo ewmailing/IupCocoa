@@ -292,15 +292,35 @@ char *iupdrvGetSystemVersion(void)
 
 }
 
+/*
+Drat. hostName blocks so if the network is down, this function will hang.
+
+Claims are CSCopeMachineName() does not block, but it is deprecated on Mac and not available on iOS.
+ 
+SCDynamicStoreCopyLocalHostName sounds like it might work.
+// https://lists.apple.com/archives/cocoa-dev/2009/Sep/msg00680.html
+  If you're just looking for the mDNS Local Hostname, it's MUCH more efficient to use SCDynamicStoreCopyLocalHostName, which is just a Mach message over to configd running on the local machine. No network delays.
+ It's peer function, SCDynamicStoreCopyComputerName might be even better.
+But neither are available on iOS.
+
+
+gethostname may also work
+// https://lists.apple.com/archives/cocoa-dev/2009/Sep/msg00616.html
+ char hostname[_POSIX_HOST_NAME_MAX + 1];
+ gethostname(hostname, _POSIX_HOST_NAME_MAX);
+ name = [NSString stringWithCString:hostname encoding:NSUTF8StringEncoding];
+ */
 char *iupdrvGetComputerName(void)
 {
-#if 0
+/*
 	char* str = iupStrGetMemory(50);
-	CFStringRef computerName = CSCopyMachineName();
-	CFStringGetCString(computerName, str, 50, kCFStringEncodingUTF8);
+	CFStringRef computer_name = CSCopyMachineName(); // suspect: should CFRelease?
+	CFStringGetCString(computer_name, str, 50, kCFStringEncodingUTF8);
 	return str;
-#else
+*/
 	
+#if 0
+
 	// hostName is considered good enough for Bonjour names so it is good enough for this
 	NSString* host_name = nil;
 	host_name = [[NSProcessInfo processInfo] hostName];
@@ -313,6 +333,17 @@ char *iupdrvGetComputerName(void)
 	strlcpy(iup_str, c_str, str_len+1);
 	
 	return iup_str;
+#else
+	
+	char c_str[_POSIX_HOST_NAME_MAX + 1];
+	gethostname(c_str, _POSIX_HOST_NAME_MAX);
+	size_t str_len = strlen(c_str);
+	
+	char* iup_str = iupStrGetMemory((int)str_len);
+	strlcpy(iup_str, c_str, str_len+1);
+	
+	return iup_str;
+	
 #endif
 	
 }
