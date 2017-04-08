@@ -7,6 +7,11 @@
 # mkdir BUILD; cd BUILD;
 # cmake -GXcode ..
 
+# For iOS, you must use the Xcode generator and the bundled toolchain
+# mkdir BUILD; cd BUILD;
+# cmake -DCMAKE_TOOLCHAIN_FILE=../CMakeModules/iOS.toolchain.cmake -GXcode ..
+
+
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 PROJECT(IUP)
@@ -363,6 +368,7 @@ ELSEIF(IUP_USE_COCOATOUCH)
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_font.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_fontdlg.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_frame.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_globalattrib.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_help.c
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_image.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_info.m
@@ -383,7 +389,6 @@ ELSEIF(IUP_USE_COCOATOUCH)
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_val.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.m
-#		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_globalattrib.m
 #		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_info.m
 	)
 
@@ -393,8 +398,12 @@ ELSEIF(IUP_USE_COCOATOUCH)
 
 	FIND_LIBRARY(APPLE_UIKIT_LIBRARY UIKit)
 	FIND_LIBRARY(APPLE_FOUNDATION_LIBRARY Foundation)
+	FIND_LIBRARY(APPLE_QUARTZCORE_LIBRARY QuartzCore)
+	FIND_LIBRARY(APPLE_COREGRAPHICS_LIBRARY CoreGraphics)
 	LIST(APPEND IUP_LINK_LIBRARIES 
 			${APPLE_UIKIT_LIBRARY}
+			${APPLE_QUARTZCORE_LIBRARY}
+			${APPLE_COREGRAPHICS_LIBRARY}
 			${APPLE_FOUNDATION_LIBRARY}
 	)
 
@@ -653,6 +662,8 @@ ENDIF()
 # Hack: Used to build simple test programs as we bootstrap each new implementation
 if(IUP_USE_EMSCRIPTEN)
 	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
+elseif(IUP_USE_COCOATOUCH)
+	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/XcodeiOS/iup/TestApp/main.c")
 elseif(IUP_USE_COCOA)
 	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
 endif()
