@@ -28,15 +28,35 @@ extern "C" {
 typedef struct Ihandle_ Ihandle;
 typedef int (*Icallback)(Ihandle*);
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+        /** @cond DOXYGEN_SHOULD_IGNORE_THIS */
+#ifdef IUP_BUILD_LIBRARY
+		#ifdef __EMSCRIPTEN__
+				#include <emscripten.h>
+                #define IUP_EXPORT EMSCRIPTEN_KEEPALIVE
+        #elif WIN32
+                #define IUP_EXPORT __declspec(dllexport)
+        #elif defined(__GNUC__) && __GNUC__ >= 4
+                #define IUP_EXPORT __attribute__ ((visibility("default")))
+        #else
+                #define IUP_EXPORT
+        #endif
+#else
+        #define IUP_EXPORT
+#endif /* IUP_BUILD_LIBRARY */
+
+/** @endcond DOXYGEN_SHOULD_IGNORE_THIS */
+#endif /* DOXYGEN_SHOULD_IGNORE_THIS */
+
 /************************************************************************/
 /*                        Main API                                      */
 /************************************************************************/
 
-int       IupOpen          (int *argc, char ***argv);
-void      IupClose         (void);
+IUP_EXPORT int       IupOpen          (int *argc, char ***argv);
+IUP_EXPORT void      IupClose         (void);
 void      IupImageLibOpen  (void);
 
-int       IupMainLoop      (void);
+IUP_EXPORT int       IupMainLoop      (void);
 int       IupLoopStep      (void);
 int       IupLoopStepWait  (void);
 int       IupMainLoopLevel (void);
@@ -82,7 +102,7 @@ Ihandle*  IupGetDialogChild(Ihandle* ih, const char* name);
 int       IupReparent     (Ihandle* ih, Ihandle* new_parent, Ihandle* ref_child);
 
 int       IupPopup         (Ihandle* ih, int x, int y);
-int       IupShow          (Ihandle* ih);
+IUP_EXPORT int       IupShow          (Ihandle* ih);
 int       IupShowXY        (Ihandle* ih, int x, int y);
 int       IupHide          (Ihandle* ih);
 int       IupMap           (Ihandle* ih);
@@ -94,8 +114,8 @@ Ihandle*  IupSetAtt(const char* handle_name, Ihandle* ih, const char* name, ...)
 Ihandle*  IupSetAttributes (Ihandle* ih, const char *str);
 char*     IupGetAttributes (Ihandle* ih);
 
-void      IupSetAttribute   (Ihandle* ih, const char* name, const char* value);
-void      IupSetStrAttribute(Ihandle* ih, const char* name, const char* value);
+IUP_EXPORT void      IupSetAttribute   (Ihandle* ih, const char* name, const char* value);
+IUP_EXPORT void      IupSetStrAttribute(Ihandle* ih, const char* name, const char* value);
 void      IupSetStrf        (Ihandle* ih, const char* name, const char* format, ...);
 void      IupSetInt         (Ihandle* ih, const char* name, int value);
 void      IupSetFloat       (Ihandle* ih, const char* name, float value);
@@ -148,11 +168,11 @@ Ihandle*  IupPreviousField(Ihandle* ih);
 Ihandle*  IupNextField    (Ihandle* ih);
 
 Icallback IupGetCallback (Ihandle* ih, const char *name);
-Icallback IupSetCallback (Ihandle* ih, const char *name, Icallback func);
+IUP_EXPORT Icallback IupSetCallback (Ihandle* ih, const char *name, Icallback func);
 Ihandle*  IupSetCallbacks(Ihandle* ih, const char *name, Icallback func, ...);
 
 Icallback IupGetFunction(const char *name);
-Icallback IupSetFunction(const char *name, Icallback func);
+IUP_EXPORT Icallback IupSetFunction(const char *name, Icallback func);
 
 Ihandle*  IupGetHandle    (const char *name);
 Ihandle*  IupSetHandle    (const char *name, Ihandle* ih);
@@ -183,7 +203,7 @@ Ihandle*  IupCreatep(const char *classname, void *first, ...);
 
 Ihandle*  IupFill       (void);
 Ihandle*  IupRadio      (Ihandle* child);
-Ihandle*  IupVbox       (Ihandle* child, ...);
+IUP_EXPORT Ihandle*  IupVbox       (Ihandle* child, ...);
 Ihandle*  IupVboxv      (Ihandle* *children);
 Ihandle*  IupZbox       (Ihandle* child, ...);
 Ihandle*  IupZboxv      (Ihandle* *children);
@@ -216,11 +236,11 @@ Ihandle*  IupSeparator  (void);
 Ihandle*  IupMenu       (Ihandle* child,...);
 Ihandle*  IupMenuv      (Ihandle* *children);
 
-Ihandle*  IupButton     (const char* title, const char* action);
+IUP_EXPORT Ihandle*  IupButton     (const char* title, const char* action);
 Ihandle*  IupCanvas     (const char* action);
-Ihandle*  IupDialog     (Ihandle* child);
+IUP_EXPORT Ihandle*  IupDialog     (Ihandle* child);
 Ihandle*  IupUser       (void);
-Ihandle*  IupLabel      (const char* title);
+IUP_EXPORT Ihandle*  IupLabel      (const char* title);
 Ihandle*  IupList       (const char* action);
 Ihandle*  IupText       (const char* action);
 Ihandle*  IupMultiLine  (const char* action);
