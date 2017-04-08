@@ -57,7 +57,9 @@ gboolean iupmacFocusInOutEvent(GtkWidget *widget, GdkEventFocus *evt, Ihandle* i
 gboolean iupmacKeyPressEvent(GtkWidget *widget, GdkEventKey *evt, Ihandle* ih);
 gboolean iupmacKeyReleaseEvent(GtkWidget *widget, GdkEventKey *evt, Ihandle* ih);
 void iupmacButtonKeySetStatus(guint state, unsigned int but, char* status, int doubleclick);
-void iupmacKeyEncode(int key, guint *keyval, guint *state);
+// original code used guint. Not sure what those are; changing to NSUInteger
+// FIXME: file does not compile
+//void iupmacKeyEncode(int key, NSUInteger *keyval, NSUInteger *state);
 
 
 /* font */

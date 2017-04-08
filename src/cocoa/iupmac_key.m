@@ -5,7 +5,10 @@
  */
 
 #import <Cocoa/Cocoa.h>
-#import <Carbon/HIToolbox/Events.h>
+// Original code called this, but Xcode fails to find.
+//#import <Carbon/HIToolbox/Events.h>
+// This works instead. We only need constants and don't need to link Carbon, so we are okay for modern Mac.
+#import <Carbon/Carbon.h>
 
 #include <stdlib.h>      
 #include <stdio.h>      
@@ -166,7 +169,8 @@ static Imac2iupkey mackey_map[] = {
 */
 };
 
-void iupmacKeyEncode(int key, guint *keyval, guint *state)
+// original code used guint. Not sure what those are; changing to NSUInteger
+void iupmacKeyEncode(int key, NSUInteger *keyval, NSUInteger *state)
 {
   int i, iupcode = key & 0xFF; /* 0-255 interval */
   int count = sizeof(mackey_map)/sizeof(mackey_map[0]);

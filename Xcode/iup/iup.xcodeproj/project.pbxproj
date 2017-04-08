@@ -433,10 +433,10 @@
 		00E3A89D1B605A7500BEC175 /* iupcocoa_font.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_font.m; sourceTree = "<group>"; };
 		00E3A89E1B605A7500BEC175 /* iupcocoa_fontdlg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_fontdlg.m; sourceTree = "<group>"; };
 		00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_globalattrib.m; sourceTree = "<group>"; };
-		00E3A8A01B605A7500BEC175 /* iupmac_help.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_help.c; sourceTree = "<group>"; };
+		00E3A8A01B605A7500BEC175 /* iupmac_help.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_help.m; sourceTree = "<group>"; };
 		00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_image.m; sourceTree = "<group>"; };
-		00E3A8A21B605A7500BEC175 /* iupmac_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_info.c; sourceTree = "<group>"; };
-		00E3A8A31B605A7500BEC175 /* iupmac_key.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_key.c; sourceTree = "<group>"; };
+		00E3A8A21B605A7500BEC175 /* iupmac_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_info.m; sourceTree = "<group>"; };
+		00E3A8A31B605A7500BEC175 /* iupmac_key.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_key.m; sourceTree = "<group>"; };
 		00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_loop.m; sourceTree = "<group>"; };
 		00E3A8A51B605A7500BEC175 /* iupcocoa_messagedlg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_messagedlg.m; sourceTree = "<group>"; };
 		00E3A8A61B605A7500BEC175 /* iupcocoa_open.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_open.m; sourceTree = "<group>"; };
@@ -789,10 +789,10 @@
 				00E3A89D1B605A7500BEC175 /* iupcocoa_font.m */,
 				00E3A89E1B605A7500BEC175 /* iupcocoa_fontdlg.m */,
 				00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */,
-				00E3A8A01B605A7500BEC175 /* iupmac_help.c */,
+				00E3A8A01B605A7500BEC175 /* iupmac_help.m */,
 				00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */,
-				00E3A8A21B605A7500BEC175 /* iupmac_info.c */,
-				00E3A8A31B605A7500BEC175 /* iupmac_key.c */,
+				00E3A8A21B605A7500BEC175 /* iupmac_info.m */,
+				00E3A8A31B605A7500BEC175 /* iupmac_key.m */,
 				00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */,
 				00E3A8A51B605A7500BEC175 /* iupcocoa_messagedlg.m */,
 				00E3A8A61B605A7500BEC175 /* iupcocoa_open.m */,

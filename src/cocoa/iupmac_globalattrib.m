@@ -26,7 +26,9 @@ static void macGlobalSendKey(int key, int press)
 {
 #if 0
   Ihandle* focus;
-  int keyval, state;
+ // original code used int for guint. anging to NSUInteger
+ //int keyval, state;
+ NSUInteger keyval, state;
 
   focus = IupGetFocus();
   if (!focus)
