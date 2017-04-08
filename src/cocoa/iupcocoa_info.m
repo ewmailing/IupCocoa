@@ -13,6 +13,8 @@
 
 #import <Cocoa/Cocoa.h>
 //#include <Carbon/Carbon.h>
+// For computer name
+#include <SystemConfiguration/SystemConfiguration.h>
 
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -282,15 +284,35 @@ char *iupdrvGetSystemVersion(void)
 
 }
 
+/*
+Drat. hostName blocks so if the network is down, this function will hang.
+
+Claims are CSCopeMachineName() does not block, but it is deprecated.
+ 
+SCDynamicStoreCopyLocalHostName sounds like it might work.
+// https://lists.apple.com/archives/cocoa-dev/2009/Sep/msg00680.html
+  If you're just looking for the mDNS Local Hostname, it's MUCH more efficient to use SCDynamicStoreCopyLocalHostName, which is just a Mach message over to configd running on the local machine. No network delays.
+ It's peer function, SCDynamicStoreCopyComputerName might be even better.
+Both require the SystemConfiguration framework
+
+
+gethostname may also work
+// https://lists.apple.com/archives/cocoa-dev/2009/Sep/msg00616.html
+ char hostname[_POSIX_HOST_NAME_MAX + 1];
+ gethostname(hostname, _POSIX_HOST_NAME_MAX);
+ name = [NSString stringWithCString:hostname encoding:NSUTF8StringEncoding];
+ */
 char *iupdrvGetComputerName(void)
 {
-#if 0
+/*
 	char* str = iupStrGetMemory(50);
-	CFStringRef computerName = CSCopyMachineName();
-	CFStringGetCString(computerName, str, 50, kCFStringEncodingUTF8);
+	CFStringRef computer_name = CSCopyMachineName(); // suspect: should CFRelease?
+	CFStringGetCString(computer_name, str, 50, kCFStringEncodingUTF8);
 	return str;
-#else
+*/
 	
+#if 0
+
 	// hostName is considered good enough for Bonjour names so it is good enough for this
 	NSString* host_name = nil;
 	host_name = [[NSProcessInfo processInfo] hostName];
@@ -303,9 +325,23 @@ char *iupdrvGetComputerName(void)
 	strlcpy(iup_str, c_str, str_len+1);
 	
 	return iup_str;
+#else
+	
+	// Returns NULL/nil if no computer name set, or error occurred. OSX 10.1+
+	NSString* computer_name = [(NSString *)SCDynamicStoreCopyComputerName(NULL, NULL) autorelease];
+	const char* c_str = [computer_name UTF8String];
+	// don't use [version_string length]...counts characters, not bytes
+	size_t str_len = strlen(c_str);
+	
+	char* iup_str = iupStrGetMemory((int)str_len);
+	strlcpy(iup_str, c_str, str_len+1);
+	
+	return iup_str;
+	
 #endif
 	
 }
+
 
 char *iupdrvGetUserName(void)
 {
