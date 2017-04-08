@@ -12,7 +12,7 @@ void iupImglibBitmapsOpen(void);     /* Used only by the Win32 driver */
 void iupImglibBitmaps8Open(void);    /* Used only by the Motif driver */
 #endif
 
-void iupImglibBitmapsGtkOpen(void);  /* Used only by the GTK driver in UNIX or Windows */
+//void iupImglibBitmapsGtkOpen(void);  /* Used only by the GTK driver in UNIX or Windows */
 
 #ifndef WIN32
 void iupImglibIcons8Open(void);      /* Used only by the Motif driver */

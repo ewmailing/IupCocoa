@@ -56,7 +56,7 @@ int OnButtonCallback()
 	return IUP_DEFAULT;
 }
 
-void IupEntryPoint()
+static void IupEntryPoint()
 {
 
 	Ihandle* button = IupButton("Iup Button", "");

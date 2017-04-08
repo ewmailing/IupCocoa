@@ -461,7 +461,7 @@ int main(int argc, char* argv[])
 {
   IupOpen(&argc, &argv);
 
-  FlatButtonTest();
+  IupSetFunction("ENTRY_POINT", (Icallback)FlatButtonTest);
 
   IupMainLoop();
 

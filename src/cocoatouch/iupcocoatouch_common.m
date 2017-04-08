@@ -190,9 +190,9 @@ int iupCocoaTouchSetBgColorAttrib(Ihandle* ih, char *iColor)
 	{
 		UIView* the_view = ih->handle;
 		[the_view setBackgroundColor:color];
-		return 1;
+		return IUP_NOERROR;
 	}
-	return 0;
+	return IUP_ERROR;
 }
 
 char* iupCocoaTouchGetBGColorAttrib(Ihandle* ih)
@@ -207,9 +207,9 @@ int iupCocoaTouchSetActiveAttrib(Ihandle* ih, int enabled)
 	if ([the_button respondsToSelector:@selector(setEnabled:)])
 	{
 		[the_button setEnabled:enabled];
-		return 1;
+		return IUP_NOERROR;
 	}
-	return 0;
+	return IUP_ERROR;
 }
 
 

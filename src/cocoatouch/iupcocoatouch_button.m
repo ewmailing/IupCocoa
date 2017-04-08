@@ -280,9 +280,9 @@ static int cocoaButtonSetFgColorAttrib(Ihandle* ih, char *iColor)
 	{
 		UIButton* the_button = ih->handle;
 		[the_button.titleLabel setTextColor:color];
-		return 1;
+		return IUP_NOERROR;
 	}
-	return 0;
+	return IUP_ERROR;
 }
 
 
