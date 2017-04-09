@@ -31,7 +31,10 @@ INCLUDE(CheckFunctionExists)
 #SET(CPACK_SET_DESTDIR TRUE)
 #INCLUDE(CPack)
 
-OPTION(IUP_BUILD_TESTS "Build tests" OFF)
+# By default, we'll exclude the tests from the ALL target. But for convenience, we also will provide a testsiup aggregate target.
+OPTION(IUP_BUILD_TESTS "Build tests with ALL target" OFF)
+SET(IUP_TESTS_CUSTOM_TARGET_NAME "testsiup")
+ADD_CUSTOM_TARGET(${IUP_TESTS_CUSTOM_TARGET_NAME})
 
 IF(EMSCRIPTEN)
 	OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" OFF)
@@ -765,6 +768,11 @@ HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWO
 #ADD_SUBDIRECTORY(test)
 
 function(BUILD_IUP_TEST exe_name source_list)
+	set(_should_exclude_from_all "")
+	if(NOT IUP_BUILD_TESTS)
+		set(_should_exclude_from_all 1)
+	endif()
+	
 	HELPER_CREATE_EXECUTABLE(${exe_name} 
 		"${source_list}"
 		"${WANTS_BUILD_SHARED_LIBRARY}"
@@ -772,24 +780,38 @@ function(BUILD_IUP_TEST exe_name source_list)
 		"${IUP_LINK_LIBRARIES}"
 		"${IUPEXE_C_FLAGS}"
 		"${IUPEXE_LINK_FLAGS}"
+		"${_should_exclude_from_all}"
 	)
+
+	# This adds the current test to the aggregate target for tests
+	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+
 endfunction()
 
 
-IF(IUP_BUILD_TESTS)
 
-	BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/test/button.c")
+BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/test/button.c")
 
 
-ENDIF()
+function(BUILD_DEV_TEST exe_name source_list)
+	HELPER_CREATE_EXECUTABLE(${exe_name} 
+		"${source_list}"
+		"${WANTS_BUILD_SHARED_LIBRARY}"
+		"iup"
+		"${IUP_LINK_LIBRARIES}"
+		"${IUPEXE_C_FLAGS}"
+		"${IUPEXE_LINK_FLAGS}"
+		""
+	)
+endfunction()
 
 # Hack: Used to build simple test programs as we bootstrap each new implementation
 if(IUP_USE_EMSCRIPTEN)
-	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
+	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
 elseif(IUP_USE_COCOATOUCH)
-	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/XcodeiOS/iup/TestApp/main.c")
+	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/XcodeiOS/iup/TestApp/main.c")
 elseif(IUP_USE_COCOA)
-	BUILD_IUP_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
+	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
 endif()
 
 
