@@ -211,11 +211,18 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 endfunction()
 
 # indirect_link_libs is for static libraries, where all dependencies must be explicitly linked 
-function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags)
+function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags exclude_from_all_target)
 	
-	ADD_EXECUTABLE(${exe_name} MACOSX_BUNDLE WIN32
-		${source_file_list}
-	)
+	if(exclude_from_all_target)
+		ADD_EXECUTABLE(${exe_name} MACOSX_BUNDLE WIN32 EXCLUDE_FROM_ALL
+			${source_file_list}
+		)
+	else()
+		ADD_EXECUTABLE(${exe_name} MACOSX_BUNDLE WIN32
+			${source_file_list}
+		)
+	endif()
+
 
 	if(is_using_shared_libs)
 		TARGET_LINK_LIBRARIES(${exe_name} ${direct_link_libs})
