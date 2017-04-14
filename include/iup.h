@@ -62,31 +62,31 @@ IUP_EXPORT int       IupLoopStepWait  (void);
 IUP_EXPORT int       IupMainLoopLevel (void);
 IUP_EXPORT void      IupFlush         (void);
 IUP_EXPORT void      IupExitLoop      (void);
-IUP_EXPORT 
+
 IUP_EXPORT int       IupRecordInput(const char* filename, int mode);
 IUP_EXPORT int       IupPlayInput(const char* filename);
-IUP_EXPORT 
+
 IUP_EXPORT void      IupUpdate        (Ihandle* ih);
 IUP_EXPORT void      IupUpdateChildren(Ihandle* ih);
 IUP_EXPORT void      IupRedraw        (Ihandle* ih, int children);
 IUP_EXPORT void      IupRefresh       (Ihandle* ih);
 IUP_EXPORT void      IupRefreshChildren(Ihandle* ih);
-IUP_EXPORT 
+
 IUP_EXPORT int       IupHelp          (const char* url);
 IUP_EXPORT char*     IupLoad          (const char *filename);
 IUP_EXPORT char*     IupLoadBuffer    (const char *buffer);
-IUP_EXPORT 
+
 IUP_EXPORT char*     IupVersion       (void);
 IUP_EXPORT char*     IupVersionDate   (void);
 IUP_EXPORT int       IupVersionNumber (void);
-IUP_EXPORT 
+
 IUP_EXPORT void      IupSetLanguage   (const char *lng);
 IUP_EXPORT char*     IupGetLanguage   (void);
 IUP_EXPORT void      IupSetLanguageString(const char* name, const char* str);
 IUP_EXPORT void      IupStoreLanguageString(const char* name, const char* str);
 IUP_EXPORT char*     IupGetLanguageString(const char* name);
 IUP_EXPORT void      IupSetLanguagePack(Ihandle* ih);
-IUP_EXPORT 
+
 IUP_EXPORT void      IupDestroy      (Ihandle* ih);
 IUP_EXPORT void      IupDetach       (Ihandle* child);
 IUP_EXPORT Ihandle*  IupAppend       (Ihandle* ih, Ihandle* child);
@@ -100,14 +100,14 @@ IUP_EXPORT Ihandle*  IupGetParent    (Ihandle* ih);
 IUP_EXPORT Ihandle*  IupGetDialog    (Ihandle* ih);
 IUP_EXPORT Ihandle*  IupGetDialogChild(Ihandle* ih, const char* name);
 IUP_EXPORT int       IupReparent     (Ihandle* ih, Ihandle* new_parent, Ihandle* ref_child);
-IUP_EXPORT 
+
 IUP_EXPORT int       IupPopup         (Ihandle* ih, int x, int y);
 IUP_EXPORT int       IupShow          (Ihandle* ih);
 IUP_EXPORT int       IupShowXY        (Ihandle* ih, int x, int y);
 IUP_EXPORT int       IupHide          (Ihandle* ih);
 IUP_EXPORT int       IupMap           (Ihandle* ih);
 IUP_EXPORT void      IupUnmap         (Ihandle *ih);
-IUP_EXPORT 
+
 IUP_EXPORT void      IupResetAttribute(Ihandle *ih, const char* name);
 IUP_EXPORT int       IupGetAllAttributes(Ihandle* ih, char** names, int n);
 IUP_EXPORT Ihandle*  IupSetAtt(const char* handle_name, Ihandle* ih, const char* name, ...);
@@ -121,7 +121,7 @@ IUP_EXPORT void      IupSetInt         (Ihandle* ih, const char* name, int value
 IUP_EXPORT void      IupSetFloat       (Ihandle* ih, const char* name, float value);
 IUP_EXPORT void      IupSetDouble      (Ihandle* ih, const char* name, double value);
 IUP_EXPORT void      IupSetRGB         (Ihandle *ih, const char* name, unsigned char r, unsigned char g, unsigned char b);
-IUP_EXPORT 
+
 IUP_EXPORT char*     IupGetAttribute(Ihandle* ih, const char* name);
 IUP_EXPORT int       IupGetInt      (Ihandle* ih, const char* name);
 IUP_EXPORT int       IupGetInt2     (Ihandle* ih, const char* name);
@@ -129,7 +129,7 @@ IUP_EXPORT int       IupGetIntInt   (Ihandle *ih, const char* name, int *i1, int
 IUP_EXPORT float     IupGetFloat    (Ihandle* ih, const char* name);
 IUP_EXPORT double    IupGetDouble(Ihandle* ih, const char* name);
 IUP_EXPORT void      IupGetRGB      (Ihandle *ih, const char* name, unsigned char *r, unsigned char *g, unsigned char *b);
-IUP_EXPORT 
+
 IUP_EXPORT void  IupSetAttributeId(Ihandle *ih, const char* name, int id, const char *value);
 IUP_EXPORT void  IupSetStrAttributeId(Ihandle *ih, const char* name, int id, const char *value);
 IUP_EXPORT void  IupSetStrfId(Ihandle *ih, const char* name, int id, const char* format, ...);
@@ -137,13 +137,13 @@ IUP_EXPORT void  IupSetIntId(Ihandle* ih, const char* name, int id, int value);
 IUP_EXPORT void  IupSetFloatId(Ihandle* ih, const char* name, int id, float value);
 IUP_EXPORT void  IupSetDoubleId(Ihandle* ih, const char* name, int id, double value);
 IUP_EXPORT void  IupSetRGBId(Ihandle *ih, const char* name, int id, unsigned char r, unsigned char g, unsigned char b);
-IUP_EXPORT 
+
 IUP_EXPORT char*  IupGetAttributeId(Ihandle *ih, const char* name, int id);
 IUP_EXPORT int    IupGetIntId(Ihandle *ih, const char* name, int id);
 IUP_EXPORT float  IupGetFloatId(Ihandle *ih, const char* name, int id);
 IUP_EXPORT double IupGetDoubleId(Ihandle *ih, const char* name, int id);
 IUP_EXPORT void   IupGetRGBId(Ihandle *ih, const char* name, int id, unsigned char *r, unsigned char *g, unsigned char *b);
-IUP_EXPORT 
+
 IUP_EXPORT void  IupSetAttributeId2(Ihandle* ih, const char* name, int lin, int col, const char* value);
 IUP_EXPORT void  IupSetStrAttributeId2(Ihandle* ih, const char* name, int lin, int col, const char* value);
 IUP_EXPORT void  IupSetStrfId2(Ihandle* ih, const char* name, int lin, int col, const char* format, ...);
@@ -151,38 +151,38 @@ IUP_EXPORT void  IupSetIntId2(Ihandle* ih, const char* name, int lin, int col, i
 IUP_EXPORT void  IupSetFloatId2(Ihandle* ih, const char* name, int lin, int col, float value);
 IUP_EXPORT void  IupSetDoubleId2(Ihandle* ih, const char* name, int lin, int col, double value);
 IUP_EXPORT void  IupSetRGBId2(Ihandle *ih, const char* name, int lin, int col, unsigned char r, unsigned char g, unsigned char b);
-IUP_EXPORT 
+
 IUP_EXPORT char*  IupGetAttributeId2(Ihandle* ih, const char* name, int lin, int col);
 IUP_EXPORT int    IupGetIntId2(Ihandle* ih, const char* name, int lin, int col);
 IUP_EXPORT float  IupGetFloatId2(Ihandle* ih, const char* name, int lin, int col);
 IUP_EXPORT double IupGetDoubleId2(Ihandle* ih, const char* name, int lin, int col);
 IUP_EXPORT void   IupGetRGBId2(Ihandle *ih, const char* name, int lin, int col, unsigned char *r, unsigned char *g, unsigned char *b);
-IUP_EXPORT 
+
 IUP_EXPORT void      IupSetGlobal  (const char* name, const char* value);
 IUP_EXPORT void      IupSetStrGlobal(const char* name, const char* value);
 IUP_EXPORT char*     IupGetGlobal  (const char* name);
-IUP_EXPORT 
+
 IUP_EXPORT Ihandle*  IupSetFocus     (Ihandle* ih);
 IUP_EXPORT Ihandle*  IupGetFocus     (void);
 IUP_EXPORT Ihandle*  IupPreviousField(Ihandle* ih);  
 IUP_EXPORT Ihandle*  IupNextField    (Ihandle* ih);
-IUP_EXPORT 
+
 IUP_EXPORT Icallback IupGetCallback (Ihandle* ih, const char *name);
 IUP_EXPORT Icallback IupSetCallback (Ihandle* ih, const char *name, Icallback func);
 IUP_EXPORT Ihandle*  IupSetCallbacks(Ihandle* ih, const char *name, Icallback func, ...);
-IUP_EXPORT 
+
 IUP_EXPORT Icallback IupGetFunction(const char *name);
 IUP_EXPORT Icallback IupSetFunction(const char *name, Icallback func);
-IUP_EXPORT 
+
 IUP_EXPORT Ihandle*  IupGetHandle    (const char *name);
 IUP_EXPORT Ihandle*  IupSetHandle    (const char *name, Ihandle* ih);
 IUP_EXPORT int       IupGetAllNames  (char** names, int n);
 IUP_EXPORT int       IupGetAllDialogs(char** names, int n);
 IUP_EXPORT char*     IupGetName      (Ihandle* ih);
-IUP_EXPORT 
+
 IUP_EXPORT void      IupSetAttributeHandle(Ihandle* ih, const char* name, Ihandle* ih_named);
 IUP_EXPORT Ihandle*  IupGetAttributeHandle(Ihandle* ih, const char* name);
-IUP_EXPORT 
+
 IUP_EXPORT char*     IupGetClassName(Ihandle* ih);
 IUP_EXPORT char*     IupGetClassType(Ihandle* ih);
 IUP_EXPORT int       IupGetAllClasses(char** names, int n);
@@ -192,7 +192,7 @@ IUP_EXPORT void      IupSaveClassAttributes(Ihandle* ih);
 IUP_EXPORT void      IupCopyClassAttributes(Ihandle* src_ih, Ihandle* dst_ih);
 IUP_EXPORT void      IupSetClassDefaultAttribute(const char* classname, const char *name, const char* value);
 IUP_EXPORT int       IupClassMatch(Ihandle* ih, const char* classname);
-IUP_EXPORT 
+
 IUP_EXPORT Ihandle*  IupCreate (const char *classname);
 IUP_EXPORT Ihandle*  IupCreatev(const char *classname, void* *params);
 IUP_EXPORT Ihandle*  IupCreatep(const char *classname, void *first, ...);
@@ -290,38 +290,37 @@ IUP_EXPORT int   IupTreeGetId(Ihandle* ih, void *userid);
 IUP_EXPORT void  IupTreeSetAttributeHandle(Ihandle* ih, const char* name, int id, Ihandle* ih_named);
 
 /* DEPRECATED IupTree utilities, use Iup*AttributeId functions. It will be removed in a future version.  */
-void  IupTreeSetAttribute  (Ihandle* ih, const char* name, int id, const char* value);
-void  IupTreeStoreAttribute(Ihandle* ih, const char* name, int id, const char* value);
-char* IupTreeGetAttribute  (Ihandle* ih, const char* name, int id);
-int   IupTreeGetInt        (Ihandle* ih, const char* name, int id);
-float IupTreeGetFloat      (Ihandle* ih, const char* name, int id);
-void  IupTreeSetfAttribute (Ihandle* ih, const char* name, int id, const char* format, ...);
+IUP_EXPORT void  IupTreeSetAttribute  (Ihandle* ih, const char* name, int id, const char* value);
+IUP_EXPORT void  IupTreeStoreAttribute(Ihandle* ih, const char* name, int id, const char* value);
+IUP_EXPORT char* IupTreeGetAttribute  (Ihandle* ih, const char* name, int id);
+IUP_EXPORT int   IupTreeGetInt        (Ihandle* ih, const char* name, int id);
+IUP_EXPORT float IupTreeGetFloat      (Ihandle* ih, const char* name, int id);
+IUP_EXPORT void  IupTreeSetfAttribute (Ihandle* ih, const char* name, int id, const char* format, ...);
 
 /* DEPRECATED callback management. It will be removed in a future version. */
-const char* IupGetActionName(void);
+IUP_EXPORT const char* IupGetActionName(void);
 
 /* DEPRECATED font names. It will be removed in a future version.  */
-char*     IupMapFont       (const char *iupfont);
-char*     IupUnMapFont     (const char *driverfont);
+IUP_EXPORT char*     IupMapFont       (const char *iupfont);
+IUP_EXPORT char*     IupUnMapFont     (const char *driverfont);
 
 
 /************************************************************************/
 /*                      Pre-definided dialogs                           */
 /************************************************************************/
 
-Ihandle* IupFileDlg(void);
-Ihandle* IupMessageDlg(void);
-Ihandle* IupColorDlg(void);
-Ihandle* IupFontDlg(void);
-Ihandle* IupProgressDlg(void);
+IUP_EXPORT Ihandle* IupFileDlg(void);
+IUP_EXPORT Ihandle* IupMessageDlg(void);
+IUP_EXPORT Ihandle* IupColorDlg(void);
+IUP_EXPORT Ihandle* IupFontDlg(void);
+IUP_EXPORT Ihandle* IupProgressDlg(void);
 
 IUP_EXPORT int  IupGetFile(char *arq);
 IUP_EXPORT void IupMessage(const char *title, const char *msg);
 IUP_EXPORT void IupMessagef(const char *title, const char *format, ...);
 IUP_EXPORT int  IupAlarm(const char *title, const char *msg, const char *b1, const char *b2, const char *b3);
 IUP_EXPORT int  IupScanf(const char *format, ...);
-IUP_EXPORT int  IupListDialog(int type, const char *title, int size, const char** list,
-                   int op, int max_col, int max_lin, int* marks);
+IUP_EXPORT int  IupListDialog(int type, const char *title, int size, const char** list, int op, int max_col, int max_lin, int* marks);
 IUP_EXPORT int  IupGetText(const char* title, char* text);
 IUP_EXPORT int  IupGetColor(int x, int y, unsigned char* r, unsigned char* g, unsigned char* b);
 
