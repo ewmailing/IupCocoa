@@ -590,3 +590,8 @@ void iupdrvImageDestroy(void* handle, int type)
 #endif
 }
 
+void iupdrvImageGetData(void* handle, unsigned char* imgdata)
+{
+	
+}
+

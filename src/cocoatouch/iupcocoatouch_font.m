@@ -164,3 +164,17 @@ void iupdrvFontFinish(void)
 {
 //	NSLog(@"iupdrvFontFinish not implemented.");
 }
+
+
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
+{
+	return 1;
+}
+
+const char* iupdrvGetFontAttrib(Ihandle* ih)
+{
+	return NULL;
+}
+
+
+
