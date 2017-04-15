@@ -821,8 +821,9 @@ function(BUILD_IUP_TEST exe_name source_list)
 endfunction()
 
 
-
-BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c")
+# button.c now has a dependency on IupImageLibOpen???
+#BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c")
+BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 
