@@ -29,5 +29,5 @@ static const unsigned char B1[]={
  99,116,114,108, 44, 32, 34,105,117,112, 87,105,100,103,101,116, 34, 41, 10,
 };
 
- iuplua_dobuffer(L,(const char*)B1,sizeof(B1),"");
+ iuplua_dobuffer(L,(const char*)B1,sizeof(B1),"elem/gridbox.lua");
 }

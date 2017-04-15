@@ -69,8 +69,10 @@ int IupOpen(int *argc, char ***argv)
     IupStoreGlobal("SYSTEMVERSION", iupdrvGetSystemVersion());
     IupStoreGlobal("COMPUTERNAME", iupdrvGetComputerName());
     IupStoreGlobal("USERNAME", iupdrvGetUserName());
+
     IupSetGlobal("DEFAULTFONT", iupdrvGetSystemFont());  /* Use SetGlobal because iupdrvGetSystemFont returns a static string */
     IupSetGlobal("DEFAULTPRECISION", "2");
+    IupSetGlobal("DEFAULTBUTTONPADDING", "12x4");
 
     iupRegisterInternalClasses();
 

@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 
 #include "iup.h"
@@ -41,22 +41,10 @@ SCI_GETVSCROLLBAR
 --SCI_GETENDATLASTLINE
 */
 
-static int iScintillaSetScrollToAttrib(Ihandle *ih, const char *value)
+static int iScintillaSetScrollByAttrib(Ihandle *ih, const char *value)
 {
   int lin, col;
   iupStrToIntInt(value, &lin, &col, ',');
-
-  IupScintillaSendMessage(ih, SCI_LINESCROLL, col, lin);
-
-  return 0;
-}
-
-static int iScintillaSetScrollToPosAttrib(Ihandle *ih, const char *value)
-{
-  int pos, lin, col;
-  iupStrToInt(value, &pos);
-
-  iupScintillaConvertPosToLinCol(ih, pos, &lin, &col);
 
   IupScintillaSendMessage(ih, SCI_LINESCROLL, col, lin);
 
@@ -123,8 +111,7 @@ void iupScintillaRegisterScrolling(Iclass* ic)
 {
   iupClassRegisterAttribute(ic, "SCROLLBAR", iScintillaGetScrollbarAttrib, iScintillaSetScrollbarAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "SCROLLTO", NULL, iScintillaSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, iScintillaSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SCROLLBY", NULL, iScintillaSetScrollByAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTOCARET", NULL, iScintillaSetScrollCaretAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLWIDTH", iScintillaGetScrollWidthAttrib, iScintillaSetScrollWidthAttrib, IUPAF_SAMEASSYSTEM, "2000", IUPAF_NO_INHERIT);
 }

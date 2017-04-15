@@ -39,16 +39,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\x64\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\Debug_64\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\obj\Debug\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_x64\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_64\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\include;..\src;..\srcmglplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_DEPRECATE;_DEBUG;IUP_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_DEPRECATE;_DEBUG;IUP_ASSERT;MGL_STATIC_DEFINE;MGL_SRC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -65,7 +65,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\include;..\src;..\srcmglplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_DEPRECATE;_DEBUG;IUP_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_DEPRECATE;_DEBUG;IUP_ASSERT;MGL_STATIC_DEFINE;MGL_SRC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -143,6 +143,7 @@
     <ClCompile Include="..\srcmglplot\src\fft.cpp" />
     <ClCompile Include="..\srcmglplot\src\fit.cpp" />
     <ClCompile Include="..\srcmglplot\src\font.cpp" />
+    <ClCompile Include="..\srcmglplot\src\fractal.cpp" />
     <ClCompile Include="..\srcmglplot\src\obj.cpp" />
     <ClCompile Include="..\srcmglplot\src\opengl.cpp" />
     <ClCompile Include="..\srcmglplot\src\other.cpp" />
@@ -153,7 +154,6 @@
     <ClCompile Include="..\srcmglplot\src\prim.cpp" />
     <ClCompile Include="..\srcmglplot\src\surf.cpp" />
     <ClCompile Include="..\srcmglplot\src\s_hull\s_hull_pro.cpp" />
-    <ClCompile Include="..\srcmglplot\src\tex_table.cpp" />
     <ClCompile Include="..\srcmglplot\src\vect.cpp" />
     <ClCompile Include="..\srcmglplot\src\volume.cpp" />
     <ClCompile Include="..\srcmglplot\src\window.cpp" />

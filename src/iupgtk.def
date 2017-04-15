@@ -16,7 +16,6 @@ IupProgressDlg
 IupFill
 IupFlush
 IupFrame
-IupGetActionName
 IupGetAllDialogs
 IupGetAllNames
 IupGetAttribute
@@ -37,6 +36,8 @@ IupGetLanguage
 IupGetName
 IupHbox
 IupHelp
+IupExecute
+IupExecuteWait
 IupImage
 IupHide
 IupItem
@@ -49,7 +50,6 @@ IupLoopStep
 IupLoopStepWait
 IupMainLoop
 IupMap
-IupMapFont
 IupMenu
 IupMessage
 IupMessagef
@@ -96,7 +96,6 @@ IupBackgroundBox
 IupLink
 IupText
 IupToggle
-IupUnMapFont
 IupUser
 IupVbox
 IupVersion
@@ -124,6 +123,10 @@ IupGetChildCount
 IupGetAllAttributes
 IupSetAttributeHandle
 IupGetAttributeHandle
+IupSetAttributeHandleId
+IupGetAttributeHandleId
+IupSetAttributeHandleId2
+IupGetAttributeHandleId2
 IupExitLoop
 IupUpdate
 IupRedraw
@@ -147,6 +150,8 @@ IupVal
 IupProgressBar
 IupTabs
 IupTabsv
+IupFlatTabs
+IupFlatTabsv
 IupGetClassAttributes
 IupSetClassDefaultAttribute
 IupSaveClassAttributes
@@ -157,8 +162,9 @@ IupGetParam
 IupGetParamv
 iupGetParamType
 iupGetParamCount
-IupParamf
+IupParam
 IupParamBox
+IupParamBoxv
 IupNormalizer
 IupNormalizerv
 IupGetClassType
@@ -171,13 +177,7 @@ IupConvertXYToPos
 IupTextConvertLinColToPos
 IupTextConvertPosToLinCol
 IupUpdateChildren
-IupTreeSetAttribute  
 IupTreeSetAttributeHandle
-IupTreeStoreAttribute
-IupTreeGetAttribute  
-IupTreeGetInt        
-IupTreeGetFloat 
-IupTreeSetfAttribute
 IupTree
 IupTreeGetId
 IupTreeGetUserId
@@ -197,6 +197,7 @@ IupGetIntId2
 IupGetFloatId2
 IupGetDoubleId2
 IupSetfAttributeId2
+IupStringCompare
 IupRecordInput
 IupPlayInput
 IupGetRGB
@@ -213,9 +214,30 @@ IupSetStrAttributeId2
 IupSetStrfId2
 IupSetStrGlobal
 IupFlatButton
+IupFlatFrame
+IupAnimatedLabel
+IupDatePick
+IupCalendar
+IupDrawBegin
+IupDrawEnd
+IupDrawParentBackground
+IupDrawLine
+IupDrawRectangle
+IupDrawArc
+IupDrawPolygon
+IupDrawText
+IupDrawGetTextSize
+IupDrawImage
+IupDrawGetImageInfo
+IupDrawSetClipRect
+IupDrawResetClip
+IupDrawSelectRect
+IupDrawFocusRect
+IupDrawGetSize
 
 iupdrvSetVisible
-iupdrvSetStandardFontAttrib
+iupdrvSetFontAttrib
+iupGetFontValue
 iupdrvSetActive
 iupdrvScreenToClient
 iupdrvClientToScreen
@@ -240,7 +262,7 @@ iupdrvGetComputerName
 iupdrvFontGetStringWidth
 iupdrvFontGetMultiLineStringSize
 iupdrvFontGetCharSize
-iupdrvDrawFocusRect
+iupdrvPaintFocusRect
 iupdrvPostRedraw
 iupdrvRedrawNow
 iupdrvBaseUnMapMethod
@@ -343,7 +365,6 @@ iupStrToDoubleLocale
 iupSetFontStyleAttrib
 iupSetFontSizeAttrib
 iupSetFontFaceAttrib
-iupSetFontAttrib
 iupRegisterFindClass
 iupRegisterClass
 iupObjectGetParamList
@@ -366,10 +387,10 @@ iupImageInitColorTable
 iupImageStockSet
 iupImageStockLoadAll
 iupImageColorMakeInactive
+iupImageGetHandle
 iupGetFontStyleAttrib
 iupGetFontSizeAttrib
 iupGetFontFaceAttrib
-iupGetFontAttrib
 iupFontParseX
 iupFontParseWin
 iupFontParsePango
@@ -400,7 +421,6 @@ iupClassObjectSetChildrenCurrentSize
 iupClassObjectSetAttribute
 iupClassObjectMap
 iupClassObjectLayoutUpdate
-iupClassObjectGetInnerContainer
 iupClassObjectGetAttribute
 iupClassObjectGetAttributeInfo
 iupClassObjectAttribIsNotString
@@ -441,6 +461,7 @@ iupBaseComputeNaturalSize
 iupBaseSetCurrentSize
 iupBaseCallValueChangedCb
 iupBaseGetClientOffsetAttrib
+iupBackgroundBoxNewBaseClass
 
 iupAttribSetClassObject
 iupAttribSetClassObjectId
@@ -453,6 +474,7 @@ iupAttribSetStrf
 iupAttribSet
 iupAttribSetInt
 iupAttribSetHandleName
+iupAttribGetHandleName
 iupAttribSetFloat
 iupAttribSetFloatId
 iupAttribSetFloatId2
@@ -496,22 +518,22 @@ iupArrayAdd
 iupArrayInsert
 iupArrayRemove
 iupSaveImageAsText
-iupDrawCreateCanvas
-iupDrawKillCanvas
-iupDrawFlush
-iupDrawGetSize
-iupDrawParentBackground
-iupDrawRectangle
-iupDrawLine
-iupDrawArc
-iupDrawPolygon
-iupDrawResetClip
-iupDrawSetClipRect
-iupDrawText
-iupDrawUpdateSize
-iupDrawImage
-iupDrawSelectRect
-iupDrawFocusRect
+iupdrvDrawCreateCanvas
+iupdrvDrawKillCanvas
+iupdrvDrawFlush
+iupdrvDrawGetSize
+iupdrvDrawParentBackground
+iupdrvDrawRectangle
+iupdrvDrawLine
+iupdrvDrawArc
+iupdrvDrawPolygon
+iupdrvDrawResetClip
+iupdrvDrawSetClipRect
+iupdrvDrawText
+iupdrvDrawUpdateSize
+iupdrvDrawImage
+iupdrvDrawSelectRect
+iupdrvDrawFocusRect
 iupGetFontInfo
 iupRadioFindToggleParent
 iupLayoutApplyMinMaxSize
@@ -520,6 +542,7 @@ iupLineFileReadLine
 iupLineFileGetBuffer
 iupLineFileClose
 iupLineFileEOF
+iupStrConvertToUTF8
 
 IupConfig
 IupConfigLoad

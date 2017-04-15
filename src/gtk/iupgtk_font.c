@@ -25,7 +25,7 @@
 
 typedef struct _IgtkFont
 {
-  char standardfont[200];
+  char font[200];
   PangoFontDescription* fontdesc;
   PangoAttribute* strikethrough;
   PangoAttribute* underline;
@@ -57,7 +57,7 @@ static void gtkFontUpdateLayout(IgtkFont* gtkfont, PangoLayout* layout)
   }
 }
 
-static IgtkFont* gtkFindFont(const char *standardfont)
+static IgtkFont* gtkFindFont(const char *font)
 {
   PangoFontMetrics* metrics;
   PangoFontDescription* fontdesc;
@@ -68,10 +68,10 @@ static IgtkFont* gtkFindFont(const char *standardfont)
 
   IgtkFont* fonts = (IgtkFont*)iupArrayGetData(gtk_fonts);
 
-  /* Check if the standardfont already exists in cache */
+  /* Check if the font already exists in cache */
   for (i = 0; i < count; i++)
   {
-    if (iupStrEqualNoCase(standardfont, fonts[i].standardfont))
+    if (iupStrEqualNoCase(font, fonts[i].font))
       return &fonts[i];
   }
 
@@ -84,15 +84,12 @@ static IgtkFont* gtkFindFont(const char *standardfont)
     const char* mapped_name;
 
     /* same as iupGetFontInfo, but mark if pango  */
-    if (!iupFontParseWin(standardfont, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+    if (!iupFontParseWin(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
     {
-      if (!iupFontParseX(standardfont, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+      if (!iupFontParseX(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
       {
-        if (!iupFontParsePango(standardfont, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
-        {
-          iupERROR1("Failed to create Font: %s", standardfont); 
+        if (!iupFontParsePango(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
           return NULL;
-        }
         else
           is_pango = 1;
       }
@@ -107,10 +104,10 @@ static IgtkFont* gtkFindFont(const char *standardfont)
     }
 
     if (is_pango && !is_underline && !is_strikeout && size>0)
-      fontdesc = pango_font_description_from_string(standardfont);
+      fontdesc = pango_font_description_from_string(font);
     else
     {
-      char new_standardfont[200];
+      char new_font[200];
       if (size<0)
       {
         double res = ((double)gdk_screen_get_width(gdk_screen_get_default()) / (double)gdk_screen_get_width_mm(gdk_screen_get_default())); /* pixels/mm */
@@ -119,22 +116,19 @@ static IgtkFont* gtkFindFont(const char *standardfont)
         size = (int)((-size/res)*2.83464567 + 0.5); /* from pixels to points */
       }
 
-      sprintf(new_standardfont, "%s, %s%s%d", typeface, is_bold?"Bold ":"", is_italic?"Italic ":"", size);
+      sprintf(new_font, "%s, %s%s%d", typeface, is_bold?"Bold ":"", is_italic?"Italic ":"", size);
 
-      fontdesc = pango_font_description_from_string(new_standardfont);
+      fontdesc = pango_font_description_from_string(new_font);
     }
   }
 
   if (!fontdesc) 
-  {
-    iupERROR1("Failed to create Font: %s", standardfont); 
     return NULL;
-  }
 
   /* create room in the array */
   fonts = (IgtkFont*)iupArrayInc(gtk_fonts);
 
-  strcpy(fonts[i].standardfont, standardfont);
+  strcpy(fonts[i].font, font);
   fonts[i].fontdesc = fontdesc;
   fonts[i].strikethrough = pango_attr_strikethrough_new(is_strikeout? TRUE: FALSE);
   fonts[i].underline = pango_attr_underline_new(is_underline? PANGO_UNDERLINE_SINGLE: PANGO_UNDERLINE_NONE);
@@ -156,7 +150,10 @@ static IgtkFont* gtkFontCreateNativeFont(Ihandle* ih, const char* value)
 {
   IgtkFont *gtkfont = gtkFindFont(value);
   if (!gtkfont)
+  {
+    iupERROR1("Failed to create Font: %s", value);
     return NULL;
+  }
 
   iupAttribSet(ih, "_IUP_GTKFONT", (char*)gtkfont);
   return gtkfont;
@@ -166,7 +163,11 @@ static IgtkFont* gtkFontGet(Ihandle *ih)
 {
   IgtkFont* gtkfont = (IgtkFont*)iupAttribGet(ih, "_IUP_GTKFONT");
   if (!gtkfont)
-    gtkfont = gtkFontCreateNativeFont(ih, iupGetFontAttrib(ih));
+  {
+    gtkfont = gtkFontCreateNativeFont(ih, iupGetFontValue(ih));
+    if (!gtkfont)
+      gtkfont = gtkFontCreateNativeFont(ih, IupGetGlobal("DEFAULTFONT"));
+  }
   return gtkfont;
 }
 
@@ -325,7 +326,7 @@ char* iupgtkGetFontIdAttrib(Ihandle *ih)
   }
 }
 
-int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
 {
   IgtkFont* gtkfont = gtkFontCreateNativeFont(ih, value);
   if (!gtkfont)
@@ -396,9 +397,9 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
   /* do it only for the first line, if any */
   line_end = strchr(str, '\n');
   if (line_end)
-    len = line_end-str;
+    len = (int)(line_end-str);
   else
-    len = strlen(str);
+    len = (int)strlen(str);
 
   str = iupgtkStrConvertToSystemLen(str, &len);
 

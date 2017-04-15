@@ -21,7 +21,7 @@ extern "C" {
 
 
 /** Sets a global environment attribute. Called from IupSetGlobal and IupStoreGlobal.
- * Must return 1 is process the atribute, or 0 is not. 
+ * Must return 1 is process the attribute, or 0 is not. 
  * \ingroup drv */
 int iupdrvSetGlobal(const char* name, const char* value);
 
@@ -82,9 +82,9 @@ void iupdrvReparent(Ihandle* ih);
  * - cairo_t in GTK3
  * When using CD, use the "GC" CD canvas attribute.
  * \ingroup drv */
-void iupdrvDrawFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
+void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
 
-/** Size of the scroolbar.
+/** Size of the scrollbar.
  * \ingroup drv */
 int iupdrvGetScrollbarSize(void);
 

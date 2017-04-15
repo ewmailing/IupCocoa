@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupAnimatedLabel</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	border-width: 0;
+}
+.auto-style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupAnimatedLabel<span class="auto-style1"> (since 3.17)</span></h2>
+
+  <p>
+  Creates an animated label interface element, which displays an image that is 
+  changed periodically.</p>
+<p>
+  It uses an animation that is simply an <strong>IupUser</strong> with several
+  <strong>IupImage</strong> as children.</p>
+<p>
+  It inherits from <a href="iuplabel.html">IupLabel</a>.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupAnimatedLabel(Ihandle*<strong> animation</strong>); [in C]
+iup.animatedlabel{<strong>animation</strong>: ihandle} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
+animatedlabel(<strong>animation</strong>) [in LED]</pre>
+  <p><strong>animation</strong>: element that contains the list of images. It 
+  can be NULL.</p>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+  <p>All <strong>IupLabel</strong> attributes. The IMAGE attribute is 
+  periodically changed by a timer.</p>
+<p>Additionally it defines the following non-inheritable attributes.</p>
+  <blockquote>
+    <hr>
+</blockquote>
+<p><strong>START</strong> (write-only): starts the animation. The value is 
+ignored. By default the animation is stopped.</p>
+<p><strong>STOP</strong> (write-only): stops the animation. The value is 
+ignored.</p>
+<p><strong>STOPWHENHIDDEN</strong>: automatically stops the animation when the 
+label is hidden. Default: Yes. (since 3.18)</p>
+<p><strong>RUNNING</strong> (read-only): return YES if the animation is running.</p>
+<p><strong>FRAMETIME</strong>: The time between each frame. If the <strong>
+IupUser</strong> element has a FRAMETIME attribute it will be used to set the
+<strong>IupAnimatedLabel</strong> FRAMETIME attribute, but it can be overwritten 
+later on.</p>
+<p><strong>FRAMECOUNT</strong> (read-only): number of frames in the animation. 
+It is simply <strong>IupGetChildCount</strong> of the given <strong>IupUser</strong> 
+element.</p>
+<p><strong>ANIMATION</strong>: the name of the element that contains the list of 
+images. The value passed must be the name of an <strong>IupUser</strong> element 
+with several <strong>IupImage</strong> as children. Use <a href="../func/iupsethandle.html">IupSetHandle</a> 
+or <a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
+associate a child to a name. In Lua you can also use the element reference 
+directly. </p>
+<p><strong>ANIMATION_HANDLE</strong>: same as ANIMATION but directly using the 
+Ihandle* of the element.</p>
+<h3><a name="Callbacks">Callbacks</a></h3>
+
+  
+  
+<p>All <strong>IupLabel</strong> callbacks. No label callbacks are used 
+internally.</p>
+
+<h3><a name="Notes">Notes</a></h3>
+
+<p>The <strong>IupImageLib</strong> contains a simple animation to show an 
+indefinite progress called &quot;<strong>IUP_CircleProgressAnimation</strong>&quot;.</p>
+<p>The <strong>IUP-IM</strong> functions has two functions that can create an 
+animation from image files called <strong>IupLoadAnimation</strong> and <strong>IupLoadAnimationFrames</strong>.</p>
+
+<h3><a name="Examples">Examples</a></h3>
+<pre> label = IupAnimatedLabel(NULL);
+IupSetAttribute(label, &quot;ANIMATION&quot;, &quot;IUP_CircleProgressAnimation&quot;);
+IupSetAttribute(label, &quot;START&quot;, &quot;Yes&quot;);</pre>
+<p><a href="../../examples/">Browse for Example Files</a></p>
+<h3><a name="SeeAlso">See Also</a></h3>
+
+<p> <a href="iuplabel.html">IupLabel</a>, <a href="iupuser.html">IupUser</a>, <a href="iupimage.html">IupImage</a>, 
+<a href="../iupimglib.html">IupImageLib</a>, <a href="../iupim.html">IUP-IM</a>.</p>
+
+
+</body>
+
+</html>

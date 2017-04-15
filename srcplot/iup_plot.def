@@ -20,7 +20,10 @@ EXPORTS
   IupPlotGetSample
   IupPlotGetSampleStr
   IupPlotGetSampleSelection
+  IupPlotGetSampleExtra
   IupPlotSetSample
   IupPlotSetSampleStr
   IupPlotSetSampleSelection
+  IupPlotSetSampleExtra
   IupPlotFindSample
+  IupPlotFindSegment

@@ -5,7 +5,10 @@ IUP := ..
 
 OPT = YES
 NO_LUAOBJECT = Yes
+# To not link with the Lua dynamic library in UNIX
 NO_LUALINK = Yes
+# To use a subfolder with the Lua version for binaries
+LUAMOD_DIR = Yes
 USE_BIN2C_LUA=Yes
 
 USE_IUP3 = Yes
@@ -15,13 +18,26 @@ INCLUDES = ../srclua5
 LIBS = iupweb
 DEF_FILE = ctrl/iupluaweb.def
 
+ifdef USE_LUA_VERSION
+  USE_LUA51:=
+  USE_LUA52:=
+  USE_LUA53:=
+  ifeq ($(USE_LUA_VERSION), 53)
+    USE_LUA53:=Yes
+  endif
+  ifeq ($(USE_LUA_VERSION), 52)
+    USE_LUA52:=Yes
+  endif
+  ifeq ($(USE_LUA_VERSION), 51)
+    USE_LUA51:=Yes
+  endif
+endif
+
 ifdef USE_LUA53
   LUASFX = 53
-  DEFINES += LUA_COMPAT_MODULE
 else
 ifdef USE_LUA52
   LUASFX = 52
-  DEFINES += LUA_COMPAT_MODULE
 else
   USE_LUA51 = Yes
   LUASFX = 51
@@ -51,4 +67,17 @@ SRC	= $(GC)
 
 ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   USE_IUPLUA:=
+endif
+
+ifneq ($(findstring mingw, $(TEC_UNAME)), )
+  $(error No support for WebBrowser in MingW)
+endif
+ifneq ($(findstring dllw, $(TEC_UNAME)), )
+  $(error No support for WebBrowser in MingW)
+endif
+ifneq ($(findstring owc, $(TEC_UNAME)), )
+  $(error No support for WebBrowser in OpenWatcom)
+endif
+ifneq ($(findstring bc, $(TEC_UNAME)), )
+  $(error No support for WebBrowser in BorlandC)
 endif

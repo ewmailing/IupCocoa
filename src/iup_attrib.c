@@ -94,9 +94,9 @@ char* IupGetAttributes(Ihandle *ih)
         value = sb;
       }
 
-      strcat(buffer, name);  size -= strlen(name);
+      strcat(buffer, name);  size -= (int)strlen(name);
       strcat(buffer,"=\"");  size--;
-      strcat(buffer, value);  size -= strlen(value);
+      strcat(buffer, value);  size -= (int)strlen(value);
       strcat(buffer,"\"");  size--;
     }
 
@@ -222,7 +222,7 @@ void iupAttribUpdate(Ihandle* ih)
       iAttribNotifyChildren(ih, name, value);
 
     if (store == 0)
-      iupTableRemove(ih->attrib, name); /* remove from the table acording to the class SetAttribute */
+      iupTableRemove(ih->attrib, name); /* remove from the table according to the class SetAttribute */
   }
 
   free(name_array);
@@ -803,10 +803,9 @@ void iupAttribSetHandleName(Ihandle *ih)
 
 char* iupAttribGetHandleName(Ihandle *ih)
 {
-  char str_name[100];
-  sprintf(str_name, "_IUP_NAME(%p)", ih);
-  if (IupGetHandle(str_name)==ih)
-    return iupStrReturnStr(str_name);
+  char* name = iupAttribGet(ih, "HANDLENAME");  /* IupSetHandle was called at least once */
+  if (name)
+    return iupStrReturnStr(name);
   else
     return NULL;
 }
@@ -823,14 +822,22 @@ void IupSetAttributeHandle(Ihandle* ih, const char* name, Ihandle* ih_named)
   if (!ih_named)
     return;
 
-  handle_name = IupGetName(ih_named);
+  /* make sure it has at least one name */
+  handle_name = iupAttribGetHandleName(ih_named);
   if (!handle_name)
   {
     iupAttribSetHandleName(ih_named);
-    handle_name = IupGetName(ih_named);
+    handle_name = iupAttribGetHandleName(ih_named);
   }
 
   IupStoreAttribute(ih, name, handle_name);
+}
+
+void IupSetAttributeHandleId(Ihandle* ih, const char* name, int id, Ihandle* ih_named)
+{
+  char nameid[100];
+  sprintf(nameid, "%s%d", name, id);
+  IupSetAttributeHandle(ih, nameid, ih_named);
 }
 
 Ihandle* IupGetAttributeHandle(Ihandle *ih, const char* name)
@@ -843,6 +850,37 @@ Ihandle* IupGetAttributeHandle(Ihandle *ih, const char* name)
 
   handle_name = IupGetAttribute(ih, name);
   return IupGetHandle(handle_name);
+}
+
+Ihandle* IupGetAttributeHandleId(Ihandle *ih, const char* name, int id)
+{
+  char nameid[100];
+  sprintf(nameid, "%s%d", name, id);
+  return IupGetAttributeHandle(ih, nameid);
+}
+
+static void iAttribSetNameId2(char* nameid, const char* name, int lin, int col)
+{
+  if (lin == IUP_INVALID_ID)
+    sprintf(nameid, "%s*:%d", name, col);
+  else if (col == IUP_INVALID_ID)
+    sprintf(nameid, "%s%d:*", name, lin);
+  else
+    sprintf(nameid, "%s%d:%d", name, lin, col);
+}
+
+void IupSetAttributeHandleId2(Ihandle* ih, const char* name, int lin, int col, Ihandle* ih_named)
+{
+  char nameid[100];
+  iAttribSetNameId2(nameid, name, lin, col);
+  IupSetAttributeHandle(ih, nameid, ih_named);
+}
+
+Ihandle* IupGetAttributeHandleId2(Ihandle *ih, const char* name, int lin, int col)
+{
+  char nameid[100];
+  iAttribSetNameId2(nameid, name, lin, col);
+  return IupGetAttributeHandle(ih, nameid);
 }
 
 Ihandle* IupSetAtt(const char* handle_name, Ihandle* ih, const char* name, ...)
@@ -858,7 +896,8 @@ Ihandle* IupSetAtt(const char* handle_name, Ihandle* ih, const char* name, ...)
     attr = va_arg(arg, const char*);
   }
   va_end(arg);
-  if (handle_name) IupSetHandle(handle_name, ih);
+  if (handle_name)
+    IupSetHandle(handle_name, ih);
   return ih;
 }
 
@@ -964,16 +1003,6 @@ void iupAttribSetStrId(Ihandle *ih, const char* name, int id, const char* value)
   char nameid[100];
   sprintf(nameid, "%s%d", name, id);
   iupAttribSetStr(ih, nameid, value);
-}
-
-static void iAttribSetNameId2(char* nameid, const char* name, int lin, int col)
-{
-  if (lin==IUP_INVALID_ID)
-    sprintf(nameid, "%s*:%d", name, col);
-  else if (col==IUP_INVALID_ID)
-    sprintf(nameid, "%s%d:*", name, lin);
-  else
-    sprintf(nameid, "%s%d:%d", name, lin, col);
 }
 
 void iupAttribSetId2(Ihandle *ih, const char* name, int lin, int col, const char* value)
@@ -1392,4 +1421,20 @@ int IupConvertXYToPos(Ihandle* ih, int x, int y)
     return drvConvertXYToPos(ih, x, y);
 
   return -1;
+}
+
+int IupStringCompare(const char* str1, const char* str2, int casesensitive, int lexicographic)
+{
+  if (lexicographic)
+  {
+    int utf8 = IupGetInt(NULL, "UTF8MODE");
+    return iupStrCompare(str1, str2, casesensitive, utf8);
+  }
+  else
+  {
+    if (casesensitive)
+      return !iupStrEqual(str1, str2);  /* return 0 if equal */
+    else
+      return !iupStrEqualNoCase(str1, str2);  /* return 0 if equal */
+  }
 }

@@ -39,6 +39,11 @@ void* iupdrvGetDisplay(void)
   return NULL;
 }
 
+void iupwinSetInstance(HINSTANCE hInstance)
+{
+  iupwin_hinstance = hInstance;
+}
+
 void iupwinShowLastError(void)
 {
   DWORD error = GetLastError();
@@ -82,6 +87,7 @@ int iupdrvOpen(int *argc, char ***argv)
 
   IupSetGlobal("DRIVER",  "Win32");
 
+  if (!iupwin_hinstance)
   {
 #ifdef __MINGW32__
     /* MingW fails to create windows if using a console and HINSTANCE is not from the console */
@@ -91,21 +97,20 @@ int iupdrvOpen(int *argc, char ***argv)
     else
 #endif
       iupwin_hinstance = GetModuleHandle(NULL);
-    IupSetGlobal("HINSTANCE", (char*)iupwin_hinstance);
   }
-  
-  if (CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)==RPC_E_CHANGED_MODE)
+
+  if (CoInitializeEx(NULL, COINIT_APARTMENTTHREADED) == RPC_E_CHANGED_MODE)
     IupSetGlobal("_IUPWIN_COINIT_MULTITHREADED", "1");
 
   {
     INITCOMMONCONTROLSEX InitCtrls;
     InitCtrls.dwSize = sizeof(INITCOMMONCONTROLSEX);
-    InitCtrls.dwICC = ICC_WIN95_CLASSES|ICC_LINK_CLASS;  /* trackbar, tooltips, updown, tab, progress */
+    InitCtrls.dwICC = ICC_WIN95_CLASSES | ICC_LINK_CLASS | ICC_DATE_CLASSES;  /* trackbar, tooltips, updown, tab, progress */
     InitCommonControlsEx(&InitCtrls);  
   }
 
   iupwin_comctl32ver6 = (iupwinGetComCtl32Version() >= 0x060000)? 1: 0;
-  if (iupwin_comctl32ver6 && !iupwinIsAppThemed())  /* When the user seleted the Windows Classic theme */
+  if (iupwin_comctl32ver6 && !iupwinIsAppThemed())  /* When the user selected the Windows Classic theme */
     iupwin_comctl32ver6 = 0;
 
   IupSetGlobal("SYSTEMLANGUAGE", iupwinGetSystemLanguage());
@@ -115,6 +120,7 @@ int iupdrvOpen(int *argc, char ***argv)
   winSetGlobalColor(COLOR_BTNTEXT, "DLGFGCOLOR");
   winSetGlobalColor(COLOR_WINDOW,     "TXTBGCOLOR");
   winSetGlobalColor(COLOR_WINDOWTEXT, "TXTFGCOLOR");
+  winSetGlobalColor(COLOR_HIGHLIGHT,  "TXTHLCOLOR");
   winSetGlobalColor(COLOR_HOTLIGHT, "LINKFGCOLOR");
   /* only in Windows */
   winSetGlobalColor(COLOR_MENU, "MENUBGCOLOR");

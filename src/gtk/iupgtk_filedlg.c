@@ -63,57 +63,78 @@ static char* gtkFileDlgGetNextStr(char* str)
 
 static void gtkFileDlgGetMultipleFiles(Ihandle* ih, GSList* list)
 {
-  int len, cur_len, dir_len = -1, count = 0;
-  char *filename, *all_names;
-  Iarray* names_array = iupArrayCreate(1024, 1);  /* just set an initial size, but count is 0 */
+  char *filename = iupgtkStrConvertFromFilename((char*)list->data);
 
-  while (list)
+  char* dir = iupStrFileGetPath(filename);
+  int dir_len = (int)strlen(dir);
+  iupAttribSetStr(ih, "DIRECTORY", dir);
+
+  /* check if just one file is selected */
+  if (!list->next)
   {
-    filename = (char*)list->data;
-    len = strlen(filename);
+    iupAttribSetStrId(ih, "MULTIVALUE", 0, dir);  /* same as directory, includes last separator */
 
-    if (dir_len == -1)
-    {
-      dir_len = len;
 
-      while (dir_len && (filename[dir_len] != '/' && filename[dir_len] != '\\'))
-        dir_len--;
+    if (iupAttribGetBoolean(ih, "MULTIVALUEPATH"))
+      dir_len = 0;
 
-      cur_len = iupArrayCount(names_array);
-      all_names = iupArrayAdd(names_array, dir_len+1);
-      memcpy(all_names+cur_len, filename, dir_len);
-      all_names[cur_len+dir_len] = 0;
-      iupAttribSetStr(ih, "DIRECTORY", iupgtkStrConvertFromFilename(all_names));
-      all_names[cur_len + dir_len] = '|';
+    iupAttribSetStrId(ih, "MULTIVALUE", 1, filename + dir_len);
 
-      iupAttribSetStrId(ih, "MULTIVALUE", count, iupAttribGet(ih, "DIRECTORY"));
-      count++;
+    iupAttribSetStr(ih, "VALUE", filename);  /* here value is not separated by '|' */
 
-      dir_len++; /* skip separator */
-    }
-    len -= dir_len; /* remove directory */
+    iupAttribSetInt(ih, "MULTIVALUECOUNT", 2);
 
-    cur_len = iupArrayCount(names_array);
-    all_names = iupArrayAdd(names_array, len+1);
-    memcpy(all_names+cur_len, filename+dir_len, len);
-    all_names[cur_len+len] = '|';
+    g_free(list->data);  /* must release also the list item */
+  }
+  else
+  {
+    Iarray* names_array = iupArrayCreate(1024, 1);  /* just set an initial size, but count is 0 */
+    char *all_names;
+    int cur_len, count = 0;
 
-    iupAttribSetStrId(ih, "MULTIVALUE", count, filename + dir_len);
+    int len = dir_len;
+    if (dir[dir_len - 1] == '/' || dir[dir_len - 1] == '\\') len--;  /* remove last '/' */
+
+    all_names = iupArrayAdd(names_array, len + 1);
+    memcpy(all_names, dir, len);  /* does NOT includes last separator */
+    all_names[len] = '|';
+
+    iupAttribSetStrId(ih, "MULTIVALUE", 0, dir);  /* same as directory, includes last separator */
     count++;
 
-    g_free(filename);
-    list = list->next;
+    if (iupAttribGetBoolean(ih, "MULTIVALUEPATH"))
+      dir_len = 0;
+
+    while (list)
+    {
+      filename = iupgtkStrConvertFromFilename((char*)list->data);
+      len = (int)strlen(filename) - dir_len;
+
+      cur_len = iupArrayCount(names_array);
+
+      all_names = iupArrayAdd(names_array, len + 1);
+      memcpy(all_names + cur_len, filename + dir_len, len);
+      all_names[cur_len + len] = '|';
+
+      iupAttribSetStrId(ih, "MULTIVALUE", count, filename + dir_len);
+      count++;
+
+      g_free(list->data);  /* must release also the list item */
+      list = list->next;
+    }
+
+    iupAttribSetInt(ih, "MULTIVALUECOUNT", count);
+
+    cur_len = iupArrayCount(names_array);
+    all_names = iupArrayInc(names_array);
+    all_names[cur_len + 1] = 0;
+
+    iupAttribSetStr(ih, "VALUE", all_names);
+
+    iupArrayDestroy(names_array);
   }
 
-  iupAttribSetInt(ih, "MULTIVALUECOUNT", count);
-
-  cur_len = iupArrayCount(names_array);
-  all_names = iupArrayInc(names_array);
-  all_names[cur_len+1] = 0;
-
-  iupAttribSetStr(ih, "VALUE", iupgtkStrConvertFromFilename(all_names));
-
-  iupArrayDestroy(names_array);
+  free(dir);
 }
 
 #ifdef GTK_MAC
@@ -138,7 +159,7 @@ static void gtkFileDlgUpdatePreviewGLCanvas(Ihandle* ih)
       iupAttribSet(glcanvas, "XWINDOW", iupAttribGet(ih, "XWINDOW"));
   #endif
 #endif
-    glcanvas->iclass->Map(glcanvas);
+    glcanvas->iclass->Map(glcanvas);  /* this will call Map only for the IupGLCanvas, NOT for the IupCanvas */
   }
 }
 
@@ -179,24 +200,30 @@ static gboolean gtkFileDlgPreviewConfigureEvent(GtkWidget *widget, GdkEventConfi
 }
 
 #if GTK_CHECK_VERSION(3, 0, 0)
-static gboolean gtkFileDlgPreviewDraw(GtkWidget *widget, cairo_t *evt, Ihandle *ih)
+static gboolean gtkFileDlgPreviewDraw(GtkWidget *widget, cairo_t *cr, Ihandle *ih)
 #else
 static gboolean gtkFileDlgPreviewExposeEvent(GtkWidget *widget, GdkEventExpose *evt, Ihandle *ih)
 #endif
 {
   GtkFileChooser *file_chooser = (GtkFileChooser*)iupAttribGet(ih, "_IUPDLG_FILE_CHOOSER");
   char *filename = gtk_file_chooser_get_preview_filename(file_chooser);
+  IFnss cb = (IFnss)IupGetCallback(ih, "FILE_CB");
+
+#if GTK_CHECK_VERSION(3, 0, 0)
+  iupAttribSet(ih, "CAIRO_CR", (char*)cr);
+#else
+  (void)evt;
+#endif
 
   /* callback here always exists */
-  IFnss cb = (IFnss)IupGetCallback(ih, "FILE_CB");
   if (gtkIsFile(filename))
     cb(ih, iupgtkStrConvertFromFilename(filename), "PAINT");
   else
     cb(ih, NULL, "PAINT");
 
-  g_free (filename);
+  iupAttribSet(ih, "CAIRO_CR", NULL);
+  g_free(filename);
  
-  (void)evt;
   (void)widget;
   return TRUE;  /* stop other handlers */
 }
@@ -217,6 +244,27 @@ static void gtkFileDlgUpdatePreview(GtkFileChooser *file_chooser, Ihandle* ih)
   gtk_file_chooser_set_preview_widget_active(file_chooser, TRUE);
 }
   
+static char* gtkFileCheckExt(Ihandle* ih, const char* filename)
+{
+  char* ext = iupAttribGet(ih, "EXTDEFAULT");
+  if (ext)
+  {
+    int len = (int)strlen(filename);
+    int ext_len = (int)strlen(ext);
+    if (filename[len - ext_len - 1] != '.')
+    {
+      char* new_filename = g_malloc(len + ext_len + 1 + 1);
+      memcpy(new_filename, filename, len);
+      new_filename[len] = '.';
+      memcpy(new_filename + len + 1, ext, ext_len);
+      new_filename[len + ext_len + 1] = 0;
+      return new_filename;
+    }
+  }
+
+  return (char*)filename;
+}
+
 static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
 {
   InativeHandle* parent = iupDialogGetNativeParent(ih);
@@ -310,14 +358,14 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
 
   /* just check for the path inside FILE */
   value = iupAttribGet(ih, "FILE");
-  if (value && (value[0] == '/' || value[1] == ':'))
+  if (value && value[0] != 0 && (value[0] == '/' || value[1] == ':'))
   {
     char* dir = iupStrFileGetPath(value);
-    int len = strlen(dir);
+    int len = (int)strlen(dir);
     iupAttribSetStr(ih, "DIRECTORY", dir);
     free(dir);
 
-    iupAttribSetStr(ih, "FILE", value+len);  /* remove DIRECTORY from FILE */
+    iupAttribSetStr(ih, "FILE", value+len);  /* remove directory from value */
   }
 
   value = iupAttribGet(ih, "DIRECTORY");
@@ -415,8 +463,12 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
     if (iupAttribGetBoolean(ih, "SHOWPREVIEW"))
     {
       GtkWidget* frame = gtk_frame_new(NULL);
+      int preview_width = iupAttribGetInt(ih, "PREVIEWWIDTH");
+      int preview_height = iupAttribGetInt(ih, "PREVIEWHEIGHT");
+      if (preview_width <= 0) preview_width = 200;
+      if (preview_height <= 0) preview_height = 150;
       gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
-      gtk_widget_set_size_request(frame, 180, 150);
+      gtk_widget_set_size_request(frame, preview_width, preview_height);
 
       preview_canvas = gtk_drawing_area_new();
       gtk_widget_set_double_buffered(preview_canvas, FALSE);
@@ -430,6 +482,18 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
       g_signal_connect(preview_canvas, "expose-event", G_CALLBACK(gtkFileDlgPreviewExposeEvent), ih);
 #endif
       g_signal_connect(preview_canvas, "realize", G_CALLBACK(gtkFileDlgPreviewRealize), ih);
+      g_signal_connect(G_OBJECT(preview_canvas), "button-press-event", G_CALLBACK(iupgtkButtonEvent), ih);
+      g_signal_connect(G_OBJECT(preview_canvas), "button-release-event", G_CALLBACK(iupgtkButtonEvent), ih);
+      g_signal_connect(G_OBJECT(preview_canvas), "motion-notify-event", G_CALLBACK(iupgtkMotionNotifyEvent), ih);
+
+      /* To receive mouse events on a drawing area, you will need to enable them. */
+      gtk_widget_add_events(preview_canvas, GDK_EXPOSURE_MASK |
+                            GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK |
+                            GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_BUTTON_MOTION_MASK |
+                            GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK |
+                            GDK_SCROLL_MASK |  /* Added for GTK3, but it seems to work ok for GTK2 */
+                            GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK |
+                            GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK);
 
       iupAttribSet(ih, "_IUPDLG_FILE_CHOOSER", (char*)dialog);
 
@@ -559,21 +623,7 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
     {
       GSList* file_list = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(dialog));
 
-      if (file_list->next) /* if more than one file */
-        gtkFileDlgGetMultipleFiles(ih, file_list);
-      else
-      {
-        char* filename = (char*)file_list->data;
-        iupAttribSetStr(ih, "VALUE", iupgtkStrConvertFromFilename(filename));
-        g_free(filename);
-
-        /* store the DIRECTORY */
-        {
-          char* dir = iupStrFileGetPath(iupAttribGet(ih, "VALUE"));
-          iupAttribSetStr(ih, "DIRECTORY", dir);
-          free(dir);
-        }
-      }
+      gtkFileDlgGetMultipleFiles(ih, file_list);
 
       g_slist_free(file_list);
       file_exist = 1;
@@ -582,11 +632,12 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
     else
     {
       char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+      filename = gtkFileCheckExt(ih, filename);
       iupAttribSetStr(ih, "VALUE", iupgtkStrConvertFromFilename(filename));
       file_exist = gtkIsFile(filename);
       dir_exist = gtkIsDirectory(filename);
 
-      /* store the DIRECTORY */
+      /* store the directory */
       {
         char* dir = iupStrFileGetPath(filename);
         iupAttribSetStr(ih, "DIRECTORY", dir);
@@ -643,9 +694,11 @@ void iupdrvFileDlgInitClass(Iclass* ic)
 {
   ic->DlgPopup = gtkFileDlgPopup;
 
+  iupClassRegisterAttribute(ic, "PREVIEWWIDTH", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "PREVIEWHEIGHT", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+
   /* IupFileDialog Windows and GTK Only */
   iupClassRegisterAttribute(ic, "EXTFILTER", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTERINFO", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTERUSED", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "MULTIPLEFILES", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 }

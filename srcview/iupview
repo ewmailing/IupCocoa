@@ -1,6 +1,0 @@
-#!/bin/csh
-# Script generated automatically by tecmake v4.11
-# Remove the comment bellow to set the LD_LIBRARY_PATH if needed.
-#setenv LD_LIBRARY_PATH /lib/${TEC_UNAME}:/lib/${TEC_UNAME}:$LD_LIBRARY_PATH
-if ( -r app.env ) source app.env
-exec ../bin/$TEC_UNAME/iupview $*

@@ -272,7 +272,7 @@ static int iMatrixSetMultilineAttrib(Ihandle* ih, const char* value)
 {
   IupStoreAttribute(ih->data->texth, "MULTILINE", value);
   if (iupStrBoolean(value))
-    IupSetAttribute(ih->data->texth, "SCROLLBAR", "NO");
+    IupSetAttribute(ih->data->texth, "SCROLLBAR", "VERTICAL");
   return 1;
 }
 
@@ -1218,9 +1218,119 @@ static int iMatrixSetTypeAttrib(Ihandle* ih, int lin, int col, const char* value
   return iMatrixSetFlagsAttrib(ih, lin, col, value, IMAT_HAS_TYPE);
 }
 
+static int iMatrixSetFontStyleAttrib(Ihandle* ih, int lin, int col, const char* value)
+{
+  int size = 0;
+  int is_bold = 0,
+    is_italic = 0,
+    is_underline = 0,
+    is_strikeout = 0;
+  char typeface[1024];
+  char* font;
+
+  if (!value)
+    return 0;
+
+  font = IupGetAttributeId2(ih, "FONT", lin, col);
+  if (!font)
+    return 0;
+
+  if (!iupGetFontInfo(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+    return 0;
+
+  IupSetfAttributeId2(ih, "FONT", lin, col, "%s, %s %d", typeface, value, size);
+
+  return 0;
+}
+
+static char* iMatrixGetFontStyleAttrib(Ihandle* ih, int lin, int col)
+{
+  int size = 0;
+  int is_bold = 0,
+    is_italic = 0,
+    is_underline = 0,
+    is_strikeout = 0;
+  char typeface[1024];
+
+  char* font = IupGetAttributeId2(ih, "FONT", lin, col);
+  if (!font)
+    return NULL;
+
+  if (!iupGetFontInfo(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+    return NULL;
+
+  return iupStrReturnStrf("%s%s%s%s", is_bold ? "Bold " : "", is_italic ? "Italic " : "", is_underline ? "Underline " : "", is_strikeout ? "Strikeout " : "");
+}
+
+static int iMatrixSetFontSizeAttrib(Ihandle* ih, int lin, int col, const char* value)
+{
+  int size = 0;
+  int is_bold = 0,
+    is_italic = 0,
+    is_underline = 0,
+    is_strikeout = 0;
+  char typeface[1024];
+  char* font;
+
+  if (!value)
+    return 0;
+
+  font = IupGetAttributeId2(ih, "FONT", lin, col);
+  if (!font)
+    return 0;
+
+  if (!iupGetFontInfo(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+    return 0;
+
+  IupSetfAttributeId2(ih, "FONT", lin, col, "%s, %s%s%s%s %s", typeface, is_bold ? "Bold " : "", is_italic ? "Italic " : "", is_underline ? "Underline " : "", is_strikeout ? "Strikeout " : "", value);
+
+  return 0;
+}
+
+static char* iMatrixGetFontSizeAttrib(Ihandle* ih, int lin, int col)
+{
+  int size = 0;
+  int is_bold = 0,
+    is_italic = 0,
+    is_underline = 0,
+    is_strikeout = 0;
+  char typeface[1024];
+
+  char* font = IupGetAttributeId2(ih, "FONT", lin, col);
+  if (!font)
+    return NULL;
+
+  if (!iupGetFontInfo(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+    return NULL;
+
+  return iupStrReturnInt(size);
+}
+
 static int iMatrixSetFontAttrib(Ihandle* ih, int lin, int col, const char* value)
 {
+  if (lin == IUP_INVALID_ID && col == IUP_INVALID_ID)  /* empty id */
+  {
+    if (!value)
+      value = IupGetGlobal("DEFAULTFONT");
+    iupdrvSetFontAttrib(ih, value);
+    iupAttribSetStr(ih, "FONT", value);
+    return 1;
+  }
+
   return iMatrixSetFlagsAttrib(ih, lin, col, value, IMAT_HAS_FONT);
+}
+
+static char* iMatrixGetFontAttrib(Ihandle* ih, int lin, int col)
+{
+  if (lin == IUP_INVALID_ID && col == IUP_INVALID_ID)  /* empty id */
+  {
+    char* value = iupAttribGetInherit(ih, "FONT");
+    if (!value)
+      return IupGetGlobal("DEFAULTFONT");
+    else
+      return value;
+  }
+  return NULL;
 }
 
 static int iMatrixSetFrameHorizColorAttrib(Ihandle* ih, int lin, int col, const char* value)
@@ -1235,13 +1345,6 @@ static int iMatrixSetFrameVertColorAttrib(Ihandle* ih, int lin, int col, const c
   if (value)
     ih->data->checkframecolor = 1;
   return iMatrixSetFlagsAttrib(ih, lin, col, value, IMAT_HAS_FRAMEVERTCOLOR);
-}
-
-static char* iMatrixGetFontAttrib(Ihandle* ih, int lin, int col)
-{
-  if (lin==IUP_INVALID_ID && col==IUP_INVALID_ID)  /* empty id */
-    return iupGetFontAttrib(ih);
-  return NULL;
 }
 
 static char* iMatrixGetBgColorAttrib(Ihandle* ih, int lin, int col)
@@ -1325,15 +1428,6 @@ static char* iMatrixGetNumLinVisibleAttrib(Ihandle* ih)
   return iupStrReturnInt(ih->data->lines.last - ih->data->lines.first);
 }
 
-static char* iMatrixGetMaskDataAttrib(Ihandle* ih)
-{
-  /* Used only by the OLD iupmask API */
-  if (ih->data->editing)
-    return IupGetAttribute(ih->data->datah,"OLD_MASK_DATA");
-  else
-    return NULL;
-}
-
 static int iMatrixSetActiveAttrib(Ihandle* ih, const char* value)
 {
   if (!iupStrBoolean(value) && ih->data->editing)
@@ -1387,10 +1481,12 @@ static int iMatrixResize_CB(Ihandle* ih)
       old_h = ih->data->h;
 
   cdCanvasActivate(ih->data->cd_canvas);
-  cdCanvasGetSize(ih->data->cd_canvas, &ih->data->w, &ih->data->h, NULL, NULL);
+  cdCanvasGetSize(ih->data->cd_canvas, &(ih->data->w), &(ih->data->h), NULL, NULL);
 
   if (old_w != ih->data->w || old_h != ih->data->h)
   {
+    ih->data->need_calcsize = 1;
+
     if (ih->data->edit_hide_onfocus)
     {
       ih->data->edit_hidden_byfocus = 1;
@@ -1398,8 +1494,6 @@ static int iMatrixResize_CB(Ihandle* ih)
       ih->data->edit_hidden_byfocus = 0;
     }
   }
-
-  ih->data->need_calcsize = 1;
 
   if (ih->data->columns.num > 0 && ih->data->lines.num > 0)
   {
@@ -1670,6 +1764,27 @@ static void iMatrixCreateCursor(void)
   IupSetHandle("matrx_img_cur_excel",  imgcursor);  /* for backward compatibility */
 }
 
+static void iMatrixSetClassUpdate(Iclass* ic)
+{
+  (void)ic;
+
+  if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "ENGLISH"))
+  {
+    IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "Invalid Formula.");
+  }
+  else if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "PORTUGUESE"))
+  {
+    IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "Fórmula Inválida.");
+
+    if (IupGetInt(NULL, "UTF8MODE"))
+    {
+      /* When seeing this file assuming ISO8859-1 encoding, above will appear correct.
+      When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
+      IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "FÃ³rmula InvÃ¡lida.");
+    }
+  }
+}
+
 Iclass* iupMatrixNewClass(void)
 {
   Iclass* ic = iupClassNew(iupRegisterFindClass("canvas"));
@@ -1740,27 +1855,39 @@ Iclass* iupMatrixNewClass(void)
 
   /* IupMatrix Attributes - CELL */
   iupClassRegisterAttributeId2(ic, "IDVALUE", iMatrixGetIdValueAttrib, iMatrixSetIdValueAttrib, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "FOCUS_CELL", iMatrixGetFocusCellAttrib, iMatrixSetFocusCellAttrib, IUPAF_SAMEASSYSTEM, "1:1", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT); /* can be NOT mapped */
-  iupClassRegisterAttribute(ic, "VALUE", iMatrixGetValueAttrib, iMatrixSetValueAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FOCUSCELL", iMatrixGetFocusCellAttrib, iMatrixSetFocusCellAttrib, IUPAF_SAMEASSYSTEM, "1:1", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT); /* can be NOT mapped */
+  /*OLD*/iupClassRegisterAttribute(ic, "FOCUS_CELL", iMatrixGetFocusCellAttrib, iMatrixSetFocusCellAttrib, IUPAF_SAMEASSYSTEM, "1:1", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT); /* can be NOT mapped */
+  iupClassRegisterAttribute(ic, "VALUE", iMatrixGetValueAttrib, iMatrixSetValueAttrib, NULL, NULL, IUPAF_NO_SAVE | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId2(ic, "BGCOLOR", iMatrixGetBgColorAttrib, iMatrixSetBgColorAttrib, IUPAF_NOT_MAPPED);
   iupClassRegisterAttributeId2(ic, "FGCOLOR", NULL, iMatrixSetFgColorAttrib, IUPAF_NOT_MAPPED);
   iupClassRegisterAttributeId2(ic, "TYPE", NULL, iMatrixSetTypeAttrib, IUPAF_NOT_MAPPED);
   iupClassRegisterAttributeId2(ic, "FONT", iMatrixGetFontAttrib, iMatrixSetFontAttrib, IUPAF_NOT_MAPPED);
+  iupClassRegisterAttributeId2(ic, "FONTSTYLE", iMatrixGetFontStyleAttrib, iMatrixSetFontStyleAttrib, IUPAF_NOT_MAPPED);
+  iupClassRegisterAttributeId2(ic, "FONTSIZE", iMatrixGetFontSizeAttrib, iMatrixSetFontSizeAttrib, IUPAF_NOT_MAPPED);
   iupClassRegisterAttributeId2(ic, "FRAMEHORIZCOLOR", NULL, iMatrixSetFrameHorizColorAttrib, IUPAF_NOT_MAPPED);
   iupClassRegisterAttributeId2(ic, "FRAMEVERTCOLOR", NULL, iMatrixSetFrameVertColorAttrib, IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "FRAMECOLOR", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, IUPAF_SAMEASSYSTEM, "100 100 100", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FRAMETITLEHIGHLIGHT", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FRAMEBORDER", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId2(ic, "CELLOFFSET", iMatrixGetCellOffsetAttrib, NULL, IUPAF_READONLY);
   iupClassRegisterAttributeId2(ic, "CELLSIZE", iMatrixGetCellSizeAttrib, NULL, IUPAF_READONLY);
   iupClassRegisterAttributeId2(ic, "CELLBGCOLOR", iMatrixGetCellBgColorAttrib, NULL, IUPAF_READONLY);
   iupClassRegisterAttributeId2(ic, "CELLFGCOLOR", iMatrixGetCellFgColorAttrib, NULL, IUPAF_READONLY);
   iupClassRegisterAttributeId2(ic, "CELL", iMatrixGetCellAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId2(ic, "TOGGLEVALUE", NULL, (IattribSetId2Func)iMatrixSetNeedRedraw, IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId2(ic, "ALIGN", NULL, (IattribSetId2Func)iMatrixSetNeedRedraw, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TOGGLECENTERED", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TOGGLEIMAGEON", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TOGGLEIMAGEOFF", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_INHERIT);
+
 
   /* IupMatrix Attributes - COLUMN */
   iupClassRegisterAttributeId(ic, "ALIGNMENT", iMatrixGetAlignmentAttrib, (IattribSetIdFunc)iMatrixSetNeedRedraw, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ALIGNMENTLIN0", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, IUPAF_SAMEASSYSTEM, "ACENTER", IUPAF_NO_INHERIT);
-  iupClassRegisterAttributeId(ic, "SORTSIGN", NULL, (IattribSetIdFunc)iMatrixSetNeedRedraw, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "LINEALIGNMENT", NULL, (IattribSetIdFunc)iMatrixSetNeedRedraw, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "SORTSIGN", NULL, (IattribSetIdFunc)iMatrixSetNeedRedraw, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SORTIMAGEDOWN", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SORTIMAGEUP", NULL, (IattribSetFunc)iMatrixSetNeedRedraw, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_INHERIT);
 
   /* IupMatrix Attributes - SIZE */
   iupClassRegisterAttribute(ic, "COUNT", iMatrixGetCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
@@ -1790,12 +1917,15 @@ Iclass* iupMatrixNewClass(void)
   /* IupMatrix Attributes - MARK */
   iupClassRegisterAttribute(ic, "MARKED", iupMatrixGetMarkedAttrib, iupMatrixSetMarkedAttrib, NULL, NULL, IUPAF_NO_INHERIT);  /* noticed that MARKED must be mapped */
   iupClassRegisterAttributeId2(ic, "MARK", iupMatrixGetMarkAttrib, iupMatrixSetMarkAttrib, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);  /* noticed that for MARK the matrix must be mapped */
-  iupClassRegisterAttribute(ic, "MARK_MODE", iMatrixGetMarkModeAttrib, iMatrixSetMarkModeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  /*OLD*/iupClassRegisterAttribute(ic, "MARK_MODE", iMatrixGetMarkModeAttrib, iMatrixSetMarkModeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MARKMODE", iMatrixGetMarkModeAttrib, iMatrixSetMarkModeAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "AREA", iMatrixGetMarkAreaAttrib, iMatrixSetMarkAreaAttrib, IUPAF_SAMEASSYSTEM, "CONTINUOUS", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MARKAREA", iMatrixGetMarkAreaAttrib, iMatrixSetMarkAreaAttrib, IUPAF_SAMEASSYSTEM, "CONTINUOUS", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MULTIPLE", iMatrixGetMarkMultipleAttrib, iMatrixSetMarkMultipleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MARKMULTIPLE", iMatrixGetMarkMultipleAttrib, iMatrixSetMarkMultipleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MARKATTITLE", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "HLCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "TXTHLCOLOR", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "HLCOLORALPHA", NULL, NULL, IUPAF_SAMEASSYSTEM, "128", IUPAF_NO_INHERIT);
 
   /* IupMatrix Attributes - ACTION (only mapped) */
   iupClassRegisterAttribute(ic, "ADDLIN", NULL, iupMatrixSetAddLinAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);  /* allowing these methods to be called before map will avoid its storage in the hash table */
@@ -1805,7 +1935,8 @@ Iclass* iupMatrixNewClass(void)
   iupClassRegisterAttribute(ic, "ORIGIN", iMatrixGetOriginAttrib, iMatrixSetOriginAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ORIGINOFFSET", iMatrixGetOriginOffsetAttrib, NULL, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SHOW", NULL, iMatrixSetShowAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "EDIT_MODE", iMatrixGetEditModeAttrib, iMatrixSetEditModeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
+  /*OLD*/iupClassRegisterAttribute(ic, "EDIT_MODE", iMatrixGetEditModeAttrib, iMatrixSetEditModeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "EDITMODE", iMatrixGetEditModeAttrib, iMatrixSetEditModeAttrib, NULL, NULL, IUPAF_NO_SAVE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "EDITING", iMatrixGetEditingAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_SAVE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "EDITNEXT", iMatrixGetEditNextAttrib, iMatrixSetEditNextAttrib, IUPAF_SAMEASSYSTEM, "LIN", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REDRAW", NULL, iupMatrixDrawSetRedrawAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
@@ -1833,27 +1964,13 @@ Iclass* iupMatrixNewClass(void)
   iupClassRegisterAttribute(ic, "RESIZEMATRIXCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "102 102 102", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "HIDEFOCUS", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SHOWFILLVALUE", iMatrixGetShowFillValueAttrib, iMatrixSetShowFillValueAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TYPECOLORINACTIVE", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
-  /* IupMatrix Attributes - MASK */
-  iupClassRegisterAttribute(ic, "OLD_MASK_DATA", iMatrixGetMaskDataAttrib, NULL, NULL, NULL, IUPAF_NO_STRING|IUPAF_READONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CLASSUPDATE", NULL, (IattribSetFunc)iMatrixSetClassUpdate, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  
+  iMatrixSetClassUpdate(ic);
 
   iupMatrixRegisterEx(ic);
-
-  if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "ENGLISH"))
-  {
-    IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "Invalid Formula.");
-  }
-  else if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "PORTUGUESE"))
-  {
-    IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "Fórmula Inválida.");
-
-    if (IupGetInt(NULL, "UTF8MODE"))
-    {
-      /* When seeing this file assuming ISO8859-1 encoding, above will appear correct.
-      When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
-      IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "FÃ³rmula InvÃ¡lida.");
-    }
-  }
 
   if (!IupGetHandle("IupMatrixCrossCursor"))
     iMatrixCreateCursor();
@@ -1871,45 +1988,5 @@ Ihandle* IupMatrix(const char* action)
   params[0] = (void*)action;
   params[1] = NULL;
   return IupCreatev("matrix", params);
-}
-
-/***********************************************************************/
-
-/* DEPRECATED backward compatibility */
-
-void IupMatSetAttribute(Ihandle* ih, const char* name, int lin, int col, const char* value)
-{
-  IupSetAttributeId2(ih, name, lin, col, value);
-}
-
-void IupMatStoreAttribute(Ihandle* ih, const char* name, int lin, int col, const char* value)
-{
-  IupStoreAttributeId2(ih, name, lin, col, value);
-}
-
-char* IupMatGetAttribute(Ihandle* ih, const char* name, int lin, int col)
-{
-  return IupGetAttributeId2(ih, name, lin, col);
-}
-
-int IupMatGetInt(Ihandle* ih, const char* name, int lin, int col)
-{
-  return IupGetIntId2(ih, name, lin, col);
-}
-
-float IupMatGetFloat(Ihandle* ih, const char* name, int lin, int col)
-{
-  return IupGetFloatId2(ih, name, lin, col);
-}
-
-void IupMatSetfAttribute(Ihandle* ih, const char* name, int lin, int col, const char* f, ...)
-{
-  int size;
-  char* value = iupStrGetLargeMem(&size);
-  va_list arglist;
-  va_start(arglist, f);
-  vsnprintf(value, size, f, arglist);
-  va_end(arglist);
-  IupStoreAttributeId2(ih, name, lin, col, value);
 }
 

@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>GLOBALCTRLFUNC_CB</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.auto-style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+
+<h2>GLOBALCTRLFUNC_CB<span class="auto-style1"> (since 3.20)</span></h2>
+<p>Global callback for a restricted set of keys. Called only when the Ctrl+F? 
+key combinations are pressed. It was designed to be used for internal 
+application debugging porpoises only. Do not use it for release code.</p>
+<h3>Callback</h3>
+<pre>void function(int <strong>c</strong>); [in C]</pre>
+<p>
+<strong>c</strong>:
+  identifier of typed key. Please refer to the
+  <a href="../attrib/key.html">Keyboard Codes</a>
+  table for a list of possible values.</p>
+<h3>Notes</h3>
+<p>It can only be set using <b>IupSetFunction(</b>name, func<b>)</b>.</p>
+<h4>Lua Binding&nbsp;</h4>
+<p>To modify this action use the iup.<strong>SetGlobalCallback</strong>(name, func) 
+function.</p>
+<h3>See Also</h3>
+<p><a href="../func/iupsetfunction.html">IupSetFunction</a></p>
+
+</body>
+
+</html>

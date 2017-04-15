@@ -51,11 +51,11 @@ int iupdrvTabsGetLineCountAttrib(Ihandle* ih)
 void iupdrvTabsSetCurrentTab(Ihandle* ih, int pos)
 {
   Ihandle* child = IupGetChild(ih, pos);
-  Ihandle* prev_child = IupGetChild(ih, iupdrvTabsGetCurrentTab(ih));
+  Ihandle* curr_child = IupGetChild(ih, iupdrvTabsGetCurrentTab(ih));
   Widget child_manager = (Widget)iupAttribGet(child, "_IUPTAB_CONTAINER");
-  Widget prev_child_manager = (Widget)iupAttribGet(prev_child, "_IUPTAB_CONTAINER");
+  Widget curr_child_manager = (Widget)iupAttribGet(curr_child, "_IUPTAB_CONTAINER");
   XtMapWidget(child_manager);
-  if (prev_child_manager) XtUnmapWidget(prev_child_manager);
+  if (curr_child_manager) XtUnmapWidget(curr_child_manager);
 
   XtVaSetValues(ih->handle, XmNcurrentPageNumber, pos, NULL);
 }
@@ -171,7 +171,7 @@ static void motTabsUpdatePageFont(Ihandle* ih)
 /* motTabs - Sets and Gets accessors                                         */
 /* ------------------------------------------------------------------------- */
 
-static int motTabsSetPaddingAttrib(Ihandle* ih, const char* value)
+static int motTabsSetTabPaddingAttrib(Ihandle* ih, const char* value)
 {
   iupStrToIntInt(value, &ih->data->horiz_padding, &ih->data->vert_padding, 'x');
 
@@ -275,9 +275,9 @@ static int motTabsSetFgColorAttrib(Ihandle* ih, const char* value)
   return 0; 
 }
 
-static int motTabsSetStandardFontAttrib(Ihandle* ih, const char* value)
+static int motTabsSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetStandardFontAttrib(ih, value);
+  iupdrvSetFontAttrib(ih, value);
   if (ih->handle)
     motTabsUpdatePageFont(ih);
   return 1;
@@ -363,20 +363,42 @@ int iupdrvTabsIsTabVisible(Ihandle* child, int pos)
 /* motTabs - Callback                                                        */
 /* ------------------------------------------------------------------------- */
 
-void motTabsPageChangedCallback(Widget w, Ihandle* ih, XmNotebookCallbackStruct *nptr)
+static void motTabsPageChangedManual(Ihandle* ih, Ihandle* prev_child, int prev_pos)
+{
+  IFnnn cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
+  int pos = iupdrvTabsGetCurrentTab(ih);
+
+  Ihandle* child = IupGetChild(ih, pos);
+  Widget tab_container = (Widget)iupAttribGet(child, "_IUPTAB_CONTAINER");
+  if (tab_container) XtMapWidget(tab_container);  /* show new page, if any */
+
+  if (cb)
+    cb(ih, child, prev_child);
+  else
+  {
+    IFnii cb2 = (IFnii)IupGetCallback(ih, "TABCHANGEPOS_CB");
+    if (cb2)
+      cb2(ih, pos, prev_pos);
+  }
+}
+
+static void motTabsPageChangedCallback(Widget w, Ihandle* ih, XmNotebookCallbackStruct *nptr)
 {
   if (nptr->reason == XmCR_MAJOR_TAB)
   {
-    IFnnn cb;
+    IFnnn cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
     Ihandle* child = IupGetChild(ih, nptr->page_number);
     Ihandle* prev_child = IupGetChild(ih, nptr->prev_page_number);
-    Widget child_manager = (Widget)iupAttribGet(child, "_IUPTAB_CONTAINER");
-    Widget prev_child_manager = (Widget)iupAttribGet(prev_child, "_IUPTAB_CONTAINER");
 
-    XtMapWidget(child_manager);
-    if (prev_child_manager) XtUnmapWidget(prev_child_manager);
+    Widget tab_container = (Widget)iupAttribGet(child, "_IUPTAB_CONTAINER");
+    Widget prev_tab_container = (Widget)iupAttribGet(prev_child, "_IUPTAB_CONTAINER");
 
-    cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
+    if (iupAttribGet(ih, "_IUPMOT_IGNORE_PAGECHANGE"))
+      return;
+
+    if (tab_container) XtMapWidget(tab_container);  /* show new page, if any */
+    if (prev_tab_container) XtUnmapWidget(prev_tab_container); /* hide previous page, if any */
+
     if (cb)
       cb(ih, child, prev_child);
     else
@@ -409,7 +431,7 @@ static void motTabsConfigureNotify(Widget w, XEvent *evt, String* s, Cardinal *c
      Since Notebook pages are not resized until they are moved into the visible area,
      we must update the children position and size when a tab page is resize. 
      Since tab pages are not hidden, they are moved outside the visible area,
-     a resize occours every time a tab is activated.
+     a resize occurs every time a tab is activated.
   */
   Ihandle *child;
   (void)s;
@@ -428,7 +450,8 @@ static void motTabsConfigureNotify(Widget w, XEvent *evt, String* s, Cardinal *c
 
 static void motTabsChildAddedMethod(Ihandle* ih, Ihandle* child)
 {
-  if (IupGetName(child) == NULL)
+  /* make sure it has at least one name */
+  if (!iupAttribGetHandleName(child))
     iupAttribSetHandleName(child);
 
   if (ih->handle)
@@ -562,6 +585,9 @@ static void motTabsChildRemovedMethod(Ihandle* ih, Ihandle* child, int pos)
     {
       Widget tab_button = (Widget)iupAttribGet(child, "_IUPMOT_TABBUTTON");
 
+      if (iupdrvTabsGetCurrentTab(ih) == pos)
+        iupAttribSet(ih, "_IUPMOT_IGNORE_PAGECHANGE", "1");
+
       iupTabsCheckCurrentTab(ih, pos, 1);
 
       XtDestroyWidget(tab_button);
@@ -573,6 +599,12 @@ static void motTabsChildRemovedMethod(Ihandle* ih, Ihandle* child, int pos)
       iupAttribSet(child, "_IUPTAB_CONTAINER", NULL);
       iupAttribSet(child, "_IUPMOT_TABBUTTON", NULL);
       iupAttribSet(child, "_IUPMOT_TABNUMBER", NULL);
+
+      if (iupAttribGet(ih, "_IUPMOT_IGNORE_PAGECHANGE"))
+      {
+        motTabsPageChangedManual(ih, child, pos);
+        iupAttribSet(ih, "_IUPMOT_IGNORE_PAGECHANGE", NULL);
+      }
     }
   }
 }
@@ -662,7 +694,7 @@ void iupdrvTabsInitClass(Iclass* ic)
   /* Driver Dependent Attribute functions */
 
   /* Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, motTabsSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "FONT", NULL, motTabsSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, motTabsSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
@@ -675,7 +707,7 @@ void iupdrvTabsInitClass(Iclass* ic)
   iupClassRegisterAttributeId(ic, "TABTITLE", iupTabsGetTitleAttrib, motTabsSetTabTitleAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TABIMAGE", NULL, motTabsSetTabImageAttrib, IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TABVISIBLE", iupTabsGetTabVisibleAttrib, motTabsSetTabVisibleAttrib, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "PADDING", iupTabsGetPaddingAttrib, motTabsSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TABPADDING", iupTabsGetTabPaddingAttrib, motTabsSetTabPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
 
   /* NOT supported */
   iupClassRegisterAttribute(ic, "MULTILINE", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_DEFAULT);

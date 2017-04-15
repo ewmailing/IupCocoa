@@ -49,7 +49,7 @@ SRC = iup_array.c iup_callback.c iup_dlglist.c iup_attrib.c iup_focus.c iup_font
       iup_sbox.c iup_scrollbox.c iup_normalizer.c iup_tree.c iup_split.c iup_layoutdlg.c \
       iup_recplay.c iup_progressdlg.c iup_expander.c iup_open.c iup_table.c iup_canvas.c \
       iup_gridbox.c iup_detachbox.c iup_backgroundbox.c iup_linefile.c iup_config.c \
-      iup_flatbutton.c 
+      iup_flatbutton.c iup_animatedlabel.c iup_draw.c iup_flatframe.c iup_flattabs.c 
 
 ifdef USE_HAIKU
   # Since Haiku has no GTK and no Motif, we can only use the native implementation
@@ -65,7 +65,7 @@ ifdef USE_HAIKU
          haiku/iuphaiku_tips.c haiku/iuphaiku_toggle.cpp haiku/iuphaiku_tree.cpp \
          haiku/iuphaiku_val.cpp gtk/iupgtk_draw_cairo.c gtk/iupgtk_key.c
   INCLUDES += haiku
-#  DEFINES += _WIN32_WINNT=$(WIN32VER) _WIN32_IE=$(WIN32VER) WINVER=$(WIN32VER) NOTREEVIEW
+#  DEFINES += 
 else
 ifdef USE_GTK
   CHECK_GTK = Yes
@@ -83,7 +83,8 @@ ifdef USE_GTK
          gtk/iupgtk_text.c gtk/iupgtk_frame.c gtk/iupgtk_progressbar.c \
          gtk/iupgtk_tabs.c gtk/iupgtk_list.c gtk/iupgtk_tree.c \
          gtk/iupgtk_canvas.c gtk/iupgtk_image.c gtk/iupgtk_dialog.c \
-         gtk/iupgtk_common.c gtk/iupgtk_str.c gtk/iupgtk_menu.c 
+         gtk/iupgtk_common.c gtk/iupgtk_str.c gtk/iupgtk_menu.c \
+         gtk/iupgtk_calendar.c iup_datepick.c
            
   ifdef USE_GTK3
     SRC += gtk/iupgtk_draw_cairo.c
@@ -106,7 +107,7 @@ ifdef USE_GTK
   
   ifdef USE_HILDON
     DEFINES += HILDON
-    INCLUDES += /usr/include/hildon-1
+    STDINCS += /usr/include/hildon-1
     LIBS += hildon-1
   endif
 else
@@ -118,7 +119,8 @@ ifdef USE_MOTIF
          mot/iupmot_colordlg.c mot/iupmot_fontdlg.c mot/iupmot_filedlg.c mot/iupmot_frame.c \
          mot/iupmot_button.c mot/iupmot_toggle.c mot/iupmot_progressbar.c mot/iupmot_clipboard.c \
          mot/iupmot_text.c mot/iupmot_val.c mot/iupmot_tabs.c mot/iupmot_menu.c \
-         mot/iupmot_list.c mot/iupmot_tree.c mot/iupmot_dragdrop.c mot/iupmot_str.c
+         mot/iupmot_list.c mot/iupmot_tree.c mot/iupmot_dragdrop.c mot/iupmot_str.c \
+         mot/iupmot_calendar.c iup_datepick.c
          
   SRC += mot/iupunix_help.c mot/iupunix_info.c
   USE_X11 = Yes
@@ -133,7 +135,8 @@ else
          win/iupwin_colordlg.c win/iupwin_fontdlg.c win/iupwin_filedlg.c win/iupwin_dragdrop.c \
          win/iupwin_button.c win/iupwin_draw.c win/iupwin_toggle.c win/iupwin_clipboard.c \
          win/iupwin_progressbar.c win/iupwin_text.c win/iupwin_val.c win/iupwin_touch.c \
-         win/iupwin_tabs.c win/iupwin_menu.c win/iupwin_list.c win/iupwin_tree.c
+         win/iupwin_tabs.c win/iupwin_menu.c win/iupwin_list.c win/iupwin_tree.c \
+         win/iupwin_calendar.c win/iupwin_datepick.c
          
   SRC += win/iupwindows_main.c win/iupwindows_help.c win/iupwindows_info.c
 

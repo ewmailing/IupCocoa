@@ -46,6 +46,10 @@ static int motDialogSetBgColorAttrib(Ihandle* ih, const char* value);
                      Utilities
 ****************************************************************/
 
+void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
+{
+  XSetTransientForHint(iupmot_display, XtWindow(ih->handle), XtWindow(parent));
+}
 
 int iupdrvDialogIsVisible(Ihandle* ih)
 {
@@ -817,8 +821,8 @@ static void motDialogDestroyCallback(Widget w, Ihandle *ih, XtPointer call_data)
   if (iupObjectCheck(ih))
     IupDestroy(ih);
 
-  /* this callback is usefull to destroy children dialogs when the parent is destroyed. */
-  /* The application is responsable for destroying the children before this happen.     */
+  /* this callback is useful to destroy children dialogs when the parent is destroyed. */
+  /* The application is responsible for destroying the children before this happen.     */
   (void)w;
   (void)call_data;
 }

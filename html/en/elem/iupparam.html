@@ -1,0 +1,235 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupParam</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupParam (since 3.19)</h2>
+
+  <p>
+  Construction element used only in <a href="iupparambox.html">IupParamBox</a>. It is not mapped in the native 
+  system, but it will exist while its <strong>IupParamBox</strong> container 
+  exists.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupParam(const char* <strong>format</strong>); [in C]
+iup.param{format = <strong>format</strong>: string} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
+param(format) [in LED]</pre>
+  <p><strong>format</strong>: string that describes the parameter. See
+  <a href="#Notes">Notes</a> bellow.</p>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+<p><strong>LABEL</strong> [read-only]: returns an IUP Ihandle*, the label associated with the parameter. 
+Valid only after the <strong>IupParamBox</strong> is created.</p>
+<p><strong>CONTROL</strong> [read-only]: returns an IUP Ihandle*, the real control associated with the parameter. 
+Valid only after the <strong>IupParamBox</strong> is created.</p>
+<p>&nbsp;<strong>AUXCONTROL</strong> [read-only]: returns an IUP Ihandle*,&nbsp; the auxiliary control associated with the 
+    parameter (for instance Valuators). Valid only after the <strong>IupParamBox</strong> 
+is created.</p>
+<p><strong>INDEX</strong> [read-only]: returns an integer value associated with the parameter index. 
+<strong>IupGetInt</strong> can also 
+    be used. Valid only after the <strong>IupParamBox</strong> is created.</p>
+<p><strong>VALUE</strong> - the value of the parameter. 
+<strong>IupGetFloat</strong> and <strong>IupGetInt</strong> 
+    can also be used. For the current parameter inside the callback contains the new value 
+that will be applied to the control, to get the old value use the VALUE 
+attribute for the CONTROL returned Ihandle*.</p>
+<hr>
+<h4>Attributes set during creation, obtained from the format string</h4>
+<p><strong>TITLE</strong>: text of the parameter, used as label. For all 
+parameters.</p>
+<p><strong>
+INDENT</strong>: number of indentation levels. For all parameters when '\t' is 
+used inside the title area.</p>
+<p><strong>
+TYPE</strong>: can be BOOLEAN ('b'), LIST ('l'), OPTIONS ('o'), REAL ('A', 'a', 
+'R', 'r'), STRING ('m', 's'), INTEGER ('i'), DATE ('d'), FILE ('f'), 
+COLOR ('c'), SEPARATOR ('t'), BUTTONNAMES ('u'), PARAMBOX ('x') and HANDLE ('h'). And describe the type of the parameter. 
+For all parameters.</p>
+<p><strong>DATATYPE</strong>: can be INT [int] ('b', 'l', 'o', 'i'), FLOAT [float] 
+('a', 'r'), DOUBLE 
+[double] ('A', 'R'), STRING [char*] ('m', 's', 'd', 'f', 'n', 'c'), HANDLE [Ihandle*] 
+('h') or NONE ('u', 't', 'x'). And describe the C data type that must be passed to <strong>
+IupGetParam</strong> to initialize and receive parameter values. For all 
+parameters.</p>
+<p><strong>MULTILINE</strong>: can be Yes or No. Defines if the edit box can have 
+more than one line. For 'm' parameter.</p>
+<p> <strong>MAXSTR</strong>: maximum size for the string. Its default value is 
+10240 for multiline strings, 4096 for file names, and 512 for other strings. For 
+'m', 's', 'd', 'f', 'n' and 'c' parameters.</p>
+<p><strong>
+ANGLE</strong>: can be Yes or No. defines if the REAL type is an angle. For 'a' 
+or 'A' parameters.</p>
+<p><strong>TRUE</strong>, <strong>FALSE</strong>: 
+boolean names. For 'b' parameter.</p>
+<p><strong>INTERVAL</strong> (Yes/No), <strong>MIN</strong>,
+<strong>MAX</strong>, <strong>STEP</strong>, <strong>PARTIAL</strong> (Yes/No): 
+optional limits for <u>integer</u> and
+        <u>real</u> types. For 'a', 'A', 'i', 'R', and 'r' parameters.</p>
+<p><strong>PRECISION</strong>: numeric precision for real value display. For 
+'a', 'A', 'r', and 'R' parameters.</p>
+<p><strong>VISIBLECOLUMNS</strong>: number of visible columns for horizontally 
+expandable text elements. If set the control will not expand anymore. For 's' 
+parameter. </p>
+<p><strong>DIALOGTYPE</strong>, <strong>FILTER</strong>,
+<strong>DIRECTORY</strong>, <strong>NOCHANGEDIR</strong>, <strong>
+NOOVERWRITEPROMPT</strong>: used for the FILE parameter dialog. See
+<a href="../dlg/iupfiledlg.html">IupFileDlg</a>. For 'f' parameter.</p>
+<p><strong>BUTTON1</strong>, <strong>
+BUTTON2</strong>, <strong>BUTTON3</strong>: button titles. Default is 
+"OK/Cancel/Help" for regular <strong>IupGetParam</strong>, and 
+&quot;Apply/Reset/Help&quot; when <strong>IupParamBox</strong> is directly used. 
+For 'u' parameter.</p>
+<p><strong>0, 1, 2, 3, ...</strong> 
+: list items. For 'l' and 'o' parameters.</p>
+<p><strong>MASK</strong>: mask for the edit box input. For 's' and 'm' 
+parameters.</p>
+<p><strong>TIP</strong>: 
+text of the tip. For all parameters.</p>
+<p><strong>NOFRAME</strong>: do not include the <strong>IupFrame</strong> around 
+the parameters list. For 'x' parameter. (since 3.19)</p>
+<h3><a name="Notes">Notes</a></h3>
+<p>The format string must have the following 
+  format, notice the &quot;\n&quot; at the end</p>
+<p>&quot;<strong><em>text</em></strong>%<strong><em>x</em>[<em>extra</em>]{tip}</strong>\n&quot;, where:</p>
+<p><strong><em>text</em></strong>
+      is a descriptive text, to be placed to the 
+      left of the entry field in a label. It can contains any string, but to 
+contain a &#39;%&#39; must use two characters &quot;%%&quot; to avoid conflict with the type 
+separator (since 3.6). If it is preceded by n '\t' characters then the parameter 
+will be indented by the same number (since 3.13).</p>
+<p><strong><em>x</em></strong>
+      is the type of the parameter. 
+      The valid options are:</p>
+<p style="margin-left: 40px">
+<strong>b</strong> = boolean 
+        (shows a True/False toggle, use &quot;int&quot; in C)<strong><br>
+i</strong> = integer (shows a integer number filtered text 
+        box, use &quot;int&quot; in C)<strong><br>
+r</strong> 
+        = real (shows a real number filtered text box, use &quot;float&quot; in C)<strong><br>
+R</strong> = same as<strong> r</strong> but using "double" in C (since 3.11.1)<strong><br>
+a</strong> = angle in degrees (shows 
+        a real number filtered text box and a dial [if <strong>IupControlsOpen</strong> 
+were 
+called], use &quot;float&quot; in C)<br><strong>A</strong> = same as<strong> a</strong> 
+but using "double" in C (since 3.11.1)<strong><br>
+s</strong> 
+        = string (shows a text box, use &quot;char*&quot; in C, it must have 
+        room enough for your string)<br>
+<strong>m</strong> 
+        = multiline string (shows a multiline text box, use &quot;char*&quot; in 
+        C, it must have room enough for your string)<br>
+<strong>l</strong> = list 
+        (shows a dropdown list box, use &quot;int&quot; in C for the zero based item index selected)<br>
+<strong>o</strong> = list 
+        (shows a list of toggles inside a radio, use &quot;int&quot; in C for the zero based item index selected)&nbsp; 
+(since 3.3)<br>
+<strong>t</strong> = separator 
+        (shows a horizontal line separator label, in this case text can be an empty string, 
+not included in parameter count)<br><strong>d</strong> = string, but the 
+interface uses a <a href="iupdatepick.html">IupDatePick</a> element to select a date (since 3.17)<br>
+<strong>f</strong> = string (same as <strong>s</strong>, but also show a button 
+to open a file selection dialog box)<br>
+<strong>c</strong> = string (same as <strong>s</strong>, but also show a color button 
+to open a color selection dialog box)<strong><br>
+n</strong> = string (same as <strong>s</strong>, but also show a font button 
+to open a font selection dialog box) (since 3.3)<strong><br>h</strong> = Ihandle*<strong> </strong>
+(a control handle that will be managed by the application, it will be placed 
+after the parameters and before the buttons.) (since 3.9)<strong><br>x</strong> 
+= attributes for the <strong>IupParamBox</strong> in the extra options. (since 
+3.19)<br>
+<strong>u</strong> = buttons titles (allow to redefine the default button titles (OK and 
+Cancel), and to add a third button, use [button1,button2,button3] as extra data, can omit one of them, it 
+will use the default name, not included in parameter count) (since 3.1)</p>
+<p>
+<strong><em>extra</em></strong> is one or 
+      more additional options for the given type</p>
+<p style="margin-left: 40px">
+<strong>[min,max,step]</strong>
+        are optional limits for <u>integer</u> and
+        <u>real</u> types. The <strong>max</strong> and <strong>step</strong> values can be 
+omitted. When 
+<strong>min</strong> and <strong>max</strong> are specified a valuator will also be added to 
+        change the value. To specify <strong>step</strong>, <strong>max</strong> 
+must be also specified. <strong>step</strong> is the size of the increment.<br>
+<strong>[false,true]</strong>
+        are optional strings for <u>boolean</u> 
+        types to be displayed after the toggle. The strings can not have commas '<strong>,</strong>', nor brackets 
+        '<strong>[</strong>' 
+        or '<strong>]</strong>'.<strong><br>
+mask</strong> is an optional mask for the 
+  <u>string</u> 
+        and <u>multiline</u> types. The dialog uses the 
+<a href="../attrib/iup_mask.html">MASK</a> 
+attribute internally. In this case we 
+        do no use the brackets '<strong>[</strong>' and '<strong>]</strong>' to avoid 
+conflict with the specified 
+        mask.<br>
+<strong>|item0|item1|item2,...|</strong> are the items of the <u>list</u>. At least 
+        one item must exist. Again the brackets are not used to increase the possibilities for the strings, instead you 
+        must use '<strong>|</strong>'. Items index are zero based start.<br>
+<strong>[dialogtype|filter|directory|nochangedir|nooverwriteprompt]</strong> are 
+the respective attribute values passed to the <a href="../dlg/iupfiledlg.html">
+IupFileDlg</a> control when activated. All &#39;<strong>|</strong>&#39; must exist, but you can let 
+empty values to use the default values. No mask can be set.</p>
+        <p><strong>tip</strong> is a string that is displayed in a TIP for the 
+		main control of the parameter. (since 3.0)&nbsp; </p>
+<p>Since the <strong>tip</strong> string can not contain a '\n' because of the 
+param terminator, the '\r' character can be used to break lines in the TIP. It 
+will be internally converted to '\n' before actually setting the TIP. (since 
+3.17)</p>
+<p>A integer parameter always has a spin attached to the text to increment and 
+decrement the value. A real parameter only has a spin if a full interval is 
+defined (min and max), in this case the default step is (max-min)/20. When the 
+callback is called because a spin was activated then the attribute "<strong>SPINNING</strong>" of 
+the element will be defined to a non NULL and non zero value.</p>
+<p>The default precision for real value display is given by the global attribute
+<a href="../attrib/iup_globals.html#DEFAULTPRECISION">DEFAULTPRECISION</a>. But inside the callback 
+the application can set the param attribute "<strong>PRECISION</strong>" to use 
+another value. It will work only during interactive changes. The decimal symbol 
+will used the <a href="../attrib/iup_globals.html#DEFAULTDECIMALSYMBOL">
+DEFAULTDECIMALSYMBOL</a> global attribute. (since 3.13)</p>
+<p>There is no extra parameters for the color string. The mask is automatically 
+set to capture 3 or 4 unsigned integers from 0 to 255 (R G B) or (R G B A) 
+(alpha is optional).</p>
+<p>The date extra parameters are simply <a href="iupdatepick.html">IupDatePick</a> attributes in a single 
+string for <strong>IupSetAttributes</strong> usage. (since 3.17)</p>
+<p>When the "s" type is used the size can be controlled using the VISIBLECOLUMNS 
+attribute at the param element. (since 3.16)</p>
+<h3>Utilities in Lua</h3>
+<p>In Lua, to retrieve a parameter control, auxiliary control or button you must use the following function:</p>
+<pre>iup.GetParamHandle(<strong>param: </strong>ihandle, <strong>name</strong>: string)-&gt; (<strong>control</strong>: ihandle) [in Lua] (since 3.16)
+<strong>param</strong>:GetParamHandle(<strong>name</strong>: string)-&gt; (<strong>control</strong>: ihandle)   (since 3.19)</pre>
+<p><strong>param</strong>:
+    Identifier of the 
+    parameter. <br><strong>name</strong>: name of the parameter.</p>
+<h3><a name="SeeAlso">See Also</a></h3>
+
+<p><a href="../dlg/iupgetparam.html">IupGetParam</a>, <a href="iupparambox.html">
+IupParamBox</a></p>
+
+
+</body>
+
+</html>

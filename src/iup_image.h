@@ -20,6 +20,7 @@ enum {IUPIMAGE_IMAGE, IUPIMAGE_ICON, IUPIMAGE_CURSOR};
 void* iupdrvImageLoad(const char* name, int type);
 void  iupdrvImageDestroy(void* handle, int type);
 int   iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp);  /* only for IUPIMAGE_IMAGE */
+void  iupdrvImageGetData(void* handle, unsigned char* imgdata);   /* only for IUPIMAGE_IMAGE */
 
 void* iupImageGetMask(const char* name);
 void* iupImageGetIcon(const char* name);
@@ -28,6 +29,8 @@ void* iupImageGetImage(const char* name, Ihandle* parent, int make_inactive);
 void iupImageGetInfo(const char* name, int *w, int *h, int *bpp);
 void iupImageUpdateParent(Ihandle *parent);
 void iupImageClearFromCache(Ihandle* ih, void* handle);
+
+Ihandle* iupImageGetHandle(const char* name);
 
 typedef struct _iupColor { 
   unsigned char r, g, b, a; 
@@ -53,6 +56,7 @@ void iupImageStockFinish(void);
 typedef Ihandle* (*iupImageStockCreateFunc)(void);
 void iupImageStockSet(const char *name, iupImageStockCreateFunc func, const char* native_name);
 void iupImageStockLoadAll(void);  /* Used only in IupView */
+int iupImageStockGetSize(void);
 
 
 #ifdef __cplusplus

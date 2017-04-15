@@ -103,7 +103,7 @@ static int motLabelSetImageAttrib(Ihandle* ih, const char* value)
       if (!iupAttribGet(ih, "IMINACTIVE"))
       {
         /* if not active and IMINACTIVE is not defined 
-           then automaticaly create one based on IMAGE */
+           then automatically create one based on IMAGE */
         iupmotSetPixmap(ih, value, XmNlabelInsensitivePixmap, 1); /* make_inactive */
       }
     }
@@ -131,7 +131,7 @@ static int motLabelSetActiveAttrib(Ihandle* ih, const char* value)
   {
     if (!iupAttribGet(ih, "IMINACTIVE"))
     {
-      /* if not defined then automaticaly create one based on IMAGE */
+      /* if not defined then automatically create one based on IMAGE */
       char* name = iupAttribGet(ih, "IMAGE");
       iupmotSetPixmap(ih, name, XmNlabelInsensitivePixmap, 1); /* make_inactive */
     }
@@ -223,9 +223,7 @@ static int motLabelMapMethod(Ihandle* ih)
   XtAddEventHandler(ih->handle, EnterWindowMask, False, (XtEventHandler)iupmotEnterLeaveWindowEvent, (XtPointer)ih);
   XtAddEventHandler(ih->handle, LeaveWindowMask, False, (XtEventHandler)iupmotEnterLeaveWindowEvent, (XtPointer)ih);
   XtAddEventHandler(ih->handle, ButtonPressMask|ButtonReleaseMask, False, (XtEventHandler)iupmotButtonPressReleaseEvent, (XtPointer)ih);
-
-  if (iupStrBoolean(IupGetGlobal("INPUTCALLBACKS")))
-    XtAddEventHandler(ih->handle, PointerMotionMask, False, (XtEventHandler)iupmotDummyPointerMotionEvent, NULL);
+  XtAddEventHandler(ih->handle, PointerMotionMask, False, (XtEventHandler)iupmotPointerMotionEvent, (XtPointer)ih);
 
   /* Drag Source is enabled by default in label */
   iupmotDisableDragSource(ih->handle);

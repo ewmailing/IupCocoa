@@ -34,10 +34,6 @@ int IupControlsOpen(void)
   return IUP_NOERROR;
 }
 
-void IupControlsClose(void)  /* for backward compatibility */
-{
-}
-
 char *iupControlBaseGetParentBgColor(Ihandle* ih)
 {
   return IupGetAttribute(iupChildTreeGetNativeParent(ih), "BGCOLOR");

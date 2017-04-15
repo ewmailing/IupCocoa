@@ -25,7 +25,7 @@ typedef struct _Iarray Iarray;
  * The array count starts at 0. And the maximum number of elements starts at the given count.
  * The maximum number of elements is increased by the start_max_count, every time it needs more memory.
  * Data is always initialized with zeros.
- * Must call \ref iupArrayInc to proper allocates memory.
+ * Must call \ref iupArrayInc, \ref iupArrayAdd or \ref iupArrayInsert to properly increase the number of elements.
  * \ingroup iarray */
 Iarray* iupArrayCreate(int start_max_count, int elem_size);
 

@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 
 #include "iup.h"
@@ -53,6 +53,7 @@ static int iScintillaSetBraceBadlightAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
+/*
 static int iScintillaSetBraceHighlightIndicatorAttrib(Ihandle* ih, const char* value)
 {
   int indicatorNumber;
@@ -104,6 +105,7 @@ static char* iScintillaGetUseBraceBLIndicatorAttrib(Ihandle* ih)
 {
   return iupStrReturnBoolean (ih->data->useBraceBLIndicator); 
 }
+*/
 
 static char* iScintillaGetBraceMatchAttribId(Ihandle* ih, int pos)
 {

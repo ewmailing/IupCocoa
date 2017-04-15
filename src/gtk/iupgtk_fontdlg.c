@@ -24,7 +24,7 @@ static int gtkFontDlgPopup(Ihandle* ih, int x, int y)
   InativeHandle* parent = iupDialogGetNativeParent(ih);
   GtkWidget* dialog;
   int response;
-  char* preview_text, *standardfont;
+  char* preview_text, *font;
 
   iupAttribSetInt(ih, "_IUPDLG_X", x);   /* used in iupDialogUpdatePosition */
   iupAttribSetInt(ih, "_IUPDLG_Y", y);
@@ -42,13 +42,14 @@ static int gtkFontDlgPopup(Ihandle* ih, int x, int y)
     gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(parent));
 #endif
 
-  standardfont = iupAttribGet(ih, "VALUE");
-  if (!standardfont)
-    standardfont = IupGetGlobal("DEFAULTFONT");
+  font = iupAttribGet(ih, "VALUE");
+  if (!font)
+    font = IupGetGlobal("DEFAULTFONT");
+
 #if GTK_CHECK_VERSION(3, 2, 0)
-  gtk_font_chooser_set_font(GTK_FONT_CHOOSER(dialog), standardfont);
+  gtk_font_chooser_set_font(GTK_FONT_CHOOSER(dialog), font);
 #else
-  gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), standardfont);
+  gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(dialog), font);
 #endif
 
   preview_text = iupAttribGet(ih, "PREVIEWTEXT");

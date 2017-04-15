@@ -39,10 +39,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\x64\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\Debug_64\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\obj\Debug\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_x64\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_64\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -86,6 +86,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\iup.c" />
+    <ClCompile Include="..\src\iup_animatedlabel.c" />
     <ClCompile Include="..\src\iup_array.c" />
     <ClCompile Include="..\src\iup_assert.c" />
     <ClCompile Include="..\src\iup_attrib.c" />
@@ -98,8 +99,14 @@
     <ClCompile Include="..\src\iup_config.c" />
     <ClCompile Include="..\src\iup_detachbox.c" />
     <ClCompile Include="..\src\iup_dlglist.c" />
+    <ClCompile Include="..\src\iup_draw.c" />
     <ClCompile Include="..\src\iup_expander.c" />
     <ClCompile Include="..\src\iup_flatbutton.c" />
+    <ClCompile Include="..\src\iup_flatframe.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\iup_flattabs.c" />
     <ClCompile Include="..\src\iup_focus.c" />
     <ClCompile Include="..\src\iup_font.c" />
     <ClCompile Include="..\src\iup_func.c" />
@@ -124,7 +131,6 @@
     <ClCompile Include="..\src\iup_str.c" />
     <ClCompile Include="..\src\iup_strmessage.c" />
     <ClCompile Include="..\src\iup_table.c" />
-    <ClCompile Include="..\src\win\iupwindows_help.c" />
     <ClCompile Include="..\src\win\iupwindows_info.c" />
     <ClCompile Include="..\src\win\iupwindows_main.c" />
     <ClCompile Include="..\src\iup_box.c" />
@@ -165,7 +171,10 @@
     <ClCompile Include="..\src\iup_zbox.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\iupdraw.h" />
+    <ClInclude Include="..\include\iup_class_cbs.hpp" />
     <ClInclude Include="..\include\iup_config.h" />
+    <ClInclude Include="..\include\iup_plus.h" />
     <ClInclude Include="..\src\iup_array.h" />
     <ClInclude Include="..\src\iup_assert.h" />
     <ClInclude Include="..\src\iup_attrib.h" />
@@ -173,8 +182,8 @@
     <ClInclude Include="..\src\iup_class.h" />
     <ClInclude Include="..\src\iup_classbase.h" />
     <ClInclude Include="..\src\iup_dlglist.h" />
-    <ClInclude Include="..\src\iup_draw.h" />
     <ClInclude Include="..\src\iup_drv.h" />
+    <ClInclude Include="..\src\iup_drvdraw.h" />
     <ClInclude Include="..\src\iup_drvfont.h" />
     <ClInclude Include="..\src\iup_drvinfo.h" />
     <ClInclude Include="..\src\iup_focus.h" />

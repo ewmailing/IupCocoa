@@ -56,7 +56,7 @@ void iupMatrixModifyValue(Ihandle* ih, int lin, int col, const char* value)
 static char* iMatrixSetValueNumeric(Ihandle* ih, int lin, int col, const char* value, int convert)
 {
   double number;
-  int ret = iupStrToDoubleLocale(value, &number, IupGetAttribute(ih, "NUMERICDECIMALSYMBOL"));
+  int ret = iupStrToDoubleLocale(value, &number, IupGetAttribute(ih, "NUMERICDECIMALSYMBOL"));  /* this will also check for global "DEFAULTDECIMALSYMBOL" */
   if (ret)
   {
     IFniid setvalue_cb;
@@ -91,10 +91,7 @@ void iupMatrixSetValue(Ihandle* ih, int lin, int col, const char* value, int use
   if (ih->data->undo_redo) old_value = iupMatrixGetValue(ih, lin, col);
 
   if (lin != 0 && ih->data->sort_has_index)
-  {
-    int index = ih->data->sort_line_index[lin];
-    if (index != 0) lin = index;
-  }
+    lin = ih->data->sort_line_index[lin];
 
   if (ih->data->undo_redo) iupAttribSetClassObjectId2(ih, "UNDOPUSHCELL", lin, col, old_value);
 
@@ -133,10 +130,7 @@ static char* iMatrixGetValueText(Ihandle* ih, int lin, int col)
   char* value;
 
   if (lin != 0 && ih->data->sort_has_index)
-  {
-    int index = ih->data->sort_line_index[lin];
-    if (index != 0) lin = index;
-  }
+    lin = ih->data->sort_line_index[lin];
 
   if (ih->data->callback_mode)
   {
@@ -196,7 +190,7 @@ char* iupMatrixGetValue(Ihandle* ih, int lin, int col)
     dIFnii getvalue_cb = (dIFnii)IupGetCallback(ih, "NUMERICGETVALUE_CB");
     if (getvalue_cb)
     {
-      /* no formating and no convertion here */
+      /* no formatting and no conversion here */
       double number = getvalue_cb(ih, lin, col);
       sprintf(ih->data->numeric_buffer_get, IUP_DOUBLE2STR, number);  /* maximum precision */
       return ih->data->numeric_buffer_get;
@@ -281,7 +275,7 @@ static char* iMatrixGetValueNumericFormatted(Ihandle* ih, int lin, int col, cons
   if (format == NULL)
     format = iupMatrixGetNumericFormatDef(ih);
 
-  iupStrPrintfDoubleLocale(ih->data->numeric_buffer_get, format, number, IupGetAttribute(ih, "NUMERICDECIMALSYMBOL"));
+  iupStrPrintfDoubleLocale(ih->data->numeric_buffer_get, format, number, IupGetAttribute(ih, "NUMERICDECIMALSYMBOL"));  /* this will also check for global "DEFAULTDECIMALSYMBOL" */
   return ih->data->numeric_buffer_get;
 }
 
@@ -448,11 +442,14 @@ static char* iMatrixGetCellAttrib(Ihandle* ih, unsigned char attr, int lin, int 
 
 static int iMatrixCallColorCB(Ihandle* ih, IFniiIII cb, int lin, int col, unsigned char *r, unsigned char *g, unsigned char *b)
 {
-  int ir, ig, ib, ret;
+  int ir = 0, ig = 0, ib = 0, ret;
   ret = cb(ih, lin, col, &ir, &ig, &ib);
-  *r = iupBYTECROP(ir);
-  *g = iupBYTECROP(ig);
-  *b = iupBYTECROP(ib);
+  if (ret != IUP_IGNORE)
+  {
+    *r = iupBYTECROP(ir);
+    *g = iupBYTECROP(ig);
+    *b = iupBYTECROP(ib);
+  }
   return ret;
 }
 
@@ -493,11 +490,7 @@ void iupMatrixGetFgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned
   }
 
   if (marked)
-  {
-    *r = IMAT_ATENUATION(*r);
-    *g = IMAT_ATENUATION(*g);
-    *b = IMAT_ATENUATION(*b);
-  }
+    iupMatrixAddMarkedAttenuation(ih, r, g, b);
 
   if (!active)
   {
@@ -513,11 +506,7 @@ void iupMatrixGetTypeRGB(Ihandle* ih, const char* color, unsigned char *r, unsig
   iupStrToRGB(color, r, g, b);
 
   if (marked)
-  {
-    *r = IMAT_ATENUATION(*r);
-    *g = IMAT_ATENUATION(*g);
-    *b = IMAT_ATENUATION(*b);
-  }
+    iupMatrixAddMarkedAttenuation(ih, r, g, b);
 
   if (!active)
   {
@@ -566,11 +555,7 @@ void iupMatrixGetBgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned
   }
 
   if (marked)
-  {
-    *r = IMAT_ATENUATION(*r);
-    *g = IMAT_ATENUATION(*g);
-    *b = IMAT_ATENUATION(*b);
-  }
+    iupMatrixAddMarkedAttenuation(ih, r, g, b);
 
   if (!active)
   {
@@ -578,6 +563,19 @@ void iupMatrixGetBgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned
     cdDecodeColor(ih->data->bgcolor_cd, &bg_r, &bg_g, &bg_b);
     iupImageColorMakeInactive(r, g, b, bg_r, bg_g, bg_b);
   }
+}
+
+char* iupMatrixGetMaskStr(Ihandle* ih, const char* name, int lin, int col)
+{
+  char* value = iupAttribGetId2(ih, name, lin, col);
+  if (!value)
+  {
+    value = iupAttribGetId2(ih, name, lin, IUP_INVALID_ID);
+    if (!value)
+      value = iupAttribGetId2(ih, name, IUP_INVALID_ID, col);
+  }
+
+  return value;
 }
 
 char* iupMatrixGetFont(Ihandle* ih, int lin, int col)

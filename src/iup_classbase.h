@@ -77,7 +77,7 @@ void iupBaseSetCurrentSize(Ihandle* ih, int w, int h, int shrink);
 void iupBaseSetPosition(Ihandle* ih, int x, int y);
 
 /* Updates the SIZE attribute if defined. 
-   Called only from iupdrvSetStandardFontAttrib. */
+   Called only from iupdrvSetFontAttrib. */
 void iupBaseUpdateAttribFromFont(Ihandle* ih);
 
 
@@ -120,6 +120,8 @@ char* iupBaseGetRasterSizeAttrib(Ihandle* ih);
 char* iupBaseGetClientOffsetAttrib(Ihandle* ih);
 int iupBaseSetMaxSizeAttrib(Ihandle* ih, const char* value);
 int iupBaseSetMinSizeAttrib(Ihandle* ih, const char* value);
+char* iupBaseGetExpandAttrib(Ihandle* ih);
+int iupBaseSetExpandAttrib(Ihandle* ih, const char* value);
 
 /* visual */
 char* iupBaseGetVisibleAttrib(Ihandle* ih);

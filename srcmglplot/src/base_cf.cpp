@@ -1,6 +1,6 @@
 /***************************************************************************
  * base.cpp is part of Math gric Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -30,15 +30,15 @@ void MGL_EXPORT mgl_suppress_warn(int on)	{	mglPrintWarn = !on;	}
 void MGL_EXPORT mgl_suppress_warn_(int *on)	{	mgl_suppress_warn(*on);	}
 void MGL_EXPORT mgl_set_quality(HMGL gr, int qual)	{	gr->SetQuality(qual);	}
 void MGL_EXPORT mgl_set_quality_(uintptr_t *gr, int *qual)	{	_GR_->SetQuality(*qual);	}
-int MGL_EXPORT_PURE mgl_get_quality(HMGL gr)	{	return gr->GetQuality();	}
-int MGL_EXPORT_PURE mgl_get_quality_(uintptr_t *gr)	{	return _GR_->GetQuality();	}
-int MGL_EXPORT_PURE mgl_is_frames(HMGL gr)
+int MGL_EXPORT mgl_get_quality(HMGL gr)	{	return gr->GetQuality();	}
+int MGL_EXPORT mgl_get_quality_(uintptr_t *gr)	{	return _GR_->GetQuality();	}
+int MGL_EXPORT mgl_is_frames(HMGL gr)
 {	return gr->get(MGL_VECT_FRAME) && !(gr->GetQuality()&MGL_DRAW_LMEM);	}
 void MGL_EXPORT mgl_set_draw_reg(HMGL gr, long nx, long ny, long m)	{	gr->SetDrawReg(nx,ny,m);	}
 void MGL_EXPORT mgl_set_draw_reg_(uintptr_t *gr, int *nx, int *ny, int *m)	{	_GR_->SetDrawReg(*nx,*ny,*m);	}
 //-----------------------------------------------------------------------------
-int MGL_EXPORT_PURE mgl_get_flag(HMGL gr, uint32_t flag)	{	return gr->get(flag);	}
-int MGL_EXPORT_PURE mgl_get_flag_(uintptr_t *gr, unsigned long *flag)	{	return _GR_->get(*flag);	}
+int MGL_EXPORT mgl_get_flag(HMGL gr, uint32_t flag)	{	return gr->get(flag);	}
+int MGL_EXPORT mgl_get_flag_(uintptr_t *gr, unsigned long *flag)	{	return _GR_->get(*flag);	}
 void MGL_EXPORT mgl_set_flag(HMGL gr, int val, uint32_t flag)		{	gr->set(val,flag);	}
 void MGL_EXPORT mgl_set_flag_(uintptr_t *gr, int *val, unsigned long *flag)	{	_GR_->set(*val,*flag);	}
 //-----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ void MGL_EXPORT mgl_set_plotid(HMGL gr, const char *id)	{	gr->PlotId = id;	}
 void MGL_EXPORT mgl_set_plotid_(uintptr_t *gr, const char *id,int l)
 {	char *s=new char[l+1];	memcpy(s,id,l);	s[l]=0;
 	_GR_->PlotId = s;	delete []s;	}
-MGL_EXPORT_PURE const char *mgl_get_plotid(HMGL gr)	{	return gr->PlotId.c_str();	}
+MGL_EXPORT const char *mgl_get_plotid(HMGL gr)	{	return gr->PlotId.c_str();	}
 int MGL_EXPORT mgl_get_plotid_(uintptr_t *gr, char *out, int len)
 {
 	const char *res = mgl_get_plotid(_GR_);
@@ -66,14 +66,14 @@ int MGL_EXPORT mgl_get_plotid_(uintptr_t *gr, char *out, int len)
 	return strlen(res);
 }
 //-----------------------------------------------------------------------------
-MGL_EXPORT_PURE const char *mgl_get_mess(HMGL gr)	{	return gr->Mess.c_str();	}
+MGL_EXPORT const char *mgl_get_mess(HMGL gr)	{	return gr->Mess.c_str();	}
 int MGL_EXPORT mgl_get_mess_(uintptr_t *gr, char *out, int len)
 {
 	const char *res = mgl_get_mess(_GR_);
 	if(out)	strncpy(out,res,len);
 	return strlen(res);
 }
-int MGL_EXPORT_PURE mgl_get_warn(HMGL gr)	{	return gr->GetWarn();	}
+int MGL_EXPORT mgl_get_warn(HMGL gr)	{	return gr->GetWarn();	}
 void MGL_EXPORT mgl_set_warn(HMGL gr, int code, const char *txt)
 {	gr->SetWarn(code,txt);	}
 extern bool mglPrintWarn;
@@ -87,7 +87,7 @@ void MGL_EXPORT mgl_set_global_warn(const char *txt)
 }
 void MGL_EXPORT mgl_set_global_warn_(const char *txt, int l)
 {	char *s=new char[l+1];	memcpy(s,txt,l);	s[l]=0;	mgl_set_global_warn(s);	delete []s;	}
-MGL_EXPORT_PURE const char *mgl_get_global_warn()	{	return mglGlobalMess.c_str();	}
+MGL_EXPORT const char *mgl_get_global_warn()	{	return mglGlobalMess.c_str();	}
 int MGL_EXPORT mgl_get_global_warn_(char *out, int len)
 {
 	const char *res = mgl_get_global_warn();
@@ -153,7 +153,7 @@ void MGL_EXPORT mgl_set_rdc_acc_(uintptr_t *gr, int *reduce)
 void MGL_EXPORT mgl_highlight_(uintptr_t *gr, int *id)	{	_GR_->Highlight(*id);	}
 void MGL_EXPORT mgl_set_origin_(uintptr_t *gr, mreal *x0, mreal *y0, mreal *z0)
 {	_GR_->SetOrigin(*x0,*y0,*z0);	}
-int MGL_EXPORT_PURE mgl_get_warn_(uintptr_t *gr)	{	return _GR_->GetWarn();	}
+int MGL_EXPORT mgl_get_warn_(uintptr_t *gr)	{	return _GR_->GetWarn();	}
 void MGL_EXPORT mgl_set_warn_(uintptr_t *gr, int *code, const char *txt, int l)
 {	char *s=new char[l+1];	memcpy(s,txt,l);	s[l]=0;
 	_GR_->SetWarn(*code, s);	delete []s;	}

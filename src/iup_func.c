@@ -16,7 +16,6 @@
 
 
 static Itable *ifunc_table = NULL;   /* the function hash table indexed by the name string */
-static const char *ifunc_action_name = NULL;  /* name of the action being retrieved in IupGetFunction */
 
 void iupFuncInit(void)
 {
@@ -29,29 +28,15 @@ void iupFuncFinish(void)
   ifunc_table = NULL;
 }
 
-const char *IupGetActionName(void)
-{
-  return ifunc_action_name;
-}
-
 Icallback IupGetFunction(const char *name)
 {
   void* value;
-  Icallback func;
 
   iupASSERT(name!=NULL);
   if (!name)
     return NULL;
 
-  ifunc_action_name = name; /* store the retrieved name */
-
-  func = (Icallback)iupTableGetFunc(ifunc_table, name, &value);
-
-  /* if not defined and not the idle, then check for the DEFAULT_ACTION */
-  if (!func && !iupStrEqual(name, "IDLE_ACTION"))
-    func = (Icallback)iupTableGetFunc(ifunc_table, "DEFAULT_ACTION", &value);
-
-  return func;
+  return (Icallback)iupTableGetFunc(ifunc_table, name, &value);
 }
 
 Icallback IupSetFunction(const char *name, Icallback func)

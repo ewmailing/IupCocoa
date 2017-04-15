@@ -1,6 +1,6 @@
 /***************************************************************************
  * canvas.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -32,9 +32,9 @@ struct MGL_EXPORT mglAxis
 	mglAxis(mglAxis &&aa) : dv(aa.dv),ds(aa.ds),d(aa.d),ns(aa.ns),	t(aa.t),fact(aa.fact),stl(aa.stl),	dir(aa.dir),a(aa.a),b(aa.b),org(aa.org), v0(aa.v0),v1(aa.v1),v2(aa.v2),o(aa.o),	f(aa.f),txt(aa.txt),	ch(aa.ch),	pos(aa.pos),sh(aa.sh),inv(aa.inv)	{}
 #endif
 	inline void AddLabel(const wchar_t *lbl, mreal v)
-	{	txt.push_back(mglText(lbl,"",v));	}
+	{	if(mgl_isfin(v))	txt.push_back(mglText(lbl,"",v));	}
 	inline void AddLabel(const std::wstring &lbl, mreal v)
-	{	txt.push_back(mglText(lbl,v));	}
+	{	if(mgl_isfin(v))	txt.push_back(mglText(lbl,v));	}
 	inline void Clear()
 	{	dv=ds=d=v0=v1=v2=sh=0;	o=NAN;	ns=f=0;	pos = 't';	inv=false;
 		fact.clear();	stl.clear();	t.clear();	txt.clear();	}
@@ -61,26 +61,8 @@ struct MGL_EXPORT mglAxis
 	mreal angl;		///< Manual for ticks rotation (if not NAN)
 };
 //-----------------------------------------------------------------------------
-/// Structure for light source
-struct MGL_EXPORT mglLight
-{
-	mglLight():n(false),a(0),b(0)	{}
-	mglLight(const mglLight &aa) : n(aa.n),d(aa.d),r(aa.r),q(aa.q),p(aa.p),a(aa.a),b(aa.b),c(aa.c)	{}
-#if MGL_HAVE_RVAL
-	mglLight(mglLight &&aa) : n(aa.n),d(aa.d),r(aa.r),q(aa.q),p(aa.p),a(aa.a),b(aa.b),c(aa.c)	{}
-#endif
-	bool n;			///< Availability of light sources
-	mglPoint d;		///< Direction of light sources
-	mglPoint r;		///< Position of light sources (NAN for infinity)
-	mglPoint q;		///< Actual position of light sources (filled by LightScale() function)
-	mglPoint p;		///< Actual direction of light sources (filled by LightScale() function)
-	mreal a;		///< Aperture of light sources
-	mreal b;		///< Brightness of light sources
-	mglColor c;		///< Color of light sources
-};
-//-----------------------------------------------------------------------------
 class mglCanvas;
-/// Structure for light source
+/// Structure for drawing region
 struct MGL_EXPORT mglDrawReg
 {
 	mglDrawReg() {}
@@ -106,18 +88,22 @@ struct MGL_EXPORT mglDrawReg
 struct MGL_EXPORT mglDrawDat
 {
 	mglDrawDat() {}
-	mglDrawDat(const mglDrawDat &aa) : Pnt(aa.Pnt),Prm(aa.Prm),Ptx(aa.Ptx),Glf(aa.Glf),Txt(aa.Txt)	{}
+	mglDrawDat(const mglDrawDat &aa) : Pnt(aa.Pnt),Prm(aa.Prm),Sub(aa.Sub),Ptx(aa.Ptx),Glf(aa.Glf),Txt(aa.Txt)	{}
 #if MGL_HAVE_RVAL
-	mglDrawDat(mglDrawDat &&aa) : Pnt(aa.Pnt),Prm(aa.Prm),Ptx(aa.Ptx),Glf(aa.Glf),Txt(aa.Txt)	{}
+	mglDrawDat(mglDrawDat &&aa) : Pnt(aa.Pnt),Prm(aa.Prm),Sub(aa.Sub),Ptx(aa.Ptx),Glf(aa.Glf),Txt(aa.Txt)	{}
 #endif
 	inline const mglDrawDat&operator=(const mglDrawDat &aa)
-	{	Pnt=aa.Pnt;	Prm=aa.Prm;	Ptx=aa.Ptx;	Glf=aa.Glf;	Txt=aa.Txt;	return aa;	}
+	{	Pnt=aa.Pnt;	Prm=aa.Prm;	Ptx=aa.Ptx;	Glf=aa.Glf;	Txt=aa.Txt;	Sub=aa.Sub;	return aa;	}
 	mglStack<mglPnt>  Pnt;	///< Internal points
 	mglStack<mglPrim> Prm;	///< Primitives (lines, triangles and so on) -- need for export
+	std::vector<mglBlock> Sub;	///< InPlot regions
 	std::vector<mglText> Ptx;	///< Text labels for mglPrim
 	std::vector<mglGlyph> Glf;	///< Glyphs data
-	mglStack<mglTexture> Txt;	///< Pointer to textures
+	std::vector<mglTexture> Txt;	///< Pointer to textures
 };
+#if defined(_MSC_VER)
+template class MGL_EXPORT std::vector<mglDrawDat>;
+#endif
 //-----------------------------------------------------------------------------
 union mglRGBA	{	uint32_t c; unsigned char r[4];	};
 //-----------------------------------------------------------------------------
@@ -160,6 +146,8 @@ using mglBase::Light;
 
 	/// Put further plotting in cell of stick rotated on angles tet, phi
 	void StickPlot(int num, int i, mreal tet, mreal phi);
+	/// Put further plotting in cell of stick sheared on sx, sy
+	void ShearPlot(int num, int i, mreal sx, mreal sy, mreal xd, mreal yd);
 	/// Put further plotting in some region of whole frame surface.
 	inline void InPlot(mreal x1,mreal x2,mreal y1,mreal y2,bool rel=true)
 	{	InPlot(B,x1,x2,y1,y2,rel);	}
@@ -170,6 +158,8 @@ using mglBase::Light;
 	void Title(const wchar_t *title,const char *stl="#",mreal size=-2);
 	/// Set aspect ratio for further plotting.
 	void Aspect(mreal Ax,mreal Ay,mreal Az);
+	/// Shear a further plotting.
+	void Shear(mreal Sx,mreal Sy);
 	/// Rotate a further plotting.
 	void Rotate(mreal TetX,mreal TetZ,mreal TetY=0);
 	/// Rotate a further plotting around vector {x,y,z}.
@@ -215,7 +205,8 @@ using mglBase::Light;
 	/// Set object/subplot id
 	inline void SetObjId(long id)	{	ObjId = id;	}
 	/// Get object id
-	inline int GetObjId(long xs,long ys) const	{	return OI[xs+Width*ys];	}
+	inline int GetObjId(long xs,long ys) const
+	{	register long i=xs+Width*ys;	return (i>=0 && i<Width*Height)?OI[i]:-1;	}
 	/// Get subplot id
 	int GetSplId(long xs,long ys) const MGL_FUNC_PURE;
 	/// Check if there is active point or primitive (n=-1)
@@ -347,6 +338,8 @@ using mglBase::Light;
 	void PreparePrim(int fast);
 	inline uint32_t GetPntCol(long i) const	{	return pnt_col[i];	}
 	inline uint32_t GetPrmCol(long i, bool sort=true) const	{	return GetColor(GetPrm(i, sort));	}
+	/// Set the size of semi-transparent area around lines, marks, ...
+	inline void SetPenDelta(float d)	{	pen_delta = 1.5*fabs(d);	}
 
 protected:
 	mreal Delay;		///< Delay for animation in seconds
@@ -374,7 +367,7 @@ protected:
 	int Depth;			///< Depth of the image
 	mreal inW, inH;		///< Width and height of last InPlot
 	mreal inX, inY;		///< Coordinates of last InPlot
-	mglLight light[10];	///< Light sources
+	mglLight light[10];	///< Light sources	// TODO move to mglBlock
 	mreal FogDist;		///< Inverse fog distance (fog ~ exp(-FogDist*Z))
 	mreal FogDz;		///< Relative shift of fog
 
@@ -397,6 +390,7 @@ protected:
 	/// Scale coordinates and cut off some points
 	bool ScalePoint(const mglMatrix *M, mglPoint &p, mglPoint &n, bool use_nan=true) const;
 	void LightScale(const mglMatrix *M);	///< Additionally scale positions of light sources
+	void LightScale(const mglMatrix *M, mglLight &l);	///< Additionally scale positions of light
 	/// Push drawing data (for frames only). NOTE: can be VERY large
 	long PushDrwDat();
 	/// Retur color for primitive depending lighting
@@ -453,9 +447,10 @@ private:
 	std::vector<mglMatrix> stack;	///< stack for transformation matrices
 	GifFileType *gif;
 	mreal fscl,ftet;	///< last scale and rotation for glyphs
-	long forg;		///< original point (for directions)
+	long forg;			///< original point (for directions)
 	size_t grp_counter;	///< Counter for StartGroup(); EndGroup();
-	mglMatrix Bt;	///< temporary matrix for text
+	mglMatrix Bt;		///< temporary matrix for text
+	float pen_delta;	///< delta pen width (dpw) -- the size of semi-transparent region for lines, marks, ...
 
 	/// Draw generic colorbar
 	void colorbar(HCDT v, const mreal *s, int where, mreal x, mreal y, mreal w, mreal h, bool text);
@@ -496,8 +491,6 @@ private:
 	void glyph_fpix(long i,long j,const mglMatrix *M, const mglPnt &p, mreal f, const mglGlyph &g, const mglDrawReg *d);
 	void glyph_wpix(long i,long j,const mglMatrix *M, const mglPnt &p, mreal f, const mglGlyph &g, const mglDrawReg *d);
 	void glyph_lpix(long i,long j,const mglMatrix *M, const mglPnt &p, mreal f, bool solid, const mglDrawReg *d);
-
-
 };
 //-----------------------------------------------------------------------------
 struct mglThreadG

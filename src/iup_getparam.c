@@ -8,15 +8,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <assert.h>
 
 #include "iup.h"
 
+#include "iup_object.h"
 #include "iup_attrib.h"
 #include "iup_str.h"
+#include "iup_assert.h"
 #include "iup_strmessage.h"
 #include "iup_layout.h"
 #include "iup_drvfont.h"
+#include "iup_register.h"
+#include "iup_stdcontrols.h"
 
 
 #define RAD2DEG  57.296   /* radians to degrees */
@@ -122,13 +125,45 @@ static int iParamToggleAction_CB(Ihandle *self, int v)
   return IUP_DEFAULT;
 }
 
+static int iParamDateValueChanged_CB(Ihandle *self)
+{
+  Ihandle* param = (Ihandle*)iupAttribGetInherit(self, "PARAM");
+  Ihandle* param_box = (Ihandle*)iupAttribGetInherit(self, "PARAMBOX");
+  Iparamcb cb = (Iparamcb)IupGetCallback(param_box, "PARAM_CB");
+
+  iupAttribSetStr(param, "OLD_VALUE", iupAttribGet(param, "VALUE"));
+  iupAttribSetStr(param, "VALUE", IupGetAttribute(self, "VALUE"));
+
+  if (cb && !cb(param_box, iupAttribGetInt(param, "INDEX"), (void*)iupAttribGet(param_box, "USERDATA")))
+  {
+    /* Undo */
+    IupSetStrAttribute(self, "VALUE", iupAttribGet(param, "OLD_VALUE"));
+    iupAttribSetStr(param, "VALUE", iupAttribGet(param, "OLD_VALUE"));
+    iupAttribSet(param, "OLD_VALUE", NULL);
+    return IUP_IGNORE;
+  }
+
+  return IUP_DEFAULT;
+}
+
 static int iParamTextAction_CB(Ihandle *self, int c, char *after)
 {
   Ihandle* param = (Ihandle*)iupAttribGetInherit(self, "PARAM");
   Ihandle* param_box = (Ihandle*)iupAttribGetInherit(self, "PARAMBOX");
   Iparamcb cb = (Iparamcb)IupGetCallback(param_box, "PARAM_CB");
   Ihandle* aux = (Ihandle*)iupAttribGet(param, "AUXCONTROL");
+  int ret = IUP_DEFAULT;
   (void)c;
+
+  if (!IupGetInt(self, "MULTILINE") && (iupStrLineCount(after) > 1))
+  {
+    /* get only the first line */
+    int len;
+    iupStrNextLine(after, &len);
+    after[len] = 0;
+    IupSetStrAttribute(self, "VALUE", after);
+    ret = IUP_IGNORE;
+  }
  
   if (iupStrEqual(iupAttribGet(param, "TYPE"), "REAL"))
   {
@@ -173,7 +208,7 @@ static int iParamTextAction_CB(Ihandle *self, int c, char *after)
     }
   }
 
-  return IUP_DEFAULT;
+  return ret;
 }
 
 static int iParamValAction_CB(Ihandle *self)
@@ -529,9 +564,12 @@ static int iParamDestroy_CB(Ihandle* self)
 static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
 {
   Ihandle *box, *ctrl = NULL, *label;
+  char* title = iupAttribGet(param, "TITLE");
 
-  label = IupLabel(iupAttribGet(param, "TITLE"));
+  label = IupLabel(title);
   IupSetCallback(label, "DESTROY_CB", iParamDestroy_CB);
+  if (!title || title[0] == 0)
+    IupSetAttribute(label, "VISIBLE", "NO");
 
   if (iupStrEqual(type, "SEPARATOR"))
   {
@@ -649,10 +687,17 @@ static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
     }
     else
     {
+      char *visiblecolumns;
+
       ctrl = IupText(NULL);
       IupSetAttribute(ctrl, "VISIBLECOLUMNS", "8");
-      IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
       IupAppend(box, ctrl);
+
+      visiblecolumns = iupAttribGet(param, "VISIBLECOLUMNS");
+      if (visiblecolumns)
+        IupSetStrAttribute(ctrl, "VISIBLECOLUMNS", visiblecolumns);
+      else
+        IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
     }
     IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
     IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
@@ -665,83 +710,102 @@ static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
 
     iupAttribSet(param, "TEXTEXPAND", "1");
   }
+  else if (iupStrEqual(type, "DATE"))
+  {
+    char* value;
+
+    ctrl = IupDatePick();
+    IupAppend(box, ctrl);
+
+    IupSetCallback(ctrl, "VALUECHANGED_CB", (Icallback)iParamDateValueChanged_CB);
+    IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
+
+    value = iupAttribGet(param, "SEPARATOR");
+    if (value) IupStoreAttribute(ctrl, "SEPARATOR", value);
+    value = iupAttribGet(param, "ZEROPRECED");
+    if (value) IupStoreAttribute(ctrl, "ZEROPRECED", value);
+    value = iupAttribGet(param, "MONTHSHORTNAMES");
+    if (value) IupStoreAttribute(ctrl, "MONTHSHORTNAMES", value);
+    value = iupAttribGet(param, "ORDER");
+    if (value) IupStoreAttribute(ctrl, "ORDER", value);
+  }
   else if (iupStrEqual(type, "FILE"))
   {
-      Ihandle* aux;
+    Ihandle* aux;
 
-      ctrl = IupText(NULL);
-      IupSetAttribute(ctrl, "VISIBLECOLUMNS", "15");
-      IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
-      IupAppend(box, ctrl);
+    ctrl = IupText(NULL);
+    IupSetAttribute(ctrl, "VISIBLECOLUMNS", "15");
+    IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
+    IupAppend(box, ctrl);
 
-      IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
-      IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
+    IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
+    IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
 
-      iupAttribSet(param, "TEXTEXPAND", "1");
-      IupSetAttribute(box,"NORMALIZESIZE","VERTICAL");
-      
-      aux = IupButton("...", "");
-      IupStoreAttribute(aux, "FONT", "Times, Bold 10");
-      IupSetAttribute(aux, "SIZE", "16x");
-      IupSetCallback(aux, "ACTION", (Icallback)iParamFileButton_CB);
-      iupAttribSet(aux, "PARAM", (char*)param);
-      iupAttribSet(aux, "CONTROL", (char*)ctrl);
-      iupAttribSet(param, "AUXCONTROL", (char*)aux);
+    iupAttribSet(param, "TEXTEXPAND", "1");
+    IupSetAttribute(box, "NORMALIZESIZE", "VERTICAL");
 
-      IupAppend(box, aux); 
+    aux = IupButton("...", "");
+    IupStoreAttribute(aux, "FONT", "Times, Bold 10");
+    IupSetAttribute(aux, "SIZE", "16x");
+    IupSetCallback(aux, "ACTION", (Icallback)iParamFileButton_CB);
+    iupAttribSet(aux, "PARAM", (char*)param);
+    iupAttribSet(aux, "CONTROL", (char*)ctrl);
+    iupAttribSet(param, "AUXCONTROL", (char*)aux);
+
+    IupAppend(box, aux);
   }
   else if (iupStrEqual(type, "COLOR"))
   {
-      Ihandle* aux;
+    Ihandle* aux;
 
-      ctrl = IupText(NULL);
-      IupSetAttribute(ctrl, "VISIBLECOLUMNS", "15");
-      IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
-      IupAppend(box, ctrl);
+    ctrl = IupText(NULL);
+    IupSetAttribute(ctrl, "VISIBLECOLUMNS", "15");
+    IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
+    IupAppend(box, ctrl);
 
-      IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
-      IupSetAttribute(ctrl, "MASK", "(/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5)) (/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5)) (/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5)) (/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5))");
-      IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
+    IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
+    IupSetAttribute(ctrl, "MASK", "(/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5)) (/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5)) (/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5)) (/d|/d/d|1/d/d|2(0|1|2|3|4)/d|25(0|1|2|3|4|5))");
+    IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
 
-      iupAttribSet(param, "TEXTEXPAND", "1");
-      IupSetAttribute(box,"NORMALIZESIZE","VERTICAL");
+    iupAttribSet(param, "TEXTEXPAND", "1");
+    IupSetAttribute(box,"NORMALIZESIZE","VERTICAL");
 
-      aux = IupButton(NULL, NULL);
-      IupStoreAttribute(aux, "FONT", "Times, Bold Italic 11");
-      IupSetAttribute(aux, "SIZE", "16x");
-      IupStoreAttribute(aux, "BGCOLOR", iupAttribGet(param, "VALUE"));
-      IupSetCallback(aux, "ACTION", (Icallback)iParamColorButton_CB);
-      iupAttribSet(aux, "PARAM", (char*)param);
-      iupAttribSet(aux, "CONTROL", (char*)ctrl);
-      iupAttribSet(param, "AUXCONTROL", (char*)aux);
+    aux = IupButton(NULL, NULL);
+    IupStoreAttribute(aux, "FONT", "Times, Bold Italic 11");
+    IupSetAttribute(aux, "SIZE", "16x");
+    IupStoreAttribute(aux, "BGCOLOR", iupAttribGet(param, "VALUE"));
+    IupSetCallback(aux, "ACTION", (Icallback)iParamColorButton_CB);
+    iupAttribSet(aux, "PARAM", (char*)param);
+    iupAttribSet(aux, "CONTROL", (char*)ctrl);
+    iupAttribSet(param, "AUXCONTROL", (char*)aux);
 
-      IupAppend(box, aux); 
+    IupAppend(box, aux); 
   }
   else if (iupStrEqual(type, "FONT"))
   {
-      Ihandle* aux;
+    Ihandle* aux;
 
-      ctrl = IupText(NULL);
-      IupSetAttribute(ctrl, "VISIBLECOLUMNS", "15");
-      IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
-      IupAppend(box, ctrl);
+    ctrl = IupText(NULL);
+    IupSetAttribute(ctrl, "VISIBLECOLUMNS", "15");
+    IupSetAttribute(ctrl, "EXPAND", "HORIZONTAL");
+    IupAppend(box, ctrl);
 
-      IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
-      IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
+    IupSetCallback(ctrl, "ACTION", (Icallback)iParamTextAction_CB);
+    IupStoreAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
 
-      iupAttribSet(param, "TEXTEXPAND", "1");
-      IupSetAttribute(box,"NORMALIZESIZE","VERTICAL");
+    iupAttribSet(param, "TEXTEXPAND", "1");
+    IupSetAttribute(box,"NORMALIZESIZE","VERTICAL");
       
-      aux = IupButton("F", NULL);
-      IupStoreAttribute(aux, "FONT", "Times, Bold Italic 11");
-      IupSetAttribute(aux, "SIZE", "16x");
+    aux = IupButton("F", NULL);
+    IupStoreAttribute(aux, "FONT", "Times, Bold Italic 11");
+    IupSetAttribute(aux, "SIZE", "16x");
 
-      IupSetCallback(aux, "ACTION", (Icallback)iParamFontButton_CB);
-      iupAttribSet(aux, "PARAM", (char*)param);
-      iupAttribSet(aux, "CONTROL", (char*)ctrl);
-      iupAttribSet(param, "AUXCONTROL", (char*)aux);
+    IupSetCallback(aux, "ACTION", (Icallback)iParamFontButton_CB);
+    iupAttribSet(aux, "PARAM", (char*)param);
+    iupAttribSet(aux, "CONTROL", (char*)ctrl);
+    iupAttribSet(param, "AUXCONTROL", (char*)aux);
 
-      IupAppend(box, aux); 
+    IupAppend(box, aux); 
   }
   else /* INTEGER, REAL */
   {
@@ -858,6 +922,7 @@ static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
       else
       {
         char* step;
+
         aux = IupVal("HORIZONTAL");
         IupStoreAttribute(aux, "MIN", iupAttribGet(param, "MIN"));
         IupStoreAttribute(aux, "MAX", iupAttribGet(param, "MAX"));
@@ -892,6 +957,50 @@ static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
 /*******************************************************************************************
                     Creates the Dialog and Normalize Sizes
 *******************************************************************************************/
+
+static int iParamBoxSetLabelAlignAttrib(Ihandle* param_box, const char* value)
+{
+  int i, count = iupAttribGetInt(param_box, "PARAMCOUNT");
+
+  for (i = 0; i < count; i++)
+  {
+    Ihandle* param = (Ihandle*)iupAttribGetId(param_box, "PARAM", i);
+    Ihandle* label = (Ihandle*)iupAttribGet(param, "LABEL");
+    IupSetStrAttribute(label, "ALIGNMENT", value);
+  }
+
+  return 1;
+}
+
+static int iParamBoxSetModifiableAttrib(Ihandle* param_box, const char* value)
+{
+  int i, count = iupAttribGetInt(param_box, "PARAMCOUNT");
+
+  for (i = 0; i < count; i++)
+  {
+    Ihandle* param = (Ihandle*)iupAttribGetId(param_box, "PARAM", i);
+    Ihandle* label = (Ihandle*)iupAttribGet(param, "LABEL");
+    Ihandle* ctrl = (Ihandle*)iupAttribGet(param, "CONTROL");
+    Ihandle* aux = (Ihandle*)iupAttribGet(param, "AUXCONTROL");
+
+    IupSetStrAttribute(label, "ACTIVE", value);
+
+    if (IupClassMatch(ctrl, "text"))
+    {
+      if (iupStrBoolean(value))
+        IupSetStrAttribute(ctrl, "READONLY", "No");
+      else
+        IupSetStrAttribute(ctrl, "READONLY", "Yes");
+    }
+    else
+      IupSetStrAttribute(ctrl, "ACTIVE", value);
+
+    if (aux)
+      IupSetStrAttribute(aux, "ACTIVE", value);
+  }
+
+  return 1;
+}
 
 static void iParamBoxNormalizeSize(Ihandle** params, int count)
 {
@@ -949,23 +1058,69 @@ static void iParamBoxNormalizeSize(Ihandle** params, int count)
   }
 }
 
-Ihandle* IupParamBox(Ihandle* parent, Ihandle** params, int count)
+static Ihandle* iupParamBoxDlg(Ihandle *param_box, const char* title)
 {
-  Ihandle *button_1, *button_2, *button_3=NULL, 
-          *param_box, *button_box, *ctrl_box;
-  int i, p, text_expand;
+  Ihandle* button1, *button2;
+  Ihandle* dlg = IupDialog(param_box);
 
-  button_1 = IupButton(parent? "_@IUP_APPLY": "_@IUP_OK", NULL);  /* default is OK */
-  IupSetAttribute(button_1, "PADDING", "20x0");
+  if (!iupAttribGetInt(param_box, "TEXTEXPAND"))
+  {
+    IupSetAttribute(dlg, "DIALOGFRAME", "YES");  /* RESIZE=NO, MINBOX=NO and MAXBOX=NO */
+    IupSetAttribute(dlg, "DIALOGHINT", "YES");  /* GTK Only */
+  }
+  else
+  {
+    IupSetAttribute(dlg, "MINBOX", "NO");
+    IupSetAttribute(dlg, "MAXBOX", "NO");
+  }
+
+  button1 = (Ihandle*)iupAttribGet(param_box, "BUTTON1");
+  IupSetStrAttribute(button1, "TITLE", "_@IUP_OK");
+  button2 = (Ihandle*)iupAttribGet(param_box, "BUTTON2");
+  IupSetStrAttribute(button2, "TITLE", "_@IUP_CANCEL");
+
+  IupSetAttributeHandle(dlg, "DEFAULTENTER", button1);
+  IupSetAttributeHandle(dlg, "DEFAULTESC", button2);
+
+  IupSetAttribute(dlg, "PARENTDIALOG", IupGetGlobal("PARENTDIALOG"));
+  IupSetAttribute(dlg, "ICON", IupGetGlobal("ICON"));
+  IupSetStrAttribute(dlg, "TITLE", (char*)title);
+  IupSetCallback(dlg, "CLOSE_CB", (Icallback)iParamDlgClose_CB);
+  iupAttribSet(dlg, "PARAMBOX", (char*)param_box);  /* found by inheritance */
+
+  return dlg;
+}
+
+static int iParamBoxCreateMethod(Ihandle* param_box, void** vparams)
+{
+  Ihandle** params = (Ihandle**)vparams;
+  Ihandle *button_1, *button_2, *button_3 = NULL,
+    *params_vbox, *button_box, *ctrl_box;
+  int i, p, count = 0, noframe = 0;
+
+  if (vparams)
+  {
+    while (*vparams)
+    {
+      IupAppend(param_box, (Ihandle*)*vparams);
+      vparams++;
+      count++;
+    }
+  }
+
+  if (count == 0)
+    return IUP_ERROR;
+
+  button_1 = IupButton("_@IUP_APPLY", NULL);
+  IupSetStrAttribute(button_1, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback(button_1, "ACTION", (Icallback)iParamButton1_CB);
 
-  button_2 = IupButton(parent? "_@IUP_RESET": "_@IUP_CANCEL", NULL);  /* default is Cancel */
-  IupSetAttribute(button_2, "PADDING", "20x0");
+  button_2 = IupButton("_@IUP_RESET", NULL);
+  IupSetStrAttribute(button_2, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback(button_2, "ACTION", (Icallback)iParamButton2_CB);
   
   ctrl_box = IupVbox(NULL);
 
-  text_expand = 0;
   for (i = 0; i < count; i++)
   {
     char *type = iupAttribGet(params[i], "TYPE");
@@ -980,7 +1135,7 @@ Ihandle* IupParamBox(Ihandle* parent, Ihandle** params, int count)
       if (value && *value) 
       {
         button_3 = IupButton(value, NULL);
-        IupSetAttribute(button_3, "PADDING", "20x0");
+        IupSetStrAttribute(button_3, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
         IupSetCallback(button_3, "ACTION", (Icallback)iParamButton3_CB);
       }
 
@@ -989,16 +1144,20 @@ Ihandle* IupParamBox(Ihandle* parent, Ihandle** params, int count)
     }
     else if (iupStrEqual(type, "HANDLE"))
     {
-      Ihandle* ih = (Ihandle*)iupAttribGet(params[i], "VALUE");
-      IupSetCallback(ih, "DESTROY_CB", iParamDestroy_CB);
-      iupAttribSet(ih, "PARAM", (char*)params[i]);
-      IupAppend(ctrl_box, ih);
+      Ihandle* param_ih = (Ihandle*)iupAttribGet(params[i], "VALUE");
+      IupSetCallback(param_ih, "DESTROY_CB", iParamDestroy_CB);
+      iupAttribSet(param_ih, "PARAM", (char*)params[i]);
+      IupAppend(ctrl_box, param_ih);
+    }
+    else if (iupStrEqual(type, "PARAMBOX"))
+    {
+      noframe = IupGetInt(params[i], "NOFRAME");
     }
     else
       IupAppend(ctrl_box, iParamCreateCtrlBox(params[i], type));
 
     if (IupGetInt(params[i], "TEXTEXPAND"))
-      text_expand = 1;
+      iupAttribSet(param_box, "TEXTEXPAND", "Yes");
   }
 
   button_box = IupHbox(
@@ -1010,35 +1169,13 @@ Ihandle* IupParamBox(Ihandle* parent, Ihandle** params, int count)
   IupSetAttribute(button_box,"MARGIN","0x0");
   IupSetAttribute(button_box, "NORMALIZESIZE", "HORIZONTAL");
 
-  param_box = IupVbox(
-    IupFrame(ctrl_box),
+  params_vbox = IupVbox(
+    noframe? ctrl_box: IupFrame(ctrl_box),
     button_box,
     NULL);
-  IupSetAttribute(param_box, "MARGIN", "10x10");
-  IupSetAttribute(param_box, "GAP", "5");
-
-  if (!parent)
-  {
-    Ihandle* dlg = IupDialog(param_box);
-
-    if (!text_expand)
-    {
-      IupSetAttribute(dlg, "DIALOGFRAME", "YES");  /* RESIZE=NO, MINBOX=NO and MAXBOX=NO */
-      IupSetAttribute(dlg, "DIALOGHINT", "YES");  /* GTK Only */
-    }
-    else
-    {
-      IupSetAttribute(dlg, "MINBOX", "NO");
-      IupSetAttribute(dlg, "MAXBOX", "NO");
-    }
-
-    IupSetAttributeHandle(dlg, "DEFAULTENTER", button_1);
-    IupSetAttributeHandle(dlg, "DEFAULTESC", button_2);
-
-    param_box = dlg;
-  }
-  else
-    IupAppend(parent, param_box);
+  IupSetAttribute(params_vbox, "MARGIN", "10x10");
+  IupSetAttribute(params_vbox, "GAP", "5");
+  IupInsert(param_box, NULL, params_vbox); /* it will be the first child */
 
   /* set INDEX */
   p = 0;
@@ -1063,13 +1200,9 @@ Ihandle* IupParamBox(Ihandle* parent, Ihandle** params, int count)
 
   iParamBoxNormalizeSize(params, count);
 
-  /* Force a dialog resize */
-  if (!parent)
-    IupSetAttribute(param_box, "SIZE", NULL);
+  iupAttribSet(param_box, "PARAMBOX", (char*)param_box);  /* found by inheritance */
 
-  IupSetAttribute(param_box, "PARAMBOX", (char*)param_box);  /* found by inheritance */
-
-  return param_box;
+  return IUP_NOERROR;
 }
 
 /*******************************************************************************************
@@ -1167,6 +1300,14 @@ static void iParamStrSetFileOptions(char* extra, Ihandle* param)
   iupAttribSetStr(param, "DIRECTORY", directory);
   iupAttribSetStr(param, "NOCHANGEDIR", nochangedir);
   iupAttribSetStr(param, "NOOVERWRITEPROMPT", nooverwriteprompt);
+}
+
+static void iParamStrSetMultiOptions(char* extra, Ihandle* param)
+{
+  if (!extra)
+    return;
+
+  IupSetAttributes(param, extra);
 }
 
 static void iParamStrSetButtonNames(char* extra, Ihandle* param)
@@ -1309,18 +1450,24 @@ static char* iParamStrGetTitle(char* line_ptr, int count)
   return title;
 }
 
-Ihandle* IupParamf(const char* format)
+static int iParamCreateMethod(Ihandle* param, void** params)
 {
-  Ihandle* param;
+  const char* format = NULL;
   char line[4096];
   char* line_ptr = &line[0], *title, *type, *tip, *extra, *mask;
   int count;
+
+  if (params && params[0])
+    format = (char*)(params[0]);
+
+  if (!format || format[0] == 0)
+    return IUP_ERROR;
 
   iParamStrCopyLine(line, format);
 
   type = iParamStrGetType(line_ptr);
   if (!type)
-    return NULL;
+    return IUP_ERROR;
 
   count = (int)(type-line_ptr);
   title = iParamStrGetTitle(line_ptr, count);
@@ -1329,7 +1476,6 @@ Ihandle* IupParamf(const char* format)
   type++; /* skip separator */
   line_ptr += 2;
 
-  param = IupUser();
   if (title[0] == '\t')
   {
     int indent = 0;
@@ -1411,11 +1557,23 @@ Ihandle* IupParamf(const char* format)
     extra = iParamStrGetExtra(line_ptr, '[', ']', &count);  line_ptr += count;
     iParamStrSetInterval(extra, param);
     break;
+  case 'd':
+    iupAttribSet(param, "TYPE", "DATE");
+    iupAttribSet(param, "DATATYPE", "STRING");
+    extra = iParamStrGetExtra(line_ptr, '[', ']', &count);  line_ptr += count;
+    iParamStrSetMultiOptions(extra, param);
+    break;
   case 'f':
     iupAttribSet(param, "TYPE", "FILE");
     iupAttribSet(param, "DATATYPE", "STRING");
     extra = iParamStrGetExtra(line_ptr, '[', ']', &count);  line_ptr += count;
     iParamStrSetFileOptions(extra, param);
+    break;
+  case 'x':
+    iupAttribSet(param, "TYPE", "PARAMBOX");
+    iupAttribSet(param, "DATATYPE", "NONE");
+    extra = iParamStrGetExtra(line_ptr, '[', ']', &count);  line_ptr += count;
+    iParamStrSetMultiOptions(extra, param);
     break;
   case 'n':
     iupAttribSet(param, "TYPE", "FONT");
@@ -1440,15 +1598,18 @@ Ihandle* IupParamf(const char* format)
     iupAttribSet(param, "DATATYPE", "HANDLE");
     break;
   default:
-    IupDestroy(param);
-    return NULL;
+    return IUP_ERROR;
   }
 
   tip = iParamStrGetExtra(line_ptr, '{', '}', &count);
   if (tip)
+  {
+    iupStrToUnix(tip);
     iupAttribSetStr(param, "TIP", tip);
+  }
 
-  return param;
+  IupSetAttribute(param, "FLOATING", "IGNORE");
+  return IUP_NOERROR;
 }
 
 /* Used in IupLua also */
@@ -1494,23 +1655,23 @@ int iupGetParamCount(const char *format, int *param_extra)
 
 int IupGetParamv(const char* title, Iparamcb action, void* user_data, const char* format, int param_count, int param_extra, void** param_data)
 {
-  Ihandle *dlg, **params;
+  Ihandle *dlg, *param_box, **params;
   int i, line_size, p, count;
 
-  assert(title && format);
+  iupASSERT(title && format);
   if (!title || !format)
     return 0;
 
   count = param_count + param_extra;
-  params = malloc(count*sizeof(Ihandle*));
+  params = malloc((count+1)*sizeof(Ihandle*));
 
   p = 0;
   for (i = 0; i < count; i++)
   {
     char* data_type;
 
-    params[i] = IupParamf(format);
-    assert(params[i]);
+    params[i] = IupParam(format);
+    iupASSERT(params[i]);
     if (!params[i])
     {
       free(params);
@@ -1557,21 +1718,25 @@ int IupGetParamv(const char* title, Iparamcb action, void* user_data, const char
     line_size = iParamStrLineSize(format);
     format += line_size;
   }
+  params[i] = NULL;
+  param_box = IupParamBoxv(params);
+  IupSetCallback(param_box, "PARAM_CB", (Icallback)action);
+  iupAttribSet(param_box, "USERDATA", (char*)user_data);
 
-  dlg = IupParamBox(NULL, params, count);
-  IupSetAttribute(dlg, "PARENTDIALOG", IupGetGlobal("PARENTDIALOG"));
-  IupSetAttribute(dlg, "ICON", IupGetGlobal("ICON"));
-  IupSetStrAttribute(dlg, "TITLE", (char*)title);
-  IupSetCallback(dlg, "CLOSE_CB", (Icallback)iParamDlgClose_CB);
-  IupSetCallback(dlg, "PARAM_CB", (Icallback)action);
-  iupAttribSet(dlg, "USERDATA", (char*)user_data);
+  dlg = iupParamBoxDlg(param_box, title);
 
-  if (action) 
-    action(dlg, IUP_GETPARAM_INIT, user_data);
+  if (action)
+  {
+    action(param_box, IUP_GETPARAM_MAP, user_data);
+
+    IupMap(dlg);
+
+    action(param_box, IUP_GETPARAM_INIT, user_data);
+  }
 
   IupPopup(dlg, IUP_CENTERPARENT, IUP_CENTERPARENT);
 
-  if (!IupGetInt(dlg, "STATUS"))
+  if (!IupGetInt(param_box, "STATUS"))
   {
     IupDestroy(dlg);
     free(params); 
@@ -1648,3 +1813,160 @@ int IupGetParam(const char* title, Iparamcb action, void* user_data, const char*
   return ret;
 }
 
+
+/*******************************************************************************/
+
+
+Ihandle* IupParam(const char* format)
+{
+  void *params[2];
+  params[0] = (void*)format;
+  params[1] = NULL;
+  return IupCreatev("param", params);
+}
+
+Iclass* iupParamNewClass(void)
+{
+  Iclass* ic = iupClassNew(NULL);
+
+  ic->name = "param";
+  ic->format = "s"; /* one string */
+  ic->nativetype = IUP_TYPEVOID;
+  ic->childtype = IUP_CHILDNONE;
+  ic->is_interactive = 0;
+
+  ic->New = iupParamNewClass;
+  ic->Create = iParamCreateMethod;
+  ic->Map = iupBaseTypeVoidMapMethod;
+
+  iupClassRegisterAttribute(ic, "LABEL", NULL, NULL, NULL, NULL, IUPAF_IHANDLE|IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CONTROL", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "AUXCONTROL", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "INDEX", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "TITLE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "INDENT", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TYPE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DATATYPE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MULTILINE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ANGLE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TRUE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FALSE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "INTERVAL", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MIN", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MAX", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "STEP", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "PARTIAL", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DIALOGTYPE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DIRECTORY", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "NOCHANGEDIR", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "NOOVERWRITEPROMPT", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON1", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON2", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON3", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MASK", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TIP", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "VALUE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "NOFRAME", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "PRECISION", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  return ic;
+}
+
+Ihandle *IupParamBoxv(Ihandle** children)
+{
+  return IupCreatev("parambox", (void**)children);
+}
+
+Ihandle *IupParamBox(Ihandle * child, ...)
+{
+  Ihandle **children;
+  Ihandle *ih;
+
+  va_list arglist;
+  va_start(arglist, child);
+  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  va_end(arglist);
+
+  ih = IupCreatev("parambox", (void**)children);
+  free(children);
+
+  return ih;
+}
+
+static void iParamBoxComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
+{
+  Ihandle* child = ih->firstchild;  /* only for the VBOX */
+  if (child)
+  {
+    /* update child natural size only, when not canvas box */
+    iupBaseComputeNaturalSize(child);
+
+    *children_expand = child->expand;
+    *w = child->naturalwidth;
+    *h = child->naturalheight;
+  }
+}
+
+static void iParamBoxSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
+{
+  Ihandle* child = ih->firstchild;  /* only for the VBOX */
+  if (child)
+    iupBaseSetCurrentSize(child, ih->currentwidth, ih->currentheight, shrink);
+}
+
+static void iParamBoxSetChildrenPositionMethod(Ihandle* ih, int x, int y)
+{
+  Ihandle* child = ih->firstchild;  /* only for the VBOX */
+  if (child)
+    iupBaseSetPosition(child, x, y);
+}
+
+Iclass* iupParamBoxNewClass(void)
+{
+  Iclass* ic = iupClassNew(NULL);
+
+  ic->name = "parambox";
+  ic->format = "g"; /* array of Ihandle */
+  ic->nativetype = IUP_TYPEVOID;
+  ic->childtype = IUP_CHILDMANY;
+  ic->is_interactive = 0;
+
+  ic->New = iupParamBoxNewClass;
+  ic->Create = iParamBoxCreateMethod;
+  ic->Map = iupBaseTypeVoidMapMethod;
+
+  ic->ComputeNaturalSize = iParamBoxComputeNaturalSizeMethod;
+  ic->SetChildrenCurrentSize = iParamBoxSetChildrenCurrentSizeMethod;
+  ic->SetChildrenPosition = iParamBoxSetChildrenPositionMethod;
+
+  /* Common Callbacks */
+  iupClassRegisterCallback(ic, "MAP_CB", "");
+  iupClassRegisterCallback(ic, "UNMAP_CB", "");
+  iupClassRegisterCallback(ic, "PARAM_CB", "iV");
+
+  /* Common */
+  iupBaseRegisterCommonAttrib(ic);
+
+  /* Base Container */
+  iupClassRegisterAttribute(ic, "EXPAND", iupBaseContainerGetExpandAttrib, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CLIENTSIZE", iupBaseGetCurrentSizeAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CLIENTOFFSET", iupBaseGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "STATUS", NULL, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "PARAMCOUNT", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON1", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON2", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON3", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "USERDATA", NULL, NULL, NULL, NULL, IUPAF_NO_STRING | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "LABELALIGN", NULL, iParamBoxSetLabelAlignAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MODIFIABLE", NULL, iParamBoxSetModifiableAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  /* ATTENTION: can NOT set IUPAF_READONLY if get is not defined when attribute is used before map. 
+     In iupAttribUpdate (called by IupMap) store will be 0 for read-only attributes, then attribute will be removed from the hash table.
+  */
+
+  return ic;
+}

@@ -1,0 +1,32 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>gSearch</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<script>
+  (function() {
+    var cx = 'WB_GSEARCH_ID';
+    var gcse = document.createElement('script'); 
+        gcse.type = 'text/javascript'; 
+        gcse.async = true;
+    gcse.src = (document.location.protocol == 'https' ? 'https:' : 'http:') +
+        '//www.google.com/cse/cse.js?cx=' + cx;
+    var s = document.getElementsByTagName('script')[0]; 
+        s.parentNode.insertBefore(gcse, s);
+  })();
+</script>
+
+<style type="text/css">
+td {
+	border: none;
+}
+</style>
+
+</head>
+<body>
+<h3>WB_GSEARCH_TITLE</h3>
+<p>WB_GSEARCH_TIP</p>
+<gcse:search linkTarget='_self'></gcse:search> 
+</body>
+</html>

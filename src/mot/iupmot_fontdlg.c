@@ -275,17 +275,17 @@ static int motFontDlgCreateMethod(Ihandle* ih, void** params)
   Ihandle *lin1, *lin2, *list1, *list2, *list3;
 
   ok_bt = IupButton("_@IUP_OK", NULL);
-  IupSetAttribute(ok_bt, "PADDING", "20x0");
+  IupSetStrAttribute(ok_bt, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback (ok_bt, "ACTION", (Icallback)motFontDlgButtonOK_CB);
   IupSetAttributeHandle(ih, "DEFAULTENTER", ok_bt);
 
   cancel_bt = IupButton("_@IUP_CANCEL", NULL);
-  IupSetAttribute(cancel_bt, "PADDING", "20x0");
+  IupSetStrAttribute(cancel_bt, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback (cancel_bt, "ACTION", (Icallback)motFontDlgButtonCancel_CB);
   IupSetAttributeHandle(ih, "DEFAULTESC", cancel_bt);
 
   help_bt = IupButton("_@IUP_HELP", NULL);            /* Help Button */
-  IupSetAttribute(help_bt, "PADDING", "20x0");
+  IupSetStrAttribute(help_bt, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetAttribute(help_bt, "NAME", "HELPBUT");
   IupSetCallback (help_bt, "ACTION", (Icallback)motFontDlgButtonHelp_CB);
 

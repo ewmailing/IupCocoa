@@ -4,8 +4,7 @@ else
   TECMAKE_CMD = $(MAKE) --no-print-directory -f ../tecmake.mak
 endif
 
-.PHONY: do_all iup_plot
-do_all: iup_plot
+.PHONY: do_all
 
-iup_plot:
+do_all:
 	@$(TECMAKE_CMD) 

@@ -264,6 +264,10 @@ static int iGLToggleMapMethod(Ihandle* ih)
       /* this is the first toggle in the radio, and then set it with VALUE=ON */
       iupAttribSet(ih, "VALUE", "ON");
     }
+
+    /* make sure it has at least one name */
+    if (!iupAttribGetHandleName(ih))
+      iupAttribSetHandleName(ih);
   }
   return IUP_NOERROR;
 }
@@ -305,6 +309,7 @@ Iclass* iupGLToggleNewClass(void)
   iupClassRegisterAttribute(ic, "CHECKMARK", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CHECKMARKWIDTH", NULL, NULL, IUPAF_SAMEASSYSTEM, "14", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "RIGHTBUTTON", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "IGNORERADIO", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 
   return ic;
 }

@@ -7,8 +7,8 @@
 #include <memory.h>
 
 #include <lua.h>
-#include <lauxlib.h>
 #include <lualib.h>
+#include <lauxlib.h>
 
 #include "iup.h"
 #include "iupcontrols.h"

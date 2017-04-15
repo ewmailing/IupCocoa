@@ -1142,7 +1142,7 @@ static int motTreeSetMarkedNodesAttrib(Ihandle* ih, const char* value)
   if (ih->data->mark_mode==ITREE_MARK_SINGLE || !value)
     return 0;
 
-  count = strlen(value);
+  count = (int)strlen(value);
   if (count > ih->data->node_count)
     count = ih->data->node_count;
 
@@ -1568,6 +1568,15 @@ static int motTreeSetFgColorAttrib(Ihandle* ih, const char* value)
   Pixel color = iupmotColorGetPixelStr(value);
   if (color != (Pixel)-1)
     XtVaSetValues(ih->handle, XmNforeground, color, NULL);
+
+  return 1;
+}
+
+static int motTreeSetHlColorAttrib(Ihandle* ih, const char* value)
+{
+  Pixel color = iupmotColorGetPixelStr(value);
+  if (color != (Pixel)-1)
+    XtVaSetValues(ih->handle, XmNselectColor, color, NULL);
 
   return 1;
 }
@@ -2737,7 +2746,7 @@ static int motTreeMapMethod(Ihandle* ih)
   }
 
   /* Initialize the default images */
-  ih->data->def_image_leaf = iupImageGetImage("IMGLEAF", ih, 0);
+  ih->data->def_image_leaf = iupImageGetImage(iupAttribGetStr(ih, "IMAGELEAF"), ih, 0);
   if (!ih->data->def_image_leaf) 
   {
     ih->data->def_image_leaf = (void*)XmUNSPECIFIED_PIXMAP;
@@ -2745,11 +2754,11 @@ static int motTreeMapMethod(Ihandle* ih)
   }
   else
   {
-    ih->data->def_image_leaf_mask = iupImageGetMask("IMGLEAF");
+    ih->data->def_image_leaf_mask = iupImageGetMask(iupAttribGetStr(ih, "IMAGELEAF"));
     if (!ih->data->def_image_leaf_mask) ih->data->def_image_leaf_mask = (void*)XmUNSPECIFIED_PIXMAP;
   }
 
-  ih->data->def_image_collapsed = iupImageGetImage("IMGCOLLAPSED", ih, 0);
+  ih->data->def_image_collapsed = iupImageGetImage(iupAttribGetStr(ih, "IMAGEBRANCHCOLLAPSED"), ih, 0);
   if (!ih->data->def_image_collapsed) 
   {
     ih->data->def_image_collapsed = (void*)XmUNSPECIFIED_PIXMAP;
@@ -2757,11 +2766,11 @@ static int motTreeMapMethod(Ihandle* ih)
   }
   else
   {
-    ih->data->def_image_collapsed_mask = iupImageGetMask("IMGCOLLAPSED");
+    ih->data->def_image_collapsed_mask = iupImageGetMask(iupAttribGetStr(ih, "IMAGEBRANCHCOLLAPSED"));
     if (!ih->data->def_image_collapsed_mask) ih->data->def_image_collapsed_mask = (void*)XmUNSPECIFIED_PIXMAP;
   }
 
-  ih->data->def_image_expanded = iupImageGetImage("IMGEXPANDED", ih, 0);
+  ih->data->def_image_expanded = iupImageGetImage(iupAttribGetStr(ih, "IMAGEBRANCHEXPANDED"), ih, 0);
   if (!ih->data->def_image_expanded) 
   {
     ih->data->def_image_expanded = (void*)XmUNSPECIFIED_PIXMAP;
@@ -2769,7 +2778,7 @@ static int motTreeMapMethod(Ihandle* ih)
   }
   else
   {
-    ih->data->def_image_expanded_mask = iupImageGetMask("IMGEXPANDED");
+    ih->data->def_image_expanded_mask = iupImageGetMask(iupAttribGetStr(ih, "IMAGEBRANCHEXPANDED"));
     if (!ih->data->def_image_expanded_mask) ih->data->def_image_expanded_mask = (void*)XmUNSPECIFIED_PIXMAP;
   }
 
@@ -2801,6 +2810,7 @@ void iupdrvTreeInitClass(Iclass* ic)
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, motTreeSetBgColorAttrib, "TXTBGCOLOR", NULL, IUPAF_DEFAULT);
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, motTreeSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "HLCOLOR", NULL, motTreeSetHlColorAttrib, IUPAF_SAMEASSYSTEM, "TXTHLCOLOR", IUPAF_NO_INHERIT);
 
   /* IupTree Attributes - GENERAL */
   iupClassRegisterAttribute(ic, "EXPANDALL", NULL, motTreeSetExpandAllAttrib, NULL, NULL, IUPAF_WRITEONLY||IUPAF_NO_INHERIT);
@@ -2822,7 +2832,6 @@ void iupdrvTreeInitClass(Iclass* ic)
   iupClassRegisterAttributeId(ic, "KIND",   motTreeGetKindAttrib,   NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "PARENT", motTreeGetParentAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "COLOR",  motTreeGetColorAttrib,  motTreeSetColorAttrib, IUPAF_NO_INHERIT);
-  iupClassRegisterAttributeId(ic, "NAME",   motTreeGetTitleAttrib,  motTreeSetTitleAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TITLE",  motTreeGetTitleAttrib,  motTreeSetTitleAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "CHILDCOUNT", motTreeGetChildCountAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TITLEFONT", motTreeGetTitleFontAttrib, motTreeSetTitleFontAttrib, IUPAF_NO_INHERIT);

@@ -8,8 +8,8 @@
 #ifndef __IUPDEF_H 
 #define __IUPDEF_H
 
-/* Deprecated definitions */
-/* Avoid using these definitions. Use the strings instead. */
+/* ATTENTION: these are OLD definitions and they are NOT updated anymore since IUP 3.0 */
+/* Avoid using them, directly use the strings instead. */
 /* Define __IUPDEF_H to avoid the inclusion of this header */
 
 #define IUP_RUN            "RUN"
@@ -22,7 +22,6 @@
 /*                            Callbacks                                 */
 /************************************************************************/
 
-#define IUP_DEFAULT_ACTION "DEFAULT_ACTION"
 #define IUP_IDLE_ACTION    "IDLE_ACTION"
 
 #define IUP_ACTION         "ACTION"
@@ -226,47 +225,6 @@
 #define IUP_TEXT      "TEXT"
 #define IUP_RESIZE_C  "RESIZE_C"
 #define IUP_OPENHAND  "OPENHAND"
-
-/*****************/
-/* Fonts        */
-/*****************/
-
-#define IUP_HELVETICA_NORMAL_8   "HELVETICA_NORMAL_8"
-#define IUP_HELVETICA_ITALIC_8   "HELVETICA_ITALIC_8"
-#define IUP_HELVETICA_BOLD_8     "HELVETICA_BOLD_8"
-#define IUP_HELVETICA_NORMAL_10  "HELVETICA_NORMAL_10"
-#define IUP_HELVETICA_ITALIC_10  "HELVETICA_ITALIC_10"
-#define IUP_HELVETICA_BOLD_10    "HELVETICA_BOLD_10"
-#define IUP_HELVETICA_NORMAL_12  "HELVETICA_NORMAL_12"
-#define IUP_HELVETICA_ITALIC_12  "HELVETICA_ITALIC_12"
-#define IUP_HELVETICA_BOLD_12    "HELVETICA_BOLD_12"
-#define IUP_HELVETICA_NORMAL_14  "HELVETICA_NORMAL_14"
-#define IUP_HELVETICA_ITALIC_14  "HELVETICA_ITALIC_14"
-#define IUP_HELVETICA_BOLD_14    "HELVETICA_BOLD_14"
-#define IUP_COURIER_NORMAL_8     "COURIER_NORMAL_8"
-#define IUP_COURIER_ITALIC_8     "COURIER_ITALIC_8"
-#define IUP_COURIER_BOLD_8       "COURIER_BOLD_8"
-#define IUP_COURIER_NORMAL_10    "COURIER_NORMAL_10"
-#define IUP_COURIER_ITALIC_10    "COURIER_ITALIC_10"
-#define IUP_COURIER_BOLD_10      "COURIER_BOLD_10"
-#define IUP_COURIER_NORMAL_12    "COURIER_NORMAL_12"
-#define IUP_COURIER_ITALIC_12    "COURIER_ITALIC_12"
-#define IUP_COURIER_BOLD_12      "COURIER_BOLD_12"
-#define IUP_COURIER_NORMAL_14    "COURIER_NORMAL_14"
-#define IUP_COURIER_ITALIC_14    "COURIER_ITALIC_14"
-#define IUP_COURIER_BOLD_14      "COURIER_BOLD_14"
-#define IUP_TIMES_NORMAL_8       "TIMES_NORMAL_8"
-#define IUP_TIMES_ITALIC_8       "TIMES_ITALIC_8"
-#define IUP_TIMES_BOLD_8         "TIMES_BOLD_8"
-#define IUP_TIMES_NORMAL_10      "TIMES_NORMAL_10"
-#define IUP_TIMES_ITALIC_10      "TIMES_ITALIC_10"
-#define IUP_TIMES_BOLD_10        "TIMES_BOLD_10"
-#define IUP_TIMES_NORMAL_12      "TIMES_NORMAL_12"
-#define IUP_TIMES_ITALIC_12      "TIMES_ITALIC_12"
-#define IUP_TIMES_BOLD_12        "TIMES_BOLD_12"
-#define IUP_TIMES_NORMAL_14      "TIMES_NORMAL_14"
-#define IUP_TIMES_ITALIC_14      "TIMES_ITALIC_14"
-#define IUP_TIMES_BOLD_14        "TIMES_BOLD_14"
 
 /************************************************************************/
 /*                           Keys                                       */

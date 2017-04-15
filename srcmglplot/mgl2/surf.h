@@ -1,6 +1,6 @@
 /***************************************************************************
  * surf.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -26,9 +26,11 @@ extern "C" {
 #endif
 
 /// Draw surface by formula with x,y in axis range
+/** Option "value" set initial number of points. */
 void MGL_EXPORT mgl_fsurf(HMGL graph, const char *fz, const char *stl, const char *opt);
 void MGL_EXPORT mgl_fsurf_(uintptr_t *graph, const char *fz, const char *stl, const char *opt,int,int,int);
 /// Draw surface by formulas parametrically depended on u,v in range [0,1]
+/** Option "value" set initial number of points. */
 void MGL_EXPORT mgl_fsurf_xyz(HMGL graph, const char *fx, const char *fy, const char *fz, const char *stl, const char *opt);
 void MGL_EXPORT mgl_fsurf_xyz_(uintptr_t *graph, const char *fx, const char *fy, const char *fz, const char *stl, const char *opt, int, int, int, int, int);
 
@@ -46,38 +48,48 @@ void MGL_EXPORT mgl_mesh_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintp
 void MGL_EXPORT mgl_mesh(HMGL graph, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_mesh_(uintptr_t *graph, uintptr_t *z, const char *sch, const char *opt,int,int);
 
-/// Draw mesh lines for 2d data specified parametrically
+/// Draw waterfall plot for 2d data specified parametrically
+/** Style 'x' draw lines in x-direction. */
 void MGL_EXPORT mgl_fall_xy(HMGL graph, HCDT x, HCDT y, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_fall_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, const char *sch, const char *opt,int,int);
-/// Draw mesh lines for 2d data
+/// Draw waterfall plot for 2d data
+/** Style 'x' draw lines in x-direction. */
 void MGL_EXPORT mgl_fall(HMGL graph, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_fall_(uintptr_t *graph, uintptr_t *z, const char *sch, const char *opt,int,int);
 
 /// Draw belts for 2d data specified parametrically
+/** Style 'x' draw belts in x-direction. */
 void MGL_EXPORT mgl_belt_xy(HMGL graph, HCDT x, HCDT y, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_belt_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, const char *sch, const char *opt,int,int);
 /// Draw belts for 2d data
+/** Style 'x' draw belts in x-direction. */
 void MGL_EXPORT mgl_belt(HMGL graph, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_belt_(uintptr_t *graph, uintptr_t *z, const char *sch, const char *opt,int,int);
 
 /// Draw surface for 2d data specified parametrically with color proportional to z
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_surf_xy(HMGL graph, HCDT x, HCDT y, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_surf_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, const char *sch, const char *opt,int,int);
 /// Draw surface for 2d data with color proportional to z
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_surf(HMGL graph, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_surf_(uintptr_t *graph, uintptr_t *z, const char *sch, const char *opt,int,int);
 
 /// Draw density plot for 2d data specified parametrically
-void MGL_EXPORT mgl_dens_xy(HMGL graph, HCDT x, HCDT y, HCDT z, const char *sch, const char *opt);
-void MGL_EXPORT mgl_dens_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, const char *sch, const char *opt,int,int);
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
+void MGL_EXPORT mgl_dens_xy(HMGL graph, HCDT x, HCDT y, HCDT c, const char *sch, const char *opt);
+void MGL_EXPORT mgl_dens_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *c, const char *sch, const char *opt,int,int);
 /// Draw density plot for 2d data
-void MGL_EXPORT mgl_dens(HMGL graph, HCDT z, const char *sch, const char *opt);
-void MGL_EXPORT mgl_dens_(uintptr_t *graph, uintptr_t *z, const char *sch, const char *opt,int,int);
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
+void MGL_EXPORT mgl_dens(HMGL graph, HCDT c, const char *sch, const char *opt);
+void MGL_EXPORT mgl_dens_(uintptr_t *graph, uintptr_t *c, const char *sch, const char *opt,int,int);
 
 /// Draw vertical boxes for 2d data specified parametrically
+/** Style ‘#’ draw filled boxes. */
 void MGL_EXPORT mgl_boxs_xy(HMGL graph, HCDT x, HCDT y, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_boxs_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, const char *sch, const char *opt,int,int);
 /// Draw vertical boxes for 2d data
+/** Style ‘#’ draw filled boxes. */
 void MGL_EXPORT mgl_boxs(HMGL graph, HCDT z, const char *sch, const char *opt);
 void MGL_EXPORT mgl_boxs_(uintptr_t *graph, uintptr_t *z, const char *sch, const char *opt,int,int);
 
@@ -96,30 +108,47 @@ void MGL_EXPORT mgl_tiles(HMGL graph, HCDT z, HCDT r, const char *sch, const cha
 void MGL_EXPORT mgl_tiles_(uintptr_t *graph, uintptr_t *z, uintptr_t *r, const char *sch, const char *opt,int,int);
 
 /// Draw surface for 2d data specified parametrically with color proportional to c
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_surfc_xy(HMGL graph, HCDT x, HCDT y, HCDT z, HCDT c, const char *sch, const char *opt);
 void MGL_EXPORT mgl_surfc_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, uintptr_t *c, const char *sch, const char *opt,int,int);
 /// Draw surface for 2d data with color proportional to c
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_surfc(HMGL graph, HCDT z, HCDT c, const char *sch, const char *opt);
 void MGL_EXPORT mgl_surfc_(uintptr_t *graph, uintptr_t *z, uintptr_t *c, const char *sch, const char *opt,int,int);
 
 /// Draw surface for 2d data specified parametrically with alpha proportional to c
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_surfa_xy(HMGL graph, HCDT x, HCDT y, HCDT z, HCDT c, const char *sch, const char *opt);
 void MGL_EXPORT mgl_surfa_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, uintptr_t *c, const char *sch, const char *opt,int,int);
 /// Draw surface for 2d data with alpha proportional to c
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_surfa(HMGL graph, HCDT z, HCDT c, const char *sch, const char *opt);
 void MGL_EXPORT mgl_surfa_(uintptr_t *graph, uintptr_t *z, uintptr_t *c, const char *sch, const char *opt,int,int);
 
+/// Draw surface for 2d data specified parametrically with  color proportional to c and alpha proportional to a
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
+void MGL_EXPORT mgl_surfca_xy(HMGL gr, HCDT x, HCDT y, HCDT z, HCDT c, HCDT a, const char *sch, const char *opt);
+void MGL_EXPORT mgl_surfca_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *z, uintptr_t *c, uintptr_t *a, const char *sch, const char *opt,int,int);
+/// Draw surface for 2d data with  color proportional to c and alpha proportional to a
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
+void MGL_EXPORT mgl_surfca(HMGL gr, HCDT z, HCDT c, HCDT a, const char *sch, const char *opt);
+void MGL_EXPORT mgl_surfca_(uintptr_t *graph, uintptr_t *z, uintptr_t *c, uintptr_t *a, const char *sch, const char *opt,int,int);
+
 /// Draw density plot for spectra-gramm specified parametrically
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_stfa_xy(HMGL graph, HCDT x, HCDT y, HCDT re, HCDT im, int dn, const char *sch, const char *opt);
 void MGL_EXPORT mgl_stfa_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *re, uintptr_t *im, int *dn, const char *sch, const char *opt,int, int);
 /// Draw density plot for spectra-gramm
+/** Style ‘#’ draw grid lines. Style ‘.’ produce plot by dots.*/
 void MGL_EXPORT mgl_stfa(HMGL graph, HCDT re, HCDT im, int dn, const char *sch, const char *opt);
 void MGL_EXPORT mgl_stfa_(uintptr_t *graph, uintptr_t *re, uintptr_t *im, int *dn, const char *sch, const char *opt,int, int);
 
 /// Color map of matrix a to matrix b, both matrix can parametrically depend on coordinates
+/** Style ‘.’ produce plot by dots. */
 void MGL_EXPORT mgl_map_xy(HMGL graph, HCDT x, HCDT y, HCDT a, HCDT b, const char *sch, const char *opt);
 void MGL_EXPORT mgl_map_xy_(uintptr_t *graph, uintptr_t *x, uintptr_t *y, uintptr_t *a, uintptr_t *b, const char *sch, const char *opt,int,int);
 /// Color map of matrix a to matrix b
+/** Style ‘.’ produce plot by dots. */
 void MGL_EXPORT mgl_map(HMGL graph, HCDT a, HCDT b, const char *sch, const char *opt);
 void MGL_EXPORT mgl_map_(uintptr_t *graph, uintptr_t *a, uintptr_t *b, const char *sch, const char *opt,int,int);
 
