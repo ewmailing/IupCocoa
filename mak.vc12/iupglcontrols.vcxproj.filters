@@ -44,6 +44,9 @@
     <ClCompile Include="..\srcglcontrols\iup_glsizebox.c">
       <Filter>ctrl</Filter>
     </ClCompile>
+    <ClCompile Include="..\srcglcontrols\iup_gltext.c">
+      <Filter>ctrl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\iupglcontrols.h">

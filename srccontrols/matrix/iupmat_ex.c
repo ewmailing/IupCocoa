@@ -224,16 +224,20 @@ static int iMatrixSetSortColumnAttrib(Ihandle* ih, int col, const char* value)
 
   if (!ih->data->sort_line_index)
     ih->data->sort_line_index = (int*)calloc(ih->data->lines.num_alloc, sizeof(int));
+
   sort_line_index = ih->data->sort_line_index;
+
+  if (!ih->data->sort_has_index)
+  {
+    for (lin = 0; lin < lines_num; lin++)
+      sort_line_index[lin] = lin;
+  }
 
   if (iupStrEqualNoCase(value, "RESET"))
   {
-    for (lin=1; lin<lines_num; lin++)
-      sort_line_index[lin] = 0;
-
     ih->data->sort_has_index = 0;
-    iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_index, NULL);
-    ih->data->last_sort_index = 0;
+    iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_col, NULL);
+    ih->data->last_sort_col = 0;
 
     iupMatrixDraw(ih, 1);
     iupAttribSet(ih, "SORTCOLUMNINTERVAL", NULL);
@@ -256,10 +260,10 @@ static int iMatrixSetSortColumnAttrib(Ihandle* ih, int col, const char* value)
       sort_line_index[l2] = tmp;
     }
 
-    if (iupStrEqualNoCase(iupAttribGetId(ih, "SORTSIGN", ih->data->last_sort_index), "UP"))
-      iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_index, "DOWN");
+    if (iupStrEqualNoCase(iupAttribGetId(ih, "SORTSIGN", ih->data->last_sort_col), "UP"))
+      iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_col, "DOWN");
     else
-      iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_index, "UP");
+      iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_col, "UP");
 
     iupMatrixDraw(ih, 1);
     return 0;
@@ -294,7 +298,7 @@ static int iMatrixSetSortColumnAttrib(Ihandle* ih, int col, const char* value)
 
       for (lin=lin1; lin<=lin2; lin++)
       {
-        sort_line_number[lin-lin1].lin = sort_line_index[lin]!=0? sort_line_index[lin]: lin;
+        sort_line_number[lin-lin1].lin = sort_line_index[lin];
         sort_line_number[lin-lin1].number = iupMatrixGetValueNumeric(ih, lin, col);
       }
 
@@ -316,7 +320,7 @@ static int iMatrixSetSortColumnAttrib(Ihandle* ih, int col, const char* value)
 
       for (lin=lin1; lin<=lin2; lin++)
       {
-        sort_line_text[lin-lin1].lin = sort_line_index[lin]!=0? sort_line_index[lin]: lin;
+        sort_line_text[lin-lin1].lin = sort_line_index[lin];
         sort_line_text[lin-lin1].text = iupMatrixGetValueDisplay(ih, lin, col);
 
         if (ih->data->callback_mode)
@@ -342,15 +346,29 @@ static int iMatrixSetSortColumnAttrib(Ihandle* ih, int col, const char* value)
     }
   }
 
+  iupAttribSetId(ih, "SORTSIGN", ih->data->last_sort_col, NULL);
   if (ascending)
     iupAttribSetId(ih, "SORTSIGN", col, "DOWN");
   else
     iupAttribSetId(ih, "SORTSIGN", col, "UP");
 
   ih->data->sort_has_index = 1;
-  ih->data->last_sort_index = col;
+  ih->data->last_sort_col = col;
   iupMatrixDraw(ih, 1);
   return 0;
+}
+
+static char* iMatrixGetLastSortColumnAttrib(Ihandle* ih)
+{
+  return iupStrReturnInt(ih->data->last_sort_col);
+}
+
+static char* iMatrixGetSortLineIndexAttrib(Ihandle* ih, int lin)
+{
+  if (lin > 0 && lin < ih->data->lines.num && ih->data->sort_has_index)
+    return iupStrReturnInt(ih->data->sort_line_index[lin]);
+  else
+    return NULL;
 }
 
 static int iMatrixSetUndoRedoAttrib(Ihandle* ih, const char* value)
@@ -385,10 +403,12 @@ void iupMatrixRegisterEx(Iclass* ic)
   iupClassRegisterCallback(ic, "NUMERICSETVALUE_CB", "iid");
 
   /* IupMatrixEx Attributes - Sort Columns */
+  iupClassRegisterAttribute(ic, "LASTSORTCOLUMN", iMatrixGetLastSortColumnAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "SORTCOLUMN", NULL, iMatrixSetSortColumnAttrib, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SORTCOLUMNORDER", NULL, NULL, IUPAF_SAMEASSYSTEM, "ASCENDING", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SORTCOLUMNORDER", NULL, NULL, IUPAF_SAMEASSYSTEM, "ASCENDING", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SORTCOLUMNCASESENSITIVE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SORTCOLUMNINTERVAL", NULL, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "SORTLINEINDEX", iMatrixGetSortLineIndexAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
 
   iupClassRegisterCallback(ic, "SORTCOLUMNCOMPARE_CB", "iii");
 

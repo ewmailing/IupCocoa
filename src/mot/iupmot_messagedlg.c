@@ -104,7 +104,6 @@ static int motMessageDlgPopup(Ihandle* ih, int x, int y)
   else if (iupStrEqualNoCase(value, "QUESTION"))
     type = XmDIALOG_QUESTION;
 
-
   value = iupAttribGet(ih, "TITLE");
   if (value)
     iupmotSetXmString(msgbox, XmNdialogTitle, value);

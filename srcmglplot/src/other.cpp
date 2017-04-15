@@ -1,6 +1,6 @@
 /***************************************************************************
  * other.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -24,7 +24,7 @@
 #include "mgl2/data.h"
 #include "mgl2/base.h"
 //-----------------------------------------------------------------------------
-HCDT MGL_NO_EXPORT fill_slice_x(HMGL gr, double sv, HCDT a, mglData &xx, mglData &yy, mglData &zz, mglData &aa)
+HCDT MGL_NO_EXPORT fill_slice_x(HMGL gr, double sv, HCDT a, mglDataV &xx, mglDataV &yy, mglDataV &zz, mglData &aa)
 {
 	long n=a->GetNx(),m=a->GetNy(),l=a->GetNz();
 	if(l>1)
@@ -47,7 +47,7 @@ HCDT MGL_NO_EXPORT fill_slice_x(HMGL gr, double sv, HCDT a, mglData &xx, mglData
 	return a;
 }
 //-----------------------------------------------------------------------------
-HCDT MGL_NO_EXPORT fill_slice_y(HMGL gr, double sv, HCDT a, mglData &xx, mglData &yy, mglData &zz, mglData &aa)
+HCDT MGL_NO_EXPORT fill_slice_y(HMGL gr, double sv, HCDT a, mglDataV &xx, mglDataV &yy, mglDataV &zz, mglData &aa)
 {
 	long n=a->GetNx(),m=a->GetNy(),l=a->GetNz();
 	if(l>1)
@@ -70,7 +70,7 @@ HCDT MGL_NO_EXPORT fill_slice_y(HMGL gr, double sv, HCDT a, mglData &xx, mglData
 	return a;
 }
 //-----------------------------------------------------------------------------
-HCDT MGL_NO_EXPORT fill_slice_z(HMGL gr, double sv, HCDT a, mglData &xx, mglData &yy, mglData &zz, mglData &aa)
+HCDT MGL_NO_EXPORT fill_slice_z(HMGL gr, double sv, HCDT a, mglDataV &xx, mglDataV &yy, mglDataV &zz, mglData &aa)
 {
 	long n=a->GetNx(),m=a->GetNy(),l=a->GetNz();
 	xx.Create(n,m);	yy.Create(n,m);	zz.Create(n,m);
@@ -99,11 +99,11 @@ HCDT MGL_NO_EXPORT fill_slice_z(HMGL gr, double sv, HCDT a, mglData &xx, mglData
 void MGL_EXPORT mgl_dens_x(HMGL gr, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"DensX");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"DensX");	return;	}
-	mglData xx,yy,zz,aa;
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
+	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"DensX");	gr->LoadState();	return;	}
+	mglDataV xx,yy,zz;	mglData aa;
 	a = fill_slice_x(gr,sv,a,xx,yy,zz,aa);
 	mgl_surfc_xy(gr,&xx,&yy,&zz,a,sch,0);
 }
@@ -111,11 +111,11 @@ void MGL_EXPORT mgl_dens_x(HMGL gr, HCDT a, const char *sch, double sv, const ch
 void MGL_EXPORT mgl_dens_y(HMGL gr, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"DensY");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"DensY");	return;	}
-	mglData xx,yy,zz,aa;
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgY('y');
+	if(sv<gr->Min.y || sv>gr->Max.y)	{	gr->SetWarn(mglWarnSlc,"DensY");	gr->LoadState();	return;	}
+	mglDataV xx,yy,zz;	mglData aa;
 	a = fill_slice_y(gr,sv,a,xx,yy,zz,aa);
 	mgl_surfc_xy(gr,&xx,&yy,&zz,a,sch,0);
 }
@@ -123,11 +123,11 @@ void MGL_EXPORT mgl_dens_y(HMGL gr, HCDT a, const char *sch, double sv, const ch
 void MGL_EXPORT mgl_dens_z(HMGL gr, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"DensZ");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"DensZ");	return;	}
-	mglData xx,yy,zz,aa;
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgZ('z');
+	if(sv<gr->Min.z || sv>gr->Max.z)	{	gr->SetWarn(mglWarnSlc,"DensZ");	gr->LoadState();	return;	}
+	mglDataV xx,yy,zz;	mglData aa;
 	a = fill_slice_z(gr,sv,a,xx,yy,zz,aa);
 	mgl_surfc_xy(gr,&xx,&yy,&zz,a,sch,0);
 }
@@ -157,12 +157,12 @@ void MGL_EXPORT mgl_cont_gen(HMGL gr, mreal val, HCDT a, HCDT x, HCDT y, HCDT z,
 void MGL_EXPORT mgl_cont_x_val(HMGL gr, HCDT v, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"ContX");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContX");	return;	}
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
+	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContX");	gr->LoadState();	return;	}
 	static int cgid=1;	gr->StartGroup("ContX",cgid++);
-	mglData xx,yy,zz,aa;
+	mglDataV xx,yy,zz;	mglData aa;
 
 	int text=0;
 	if(mglchr(sch,'t'))	text=1;
@@ -171,6 +171,7 @@ void MGL_EXPORT mgl_cont_x_val(HMGL gr, HCDT v, HCDT a, const char *sch, double 
 	gr->SetPenPal(sch);
 
 	a = fill_slice_x(gr,sv,a,xx,yy,zz,aa);
+#pragma omp parallel for
 	for(long i=0;i<v->GetNx();i++)
 	{
 		register mreal v0 = v->v(i);
@@ -182,12 +183,12 @@ void MGL_EXPORT mgl_cont_x_val(HMGL gr, HCDT v, HCDT a, const char *sch, double 
 void MGL_EXPORT mgl_cont_y_val(HMGL gr, HCDT v, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"ContY");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContY");	return;	}
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgY('y');
+	if(sv<gr->Min.y || sv>gr->Max.y)	{	gr->SetWarn(mglWarnSlc,"ContY");	gr->LoadState();	return;	}
 	static int cgid=1;	gr->StartGroup("ContY",cgid++);
-	mglData xx,yy,zz,aa;
+	mglDataV xx,yy,zz;	mglData aa;
 
 	int text=0;
 	if(mglchr(sch,'t'))	text=1;
@@ -196,6 +197,7 @@ void MGL_EXPORT mgl_cont_y_val(HMGL gr, HCDT v, HCDT a, const char *sch, double 
 	gr->SetPenPal(sch);
 
 	a = fill_slice_y(gr,sv,a,xx,yy,zz,aa);
+#pragma omp parallel for
 	for(long i=0;i<v->GetNx();i++)
 	{
 		register mreal v0 = v->v(i);
@@ -207,12 +209,12 @@ void MGL_EXPORT mgl_cont_y_val(HMGL gr, HCDT v, HCDT a, const char *sch, double 
 void MGL_EXPORT mgl_cont_z_val(HMGL gr, HCDT v, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"ContZ");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContZ");	return;	}
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgZ('z');
+	if(sv<gr->Min.z || sv>gr->Max.z)	{	gr->SetWarn(mglWarnSlc,"ContZ");	gr->LoadState();	return;	}
 	static int cgid=1;	gr->StartGroup("ContZ",cgid++);
-	mglData xx,yy,zz,aa;
+	mglDataV xx,yy,zz;	mglData aa;
 
 	int text=0;
 	if(mglchr(sch,'t'))	text=1;
@@ -221,6 +223,7 @@ void MGL_EXPORT mgl_cont_z_val(HMGL gr, HCDT v, HCDT a, const char *sch, double 
 	gr->SetPenPal(sch);
 
 	a = fill_slice_z(gr,sv,a,xx,yy,zz,aa);
+#pragma omp parallel for
 	for(long i=0;i<v->GetNx();i++)
 	{
 		register mreal v0 = v->v(i);
@@ -294,15 +297,16 @@ void MGL_EXPORT mgl_contf_gen(HMGL gr, mreal v1, mreal v2, HCDT a, HCDT x, HCDT 
 void MGL_EXPORT mgl_contf_x_val(HMGL gr, HCDT v, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"ContFX");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContFX");	return;	}
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
+	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContFX");	gr->LoadState();	return;	}
 	static int cgid=1;	gr->StartGroup("ContFX",cgid++);
-	mglData xx,yy,zz,aa;
+	mglDataV xx,yy,zz;	mglData aa;
 	long ss=gr->AddTexture(sch);
 
 	a = fill_slice_x(gr,sv,a,xx,yy,zz,aa);
+#pragma omp parallel for
 	for(long i=0;i<v->GetNx()-1;i++)
 	{
 		register mreal v0 = v->v(i);
@@ -314,15 +318,16 @@ void MGL_EXPORT mgl_contf_x_val(HMGL gr, HCDT v, HCDT a, const char *sch, double
 void MGL_EXPORT mgl_contf_y_val(HMGL gr, HCDT v, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"ContFY");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContFY");	return;	}
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgY('y');
+	if(sv<gr->Min.y || sv>gr->Max.y)	{	gr->SetWarn(mglWarnSlc,"ContFY");	gr->LoadState();	return;	}
 	static int cgid=1;	gr->StartGroup("ContFY",cgid++);
-	mglData xx,yy,zz,aa;
+	mglDataV xx,yy,zz;	mglData aa;
 	long ss=gr->AddTexture(sch);
 
 	a = fill_slice_y(gr,sv,a,xx,yy,zz,aa);
+#pragma omp parallel for
 	for(long i=0;i<v->GetNx()-1;i++)
 	{
 		register mreal v0 = v->v(i);
@@ -334,15 +339,16 @@ void MGL_EXPORT mgl_contf_y_val(HMGL gr, HCDT v, HCDT a, const char *sch, double
 void MGL_EXPORT mgl_contf_z_val(HMGL gr, HCDT v, HCDT a, const char *sch, double sv, const char *opt)
 {
 	long n=a->GetNx(),m=a->GetNy();
-	if(mgl_isnan(sv))	sv = gr->GetOrgX('x');
 	if(n<2 || m<2)	{	gr->SetWarn(mglWarnLow,"ContFZ");	return;	}
-	if(sv<gr->Min.x || sv>gr->Max.x)	{	gr->SetWarn(mglWarnSlc,"ContFZ");	return;	}
 	gr->SaveState(opt);
+	if(mgl_isnan(sv))	sv = gr->GetOrgZ('z');
+	if(sv<gr->Min.z || sv>gr->Max.z)	{	gr->SetWarn(mglWarnSlc,"ContFZ");	gr->LoadState();	return;	}
 	static int cgid=1;	gr->StartGroup("ContFZ",cgid++);
-	mglData xx,yy,zz,aa;
+	mglDataV xx,yy,zz;	mglData aa;
 	long ss=gr->AddTexture(sch);
 
 	a = fill_slice_z(gr,sv,a,xx,yy,zz,aa);
+#pragma omp parallel for
 	for(long i=0;i<v->GetNx()-1;i++)
 	{
 		register mreal v0 = v->v(i);

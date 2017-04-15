@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{ee516279-d3ab-497e-889a-53d538121367}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Lua">
+      <UniqueIdentifier>{1a1c85de-e2b5-4155-8d31-bfed863bef11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes">
+      <UniqueIdentifier>{1525e6dc-07e2-4287-835a-7fe8e68b6ba2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\srclua5\ctrl\il_cells.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_colorbar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_colorbrowser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_dial.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_gauge.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_matrix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\iuplua_matrix_aux.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\iuplua_controls.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_matrixlist.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\srclua5\ctrl\iupluacontrols.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\cells.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\colorbar.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\colorbrowser.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\dial.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\gauge.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\matrix.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\matrixlist.lua">
+      <Filter>Lua</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\srclua5\ctrl\il_controls.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\iupluacontrols.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

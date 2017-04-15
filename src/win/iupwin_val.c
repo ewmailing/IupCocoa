@@ -32,6 +32,7 @@
 
 void iupdrvValGetMinSize(Ihandle* ih, int *w, int *h)
 {
+  /* LAYOUT_DECORATION_ESTIMATE */
   int ticks_size = 0;
   if (iupAttribGetInt(ih, "SHOWTICKS"))
   {

@@ -40,10 +40,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\x64\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\bin\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\Debug_64\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\obj\Debug\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_x64\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_64\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateManifest>
@@ -56,7 +56,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\include;..\..\cd\include;..\..\im\include;D:\LNG\vld\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;__IUPDEF_H;BIG_TEST;USE_OPENGL;MGLPLOT_TEST;PPLOT_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;__IUPDEF_H;BIG_TEST;USE_OPENGL;MGLPLOT_TEST;PLOT_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -73,11 +73,12 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0416</Culture>
+      <AdditionalIncludeDirectories>..\etc</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_pplot.lib;iup_plot.lib;iup_mglplot.lib;vld.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupmatrixex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_scintilla.lib;Imm32.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_plot.lib;iup_mglplot.lib;vld.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupmatrixex.lib;iupole.lib;iupweb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\lib;..\..\cd\lib;..\..\im\lib;D:\LNG\vld\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib\Debug;..\..\cd\lib\Debug;..\..\im\lib\Debug;..\..\freetype\lib\Debug;..\..\ftgl\lib\Debug;..\..\zlib\lib\Debug;D:\LNG\vld\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
@@ -93,7 +94,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\include;..\..\cd\include;..\..\im\include;D:\LNG\vld\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;__IUPDEF_H;BIG_TEST;USE_OPENGL;MGLPLOT_TEST;PPLOT_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;__IUPDEF_H;BIG_TEST;USE_OPENGL;MGLPLOT_TEST;PLOT_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -110,11 +111,12 @@
     <ResourceCompile>
       <PreprocessorDefinitions>TEC_64;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0416</Culture>
+      <AdditionalIncludeDirectories>..\etc</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_pplot.lib;iup_plot.lib;iup_mglplot.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupmatrixex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_scintilla.lib;Imm32.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_plot.lib;iup_mglplot.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupmatrixex.lib;iupole.lib;iupweb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>..\lib\x64;..\..\cd\lib\x64;..\..\im\lib\x64;d:\lng\vld\lib\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib\Debug_64;..\..\cd\lib\Debug_64;..\..\im\lib\Debug_64;..\..\freetype\lib\Debug_64;..\..\ftgl\lib\Debug_64;..\..\zlib\lib\Debug_64;d:\lng\vld\lib\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
@@ -124,73 +126,82 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\test\dial.led" />
+    <None Include="..\html\examples\tests\dial.led" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\test\iuptest.rc" />
+    <ResourceCompile Include="..\html\examples\tests\iuptest.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\test\bigtest.c" />
-    <ClCompile Include="..\test\button.c" />
-    <ClCompile Include="..\test\canvas.c" />
-    <ClCompile Include="..\test\canvas_cddbuffer.c" />
-    <ClCompile Include="..\test\canvas_cdsimple.c" />
-    <ClCompile Include="..\test\canvas_scrollbar.c" />
-    <ClCompile Include="..\test\canvas_scrollbar2.c" />
-    <ClCompile Include="..\test\canvas_scrollbar3.c" />
-    <ClCompile Include="..\test\cells_checkboard.c" />
-    <ClCompile Include="..\test\cells_degrade.c" />
-    <ClCompile Include="..\test\cells_numbering.c" />
-    <ClCompile Include="..\test\charac.c" />
-    <ClCompile Include="..\test\class_conf.c" />
-    <ClCompile Include="..\test\clipboard.c" />
-    <ClCompile Include="..\test\colorbar.c" />
-    <ClCompile Include="..\test\colorbrowser.c" />
-    <ClCompile Include="..\test\dial.c" />
-    <ClCompile Include="..\test\dialog.c" />
-    <ClCompile Include="..\test\expander.c" />
-    <ClCompile Include="..\test\flatbutton.c" />
-    <ClCompile Include="..\test\frame.c" />
-    <ClCompile Include="..\test\gauge.c" />
-    <ClCompile Include="..\test\getcolor.c" />
-    <ClCompile Include="..\test\getparam.c" />
-    <ClCompile Include="..\test\glcanvas.c" />
-    <ClCompile Include="..\test\glcanvas_cube.c" />
-    <ClCompile Include="..\test\gridbox.c" />
-    <ClCompile Include="..\test\hbox.c" />
-    <ClCompile Include="..\test\idle.c" />
-    <ClCompile Include="..\test\label.c" />
-    <ClCompile Include="..\test\link.c" />
-    <ClCompile Include="..\test\list.c" />
-    <ClCompile Include="..\test\matrix.c" />
-    <ClCompile Include="..\test\matrix_cbmode.c" />
-    <ClCompile Include="..\test\matrix_cbs.c" />
-    <ClCompile Include="..\test\mdi.c" />
-    <ClCompile Include="..\test\menu.c" />
-    <ClCompile Include="..\test\mglplot.c" />
-    <ClCompile Include="..\test\ole.cpp" />
-    <ClCompile Include="..\test\plot.c" />
-    <ClCompile Include="..\test\pplot.c" />
-    <ClCompile Include="..\test\predialogs.c" />
-    <ClCompile Include="..\test\progressbar.c" />
-    <ClCompile Include="..\test\progressdlg.c" />
-    <ClCompile Include="..\test\sample.c" />
-    <ClCompile Include="..\test\sbox.c" />
-    <ClCompile Include="..\test\scanf.c" />
-    <ClCompile Include="..\test\scrollbox.c" />
-    <ClCompile Include="..\test\spin.c" />
-    <ClCompile Include="..\test\split.c" />
-    <ClCompile Include="..\test\sysinfo.c" />
-    <ClCompile Include="..\test\tabs.c" />
-    <ClCompile Include="..\test\text.c" />
-    <ClCompile Include="..\test\text_spin.c" />
-    <ClCompile Include="..\test\timer.c" />
-    <ClCompile Include="..\test\toggle.c" />
-    <ClCompile Include="..\test\tray.c" />
-    <ClCompile Include="..\test\tree.c" />
-    <ClCompile Include="..\test\val.c" />
-    <ClCompile Include="..\test\vbox.c" />
-    <ClCompile Include="..\test\zbox.c" />
+    <ClCompile Include="..\html\examples\tests\bigtest.c" />
+    <ClCompile Include="..\html\examples\tests\button.c" />
+    <ClCompile Include="..\html\examples\tests\calendar.c" />
+    <ClCompile Include="..\html\examples\tests\canvas.c" />
+    <ClCompile Include="..\html\examples\tests\canvas_cddbuffer.c" />
+    <ClCompile Include="..\html\examples\tests\canvas_cdsimple.c" />
+    <ClCompile Include="..\html\examples\tests\canvas_scrollbar.c" />
+    <ClCompile Include="..\html\examples\tests\canvas_scrollbar2.c" />
+    <ClCompile Include="..\html\examples\tests\canvas_scrollbar3.c" />
+    <ClCompile Include="..\html\examples\tests\cbox.c" />
+    <ClCompile Include="..\html\examples\tests\cells_checkboard.c" />
+    <ClCompile Include="..\html\examples\tests\cells_degrade.c" />
+    <ClCompile Include="..\html\examples\tests\cells_numbering.c" />
+    <ClCompile Include="..\html\examples\tests\charac.c" />
+    <ClCompile Include="..\html\examples\tests\class_conf.c" />
+    <ClCompile Include="..\html\examples\tests\clipboard.c" />
+    <ClCompile Include="..\html\examples\tests\colorbar.c" />
+    <ClCompile Include="..\html\examples\tests\colorbrowser.c" />
+    <ClCompile Include="..\html\examples\tests\detachbox.c" />
+    <ClCompile Include="..\html\examples\tests\dial.c" />
+    <ClCompile Include="..\html\examples\tests\dialog.c" />
+    <ClCompile Include="..\html\examples\tests\expander.c" />
+    <ClCompile Include="..\html\examples\tests\flatbutton.c" />
+    <ClCompile Include="..\html\examples\tests\flatframe.c" />
+    <ClCompile Include="..\html\examples\tests\flattabs.c" />
+    <ClCompile Include="..\html\examples\tests\frame.c" />
+    <ClCompile Include="..\html\examples\tests\gauge.c" />
+    <ClCompile Include="..\html\examples\tests\getcolor.c" />
+    <ClCompile Include="..\html\examples\tests\getparam.c" />
+    <ClCompile Include="..\html\examples\tests\glcanvas.c" />
+    <ClCompile Include="..\html\examples\tests\glcanvas_cube.c" />
+    <ClCompile Include="..\html\examples\tests\gridbox.c" />
+    <ClCompile Include="..\html\examples\tests\hbox.c" />
+    <ClCompile Include="..\html\examples\tests\idle.c" />
+    <ClCompile Include="..\html\examples\tests\label.c" />
+    <ClCompile Include="..\html\examples\tests\link.c" />
+    <ClCompile Include="..\html\examples\tests\list.c" />
+    <ClCompile Include="..\html\examples\tests\mathglsamples.c" />
+    <ClCompile Include="..\html\examples\tests\matrix.c" />
+    <ClCompile Include="..\html\examples\tests\matrixlist.c" />
+    <ClCompile Include="..\html\examples\tests\matrix_cbmode.c" />
+    <ClCompile Include="..\html\examples\tests\matrix_cbs.c" />
+    <ClCompile Include="..\html\examples\tests\mdi.c" />
+    <ClCompile Include="..\html\examples\tests\menu.c" />
+    <ClCompile Include="..\html\examples\tests\mgllabel.c" />
+    <ClCompile Include="..\html\examples\tests\mglplot.c" />
+    <ClCompile Include="..\html\examples\tests\ole.cpp" />
+    <ClCompile Include="..\html\examples\tests\plot.c" />
+    <ClCompile Include="..\html\examples\tests\predialogs.c" />
+    <ClCompile Include="..\html\examples\tests\progressbar.c" />
+    <ClCompile Include="..\html\examples\tests\progressdlg.c" />
+    <ClCompile Include="..\html\examples\tests\sample.c" />
+    <ClCompile Include="..\html\examples\tests\sbox.c" />
+    <ClCompile Include="..\html\examples\tests\scanf.c" />
+    <ClCompile Include="..\html\examples\tests\scintilla.c" />
+    <ClCompile Include="..\html\examples\tests\scrollbox.c" />
+    <ClCompile Include="..\html\examples\tests\spin.c" />
+    <ClCompile Include="..\html\examples\tests\split.c" />
+    <ClCompile Include="..\html\examples\tests\sysinfo.c" />
+    <ClCompile Include="..\html\examples\tests\tabs.c" />
+    <ClCompile Include="..\html\examples\tests\text.c" />
+    <ClCompile Include="..\html\examples\tests\text_spin.c" />
+    <ClCompile Include="..\html\examples\tests\timer.c" />
+    <ClCompile Include="..\html\examples\tests\toggle.c" />
+    <ClCompile Include="..\html\examples\tests\tray.c" />
+    <ClCompile Include="..\html\examples\tests\tree.c" />
+    <ClCompile Include="..\html\examples\tests\val.c" />
+    <ClCompile Include="..\html\examples\tests\vbox.c" />
+    <ClCompile Include="..\html\examples\tests\webbrowser.c" />
+    <ClCompile Include="..\html\examples\tests\zbox.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="iupcd.vcxproj">
@@ -219,10 +230,6 @@
     </ProjectReference>
     <ProjectReference Include="iup_mglplot.vcxproj">
       <Project>{5a42028b-912c-aab9-d3e1-12df9264a5fd}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="iup_pplot.vcxproj">
-      <Project>{5a42018b-95ac-a789-e4e4-59a692649dca}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

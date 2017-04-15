@@ -8,13 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#undef CD_NO_OLD_INTERFACE
-
 #include "iup.h"
 #include "iupcbs.h"
 #include "iupkey.h"
 
 #include <cd.h>
+#include <cd_old.h>
 #include <cdiup.h>
 #include <cddbuf.h>
 

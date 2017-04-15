@@ -22,7 +22,11 @@
 Ihandle *iupRadioFindToggleParent(Ihandle* ih_toggle)
 {
   Ihandle *p;
-  for (p=ih_toggle; p->parent; p=p->parent)
+
+  if (iupAttribGetBoolean(ih_toggle, "IGNORERADIO"))
+    return NULL;
+
+  for (p = ih_toggle; p->parent; p = p->parent)
   {
     if (p->iclass->nativetype == IUP_TYPEVOID &&
         IupClassMatch(p, "radio"))

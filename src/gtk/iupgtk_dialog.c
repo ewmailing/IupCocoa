@@ -45,6 +45,30 @@ static void gtkDialogSetMinMax(Ihandle* ih, int min_w, int min_h, int max_w, int
                      Utilities
 ****************************************************************/
 
+static gboolean gtkDialogChildDestroyEvent(GtkWidget *widget, Ihandle *ih)
+{
+  /* It seems that the documentation for this callback is not correct */
+  /* The second parameter must be the user_data or it will fail. */
+  (void)widget;
+
+  /* If the IUP dialog was not destroyed, destroy it here. */
+  if (iupObjectCheck(ih))
+    IupDestroy(ih);
+
+  /* this callback is useful to destroy children dialogs when the parent is destroyed. */
+  /* The application is responsible for destroying the children before this happen. */
+
+  return FALSE;
+}
+
+void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
+{
+  gtk_window_set_transient_for((GtkWindow*)ih->handle, (GtkWindow*)parent);
+
+  /* manually remove child windows when parent is destroyed */
+  g_signal_connect(G_OBJECT(parent), "destroy", G_CALLBACK(gtkDialogChildDestroyEvent), ih);
+}
+
 int iupdrvDialogIsVisible(Ihandle* ih)
 {
   return iupdrvIsVisible(ih);
@@ -362,14 +386,23 @@ static gboolean gtkDialogWindowStateEvent(GtkWidget *widget, GdkEventWindowState
   int state = -1;
   (void)widget;
 
+  iupAttribSet(ih, "MAXIMIZED", NULL);
+  iupAttribSet(ih, "MINIMIZED", NULL);
+
   if ((evt->changed_mask & GDK_WINDOW_STATE_MAXIMIZED) &&        /* if flag changed and  */
       (evt->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) &&    /* is now set           */
       !(evt->new_window_state & GDK_WINDOW_STATE_WITHDRAWN))     /* is visible           */
+  {
     state = IUP_MAXIMIZE;
+    iupAttribSet(ih, "MAXIMIZED", "Yes");
+  }
   else if ((evt->changed_mask & GDK_WINDOW_STATE_ICONIFIED) &&
            (evt->new_window_state & GDK_WINDOW_STATE_ICONIFIED) &&
            !(evt->new_window_state & GDK_WINDOW_STATE_WITHDRAWN))
+  {
     state = IUP_MINIMIZE;
+    iupAttribSet(ih, "MINIMIZED", "Yes");
+  }
   else if ((evt->changed_mask & GDK_WINDOW_STATE_ICONIFIED) &&
            (evt->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) &&
            !(evt->new_window_state & GDK_WINDOW_STATE_WITHDRAWN))
@@ -401,21 +434,6 @@ static gboolean gtkDialogWindowStateEvent(GtkWidget *widget, GdkEventWindowState
   return FALSE;
 }
 
-static gboolean gtkDialogChildDestroyEvent(GtkWidget *widget, Ihandle *ih)
-{
-  /* It seems that the documentation for this callback is not correct */
-  /* The second parameter must be the user_data or it will fail. */
-  (void)widget;
-
-  /* If the IUP dialog was not destroyed, destroy it here. */
-  if (iupObjectCheck(ih))
-    IupDestroy(ih);
-
-  /* this callback is useful to destroy children dialogs when the parent is destroyed. */
-  /* The application is responsible for destroying the children before this happen. */
-
-  return FALSE;
-}
 
 
 /****************************************************************
@@ -506,6 +524,11 @@ static int gtkDialogMapMethod(Ihandle* ih)
   if (iupAttribGetBoolean(ih, "DIALOGHINT")) 
     gtk_window_set_type_hint(GTK_WINDOW(ih->handle), GDK_WINDOW_TYPE_HINT_DIALOG);
 
+#if GTK_CHECK_VERSION(3, 10, 0)
+  if (iupAttribGetBoolean(ih, "HIDETITLEBAR"))
+    gtk_window_set_titlebar(GTK_WINDOW(ih->handle), gtk_fixed_new());
+#endif
+
   /* the container that will receive the child element. */
   inner_parent = iupgtkNativeContainerNew(0);
   gtk_container_add((GtkContainer*)ih->handle, inner_parent);
@@ -554,7 +577,7 @@ static int gtkDialogMapMethod(Ihandle* ih)
 
   if (decorations == 0)
     gtk_window_set_decorated((GtkWindow*)ih->handle, FALSE);
-  else
+  else if (!iupAttribGetBoolean(ih, "HIDETITLEBAR"))
   {
     GdkWindow* window = iupgtkGetWindow(ih->handle);
     if (window)
@@ -583,7 +606,7 @@ static int gtkDialogMapMethod(Ihandle* ih)
 static void gtkDialogUnMapMethod(Ihandle* ih)
 {
   GtkWidget* inner_parent;
-#if GTK_CHECK_VERSION(2, 10, 0)
+#if GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)
   GtkStatusIcon* status_icon;
 #endif
 
@@ -593,7 +616,7 @@ static void gtkDialogUnMapMethod(Ihandle* ih)
     IupDestroy(ih->data->menu);  
   }
 
-#if GTK_CHECK_VERSION(2, 10, 0)
+#if GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)
   status_icon = (GtkStatusIcon*)iupAttribGet(ih, "_IUPDLG_STATUSICON");
   if (status_icon)
   {
@@ -830,15 +853,18 @@ static int gtkDialogSetOpacityImageAttrib(Ihandle *ih, const char *value)
     {
       cairo_region_t *shape;
 
+#if GTK_CHECK_VERSION(3, 10, 0)
+      cairo_surface_t* surface = gdk_cairo_surface_create_from_pixbuf(pixbuf, 0, window);
+#else
       int width = gdk_pixbuf_get_width(pixbuf);
       int height = gdk_pixbuf_get_height(pixbuf);
       cairo_surface_t* surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR_ALPHA, width, height);
-
       cairo_t* cr = cairo_create(surface);
       gdk_cairo_set_source_pixbuf(cr, pixbuf, 0, 0);
-      //cairo_rectangle(cr, 0, 0, width, height);
+      cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
       cairo_paint(cr);
       cairo_destroy(cr);
+#endif
 
       shape = gdk_cairo_region_create_from_surface(surface);
       cairo_surface_destroy(surface);
@@ -847,10 +873,13 @@ static int gtkDialogSetOpacityImageAttrib(Ihandle *ih, const char *value)
       cairo_region_destroy(shape);
     }
 #else
-    GdkPixmap* mask;
-    gdk_pixbuf_render_pixmap_and_mask(pixbuf, &mask, NULL, 255);
-    gtk_widget_shape_combine_mask(ih->handle, mask, 0, 0);
-    g_object_unref(mask);
+    GdkBitmap* mask = NULL;
+    gdk_pixbuf_render_pixmap_and_mask(pixbuf, NULL, &mask, 255);
+    if (mask) 
+    {
+      gtk_widget_shape_combine_mask(ih->handle, mask, 0, 0);
+      g_object_unref(mask);
+    }
 #endif
     return 1;
   }
@@ -902,17 +931,19 @@ static int gtkDialogSetBackgroundAttrib(Ihandle* ih, const char* value)
     {
       /* TODO: this is NOT working!!!! */
       cairo_pattern_t* pattern;
-
       int width = gdk_pixbuf_get_width(pixbuf);
       int height = gdk_pixbuf_get_height(pixbuf);
 
       cairo_surface_t* surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR_ALPHA, width, height);
       cairo_t* cr = cairo_create(surface);
-      gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
-      cairo_paint (cr);
-      cairo_destroy (cr);
+      gdk_cairo_set_source_pixbuf(cr, pixbuf, 0, 0);
+      cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+      cairo_paint(cr);
+      cairo_destroy(cr);
 
       pattern = cairo_pattern_create_for_surface(surface);
+      cairo_pattern_set_extend(pattern, CAIRO_EXTEND_REPEAT);
+
       gdk_window_set_background_pattern(window, pattern);
       cairo_pattern_destroy (pattern);
 
@@ -935,7 +966,7 @@ static int gtkDialogSetBackgroundAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-#if GTK_CHECK_VERSION(2, 10, 0)
+#if GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)
 static int gtkDialogTaskDoubleClick(int button)
 {
   static int last_button = -1;
@@ -1049,6 +1080,17 @@ static int gtkDialogSetTrayImageAttrib(Ihandle *ih, const char *value)
 }
 #endif  /* GTK_CHECK_VERSION(2, 10, 0) */
 
+#if GTK_CHECK_VERSION(3, 4, 0)
+static int gtkDialogSetHideTitleBarAttrib(Ihandle *ih, const char *value)
+{
+  gtk_window_set_hide_titlebar_when_maximized(GTK_WINDOW(ih->handle), iupStrBoolean(value));
+  return 1;
+}
+#endif  /* GTK_CHECK_VERSION(3, 4, 0) */
+
+/****************************************************************************************************************/
+
+
 void iupdrvDialogInitClass(Iclass* ic)
 {
   /* Driver Dependent Class methods */
@@ -1096,11 +1138,15 @@ void iupdrvDialogInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "OPACITY", NULL, gtkDialogSetOpacityAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OPACITYIMAGE", NULL, gtkDialogSetOpacityImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
-#if GTK_CHECK_VERSION(2, 10, 0)
+#if GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)
   iupClassRegisterAttribute(ic, "TRAY", NULL, gtkDialogSetTrayAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TRAYIMAGE", NULL, gtkDialogSetTrayImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TRAYTIP", NULL, gtkDialogSetTrayTipAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TRAYTIPMARKUP", NULL, NULL, IUPAF_SAMEASSYSTEM, NULL, IUPAF_NOT_MAPPED);
+#endif
+
+#if GTK_CHECK_VERSION(3, 4, 0)
+  iupClassRegisterAttribute(ic, "HIDETITLEBAR", NULL, gtkDialogSetHideTitleBarAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
 
   /* Not Supported */

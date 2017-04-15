@@ -66,6 +66,11 @@ int iupwinGetScreenRes(void)
 
 void iupdrvActivate(Ihandle* ih)
 {
+  int is_toggle = IupClassMatch(ih, "toggle");
+  int is_radio = 0;
+  if (is_toggle)
+    is_radio = IupGetInt(ih, "RADIO");
+
   /* do not use BM_CLICK because it changes the focus 
      and does not animates the button press */
 
@@ -74,7 +79,8 @@ void iupdrvActivate(Ihandle* ih)
   IupFlush();
   Sleep(150);
 
-  if (IupClassMatch(ih, "toggle"))
+  /* must force a toggle change */
+  if (is_toggle && !is_radio)
     IupSetAttribute(ih, "VALUE", "TOGGLE");
 
   /* notify */
@@ -82,6 +88,10 @@ void iupdrvActivate(Ihandle* ih)
 
   /* remove highlight */
   SendMessage(ih->handle, BM_SETSTATE, FALSE, 0);
+
+  /* must force a radio change */
+  if (is_toggle && is_radio)
+    IupSetAttribute(ih, "VALUE", "TOGGLE");
 }
 
 int iupdrvGetScrollbarSize(void)
@@ -375,10 +385,14 @@ LRESULT CALLBACK iupwinBaseWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
   LRESULT result = 0;
   IwinMsgProc MsgProc;
   Ihandle *ih;
+  WNDPROC oldProc;
 
   ih = iupwinHandleGet(hwnd); 
   if (!ih)
     return DefWindowProc(hwnd, msg, wp, lp);  /* should never happen */
+
+  /* retrieve the control previous procedure for subclassing */
+  oldProc = (WNDPROC)IupGetCallback(ih, "_IUPWIN_OLDWNDPROC_CB");
 
   /* check if the element defines a custom procedure */
   MsgProc = (IwinMsgProc)IupGetCallback(ih, "_IUPWIN_CTRLMSGPROC_CB");
@@ -389,12 +403,8 @@ LRESULT CALLBACK iupwinBaseWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
   if (ret)
     return result;
-  else
-  {
-    /* retrieve the control previous procedure for subclassing */
-    WNDPROC oldProc = (WNDPROC)IupGetCallback(ih, "_IUPWIN_OLDWNDPROC_CB");
+  else 
     return CallWindowProc(oldProc, hwnd, msg, wp, lp);
-  }
 }
 
 static Ihandle* winContainerWmCommandGetIhandle(Ihandle *ih, WPARAM wp, LPARAM lp)
@@ -435,7 +445,7 @@ static int winCheckParent(Ihandle* child, Ihandle* ih)
     return 1;
   else
   {
-    /* TODO: this is wierd... */
+    /* TODO: this is weird... */
     HWND oldParent = (HWND)iupAttribGet(child, "_IUPWIN_REPARENT");
     if (oldParent && oldParent==ih->handle)
       return 1;
@@ -447,7 +457,7 @@ static int winCheckParent(Ihandle* child, Ihandle* ih)
 int iupwinBaseContainerMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT *result)
 {
   /* All messages here are sent to the parent Window, 
-     but they are usefull for child controls.  */
+     but they are useful for child controls.  */
 
   switch (msg)
   {
@@ -544,6 +554,22 @@ int iupwinBaseContainerMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRES
 
       break;
     }
+  case WM_MOUSEWHEEL:
+  {
+    HWND hChild;
+    POINT p;
+    p.x = GET_X_LPARAM(lp); p.y = GET_Y_LPARAM(lp);
+    ScreenToClient(ih->handle, &p);
+
+    hChild = ChildWindowFromPointEx(ih->handle, p, CWP_SKIPDISABLED|CWP_SKIPINVISIBLE|CWP_SKIPTRANSPARENT);
+    if (hChild)
+    {
+      Ihandle* child = iupwinHandleGet(hChild);
+      if (child && IupClassMatch(child, "canvas"))  /* will check of all canvas based control classes */
+        SendMessage(child->handle, WM_MOUSEWHEEL, wp, lp);
+    }
+    break;
+  }
   default:
     {
       /* sent to the list parent */
@@ -783,13 +809,18 @@ HCURSOR iupwinGetCursor(Ihandle* ih, const char* name)
   return cur;
 }
 
+void iupwinRefreshCursor(Ihandle* ih)
+{
+  SendMessage(ih->handle, WM_SETCURSOR, (WPARAM)ih->handle, MAKELPARAM(HTCLIENT, WM_MOUSEMOVE));
+}
+
 int iupdrvBaseSetCursorAttrib(Ihandle* ih, const char* value)
 {
   /* Cursor can be NULL in Windows. */
   HCURSOR hCur = iupwinGetCursor(ih, value);
   iupAttribSet(ih, "_IUPWIN_HCURSOR", (char*)hCur);  /* To be used in WM_SETCURSOR */
   /* refresh the cursor */
-  SendMessage(ih->handle, WM_SETCURSOR, (WPARAM)ih->handle, MAKELPARAM(1,WM_MOUSEMOVE));
+  iupwinRefreshCursor(ih);
   return 1;
 }
 
@@ -843,7 +874,7 @@ int iupwinButtonDown(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp)
       b = IUP_BUTTON5;
   }
 
-  ret = cb(ih, b, 1, (int)(short)LOWORD(lp), (int)(short)HIWORD(lp), status);
+  ret = cb(ih, b, 1, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), status);
   if (ret == IUP_CLOSE)
     IupExitLoop();
   else if (ret == IUP_IGNORE)
@@ -892,7 +923,7 @@ int iupwinButtonUp(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp)
     }
   }
 
-  ret = cb(ih, b, 0, (int)(short)LOWORD(lp), (int)(short)HIWORD(lp), status);
+  ret = cb(ih, b, 0, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), status);
   if (ret == IUP_CLOSE)
     IupExitLoop();
   else if (ret == IUP_IGNORE)
@@ -908,7 +939,7 @@ int iupwinMouseMove(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp)
   {
     char status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
     iupwinButtonKeySetStatus(LOWORD(wp), status, 0);
-    cb(ih, (int)(short)LOWORD(lp), (int)(short)HIWORD(lp), status);
+    cb(ih, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), status);
     return 1;
   }
   (void)msg;
@@ -1037,6 +1068,7 @@ void iupdrvSendKey(int key, int press)
 
 void iupdrvWarpPointer(int x, int y)
 {
+  iupdrvAddScreenOffset(&x, &y, 1);
   SetCursorPos(x, y);
 }
 

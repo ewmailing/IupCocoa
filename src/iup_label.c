@@ -181,6 +181,7 @@ Iclass* iupLabelNewClass(void)
   iupClassRegisterCallback(ic, "UNMAP_CB", "");
 
   iupClassRegisterCallback(ic, "BUTTON_CB", "iiiis");
+  iupClassRegisterCallback(ic, "MOTION_CB", "iis");
   iupClassRegisterCallback(ic, "ENTERWINDOW_CB", "");
   iupClassRegisterCallback(ic, "LEAVEWINDOW_CB", "");
 

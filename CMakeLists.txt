@@ -37,7 +37,9 @@ SET(IUP_TESTS_CUSTOM_TARGET_NAME "testsiup")
 ADD_CUSTOM_TARGET(${IUP_TESTS_CUSTOM_TARGET_NAME})
 
 IF(EMSCRIPTEN)
-	OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" OFF)
+	# Emscripten documentation says .so is better than .a, but also implies .bc may be best.
+	# TODO: Figure out how .bc fits into all of this.
+	OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" ON)
 ELSEIF(APPLE)
 	IF(IOS)
 		OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" OFF)
@@ -240,6 +242,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	# ${CMAKE_SOURCE_DIR}/src/iup.def
 
 	${CMAKE_SOURCE_DIR}/src/iup.c
+	${CMAKE_SOURCE_DIR}/src/iup_animatedlabel.c
 	${CMAKE_SOURCE_DIR}/src/iup_array.c
 	${CMAKE_SOURCE_DIR}/src/iup_array.h
 	${CMAKE_SOURCE_DIR}/src/iup_assert.c
@@ -264,19 +267,23 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_classbase.h
 	${CMAKE_SOURCE_DIR}/src/iup_colordlg.c
 	${CMAKE_SOURCE_DIR}/src/iup_config.c
+#	${CMAKE_SOURCE_DIR}/src/iup_datepick.c
 	${CMAKE_SOURCE_DIR}/src/iup_detachbox.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.h
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.c
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.h
-	${CMAKE_SOURCE_DIR}/src/iup_draw.h
+	${CMAKE_SOURCE_DIR}/src/iup_draw.c
 	${CMAKE_SOURCE_DIR}/src/iup_drv.h
+	${CMAKE_SOURCE_DIR}/src/iup_drvdraw.h
 	${CMAKE_SOURCE_DIR}/src/iup_drvfont.h
 	${CMAKE_SOURCE_DIR}/src/iup_drvinfo.h
 	${CMAKE_SOURCE_DIR}/src/iup_expander.c
 	${CMAKE_SOURCE_DIR}/src/iup_filedlg.c
 	${CMAKE_SOURCE_DIR}/src/iup_fill.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatbutton.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatframe.c
+	${CMAKE_SOURCE_DIR}/src/iup_flattabs.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.h
 	${CMAKE_SOURCE_DIR}/src/iup_font.c
@@ -370,11 +377,16 @@ SET(IUP_FOREIGN_SOURCE_FILES "")
 IF(IUP_USE_EMSCRIPTEN)
 
 	SET(IUP_EMSCRIPTEN_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_button.c
+		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_calendar.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_canvas.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_clipboard.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_colordlg.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_common.c
+#		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_datepick.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_dialog.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_dragdrop.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_draw.c
@@ -422,14 +434,19 @@ ELSEIF(IUP_USE_ANDROID)
 ELSEIF(IUP_USE_COCOATOUCH)
 
 	SET(IUP_COCOATOUCH_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegateProtocol.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_button.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_calendar.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_canvas.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_clipboard.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_colordlg.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_common.m
+#		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_datepick.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_dialog.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_dragdrop.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_draw.m
@@ -481,13 +498,18 @@ ELSEIF(IUP_USE_COCOATOUCH)
 ELSEIF(IUP_USE_COCOA)
 
 	SET(IUP_COCOA_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_button.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_calendar.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_canvas.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_clipboard.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_colordlg.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_common.m
+#		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_datepick.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_dialog.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_dragdrop.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_draw.m
@@ -544,10 +566,12 @@ ELSEIF(IUP_USE_WIN32)
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_brush.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_brush.h
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_button.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_calendar.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_canvas.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_clipboard.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_colordlg.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_common.c
+		${CMAKE_SOURCE_DIR}/src/win/iupwin_datepick.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_dialog.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_dragdrop.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_draw.c
@@ -618,7 +642,11 @@ ELSEIF(IUP_USE_WIN32)
 ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 
 	SET(IUP_GTK_SOURCE_FILES
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_button.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_calendar.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_canvas.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_clipboard.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_colordlg.c
@@ -707,7 +735,11 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 ELSEIF(IUP_USE_MOTIF)
 
 	SET(IUP_MOTIF_SOURCE_FILES
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_button.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupmot_calendar.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_canvas.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_clipboard.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_color.c
@@ -789,9 +821,9 @@ function(BUILD_IUP_TEST exe_name source_list)
 endfunction()
 
 
-
-BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/test/button.c")
-
+# button.c now has a dependency on IupImageLibOpen???
+#BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c")
+BUILD_IUP_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 

@@ -29,6 +29,7 @@
 
 void iupdrvFrameGetDecorOffset(int *x, int *y)
 {
+  /* LAYOUT_DECORATION_ESTIMATE */
   *x = 2;
   *y = 2;
 }
@@ -103,9 +104,9 @@ static int gtkFrameSetFgColorAttrib(Ihandle* ih, const char* value)
   return 1;
 }
 
-static int gtkFrameSetStandardFontAttrib(Ihandle* ih, const char* value)
+static int gtkFrameSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetStandardFontAttrib(ih, value);
+  iupdrvSetFontAttrib(ih, value);
 
   if (ih->handle)
   {
@@ -173,7 +174,7 @@ void iupdrvFrameInitClass(Iclass* ic)
   /* Driver Dependent Attribute functions */
 
   /* Overwrite Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, gtkFrameSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "FONT", NULL, gtkFrameSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", iupFrameGetBgColorAttrib, gtkFrameSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);

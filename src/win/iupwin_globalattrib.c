@@ -149,7 +149,7 @@ static LRESULT CALLBACK winHookGetMessageProc(int hcode, WPARAM gm_wp, LPARAM gm
 
         iupwinButtonKeySetStatus(LOWORD(wp), status, 0);
         
-        cb((float)delta/120.0f, LOWORD(lp), HIWORD(lp), status);
+        cb((float)delta / 120.0f, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), status);
       }
       break;
     }
@@ -405,6 +405,11 @@ char* iupdrvGetGlobal(const char* name)
     free(monitors_rect);
     return str;
   }
+  if (iupStrEqual(name, "MONITORSCOUNT"))
+  {
+    int monitors_count = GetSystemMetrics(SM_CMONITORS);
+    return iupStrReturnInt(monitors_count);
+  }
   if (iupStrEqual(name, "TRUECOLORCANVAS"))
   {
     return iupStrReturnBoolean(iupdrvGetScreenDepth() > 8);
@@ -420,6 +425,10 @@ char* iupdrvGetGlobal(const char* name)
   if (iupStrEqual(name, "DLL_HINSTANCE"))
   {
     return (char*)iupwin_dll_hinstance;
+  }
+  if (iupStrEqual(name, "HINSTANCE"))
+  {
+    return (char*)iupwin_hinstance;
   }
   if (iupStrEqual(name, "COMCTL32VER6"))
   {
@@ -453,6 +462,12 @@ char* iupdrvGetGlobal(const char* name)
         return "Unknown Error";
     }
   }
+  if (iupStrEqual(name, "EXEFILENAME"))
+  {
+    TCHAR filename[10240];
+    GetModuleFileName(NULL, filename, 10240);
+    return iupStrReturnStr(iupwinStrFromSystemFilename(filename));
+  }
   if (iupStrEqual(name, "DWM_COMPOSITION"))
   {
     typedef HRESULT(STDAPICALLTYPE *PtrDwmIsCompositionEnabled)(BOOL*);
@@ -475,3 +490,4 @@ char* iupdrvGetGlobal(const char* name)
   }
   return NULL;
 }
+

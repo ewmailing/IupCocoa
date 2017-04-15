@@ -343,6 +343,6 @@ void IupCdDrawFocusRect(Ihandle* ih, cdCanvas *canvas, int x1, int y1, int x2, i
   w = abs(x2 - x1) + 1;
   h = abs(y2 - y1) + 1;
 
-  iupdrvDrawFocusRect(ih, gc, x, y, w, h);
+  iupdrvPaintFocusRect(ih, gc, x, y, w, h);
 }
 

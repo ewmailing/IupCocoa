@@ -21,6 +21,7 @@ int iupgllua_open(lua_State * L)
 
   iuplua_get_env(L);
   iupglcanvaslua_open(L);
+  iupglbackgroundboxlua_open(L);
   return 0;
 }
 

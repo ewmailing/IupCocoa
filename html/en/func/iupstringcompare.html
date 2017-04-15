@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupStringCompare</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	font-size: large;
+}
+.auto-style1 {
+	text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<h2>IupStringCompare<span class="style1"> (since 3.17)</span></h2>
+<p>Utility function to compare strings lexicographically. Used internally in
+<strong>IupMatrixEx</strong> when sorting, but available in the main library. </p>
+<p>This means that numbers and text in the string are sorted separately (for ex: 
+A1 A2 A11 A30 B1). Also natural alphabetic order is used: 123...aA·¡...bBcC... 
+The comparison will work only for Latin-1 characters, even if UTF8MODE is Yes.</p>
+<h3>
+Parameters/Return</h3>
+<div>
+  <pre>void <strong>IupStringCompare</strong>(const char* <strong>str1</strong>, const char* <strong>str2</strong>, int <strong>casesensitive</strong>, int <strong>lexicographic</strong>); [in C]
+iup.<strong>StringCompare</strong>(<strong>str1, str2</strong>: string[, <strong>casesensitive, lexicographic: </strong>number]) [in Lua]
+</pre>
+</div>
+<p><b>str1 and str2</b>: strings to be compared.<br>
+<strong>casesensitive</strong>: flag to enable case sensitive compare. Can be 0 (disable) or 1 (enable). 
+In Lua the default value is 0.<br>
+<strong>lexicographic</strong>: flag to enable lexicographic compare. Can be 0 (disable) or 1 (enable). When disabled the compare will only return if the strings are equal 
+(0) or different (1).&nbsp; In Lua the default value is 1.</p>
+<p><span class="auto-style1">Returns:</span> 0 if str1 == str2, -1 if str1&lt;str2, 
+1 if str1 &gt; str2 (same return values of the <strong>strcmp</strong> function).</p>
+
+<h3>Notes</h3>
+<p>The Alphanum Algorithm is discussed at
+<a href="http://www.DaveKoelle.com/alphanum.html">http://www.DaveKoelle.com/alphanum.html</a>.</p>
+<p>This implementation is Copyright (c) 2008 Dirk Jagdmann &lt;<a href="mailto:doj@cubic.org">doj@cubic.org</a>&gt;. 
+It is a cleanroom implementation of the algorithm and not derived by other's 
+works. In contrast to the versions written by Dave Koelle this source code is 
+distributed with the libpng/zlib license.</p>
+<p>The IUP implementation is based on the &quot;alphanum.hpp&quot; code downloaded from 
+the Dave Koelle page and implemented by Dirk Jagdmann. It was modified to the C 
+language and simplified to IUP needs.</p>
+
+<h3>See Also</h3>
+<p><a href="../ctrl/iupmatrixex.html">IupMatrixEx</a>&nbsp;&nbsp; </p>
+
+</body>
+
+</html>

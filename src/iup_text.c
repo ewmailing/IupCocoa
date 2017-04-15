@@ -202,13 +202,8 @@ int iupTextSetAddFormatTagHandleAttrib(Ihandle* ih, const char* value)
 
 int iupTextSetAddFormatTagAttrib(Ihandle* ih, const char* value)
 {
-  return iupTextSetAddFormatTagHandleAttrib(ih, (char*)IupGetHandle(value));
-}
-
-static char* iTextGetMaskDataAttrib(Ihandle* ih)
-{
-  /* Used only by the OLD iupmask API */
-  return (char*)ih->data->mask;
+  iupTextSetAddFormatTagHandleAttrib(ih, (char*)IupGetHandle(value));
+  return 1;
 }
 
 static char* iTextGetMaskAttrib(Ihandle* ih)
@@ -230,6 +225,26 @@ static int iTextSetValueMaskedAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
+static int iTextSetMaskNoEmptyAttrib(Ihandle* ih, const char* value)
+{
+  if (ih->data->mask)
+  {
+    int val = iupStrBoolean(value);
+    iupMaskSetNoEmpty(ih->data->mask, val);
+  }
+  return 1;
+}
+
+static int iTextSetMaskCaseIAttrib(Ihandle* ih, const char* value)
+{
+  if (ih->data->mask)
+  {
+    int val = iupStrBoolean(value);
+    iupMaskSetCaseI(ih->data->mask, val);
+  }
+  return 1;
+}
+
 static int iTextSetMaskAttrib(Ihandle* ih, const char* value)
 {
   if (!value)
@@ -242,10 +257,15 @@ static int iTextSetMaskAttrib(Ihandle* ih, const char* value)
   }
   else
   {
-    int casei = iupAttribGetInt(ih, "MASKCASEI");
-    Imask* mask = iupMaskCreate(value,casei);
+    Imask* mask = iupMaskCreate(value);
     if (mask)
     {
+      int val = iupAttribGetInt(ih, "MASKCASEI");
+      iupMaskSetCaseI(mask, val);
+
+      val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
+
       if (ih->data->mask)
         iupMaskDestroy(ih->data->mask);
 
@@ -276,11 +296,16 @@ static int iTextSetMaskIntAttrib(Ihandle* ih, const char* value)
       return 0;
 
     mask = iupMaskCreateInt(min,max);
+    if (mask)
+    {
+      int val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
 
-    if (ih->data->mask)
-      iupMaskDestroy(ih->data->mask);
+      if (ih->data->mask)
+        iupMaskDestroy(ih->data->mask);
 
-    ih->data->mask = mask;
+      ih->data->mask = mask;
+    }
   }
 
   return 0;
@@ -301,16 +326,23 @@ static int iTextSetMaskFloatAttrib(Ihandle* ih, const char* value)
     Imask* mask;
     float min, max;
     char* decimal_symbol = iupAttribGet(ih, "MASKDECIMALSYMBOL");
+    if (!decimal_symbol)
+      decimal_symbol = IupGetGlobal("DEFAULTDECIMALSYMBOL");
 
     if (iupStrToFloatFloat(value, &min, &max, ':')!=2)
       return 0;
 
     mask = iupMaskCreateFloat(min, max, decimal_symbol);
+    if (mask)
+    {
+      int val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
 
-    if (ih->data->mask)
-      iupMaskDestroy(ih->data->mask);
+      if (ih->data->mask)
+        iupMaskDestroy(ih->data->mask);
 
-    ih->data->mask = mask;
+      ih->data->mask = mask;
+    }
   }
 
   return 0;
@@ -336,11 +368,16 @@ static int iTextSetMaskRealAttrib(Ihandle* ih, const char* value)
       positive = 1;
 
     mask = iupMaskCreateReal(positive, decimal_symbol);
+    if (mask)
+    {
+      int val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
 
-    if (ih->data->mask)
-      iupMaskDestroy(ih->data->mask);
+      if (ih->data->mask)
+        iupMaskDestroy(ih->data->mask);
 
-    ih->data->mask = mask;
+      ih->data->mask = mask;
+    }
   }
 
   return 0;
@@ -614,13 +651,13 @@ Iclass* iupTextNewClass(void)
   iupClassRegisterAttribute(ic, "APPENDNEWLINE", iTextGetAppendNewlineAttrib, iTextSetAppendNewlineAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "VALUEMASKED", NULL, iTextSetValueMaskedAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "MASKCASEI", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MASKCASEI", NULL, iTextSetMaskCaseIAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKDECIMALSYMBOL", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASK", iTextGetMaskAttrib, iTextSetMaskAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKINT", NULL, iTextSetMaskIntAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKFLOAT", NULL, iTextSetMaskFloatAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKREAL", NULL, iTextSetMaskRealAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "OLD_MASK_DATA", iTextGetMaskDataAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MASKNOEMPTY", NULL, iTextSetMaskNoEmptyAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "BORDER", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SPIN", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);

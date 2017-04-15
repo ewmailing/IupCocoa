@@ -84,7 +84,11 @@ int iupdrvBaseSetTipAttrib(Ihandle* ih, const char* value)
   }
 
   if (value)
-    winTipsSendMessage(ih, tips_hwnd, TTM_ADDTOOL);
+  {
+    int tool_exists = (int)SendMessage(tips_hwnd, TTM_GETCURRENTTOOL, 0, 0);
+    if (!tool_exists)
+      winTipsSendMessage(ih, tips_hwnd, TTM_ADDTOOL);
+  }
   else
     winTipsSendMessage(ih, tips_hwnd, TTM_DELTOOL);
 

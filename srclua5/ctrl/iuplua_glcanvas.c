@@ -14,15 +14,6 @@
 #include "iupluagl.h"
 #include "il.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#if defined (__APPLE__) || defined (OSX)
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
 static int GLIsCurrent(lua_State *L)
 {  
    lua_pushboolean(L, IupGLIsCurrent(iuplua_checkihandle(L,1)));
@@ -34,9 +25,9 @@ static int GLMakeCurrent(lua_State *L)
    IupGLMakeCurrent(iuplua_checkihandle(L,1));
 
    iuplua_get_env(L);
-   iuplua_regstring(L, (const char*)glGetString(GL_VENDOR), "GL_VENDOR");
-   iuplua_regstring(L, (const char*)glGetString(GL_RENDERER), "GL_RENDERER");
-   iuplua_regstring(L, (const char*)glGetString(GL_VERSION), "GL_VERSION");
+   iuplua_regstring(L, IupGetGlobal("GL_VENDOR"), "GL_VENDOR");
+   iuplua_regstring(L, IupGetGlobal("GL_RENDERER"), "GL_RENDERER");
+   iuplua_regstring(L, IupGetGlobal("GL_VERSION"), "GL_VERSION");
 
    return 0;
 }

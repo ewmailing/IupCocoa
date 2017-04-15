@@ -1,6 +1,6 @@
 /***************************************************************************
  * window.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,6 +23,9 @@ mglCanvasWnd::mglCanvasWnd() : mglCanvas()
 {
 	Setup();	LoadFunc=0;	FuncPar=0;	DrawFunc=0;	ClickFunc=0;
 	GG = 0;		NumFig = 0;	CurFig = -1;
+#if MGL_HAVE_PTHR_WIDGET
+	mutex=0;
+#endif
 }
 //-----------------------------------------------------------------------------
 mglCanvasWnd::~mglCanvasWnd()	{	if(GG) free(GG);	}
@@ -83,20 +86,24 @@ void mglCanvasWnd::DelFrame(long i)
 //-----------------------------------------------------------------------------
 void mglCanvasWnd::SetDrawFunc(int (*draw)(mglBase *gr, void *p), void *par, void (*reload)(void *p))
 {
-	ResetFrames();
-	if(get(MGL_CLF_ON_UPD))	DefaultPlotParam();
-	const std::string loc = setlocale(LC_NUMERIC, NULL);	setlocale(LC_NUMERIC, "C");
-	// use frames for quickly redrawing while adding/changing primitives
-	if(mgl_is_frames(this))	NewFrame();
+	if(draw)
+	{
+		ResetFrames();
+		if(get(MGL_CLF_ON_UPD))	DefaultPlotParam();
+		const std::string loc = setlocale(LC_NUMERIC, NULL);	setlocale(LC_NUMERIC, "C");
+		// use frames for quickly redrawing while adding/changing primitives
+		if(mgl_is_frames(this))	NewFrame();
 
-	int n = draw ? draw(this,par) : 0;
-	if(n<NumFig && n>=0)	NumFig = n;
-	DrawFunc = draw;		FuncPar = par;
-	LoadFunc = reload;
+		int n = draw(this,par);
+		if(n<NumFig && n>=0)	NumFig = n;
+		DrawFunc = draw;		FuncPar = par;
+		LoadFunc = reload;
 
-	if(mgl_is_frames(this))	EndFrame();
-	if(n>=0)	SetCurFig(0);
-	setlocale(LC_NUMERIC, loc.c_str());
+		if(mgl_is_frames(this))	EndFrame();
+		if(n>=0)	SetCurFig(0);
+		setlocale(LC_NUMERIC, loc.c_str());
+	}
+	else	LoadFunc = 0;
 }
 //-----------------------------------------------------------------------------
 const unsigned char *mglCanvasWnd::GetBits()
@@ -201,6 +208,12 @@ void MGL_EXPORT mgl_get_last_mouse_pos_(uintptr_t *gr, mreal *x, mreal *y, mreal
 	mglPoint p;	if(g)	p=g->GetMousePos();
 	*x=p.x;	*y=p.y;	*z=p.z;	}
 //-----------------------------------------------------------------------------
+#if MGL_HAVE_PTHR_WIDGET
+void MGL_EXPORT mgl_wnd_set_mutex(HMGL gr, pthread_mutex_t *mutex)
+{	mglCanvasWnd *g = dynamic_cast<mglCanvasWnd *>(gr);
+	if(g)	g->mutex = mutex;	}
+#endif
+//-----------------------------------------------------------------------------
 //
 //	mglDraw class handling
 //
@@ -229,18 +242,12 @@ int MGL_EXPORT mgl_draw_graph(HMGL gr, void *p)
 	return func ? func(&g) : 0;
 }
 //-----------------------------------------------------------------------------
-#if MGL_HAVE_PTHREAD
-MGL_NO_EXPORT void *mgl_draw_calc(void *p)
+MGL_EXPORT void *mgl_draw_calc(void *p)
 {
-	((mglDraw *)p)->Calc();	return 0;
-}
-//-----------------------------------------------------------------------------
-void MGL_EXPORT mgl_draw_thr(void *p)
-{
+#if MGL_HAVE_PTHR_WIDGET
 	mglDraw *d = (mglDraw *)p;
-	if(!d || d->running)	return;
-	pthread_create(&(d->thr),0,mgl_draw_calc,d);
-	pthread_detach(d->thr);
-}
+	d->Calc();	d->running = false;
 #endif
+	return 0;
+}
 //-----------------------------------------------------------------------------

@@ -624,12 +624,20 @@ static int gtkCanvasSetBgColorAttrib(Ihandle* ih, const char* value)
   }
   else
   {
-    /* disable automatic double buffering */
-    gtk_widget_set_double_buffered(ih->handle, FALSE);
-    gtk_widget_set_double_buffered(sb_win, FALSE);
+    /* disable automatic double buffering if not a container or an OpenGL canvas */
+    if (ih->iclass->childtype != IUP_CHILDNONE && !iupAttribGet(ih, "_IUP_GLCONTROLDATA"))
+    {
+      gtk_widget_set_double_buffered(ih->handle, TRUE);
+      gtk_widget_set_double_buffered(sb_win, TRUE);
+    }
+    else
+    {
+      gtk_widget_set_double_buffered(ih->handle, FALSE);
+      gtk_widget_set_double_buffered(sb_win, FALSE);
 #if !GTK_CHECK_VERSION(3, 0, 0)
-    gdk_window_set_back_pixmap(iupgtkGetWindow(ih->handle), NULL, FALSE);
+      gdk_window_set_back_pixmap(iupgtkGetWindow(ih->handle), NULL, FALSE);
 #endif
+    }
     iupAttribSet(ih, "_IUPGTK_NO_BGCOLOR", "1");
     return 1;
   }
@@ -677,7 +685,7 @@ static int gtkCanvasMapMethod(Ihandle* ih)
 #endif
 
   /* canvas is also a container */
-  /* use a window to be a full native containter */
+  /* use a window to be a full native container */
   ih->handle = iupgtkNativeContainerNew(1);  
 
 #if !GTK_CHECK_VERSION(3, 0, 0)
@@ -697,6 +705,9 @@ static int gtkCanvasMapMethod(Ihandle* ih)
   gtk_widget_show(sb_win);
 
   iupAttribSet(ih, "_IUP_EXTRAPARENT", (char*)sb_win);
+
+  /* the application intends to draw on the widget */
+  gtk_widget_set_app_paintable(ih->handle, TRUE);
 
   /* add to the parent, all GTK controls must call this. */
   iupgtkAddToParent(ih);

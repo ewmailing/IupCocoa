@@ -283,7 +283,7 @@ static int winMenuSetBgColorAttrib(Ihandle* ih, const char* value)
   return 1;
 }
 
-static int winMenuAddParentSubmenu(Ihandle* ih)
+static int winSubmenuAddToParent(Ihandle* ih)
 {
   int pos;
 
@@ -299,11 +299,14 @@ static int winMenuAddParentSubmenu(Ihandle* ih)
     menuiteminfo.cch = 0;
     menuiteminfo.wID = (UINT)ih->serial;
     menuiteminfo.dwItemData = (ULONG_PTR)ih; 
-    menuiteminfo.hSubMenu = (HMENU)ih->firstchild->handle;
+    menuiteminfo.hSubMenu = (HMENU)ih->firstchild->handle;  /* this is why the submenu is created only here with the child menu handle */
 
     if (!InsertMenuItem((HMENU)ih->parent->handle, pos, TRUE, &menuiteminfo))
       return IUP_ERROR;
   }
+
+  /* Notice that "handle" here is the HMENU of the parent menu,
+  and "serial" identifies the submenu */
 
   ih->handle = ih->parent->handle; /* gets the HMENU of the parent */
 
@@ -362,7 +365,7 @@ static int winMenuMapMethod(Ihandle* ih)
       if (!ih->handle)
         return IUP_ERROR;
 
-      if (winMenuAddParentSubmenu(ih->parent) == IUP_ERROR)
+      if (winSubmenuAddToParent(ih->parent) == IUP_ERROR)
       {
         DestroyMenu((HMENU)ih->handle);
         return IUP_ERROR;
@@ -415,7 +418,8 @@ static int winItemSetImageAttrib(Ihandle* ih, const char* value)
   HBITMAP hBitmapUnchecked, hBitmapChecked;
   char* impress;
 
-  if (ih->handle == (InativeHandle*)-1) /* check if submenu is actually created */
+  /* check if the submenu handle was created in winSubmenuAddToParent */
+  if (ih->handle == (InativeHandle*)-1) 
     return 1;
 
   hBitmapUnchecked = iupImageGetImage(value, ih, 0);
@@ -456,7 +460,8 @@ static int winItemSetTitleAttrib(Ihandle* ih, const char* value)
 {
   char *str;
 
-  if (ih->handle == (InativeHandle*)-1) /* check if submenu is actually created */
+  /* check if the submenu handle was created in winSubmenuAddToParent */
+  if (ih->handle == (InativeHandle*)-1)
     return 1;
 
   if (!value)
@@ -491,7 +496,8 @@ static int winItemSetTitleImageAttrib(Ihandle* ih, const char* value)
 {
   HBITMAP hBitmap;
 
-  if (ih->handle == (InativeHandle*)-1) /* check if submenu is actually created */
+  /* check if the submenu handle was created in winSubmenuAddToParent */
+  if (ih->handle == (InativeHandle*)-1)
     return 1;
 
   hBitmap = iupImageGetImage(value, ih, 0);
@@ -511,7 +517,8 @@ static int winItemSetTitleImageAttrib(Ihandle* ih, const char* value)
 
 static int winItemSetActiveAttrib(Ihandle* ih, const char* value)
 {
-  if (ih->handle == (InativeHandle*)-1) /* check if submenu is actually created */
+  /* check if the submenu handle was created in winSubmenuAddToParent */
+  if (ih->handle == (InativeHandle*)-1)
     return 1;
 
   if (iupStrBoolean(value))
@@ -526,7 +533,8 @@ static int winItemSetActiveAttrib(Ihandle* ih, const char* value)
 
 static char* winItemGetActiveAttrib(Ihandle* ih)
 {
-  if (ih->handle == (InativeHandle*)-1) /* check if submenu is actually created */
+  /* check if the submenu handle was created in winSubmenuAddToParent */
+  if (ih->handle == (InativeHandle*)-1)
     return NULL;
 
   return iupStrReturnBoolean(!(GetMenuState((HMENU)ih->handle, (UINT)ih->serial, MF_BYCOMMAND) & MF_GRAYED));
@@ -581,6 +589,9 @@ static int winItemMapMethod(Ihandle* ih)
       return IUP_ERROR;
   }
 
+  /* Notice that "handle" here is the HMENU of the parent menu,
+  and "serial" identifies the menu item */
+
   ih->handle = ih->parent->handle; /* gets the HMENU of the parent */
   winMenuUpdateBar(ih);
 
@@ -604,9 +615,9 @@ void iupdrvItemInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "IMAGE", NULL, winItemSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "IMPRESS", NULL, winItemSetImpressAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
-  /* Used by iupdrvImageCreateImage */
-  /* necessary because it uses an old HBITMAP solution */
-  iupClassRegisterAttribute(ic, "FLAT_ALPHA", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  /* necessary because transparent background does not work when not using visual styles */
+  if (!iupwin_comctl32ver6)  /* Used by iupdrvImageCreateImage */
+    iupClassRegisterAttribute(ic, "FLAT_ALPHA", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 }
 
 
@@ -618,6 +629,9 @@ static int winSubmenuMapMethod(Ihandle* ih)
   if (!ih->parent || !IsMenu((HMENU)ih->parent->handle))
     return IUP_ERROR;
 
+  /* will map as void here, but later when the "child" menu is mapped 
+     the submenu handle receives the "parent" menu handle in winSubmenuAddToParent,
+     because the submenu needs the child menu to be created in the native system. */
   return iupBaseTypeVoidMapMethod(ih);
 }
 
@@ -632,9 +646,9 @@ void iupdrvSubmenuInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "IMAGE", NULL, winItemSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "MENUBGCOLOR", IUPAF_DEFAULT);  /* used by IupImage */
 
-  /* Used by iupdrvImageCreateImage */
-  /* necessary because it uses an old HBITMAP solution */
-  iupClassRegisterAttribute(ic, "FLAT_ALPHA", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  /* necessary because transparent background does not work when not using visual styles */
+  if (!iupwin_comctl32ver6)  /* Used by iupdrvImageCreateImage */
+    iupClassRegisterAttribute(ic, "FLAT_ALPHA", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 }
 
 
@@ -662,6 +676,9 @@ static int winSeparatorMapMethod(Ihandle* ih)
     if (!InsertMenuItem((HMENU)ih->parent->handle, pos, TRUE, &menuiteminfo))
       return IUP_ERROR;
   }
+
+  /* Notice that "handle" here is the HMENU of the parent menu,
+  and "serial" identifies the menu separator */
 
   ih->handle = ih->parent->handle; /* gets the HMENU of the parent */
   winMenuUpdateBar(ih);

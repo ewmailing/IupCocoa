@@ -25,7 +25,7 @@
 
 typedef struct _ImotFont 
 {
-  char standardfont[1024];
+  char font[1024];
   char xlfd[1024];  /* X-Windows Font Description */
   XmFontList fontlist;  /* same as XmRenderTable */
   XFontStruct *fontstruct;
@@ -182,7 +182,7 @@ static int motFontCalcCharWidth(XFontStruct *fontstruct)
     return fontstruct->max_bounds.width;
 }
 
-static ImotFont* motFindFont(const char* foundry, const char *standardfont)
+static ImotFont* motFindFont(const char* foundry, const char *font)
 {
   char xlfd[1024];
   XFontStruct* fontstruct;
@@ -191,20 +191,20 @@ static ImotFont* motFindFont(const char* foundry, const char *standardfont)
 
   ImotFont* fonts = (ImotFont*)iupArrayGetData(mot_fonts);
 
-  /* Check if the standardfont already exists in cache */
+  /* Check if the font already exists in cache */
   for (i = 0; i < count; i++)
   {
-    if (iupStrEqualNoCase(standardfont, fonts[i].standardfont))
+    if (iupStrEqualNoCase(font, fonts[i].font))
       return &fonts[i];
   }
 
   /* not found, create a new one */
-  if (standardfont[0] == '-')
+  if (font[0] == '-')
   {
-    fontstruct = XLoadQueryFont(iupmot_display, standardfont);
+    fontstruct = XLoadQueryFont(iupmot_display, font);
     if (!fontstruct)
       return NULL;
-    strcpy(xlfd, standardfont);
+    strcpy(xlfd, font);
   }
   else
   {
@@ -214,7 +214,7 @@ static ImotFont* motFindFont(const char* foundry, const char *standardfont)
     char typeface[1024];
     const char* mapped_name;
 
-    if (!iupFontParsePango(standardfont, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+    if (!iupFontParsePango(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
       return NULL;
 
     /* Map standard names to native names */
@@ -230,7 +230,7 @@ static ImotFont* motFindFont(const char* foundry, const char *standardfont)
   /* create room in the array */
   fonts = (ImotFont*)iupArrayInc(mot_fonts);
 
-  strcpy(fonts[i].standardfont, standardfont);
+  strcpy(fonts[i].font, font);
   strcpy(fonts[i].xlfd, xlfd);
   fonts[i].fontstruct = fontstruct;
   fonts[i].fontlist = motFontCreateRenderTable(fontstruct, is_underline, is_strikeout);
@@ -263,11 +263,11 @@ char* iupmotFindFontList(XmFontList fontlist)
   int i, count = iupArrayCount(mot_fonts);
   ImotFont* fonts = (ImotFont*)iupArrayGetData(mot_fonts);
 
-  /* Check if the standardfont already exists in cache */
+  /* Check if the font already exists in cache */
   for (i = 0; i < count; i++)
   {
     if (fontlist == fonts[i].fontlist)
-      return fonts[i].standardfont;
+      return fonts[i].font;
   }
 
   return NULL;
@@ -277,24 +277,18 @@ XmFontList iupmotGetFontList(const char* foundry, const char* value)
 {
   ImotFont *motfont = motFindFont(foundry, value);
   if (!motfont) 
-  {
-    iupERROR1("Failed to create Font: %s", value); 
     return NULL;
-  }
-
-  return motfont->fontlist;
+  else
+    return motfont->fontlist;
 }
 
 XFontStruct* iupmotGetFontStruct(const char* value)
 {
   ImotFont *motfont = motFindFont(NULL, value);
   if (!motfont) 
-  {
-    iupERROR1("Failed to create Font: %s", value); 
     return NULL;
-  }
-
-  return motfont->fontstruct;
+  else
+    return motfont->fontstruct;
 }
 
 static ImotFont* motFontCreateNativeFont(Ihandle* ih, const char* value)
@@ -315,7 +309,11 @@ static ImotFont* motGetFont(Ihandle *ih)
 {
   ImotFont* motfont = (ImotFont*)iupAttribGet(ih, "_IUPMOT_FONT");
   if (!motfont)
-    motfont = motFontCreateNativeFont(ih, iupGetFontAttrib(ih));
+  {
+    motfont = motFontCreateNativeFont(ih, iupGetFontValue(ih));
+    if (!motfont)
+      motfont = motFontCreateNativeFont(ih, IupGetGlobal("DEFAULTFONT"));
+  }
   return motfont;
 }
 
@@ -346,7 +344,7 @@ char* iupmotGetFontIdAttrib(Ihandle *ih)
     return (char*)motfont->fontstruct->fid;
 }
 
-int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
 {
   ImotFont *motfont = motFontCreateNativeFont(ih, value);
   if (!motfont) 
@@ -378,9 +376,9 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 
   line_end = strchr(str, '\n');
   if (line_end)
-    len = line_end-str;
+    len = (int)(line_end-str);
   else
-    len = strlen(str);
+    len = (int)strlen(str);
 
   return XTextWidth(fontstruct, str, len);
 }

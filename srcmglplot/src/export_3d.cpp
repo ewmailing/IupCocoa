@@ -1,6 +1,6 @@
 /***************************************************************************
  * export_3d.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -575,7 +575,7 @@ std::string mglCanvas::GetJSON()
 			n3 = p.n3;	n4 = p.n4;
 		}
 		if(p.type==1 && n1>n2)	{	n1=p.n2;	n2=p.n1;	}
-		register long ps=p.s==p.s?long(100*factor*p.s):0, pw=p.w==p.w?long(100*p.w):0, pp=p.p==p.p?long(1e5*p.p+0.5):0;
+		register long ps=p.s==p.s?long(100*factor*p.s):0, pw=p.w==p.w?long(100*p.w):0, pp=p.p==p.p?mgl_int(1e5*p.p):0;
 		if(cp.r[3]==255 || p.type==0 || p.type==1 || p.type==4 || p.type==6)
 			buf = mgl_sprintf("[%d,%ld,%ld,%ld,%ld,%d,%ld,%ld,%ld,0,\"#%02x%02x%02x\"],\n",
 				p.type, n1, n2, n3, n4, p.id, ps,pw,pp, int(cp.r[0]),int(cp.r[1]),int(cp.r[2]));

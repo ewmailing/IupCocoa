@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <IUP>d:\tecgraf\iup</IUP>
+    <CD>d:\tecgraf\cd</CD>
+    <IM>d:\tecgraf\im</IM>
+    <FREETYPE>d:\tecgraf\freetype</FREETYPE>
+    <ZLIB>d:\tecgraf\zlib</ZLIB>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_PropertySheetDisplayName>Tecgraf vc12_64 Properties</_PropertySheetDisplayName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IUP)\include;$(IM)\include;$(CD)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>comctl32.lib;iup.lib;cd.lib;iupcd.lib;im.lib;freetype6.lib;zlib1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(IUP)\lib\vc12_64;$(CD)\lib\vc12_64;$(IM)\lib\vc12_64;$(FREETYPE)\lib\vc12_64;$(ZLIB)\lib\vc12_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>TEC_64</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="IUP">
+      <Value>$(IUP)</Value>
+    </BuildMacro>
+    <BuildMacro Include="CD">
+      <Value>$(CD)</Value>
+    </BuildMacro>
+    <BuildMacro Include="IM">
+      <Value>$(IM)</Value>
+    </BuildMacro>
+    <BuildMacro Include="FREETYPE">
+      <Value>$(FREETYPE)</Value>
+    </BuildMacro>
+    <BuildMacro Include="ZLIB">
+      <Value>$(ZLIB)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

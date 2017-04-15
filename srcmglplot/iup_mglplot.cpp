@@ -1712,7 +1712,7 @@ static void iMglPlotDrawPlot(Ihandle* ih, mglGraph *gr)
 
   iMglPlotConfigView(ih, gr);
 
-  iMglPlotConfigFontDef(ih, gr, iupGetFontAttrib(ih));
+  iMglPlotConfigFontDef(ih, gr, IupGetAttribute(ih, "FONT"));
 
   iMglPlotConfigAxesRange(ih, gr);
 
@@ -3792,15 +3792,6 @@ static char* iMglPlotGetAntialiasAttrib(Ihandle* ih)
   return iupStrReturnBoolean(glIsEnabled(GL_LINE_SMOOTH)==GL_TRUE);
 }
 
-static char* iMglPlotGetErrorMessageAttrib(Ihandle* ih)
-{
-  char* err = (char*)ih->data->mgl->Message();
-  if (err && err[0] != 0)
-    return err;
-  else
-    return NULL;
-}
-
 static char* iMglPlotGetMglGraphAttrib(Ihandle* ih)
 {
   return (char*)ih->data->mgl;
@@ -3832,7 +3823,7 @@ static int iMglPlotSetZoomAttrib(Ihandle* ih, const char* value)
 
 static char* iMglPlotGetZoomAttrib(Ihandle* ih)
 {
-  return iupStrReturnStrf(IUP_DOUBLE2STR":"IUP_DOUBLE2STR":"IUP_DOUBLE2STR":"IUP_DOUBLE2STR, ih->data->x1, ih->data->y1, ih->data->x2, ih->data->y2);
+  return iupStrReturnStrf(IUP_DOUBLE2STR ":" IUP_DOUBLE2STR ":" IUP_DOUBLE2STR ":" IUP_DOUBLE2STR, ih->data->x1, ih->data->y1, ih->data->x2, ih->data->y2);
 }
 
 static int iMglPlotSetRotateAttrib(Ihandle* ih, const char* value)
@@ -3853,7 +3844,25 @@ static int iMglPlotSetRotateAttrib(Ihandle* ih, const char* value)
 
 static char* iMglPlotGetRotateAttrib(Ihandle* ih)
 {
-  return iupStrReturnStrf(IUP_DOUBLE2STR":"IUP_DOUBLE2STR":"IUP_DOUBLE2STR, ih->data->rotX, ih->data->rotY, ih->data->rotZ);
+  return iupStrReturnStrf(IUP_DOUBLE2STR ":" IUP_DOUBLE2STR ":" IUP_DOUBLE2STR, ih->data->rotX, ih->data->rotY, ih->data->rotZ);
+}
+
+static char* iMglPlotGetErrorMessageAttrib(Ihandle* ih)
+{
+  char* err = (char*)ih->data->mgl->Message();
+  if (err && err[0] != 0)
+    return err;
+  else
+    return NULL;
+}
+
+static int iMglPlotSetSuppressWarningAttrib(Ihandle*, const char* value)
+{
+  if (iupStrBoolean(value))
+    mglGraph::SuppressWarn(true);
+  else
+    mglGraph::SuppressWarn(false);
+  return 0;
 }
 
 
@@ -3971,8 +3980,11 @@ int IupMglPlotEnd(Ihandle* ih)
     int count = iupArrayCount(inXData);
     IupMglPlotSet1D(ih, ds_index, (const char**)names, x, count);
 
-    for (j = 0; j<count; j++)
-      free(names[j]);
+    if (names)
+    {
+      for (j = 0; j < count; j++)
+        free(names[j]);
+    }
   }
   else if (dim==2)
   {
@@ -4959,6 +4971,8 @@ static Iclass* iMglPlotNewClass(void)
   iupClassRegisterAttribute(ic, "ANTIALIAS", iMglPlotGetAntialiasAttrib, iMglPlotSetAntialiasAttrib, IUPAF_SAMEASSYSTEM, "No", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "RESET", NULL, iMglPlotSetResetAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ERRORMESSAGE", iMglPlotGetErrorMessageAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SUPPRESSWARNING", NULL, iMglPlotSetSuppressWarningAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  
   iupClassRegisterAttribute(ic, "MGLGRAPH", iMglPlotGetMglGraphAttrib, NULL, NULL, NULL, IUPAF_NO_STRING | IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "MARGINLEFT", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
