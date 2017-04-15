@@ -159,6 +159,7 @@ static int file_open(void)
 	return IUP_DEFAULT;
 }
 
+/*
 char *iupKeyCodeToName(int code);
 
 static int k_any(Ihandle *ih, int c)
@@ -177,13 +178,14 @@ static int k_any(Ihandle *ih, int c)
 	}
 	return IUP_CONTINUE;
 }
-
+*/
 static int valuechanged_cb(Ihandle *ih)
 {
 	printf("VALUECHANGED_CB()=%s\n", IupGetAttribute(ih, "VALUE"));
 	return IUP_DEFAULT;
 }
 
+/*
 static int action(Ihandle *ih, int c, char* after)
 {
 	if (iup_isprint(c))
@@ -198,6 +200,7 @@ static int action(Ihandle *ih, int c, char* after)
 		return K_j;
 	return IUP_DEFAULT;
 }
+*/
 
 static int caret_cb(Ihandle *ih, int lin, int col, int pos)
 {
@@ -308,7 +311,7 @@ void TextTest(void)
 	IupSetCallback(mltline, "KILLFOCUS_CB", (Icallback)killfocus_cb);
 	IupSetCallback(mltline, "ENTERWINDOW_CB", (Icallback)enterwindow_cb);
 	IupSetCallback(mltline, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
-	IupSetCallback(mltline, "ACTION", (Icallback)action);
+//	IupSetCallback(mltline, "ACTION", (Icallback)action);
 	//  IupSetCallback(mltline, "VALUECHANGED_CB", (Icallback)valuechanged_cb);
 	//  IupSetCallback(mltline, "K_ANY", (Icallback)k_any);
 	IupSetCallback(mltline, "K_F2", (Icallback)k_f2);
