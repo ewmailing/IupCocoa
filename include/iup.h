@@ -278,7 +278,7 @@ IUP_EXPORT Ihandle*  IupSpinbox    (Ihandle* child);
 /************************************************************************/
 
 /* String compare utility */
-IUP_EXPORT nt IupStringCompare(const char* str1, const char* str2, int casesensitive, int lexicographic);
+IUP_EXPORT int IupStringCompare(const char* str1, const char* str2, int casesensitive, int lexicographic);
 
 /* IupImage utility */
 IUP_EXPORT int IupSaveImageAsText(Ihandle* ih, const char* file_name, const char* format, const char* name);
