@@ -219,6 +219,7 @@ void iupFocusPrevious(Ihandle *ih)
 
 /* local variables */
 static Ihandle* iup_current_focus = NULL;
+static Ihandle* iup_current_focus_dialog = NULL;
 
 Ihandle* IupGetFocus(void)
 {
@@ -228,6 +229,26 @@ Ihandle* IupGetFocus(void)
 void iupSetCurrentFocus(Ihandle *ih)
 {
   iup_current_focus = ih;
+
+  if (ih)
+  {
+    Ihandle* dialog = IupGetDialog(ih);
+    if (iup_current_focus_dialog != dialog)
+    {
+      IFni cb;
+
+      if (iupObjectCheck(iup_current_focus_dialog)) /* can be NULL at start or can be destroyed */
+      {
+        cb = (IFni)IupGetCallback(iup_current_focus_dialog, "FOCUS_CB");
+        if (cb) cb(iup_current_focus_dialog, 0);
+      }
+
+      iup_current_focus_dialog = dialog;
+
+      cb = (IFni)IupGetCallback(iup_current_focus_dialog, "FOCUS_CB");
+      if (cb) cb(iup_current_focus_dialog, 1);
+    }
+  }
 }
 
 Ihandle *IupSetFocus(Ihandle *ih)
@@ -276,7 +297,7 @@ void iupCallKillFocusCb(Ihandle *ih)
   cb = IupGetCallback(ih, "KILLFOCUS_CB");
   if (cb) cb(ih);
 
-  if (ih->iclass->nativetype == IUP_TYPECANVAS)
+  if (iupObjectCheck(ih) && ih->iclass->nativetype == IUP_TYPECANVAS)
   {
     IFni cb2 = (IFni)IupGetCallback(ih, "FOCUS_CB");
     if (cb2) cb2(ih, 0);

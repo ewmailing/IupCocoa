@@ -6,34 +6,8 @@ IupGauge
 IupCells 
 IupMatrix
 IupMatrixList
-IupMatSetAttribute  
-IupMatStoreAttribute
-IupMatGetAttribute  
-IupMatGetInt        
-IupMatGetFloat      
-IupMatSetfAttribute 
 
 IupControlsOpen
-IupControlsClose
-
-iupmaskSet     
-iupmaskSetInt  
-iupmaskSetFloat
-iupmaskCheck   
-iupmaskGet      
-iupmaskGetFloat 
-iupmaskGetDouble
-iupmaskGetInt   
-iupmaskMatSet   
-iupmaskMatSetInt
-iupmaskMatSetFloat
-iupmaskMatCheck   
-iupmaskMatGet      
-iupmaskMatGetFloat 
-iupmaskMatGetDouble
-iupmaskMatGetInt   
-iupmaskRemove
-iupmaskMatRemove
 
 iupMatrixExGetCellValue
 iupMatrixExSetCellValue

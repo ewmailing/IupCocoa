@@ -10,7 +10,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 #include <SciLexer.h>
 
@@ -43,7 +43,6 @@
 #endif
 
 #include "iupsci.h"
-
 
 #ifndef GTK
 #define WM_IUPCARET WM_APP+1   /* Custom IUP message */
@@ -118,17 +117,6 @@ static int iScintillaSetUsePopupAttrib(Ihandle* ih, const char* value)
   return 1;  /* there is no get */
 }
 
-static int iScintillaSetKeysUnicodeAttrib(Ihandle* ih, const char* value)
-{
-  IupScintillaSendMessage(ih, SCI_SETKEYSUNICODE, iupStrBoolean(value), 0);
-  return 0;
-}
-
-static char* iScintillaGetKeysUnicodeAttrib(Ihandle* ih)
-{
-  return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_GETKEYSUNICODE, 0, 0)); 
-}
-
 
 /***** NOTIFICATIONS *****/
 
@@ -152,7 +140,7 @@ static void iScintillaKeySetStatus(int state, char* status, int doubleclick)
     iupKEY_SETDOUBLE(status);
 }
 
-static void iScintillaNotify(Ihandle *ih, struct SCNotification* pMsg)
+static void iScintillaNotify(Ihandle *ih, struct Scintilla::SCNotification* pMsg)
 {
   int lin = IupScintillaSendMessage(ih, SCI_LINEFROMPOSITION, pMsg->position, 0);
   int col = IupScintillaSendMessage(ih, SCI_GETCOLUMN, pMsg->position, 0);
@@ -298,7 +286,7 @@ static void iScintillaCallCaretCb(Ihandle* ih)
 #ifdef GTK
 static void gtkScintillaNotify(GtkWidget *w, gint wp, gpointer lp, Ihandle *ih)
 {
-  struct SCNotification *pMsg =(struct SCNotification *)lp;
+  struct Scintilla::SCNotification *pMsg =(struct Scintilla::SCNotification *)lp;
 
   iScintillaNotify(ih, pMsg);
 
@@ -324,7 +312,7 @@ static gboolean gtkScintillaButtonEvent(GtkWidget *widget, GdkEventButton *evt, 
 
 static int winScintillaWmNotify(Ihandle* ih, NMHDR* msg_info, int *result)
 {
-  struct SCNotification *pMsg = (struct SCNotification*)msg_info;
+  struct Scintilla::SCNotification *pMsg = (struct Scintilla::SCNotification*)msg_info;
 
   iScintillaNotify(ih, pMsg);
 
@@ -634,7 +622,6 @@ static Iclass* iupScintillaNewClass(void)
   iupClassRegisterAttribute(ic, "MULTILINE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_READONLY|IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "USEPOPUP", NULL, iScintillaSetUsePopupAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "KEYSUNICODE", iScintillaGetKeysUnicodeAttrib, iScintillaSetKeysUnicodeAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
   return ic;
 }

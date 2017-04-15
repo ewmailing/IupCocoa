@@ -10,6 +10,12 @@
     <Filter Include="src_controls">
       <UniqueIdentifier>{5a160024-8c2a-443d-be65-6b80014f129f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="mac">
+      <UniqueIdentifier>{f3ce130e-353c-4213-8f23-2cb5187a20a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="unix">
+      <UniqueIdentifier>{50409b17-6bd1-4adf-8035-9baa9c491119}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\gtk\iupgtk_common.c">
@@ -107,6 +113,24 @@
     </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_draw.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupmac_help.c">
+      <Filter>mac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupmac_info.c">
+      <Filter>mac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mot\iupunix_info.c">
+      <Filter>unix</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_help.c">
+      <Filter>unix</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_calendar.c">
+      <Filter>src_controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\iup_datepick.c">
+      <Filter>src_controls</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

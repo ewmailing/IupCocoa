@@ -100,6 +100,7 @@ int iupwinButtonUp(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp);
 int iupwinButtonDown(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp);
 int iupwinMouseMove(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp);
 void iupwinTrackMouseLeave(Ihandle* ih);
+void iupwinRefreshCursor(Ihandle* ih);
 
 int iupwinListDND(Ihandle *ih, UINT uNotification, POINT pt);
 
@@ -145,6 +146,13 @@ int iupwinGetScreenRes(void);
 /* child window identifier of the first MDI child window created,
    should not conflict with any other command identifiers. */
 #define IUP_MDI_FIRSTCHILD 100000000
+
+#ifndef GET_X_LPARAM
+/* Do not use the LOWORD or HIWORD for coordinates, because of
+   incorrect results on systems with multiple monitors */
+#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
+#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
+#endif
 
 
 #ifdef __cplusplus

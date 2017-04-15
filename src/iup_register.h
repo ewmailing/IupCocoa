@@ -32,6 +32,10 @@ void iupRegisterClass(Iclass* ic);
 /* Register the internal classes. Called only from IupOpen. */
 void iupRegisterInternalClasses(void);
 
+/* Class ClassUpdate for all classes that have it */
+void iupRegisterUpdateClasses(void);
+
+
 /* Initializes the class registry. Called only from IupOpen. */
 void iupRegisterInit(void);
 void iupRegisterFinish(void);

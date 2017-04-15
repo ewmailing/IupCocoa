@@ -9,6 +9,7 @@ local ctrl = {
   funcname = "DetachBox",
   callback = {
     detached_cb = "inn",
+    restored_cb = "inn",
   }
 }
 

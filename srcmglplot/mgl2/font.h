@@ -1,6 +1,6 @@
 /***************************************************************************
  * font.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,7 +22,6 @@
 #define _MGL_FONT_H_
 
 #include "mgl2/define.h"
-#include <vector>
 //-----------------------------------------------------------------------------
 #define MGL_FONT_BOLD		0x01000000	// This value is used binary
 #define MGL_FONT_ITAL		0x02000000	// This value is used binary
@@ -50,12 +49,15 @@ struct mglGlyphDescr
 };
 inline bool operator<(const mglGlyphDescr &a,const mglGlyphDescr &b)	{	return a.id<b.id;	}
 inline bool operator>(const mglGlyphDescr &a,const mglGlyphDescr &b)	{	return a.id>b.id;	}
+#if defined(_MSC_VER)
+template class MGL_EXPORT std::vector<mglGlyphDescr>;
+#endif
 //-----------------------------------------------------------------------------
 struct MGL_EXPORT mglTeXsymb	{	unsigned kod;	const wchar_t *tex;	};
 const float mgl_fgen = 4*14;
 /// Get font color, style and align for internal parser
 bool MGL_EXPORT mglGetStyle(const char *how, int *font, int *align=0);
-long MGL_EXPORT_PURE mgl_internal_code(unsigned s, const std::vector<mglGlyphDescr> &glyphs);
+long MGL_EXPORT mgl_internal_code(unsigned s, const std::vector<mglGlyphDescr> &glyphs);
 class mglBase;
 //-----------------------------------------------------------------------------
 /// Class for font typeface and text plotting procedures
@@ -69,6 +71,10 @@ public:
 
 	/// Load font data to memory. Normally used by constructor.
 	bool Load(const char *base, const char *path=0);
+	/// Load binary font data to memory. Normally used by constructor.
+	bool LoadBin(const char *base, const char *path=0);
+	/// Save binary font data
+	size_t SaveBin(const char *fname);
 	/// Free memory
 	void Clear();
 	/// Copy data from other font
@@ -107,7 +113,7 @@ protected:
 	std::vector<mglGlyphDescr> glyphs;	///< information about know glyphs
 	float fact[4];	///< Divider for width of glyph
 	short *Buf;		///< Buffer for glyph descriptions
-	long numb;		///< Buffer size
+	size_t numb;		///< Buffer size
 
 	/// Print text string for font specified by integer constant
 	float Puts(const wchar_t *str,int font,int align, float c1,float c2) const;

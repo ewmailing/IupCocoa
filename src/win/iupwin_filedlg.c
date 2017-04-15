@@ -17,6 +17,7 @@
 #include "iup_str.h"
 #include "iup_dialog.h"
 #include "iup_drvinfo.h"
+#include "iup_key.h"
 
 #include "iupwin_drv.h"
 #include "iupwin_str.h"
@@ -97,6 +98,8 @@ static void winFileDlgGetFolder(Ihandle *ih)
   TCHAR filename[MAX_PATH];
   LPITEMIDLIST selecteditem;
 
+  /* if NOT set will NOT be Modal */
+  /* anyway it will be modal only relative to its parent */
   if (!parent)
     parent = GetActiveWindow();
 
@@ -107,6 +110,9 @@ static void winFileDlgGetFolder(Ihandle *ih)
   browseinfo.lParam = (LPARAM)ih;
   browseinfo.ulFlags = IupGetGlobal("_IUPWIN_COINIT_MULTITHREADED")? 0: BIF_NEWDIALOGSTYLE;
   browseinfo.hwndOwner = parent;
+
+  if (iupAttribGetBoolean(ih, "SHOWEDITBOX"))
+    browseinfo.ulFlags |= BIF_EDITBOX;
 
   selecteditem = SHBrowseForFolder(&browseinfo);
   if (!selecteditem)
@@ -292,29 +298,33 @@ static UINT_PTR CALLBACK winFileDlgSimpleHook(HWND hWnd, UINT uiMsg, WPARAM wPar
 
 static void winFileDlgSetPreviewCanvasPos(HWND hWnd, HWND hWndPreview)
 {
-  int height, width, ypos, xpos;
+  int height, width, y, x;
   RECT rect, dlgrect;
-  HWND hWndFileList = GetDlgItem(GetParent(hWnd), 0x0471);
-  HWND hWndFileCombo = GetDlgItem(GetParent(hWnd), 0x047C);
+  HWND hWndFileList = GetDlgItem(GetParent(hWnd), 0x0471);       /* path combo list with edit box (cmb2) */
+  HWND hWndFileCombo = GetDlgItem(GetParent(hWnd), 0x047C); /* file name combo list with edit box (cmb13) */
+
+  /* NOTE: it could be positioned only bellow the default controls */
 
   /* GetWindowRect return screen coordinates, must convert to parent's client coordinates */
   GetWindowRect(hWnd, &dlgrect);
 
   GetWindowRect(hWndPreview, &rect);
-  ypos = rect.top - dlgrect.top;   /* keep the same vertical position, at first time this is 0 */
-  height = rect.bottom-rect.top;   /* keep the same height */
+  y = rect.top - dlgrect.top;   /* at first time this is 0, else use system positioned value (not the same as RC) */
+  height = rect.bottom - rect.top; /* keep the same height */
+
+  if (y != 0) /* not first time */
+  {
+    /* position the child window that contains the template, must have room for the preview canvas */
+    SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, (dlgrect.right - dlgrect.left), (dlgrect.bottom - dlgrect.top), SWP_NOMOVE | SWP_NOZORDER);
+  }
 
   GetWindowRect(hWndFileList, &rect);
-  xpos = rect.left - dlgrect.left;   /* horizontally align with file list at left */
+  x = rect.left - dlgrect.left;   /* horizontally align with file list at left */
 
   GetWindowRect(hWndFileCombo, &rect);
-  width = (rect.right - dlgrect.left) - xpos;  /* set size to align with file combo at right */
+  width = (rect.right - dlgrect.left) - x;  /* set size to align with file combo at right */
 
-  /* also position the child window that contains the template, must have room for the preview canvas */
-  if (ypos) /* first time does nothing */
-    SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, (rect.right - dlgrect.left), (dlgrect.bottom - dlgrect.top), SWP_NOMOVE|SWP_NOZORDER);
-
-  SetWindowPos(hWndPreview, HWND_TOP, xpos, ypos, width, height, SWP_NOZORDER);
+  SetWindowPos(hWndPreview, HWND_TOP, x, y, width, height, SWP_NOZORDER);
 }
 
 static void winFileDlgUpdatePreviewGLCanvas(Ihandle* ih)
@@ -323,8 +333,137 @@ static void winFileDlgUpdatePreviewGLCanvas(Ihandle* ih)
   if (glcanvas)
   {
     iupAttribSet(glcanvas, "HWND", iupAttribGet(ih, "HWND"));
-    glcanvas->iclass->Map(glcanvas);
+    glcanvas->iclass->Map(glcanvas);  /* this will call Map only for the IupGLCanvas, NOT for the IupCanvas */
   }
+}
+
+static int winFileCheckPreviewCanvas(HWND hWnd, LPARAM lParam, int *x, int *y)
+{
+  HWND hWndPreview = GetDlgItem(hWnd, IUP_PREVIEWCANVAS);
+  POINT pt;
+  RECT rect;
+
+  pt.x = GET_X_LPARAM(lParam);
+  pt.y = GET_Y_LPARAM(lParam);
+  if (!MapWindowPoints(hWnd, hWndPreview, &pt, 1))
+  {
+    pt.x = 0;
+    pt.y = 0;
+    MapWindowPoints(hWndPreview, hWnd, &pt, 1);
+    pt.x = -pt.x;
+    pt.y = -pt.y;
+  }
+  *x = pt.x;
+  *y = pt.y;
+
+  GetClientRect(hWndPreview, &rect);
+  if (pt.x >= rect.left && pt.y >= rect.top &&
+      pt.x <= rect.right && pt.y <= rect.bottom)
+    return 1;
+  return 0;
+}
+
+static int iupwinButtonDownXY(Ihandle* ih, UINT msg, WPARAM wp, int x, int y)
+{
+  char status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+  int ret, doubleclick = 0;
+  int b = 0;
+
+  IFniiiis cb = (IFniiiis)IupGetCallback(ih, "BUTTON_CB");
+  if (!cb)
+    return 0;
+
+  if (msg == WM_XBUTTONDBLCLK ||
+      msg == WM_LBUTTONDBLCLK ||
+      msg == WM_MBUTTONDBLCLK ||
+      msg == WM_RBUTTONDBLCLK)
+      doubleclick = 1;
+
+  iupwinButtonKeySetStatus(LOWORD(wp), status, doubleclick);
+
+  if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK)
+    b = IUP_BUTTON1;
+  else if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK)
+    b = IUP_BUTTON2;
+  else if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK)
+    b = IUP_BUTTON3;
+  else if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK)
+  {
+    if (HIWORD(wp) == XBUTTON1)
+      b = IUP_BUTTON4;
+    else
+      b = IUP_BUTTON5;
+  }
+
+  ret = cb(ih, b, 1, x, y, status);
+  if (ret == IUP_CLOSE)
+    IupExitLoop();
+  else if (ret == IUP_IGNORE)
+    return -1;
+
+  return 1;
+}
+
+static int iupwinButtonUpXY(Ihandle* ih, UINT msg, WPARAM wp, int x, int y)
+{
+  char status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+  int ret, b = 0;
+  IFniiiis cb = (IFniiiis)IupGetCallback(ih, "BUTTON_CB");
+  if (!cb)
+    return 0;
+
+  iupwinButtonKeySetStatus(LOWORD(wp), status, 0);
+
+  /* also updates the button status, since wp could not have the flag */
+  if (msg == WM_LBUTTONUP)
+  {
+    b = IUP_BUTTON1;
+    iupKEY_SETBUTTON1(status);
+  }
+  else if (msg == WM_MBUTTONUP)
+  {
+    b = IUP_BUTTON2;
+    iupKEY_SETBUTTON2(status);
+  }
+  else if (msg == WM_RBUTTONUP)
+  {
+    b = IUP_BUTTON3;
+    iupKEY_SETBUTTON3(status);
+  }
+  else if (msg == WM_XBUTTONUP)
+  {
+    if (HIWORD(wp) == XBUTTON1)
+    {
+      b = IUP_BUTTON4;
+      iupKEY_SETBUTTON4(status);
+    }
+    else
+    {
+      b = IUP_BUTTON5;
+      iupKEY_SETBUTTON5(status);
+    }
+  }
+
+  ret = cb(ih, b, 0, x, y, status);
+  if (ret == IUP_CLOSE)
+    IupExitLoop();
+  else if (ret == IUP_IGNORE)
+    return -1;
+
+  return 1;
+}
+
+static int iupwinMouseMoveXY(Ihandle* ih, WPARAM wp, int x, int y)
+{
+  IFniis cb = (IFniis)IupGetCallback(ih, "MOTION_CB");
+  if (cb)
+  {
+    char status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+    iupwinButtonKeySetStatus(LOWORD(wp), status, 0);
+    cb(ih, x, y, status);
+    return 1;
+  }
+  return 0;
 }
 
 static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
@@ -370,6 +509,8 @@ static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wPa
         IFnss cb = (IFnss)IupGetCallback(ih, "FILE_CB");
         TCHAR filename[IUP_MAX_FILENAME_SIZE];
         iupAttribSet(ih, "PREVIEWDC", (char*)lpDrawItem->hDC);
+        iupAttribSet(ih, "HDC_WMPAINT", (char*)lpDrawItem->hDC);
+
         if (winFileDlgGetSelectedFile(ih, hWnd, filename))
         {
           if (winIsFile(filename))
@@ -380,6 +521,7 @@ static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wPa
         else
           cb(ih, NULL, "PAINT");
         iupAttribSet(ih, "PREVIEWDC", NULL);
+        iupAttribSet(ih, "HDC_WMPAINT", NULL);
       }
       break;
     }
@@ -395,6 +537,7 @@ static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wPa
 
         GetClientRect(hWndPreview, &rect);
         iupAttribSetInt(ih, "PREVIEWWIDTH", rect.right-rect.left);
+        iupAttribSetInt(ih, "PREVIEWHEIGHT", rect.bottom - rect.top);
 
         RedrawWindow(hWndPreview, NULL, NULL, RDW_INVALIDATE|RDW_UPDATENOW);
       }
@@ -408,6 +551,66 @@ static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wPa
       cb(ih, NULL, "FINISH");
       break;
     }
+  case WM_XBUTTONDBLCLK:
+  case WM_LBUTTONDBLCLK:
+  case WM_MBUTTONDBLCLK:
+  case WM_RBUTTONDBLCLK:
+  case WM_XBUTTONDOWN:
+  case WM_LBUTTONDOWN:
+  case WM_MBUTTONDOWN:
+  case WM_RBUTTONDOWN:
+  {
+    int x, y;
+    if (winFileCheckPreviewCanvas(hWnd, lParam, &x, &y))
+    {
+      Ihandle* ih = (Ihandle*)GetWindowLongPtr(hWnd, DWLP_USER);
+      iupwinButtonDownXY(ih, uiMsg, wParam, x, y);
+    }
+    break;
+  }
+  case WM_MOUSEMOVE:
+  {
+    int x, y;
+    Ihandle* ih = (Ihandle*)GetWindowLongPtr(hWnd, DWLP_USER);
+    winFileCheckPreviewCanvas(hWnd, lParam, &x, &y); /* allow outside window values */
+    iupwinMouseMoveXY(ih, wParam, x, y);
+    break;
+  }
+  case WM_MOUSEWHEEL:
+  {
+    Ihandle* ih = (Ihandle*)GetWindowLongPtr(hWnd, DWLP_USER);
+    IFnfiis cb = (IFnfiis)IupGetCallback(ih, "WHEEL_CB");
+    short delta = (short)HIWORD(wParam);
+    if (cb)
+    {
+      HWND hWndPreview = GetDlgItem(hWnd, IUP_PREVIEWCANVAS);
+      char status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+      POINT p;
+      p.x = GET_X_LPARAM(lParam);
+      p.y = GET_Y_LPARAM(lParam);
+
+      ScreenToClient(hWndPreview, &p); /* allow outside window values */
+
+      iupwinButtonKeySetStatus(LOWORD(wParam), status, 0);
+
+      cb(ih, (float)delta / 120.0f, p.x, p.y, status);
+    }
+
+    return 1;
+  }
+  case WM_XBUTTONUP:
+  case WM_LBUTTONUP:
+  case WM_MBUTTONUP:
+  case WM_RBUTTONUP:
+  {
+    int x, y;
+    if (winFileCheckPreviewCanvas(hWnd, lParam, &x, &y))
+    {
+      Ihandle* ih = (Ihandle*)GetWindowLongPtr(hWnd, DWLP_USER);
+      iupwinButtonUpXY(ih, uiMsg, wParam, x, y);
+    }
+    break;
+  }
   case WM_NOTIFY:
       return winFileDlgWmNotify(hWnd, (LPOFNOTIFY)lParam);
   }
@@ -462,9 +665,10 @@ static int winFileDlgPopup(Ihandle *ih, int x, int y)
     return IUP_NOERROR;
   }
 
+  /* if NOT set will NOT be Modal */
+  /* anyway it will be modal only relative to its parent */
   if (!parent)
-    parent = GetActiveWindow();  /* if NOT set will NOT be Modal */
-                                 /* anyway it will be modal only relative to its parent */
+    parent = GetActiveWindow();
 
   ZeroMemory(&openfilename, sizeof(OPENFILENAME));
   openfilename.lStructSize = sizeof(OPENFILENAME);
@@ -521,6 +725,9 @@ static int winFileDlgPopup(Ihandle *ih, int x, int y)
     openfilename.lpstrFile[0] = 0;
 
   openfilename.nMaxFile = IUP_MAX_FILENAME_SIZE;
+
+  /* only supports extensions with up to three characters, should NOT include the period */
+  openfilename.lpstrDefExt = iupwinStrToSystem(iupAttribGet(ih, "EXTDEFAULT"));
 
   initial_dir = iupStrDup(iupAttribGet(ih, "DIRECTORY"));
   openfilename.lpstrInitialDir = iupwinStrToSystemFilename(initial_dir);
@@ -579,26 +786,40 @@ static int winFileDlgPopup(Ihandle *ih, int x, int y)
   {
     if (iupAttribGetBoolean(ih, "MULTIPLEFILES"))
     {
-      int i = 0;
-
-      char* dir = iupwinStrFromSystemFilename(openfilename.lpstrFile);  /* already contains the directly */
-      iupAttribSetStr(ih, "DIRECTORY", dir);
-
       /* If there is more than one file, replace terminator by the separator */
       if (openfilename.lpstrFile[openfilename.nFileOffset-1] == 0 && 
           openfilename.nFileOffset>0) 
       {
+        int i = 0;
         int count = 0;
 
-        /* first the path */
-        iupAttribSetStrId(ih, "MULTIVALUE", count, iupAttribGet(ih, "DIRECTORY"));
+        char* dir = iupwinStrFromSystemFilename(openfilename.lpstrFile);  /* already is the directory, but without the last separator */
+
+        if (iupAttribGetBoolean(ih, "MULTIVALUEPATH"))
+          iupAttribSetStrf(ih, "VALUE", "%s|", dir);
+
+        iupAttribSetStrf(ih, "DIRECTORY", "%s\\", dir);  /* add the last separator */
+        dir = iupAttribGet(ih, "DIRECTORY");
+
+        iupAttribSetStrId(ih, "MULTIVALUE", 0, dir);  /* same as directory, includes last separator */
         count++;
 
         while (openfilename.lpstrFile[i] != 0 || openfilename.lpstrFile[i + 1] != 0)
         {
           if (openfilename.lpstrFile[i] == 0)
           {
-            iupAttribSetStrId(ih, "MULTIVALUE", count, iupwinStrFromSystemFilename(openfilename.lpstrFile + i + 1));
+            char* filename = iupwinStrFromSystemFilename(openfilename.lpstrFile + i + 1);
+            if (iupAttribGetBoolean(ih, "MULTIVALUEPATH"))
+            {
+              char* value = iupAttribGet(ih, "VALUE");
+              char nameid[100];
+              sprintf(nameid, "MULTIVALUE%d", count);
+              iupAttribSetStrf(ih, nameid, "%s%s", dir, filename);
+
+              iupAttribSetStrf(ih, "VALUE", "%s%s|", value, iupAttribGetId(ih, "MULTIVALUE", count));
+            }
+            else
+              iupAttribSetStrId(ih, "MULTIVALUE", count, filename);
             count++;
 
             openfilename.lpstrFile[i] = TEXT('|');
@@ -609,6 +830,30 @@ static int winFileDlgPopup(Ihandle *ih, int x, int y)
 
         iupAttribSetInt(ih, "MULTIVALUECOUNT", count);
         openfilename.lpstrFile[i] = TEXT('|');  /* one last at the end */
+
+        if (!iupAttribGetBoolean(ih, "MULTIVALUEPATH"))
+          iupAttribSetStr(ih, "VALUE", iupwinStrFromSystemFilename(openfilename.lpstrFile));  /* here file was already modified to match the IUP format */
+      }
+      else
+      {
+        /* if there is only one file selected the returned value is different 
+           and includes just that file */
+        char* filename = iupwinStrFromSystemFilename(openfilename.lpstrFile);
+        char* dir = iupStrFileGetPath(filename);
+        int dir_len = (int)strlen(dir);
+        iupAttribSetStr(ih, "DIRECTORY", dir);
+
+        iupAttribSetStrId(ih, "MULTIVALUE", 0, dir);  /* same as directory, includes last separator */
+
+        if (iupAttribGetBoolean(ih, "MULTIVALUEPATH"))
+          dir_len = 0;
+
+        iupAttribSetStrId(ih, "MULTIVALUE", 1, filename + dir_len);
+
+        iupAttribSetStr(ih, "VALUE", filename);  /* here value is not separated by '|' */
+
+        iupAttribSetInt(ih, "MULTIVALUECOUNT", 2);
+        free(dir);
       }
 
       iupAttribSet(ih, "STATUS", "0");
@@ -616,7 +861,8 @@ static int winFileDlgPopup(Ihandle *ih, int x, int y)
     }
     else
     {
-      char* dir = iupStrFileGetPath(iupwinStrFromSystemFilename(openfilename.lpstrFile));
+      char* filename = iupwinStrFromSystemFilename(openfilename.lpstrFile);
+      char* dir = iupStrFileGetPath(filename);
       iupAttribSetStr(ih, "DIRECTORY", dir);
       free(dir);
 
@@ -630,9 +876,10 @@ static int winFileDlgPopup(Ihandle *ih, int x, int y)
         iupAttribSet(ih, "FILEEXIST", "NO");
         iupAttribSet(ih, "STATUS", "1");
       }
+
+      iupAttribSetStr(ih, "VALUE", filename);
     }
 
-    iupAttribSetStr(ih, "VALUE", iupwinStrFromSystemFilename(openfilename.lpstrFile));
     iupAttribSetInt(ih, "FILTERUSED", (int)openfilename.nFilterIndex);
   }
   else
@@ -659,5 +906,4 @@ void iupdrvFileDlgInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "EXTFILTER", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTERINFO", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTERUSED", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "MULTIPLEFILES", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 }

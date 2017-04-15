@@ -40,6 +40,9 @@ void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu
 /* Returns the native parent. Can be PARENTDIALOG or NATIVEPARENT attributes. Parent must be mapped. */
 InativeHandle* iupDialogGetNativeParent(Ihandle* ih);
 
+/* Changes the parent dialog (works only if already set at map) */
+void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* native_parent);
+
 /* Updates the dialog initial position from internal attributes.
    Used mostly by the native pre-defined dialogs. */
 void iupDialogUpdatePosition(Ihandle* ih);

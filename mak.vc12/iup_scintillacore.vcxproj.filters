@@ -16,9 +16,6 @@
     <ClCompile Include="..\srcscintilla\iupsci_text.c" />
     <ClCompile Include="..\srcscintilla\iupsci_whitespace.c" />
     <ClCompile Include="..\srcscintilla\iupsci_wordwrap.c" />
-    <ClCompile Include="..\srcscintilla\lexlib\Accessor.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcscintilla\src\AutoComplete.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
@@ -29,9 +26,6 @@
       <Filter>Scintilla</Filter>
     </ClCompile>
     <ClCompile Include="..\srcscintilla\src\CellBuffer.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\CharacterSet.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
     <ClCompile Include="..\srcscintilla\src\CharClassify.cxx">
@@ -58,21 +52,6 @@
     <ClCompile Include="..\srcscintilla\src\KeyMap.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\LexerBase.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexers\LexErlang.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\LexerModule.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\LexerNoExceptions.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\LexerSimple.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcscintilla\src\LineMarker.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
@@ -80,9 +59,6 @@
       <Filter>Scintilla</Filter>
     </ClCompile>
     <ClCompile Include="..\srcscintilla\src\PositionCache.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\PropSetSimple.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
     <ClCompile Include="..\srcscintilla\src\RESearch.cxx">
@@ -100,25 +76,16 @@
     <ClCompile Include="..\srcscintilla\src\Style.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\StyleContext.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcscintilla\src\UniConversion.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
     <ClCompile Include="..\srcscintilla\src\ViewStyle.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexlib\WordList.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcscintilla\src\XPM.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
     <ClCompile Include="..\srcscintilla\iupsci_annotation.c" />
-    <ClCompile Include="..\srcscintilla\lexlib\CharacterCategory.cxx">
-      <Filter>Scintilla</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcscintilla\src\CaseConvert.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
@@ -295,9 +262,6 @@
     <ClCompile Include="..\srcscintilla\lexers\LexOScript.cxx">
       <Filter>Scintilla\Lexers</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcscintilla\lexers\LexOthers.cxx">
-      <Filter>Scintilla\Lexers</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcscintilla\lexers\LexPascal.cxx">
       <Filter>Scintilla\Lexers</Filter>
     </ClCompile>
@@ -424,12 +388,63 @@
     <ClCompile Include="..\srcscintilla\src\EditModel.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexProps.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexBatch.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexDiff.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexErrorList.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexMake.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexNull.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\Accessor.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\CharacterCategory.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\CharacterSet.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\WordList.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\StyleContext.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\LexerBase.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\LexerModule.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\LexerNoExceptions.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\LexerSimple.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexlib\PropSetSimple.cxx">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexErlang.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcscintilla\lexers\LexJSON.cxx">
+      <Filter>Scintilla\Lexers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\srcscintilla\src\Indicator.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\Accessor.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\AutoComplete.h">
@@ -442,9 +457,6 @@
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\CellBuffer.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\CharacterSet.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\CharClassify.h">
@@ -474,22 +486,7 @@
     <ClInclude Include="..\srcscintilla\src\KeyMap.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\LexerBase.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\LexerModule.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\LexerNoExceptions.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\LexerSimple.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
     <ClInclude Include="..\srcscintilla\src\LineMarker.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\OptionSet.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\Partitioning.h">
@@ -499,9 +496,6 @@
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\PositionCache.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\PropSetSimple.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\RESearch.h">
@@ -516,16 +510,10 @@
     <ClInclude Include="..\srcscintilla\src\Selection.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\SparseState.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
     <ClInclude Include="..\srcscintilla\src\SplitVector.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\Style.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\StyleContext.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\SVector.h">
@@ -537,20 +525,11 @@
     <ClInclude Include="..\srcscintilla\src\ViewStyle.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\WordList.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
     <ClInclude Include="..\srcscintilla\iupsci.h">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="..\include\iup_scintilla.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\CharacterCategory.h">
-      <Filter>Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\SubStyles.h">
-      <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\UnicodeFromUTF8.h">
       <Filter>Scintilla</Filter>
@@ -561,9 +540,6 @@
     <ClInclude Include="..\srcscintilla\src\CaseFolder.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
-    <ClInclude Include="..\srcscintilla\lexlib\LexAccessor.h">
-      <Filter>Scintilla\Lexers</Filter>
-    </ClInclude>
     <ClInclude Include="..\srcscintilla\src\EditModel.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
@@ -571,6 +547,72 @@
       <Filter>Scintilla</Filter>
     </ClInclude>
     <ClInclude Include="..\srcscintilla\src\MarginView.h">
+      <Filter>Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\include\Scintilla.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\include\ScintillaWidget.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\include\ILexer.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\include\Platform.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\include\Sci_Position.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\include\SciLexer.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\Accessor.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\CharacterCategory.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\CharacterSet.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\WordList.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\SubStyles.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\StyleContext.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\LexAccessor.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\LexerBase.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\LexerModule.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\LexerNoExceptions.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\LexerSimple.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\OptionSet.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\PropSetSimple.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\SparseState.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\lexlib\StringCopy.h">
+      <Filter>Scintilla\lexlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\src\Position.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
   </ItemGroup>
@@ -586,6 +628,12 @@
     </Filter>
     <Filter Include="Scintilla\Lexers">
       <UniqueIdentifier>{22b4f584-d6b0-48a7-82c2-f6791d592716}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scintilla\include">
+      <UniqueIdentifier>{624fb162-d878-4d1f-8bf8-2b8003b4b145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scintilla\lexlib">
+      <UniqueIdentifier>{64cf7d88-65f7-4c3e-8312-b75a2ecdc40c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

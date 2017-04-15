@@ -5,7 +5,7 @@
  */
  
 #include <lua.h>
-#include <lualib.h>
+#include <lauxlib.h>
 
 #include "iup.h"
 #include "iupcontrols.h"
@@ -24,20 +24,12 @@ int iupcontrolslua_open(lua_State * L)
 
   iupgaugelua_open(L);
   iupmatrixlua_open(L);
-  iupmasklua_open(L);
   iupdiallua_open(L);
   iupcolorbrowserlua_open(L);
   iupcellslua_open(L);
   iupcolorbarlua_open(L);
   iupmatrixlistlua_open(L);
 
-  return 0;
-}
-
-int iupcontrolslua_close(lua_State * L)
-{
-  if (iuplua_opencall_internal(L))
-    IupControlsClose();
   return 0;
 }
 

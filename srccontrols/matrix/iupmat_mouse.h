@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-int iupMatrixMouseButton_CB (Ihandle* ih, int b, int press, int x, int y, char* r);
-int iupMatrixMouseMove_CB   (Ihandle* ih, int x, int y);
+int iupMatrixMouseButton_CB(Ihandle* ih, int button, int press, int x, int y, char* status);
+int iupMatrixMouseMove_CB(Ihandle* ih, int x, int y, char *status);
 
 #ifdef __cplusplus
 }

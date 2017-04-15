@@ -18,7 +18,7 @@
 #include "iupwin_str.h"
 
 
-static void winMessageDlgHelpCallback(HELPINFO* HelpInfo)
+static void CALLBACK winMessageDlgHelpCallback(HELPINFO* HelpInfo)
 {
   Ihandle* ih = (Ihandle*)HelpInfo->dwContextId;
   Icallback cb = (Icallback)IupGetCallback(ih, "HELP_CB");
@@ -34,15 +34,15 @@ static void winMessageDlgHelpCallback(HELPINFO* HelpInfo)
 static int winMessageDlgPopup(Ihandle* ih, int x, int y)
 {
   InativeHandle* parent = iupDialogGetNativeParent(ih);
-  int result, num_but = 2;
+  MSGBOXPARAMS MsgBoxParams;
+  int result, button_def;
   DWORD dwStyle = MB_TASKMODAL;
   char *icon, *buttons;
   (void)x;
   (void)y;
 
-  /* if parent is used then it will be modal only relative to it */
-  /* if (!parent)
-       parent = GetActiveWindow(); */
+  /* MessageBox is the only Windows pre-defined dialog that has a modal control,
+     no need to force a parent dialog here. */
 
   icon = iupAttribGetStr(ih, "DIALOGTYPE");
   if (iupStrEqualNoCase(icon, "ERROR"))
@@ -57,48 +57,51 @@ static int winMessageDlgPopup(Ihandle* ih, int x, int y)
   buttons = iupAttribGetStr(ih, "BUTTONS");
   if (iupStrEqualNoCase(buttons, "OKCANCEL"))
     dwStyle |= MB_OKCANCEL;
+  else if (iupStrEqualNoCase(buttons, "RETRYCANCEL"))
+    dwStyle |= MB_RETRYCANCEL;
   else if (iupStrEqualNoCase(buttons, "YESNO"))
     dwStyle |= MB_YESNO;
+  else if (iupStrEqualNoCase(buttons, "YESNOCANCEL"))
+    dwStyle |= MB_YESNOCANCEL;
   else
-  {
     dwStyle |= MB_OK;
-    num_but = 1;
-  }
 
   if (IupGetCallback(ih, "HELP_CB"))
     dwStyle |= MB_HELP;
 
-  if (num_but == 2 && iupAttribGetInt(ih, "BUTTONDEFAULT") == 2)
+  button_def = iupAttribGetInt(ih, "BUTTONDEFAULT");
+  if (button_def == 3)
+    dwStyle |= MB_DEFBUTTON3;
+  else if (button_def == 2)
     dwStyle |= MB_DEFBUTTON2;
   else
     dwStyle |= MB_DEFBUTTON1;
 
-  {
-    MSGBOXPARAMS MsgBoxParams;
-    MsgBoxParams.cbSize = sizeof(MSGBOXPARAMS);
-    MsgBoxParams.hwndOwner = parent;
-    MsgBoxParams.hInstance = NULL;
-    MsgBoxParams.lpszText = iupwinStrToSystem(iupAttribGet(ih, "VALUE"));
-    MsgBoxParams.lpszCaption = iupwinStrToSystem(iupAttribGet(ih, "TITLE"));
-    MsgBoxParams.dwStyle = dwStyle;
-    MsgBoxParams.lpszIcon = NULL;
-    MsgBoxParams.dwContextHelpId = (DWORD_PTR)ih;
-    MsgBoxParams.lpfnMsgBoxCallback = (MSGBOXCALLBACK)winMessageDlgHelpCallback;
-    MsgBoxParams.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+  MsgBoxParams.cbSize = sizeof(MSGBOXPARAMS);
+  MsgBoxParams.hwndOwner = parent;
+  MsgBoxParams.hInstance = NULL;
+  MsgBoxParams.lpszText = iupwinStrToSystem(iupAttribGet(ih, "VALUE"));
+  MsgBoxParams.lpszCaption = iupwinStrToSystem(iupAttribGet(ih, "TITLE"));
+  MsgBoxParams.dwStyle = dwStyle;
+  MsgBoxParams.lpszIcon = NULL;
+  MsgBoxParams.dwContextHelpId = (DWORD_PTR)ih;
+  MsgBoxParams.lpfnMsgBoxCallback = (MSGBOXCALLBACK)winMessageDlgHelpCallback;
+  MsgBoxParams.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
 
-    result = MessageBoxIndirect(&MsgBoxParams);
-  }
+  result = MessageBoxIndirect(&MsgBoxParams);
 
-  if (result == 0)
+  if (result == 0)  /* memory error */
   {
     iupAttribSet(ih, "BUTTONRESPONSE", NULL);
     return IUP_ERROR;
   }
 
-  if (result == IDNO || result == IDCANCEL)
-    iupAttribSet(ih, "BUTTONRESPONSE", "2");
-  else
+  if (result == IDOK || result == IDYES || result == IDRETRY)
     iupAttribSet(ih, "BUTTONRESPONSE", "1");
+  else if (result == IDCANCEL && iupStrEqualNoCase(buttons, "YESNOCANCEL"))
+    iupAttribSet(ih, "BUTTONRESPONSE", "3");
+  else
+    iupAttribSet(ih, "BUTTONRESPONSE", "2");
 
   return IUP_NOERROR;
 }

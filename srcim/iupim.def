@@ -4,3 +4,6 @@ IupSaveImage
 IupGetNativeHandleImage
 IupGetImageNativeHandle
 IupImageFromImImage
+IupLoadAnimation
+IupLoadAnimationFrames
+

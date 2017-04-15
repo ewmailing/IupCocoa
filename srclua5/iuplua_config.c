@@ -1,5 +1,5 @@
 /** \file
- * \brief IupConfig bindig to Lua 5.
+ * \brief IupConfig binding to Lua 5.
  *
  * See Copyright Notice in "iup.h"
  */

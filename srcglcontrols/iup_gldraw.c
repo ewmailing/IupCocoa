@@ -233,6 +233,7 @@ void iupGLDrawSmallDisc(Ihandle* ih, int cx, int cy, int rd, const char* color, 
 void iupGLDrawBox(Ihandle* ih, int xmin, int xmax, int ymin, int ymax, const char* color, int active)
 {
   unsigned char r = 0, g = 0, b = 0, a = 255;
+  int smooth;
 
   if (!color || xmin == xmax || ymin == ymax)
     return;
@@ -247,9 +248,16 @@ void iupGLDrawBox(Ihandle* ih, int xmin, int xmax, int ymin, int ymax, const cha
   ymin = ih->currentheight - 1 - ymin;
   ymax = ih->currentheight - 1 - ymax;
 
-  glDisable(GL_POLYGON_SMOOTH);
-  glRecti(xmin, ymax, xmax + 1, ymin + 1);
-  glEnable(GL_POLYGON_SMOOTH);
+  /* must disable polygon smooth or fill may get diagonal lines */
+  smooth = glIsEnabled(GL_POLYGON_SMOOTH);
+  if (smooth) glDisable(GL_POLYGON_SMOOTH);
+  glBegin(GL_QUADS);
+  glVertex2i(xmin, ymin);
+  glVertex2i(xmax, ymin);
+  glVertex2i(xmax, ymax);
+  glVertex2i(xmin, ymax);
+  glEnd();
+  if (smooth) glEnable(GL_POLYGON_SMOOTH);
 }
 
 void iupGLDrawPolygon(Ihandle* ih, const int* points, int count, const char* color, int active)
@@ -431,7 +439,8 @@ static void iGLDrawImage(Ihandle* ih, int xmin, int xmax, int ymin, int ymax, Ih
     GLuint texture = iGLDrawGenTexture(ih, image, active);
     if (texture)
     {
-      glDisable(GL_POLYGON_SMOOTH);
+      int smooth = glIsEnabled(GL_POLYGON_SMOOTH);
+      if (smooth) glDisable(GL_POLYGON_SMOOTH);
       glEnable(GL_TEXTURE_2D);
 
       glBindTexture(GL_TEXTURE_2D, texture);
@@ -452,7 +461,7 @@ static void iGLDrawImage(Ihandle* ih, int xmin, int xmax, int ymin, int ymax, Ih
       glEnd();
 
       glDisable(GL_TEXTURE_2D);
-      glEnable(GL_POLYGON_SMOOTH);
+      if (smooth) glEnable(GL_POLYGON_SMOOTH);
     }
   }
   else
@@ -486,7 +495,7 @@ static void iGLDrawImage(Ihandle* ih, int xmin, int xmax, int ymin, int ymax, Ih
   }
 }
 
-void iupGLDrawImageZoom(Ihandle *ih, int xmin, int xmax, int ymin, int ymax, const char* baseattrib, const char* imagename, int active)
+void iupGLDrawIconImageZoom(Ihandle *ih, int xmin, int xmax, int ymin, int ymax, const char* baseattrib, const char* imagename, int active)
 {
   Ihandle* image;
 
@@ -498,14 +507,76 @@ void iupGLDrawImageZoom(Ihandle *ih, int xmin, int xmax, int ymin, int ymax, con
     iGLDrawImage(ih, xmin, xmax, ymin, ymax, image, active);
 }
 
-void iupGLDrawImage(Ihandle* ih, int x, int y, const char* baseattrib, const char* imagename, int active)
+void iupGLDrawIconImage(Ihandle* ih, int x, int y, const char* baseattrib, const char* imagename, int active)
 {
   Ihandle* image = iupGLIconGetImageHandle(ih, baseattrib, imagename, active);
   if (image)
     iGLDrawImage(ih, x, x + image->currentwidth - 1, y, y + image->currentheight - 1, image, active);
 }
 
-void iupGLDrawText(Ihandle* ih, int x, int y, const char* str, const char* color, int active)
+static void iGLDrawText(Ihandle* ih, const char* str, int max_len, int x, int y)
+{
+  int len, cur_len, lineheight, ascent, baseline;
+  const char *nextstr;
+  const char *curstr = str;
+  int underline = iupAttribGetInt(ih, "UNDERLINE");
+
+  iupGLFontGetDim(ih, NULL, &lineheight, &ascent, NULL);
+  baseline = lineheight - ascent;
+
+  /* y is at text baseline and oriented bottom to top in OpenGL */
+  y = y + lineheight - baseline;  /* move to baseline */
+
+  /* y is oriented top to bottom in IUP */
+  y = ih->currentheight - 1 - y;
+
+  if (underline)
+    glLineWidth(1.0f);
+
+  glPushMatrix();
+  glTranslated((double)x, (double)y, 0.0);
+
+  do
+  {
+    nextstr = iupStrNextLine(curstr, &len);
+    if (len)
+    {
+      if (max_len > 0)
+      {
+        if (nextstr)
+          cur_len = (int)(nextstr - str);
+        else
+          cur_len = (int)(curstr - str) + len;
+        if (cur_len > max_len)
+        {
+          len -= cur_len - max_len;
+          if (len < 0)
+            break;
+          nextstr = NULL;
+        }
+      }
+
+      iupGLFontRenderString(ih, curstr, len);
+
+      if (underline)
+      {
+        int width = iupGLFontGetStringWidth(ih, curstr, len);
+        glBegin(GL_LINES);
+        glVertex2i(0, -2);
+        glVertex2i(width - 1, -2);
+        glEnd();
+      }
+    }
+
+    glTranslated(0.0, (double)-lineheight, 0.0);
+
+    curstr = nextstr;
+  } while (*nextstr);
+
+  glPopMatrix();
+}
+
+void iupGLDrawMultilineText(Ihandle* ih, int x, int y, const char* str, const char* color, int active)
 {
   unsigned char r = 0, g = 0, b = 0, a = 255;
 
@@ -519,50 +590,48 @@ void iupGLDrawText(Ihandle* ih, int x, int y, const char* str, const char* color
   glColor4ub(r, g, b, a);
 
   if (str[0])
-  {
-    int len, lineheight, ascent, baseline;
-    const char *nextstr;
-    const char *curstr = str;
-    int underline = iupAttribGetInt(ih, "UNDERLINE");
-
-    iupGLFontGetDim(ih, NULL, &lineheight, &ascent, NULL);
-    baseline = lineheight - ascent;
-
-    /* y is at text baseline and oriented bottom to top in OpenGL */
-    y = y + lineheight - baseline;  /* move to baseline */
-
-    /* y is oriented top to bottom in IUP */
-    y = ih->currentheight - 1 - y;
-
-    if (underline)
-      glLineWidth(1.0f);
-
-    glPushMatrix();
-    glTranslated((double)x, (double)y, 0.0);
-
-    do
-    {
-      nextstr = iupStrNextLine(curstr, &len);
-      if (len)
-      {
-        iupGLFontRenderString(ih, curstr, len);
-
-        if (underline)
-        {
-          int width = iupGLFontGetStringWidth(ih, curstr, len);
-          glBegin(GL_LINES);
-          glVertex2i(0, -2);
-          glVertex2i(width - 1, -2);
-          glEnd();
-        }
-      }
-
-      glTranslated(0.0, (double)-lineheight, 0.0);
-
-      curstr = nextstr;
-    } while (*nextstr);
-
-    glPopMatrix();
-  }
+    iGLDrawText(ih, str, -1, x, y);
 }
 
+
+/***************************************************************/
+/* Utilities */
+
+void IupGLDrawImage(Ihandle* ih, const char* name, int x, int y, int active)
+{
+  iupASSERT(iupObjectCheck(ih));
+  if (!iupObjectCheck(ih))
+    return;
+
+  iupGLDrawIconImage(ih, x, y, NULL, name, active);
+}
+
+void IupGLDrawText(Ihandle* ih, const char* str, int len, int x, int y)
+{
+  iupASSERT(iupObjectCheck(ih));
+  if (!iupObjectCheck(ih))
+    return;
+
+  if (!str || str[0] == 0)
+    return;
+
+  iGLDrawText(ih, str, len, x, y);
+}
+
+void IupGLDrawGetTextSize(Ihandle* ih, const char* str, int *w, int *h)
+{
+  iupASSERT(iupObjectCheck(ih));
+  if (!iupObjectCheck(ih))
+    return;
+
+  iupGLFontGetMultiLineStringSize(ih, str, w, h);
+}
+
+void IupGLDrawGetImageInfo(const char* name, int *w, int *h, int *bpp)
+{
+  iupASSERT(name);
+  if (!name)
+    return;
+
+  iupGLImageGetInfo(name, w, h, bpp);
+}

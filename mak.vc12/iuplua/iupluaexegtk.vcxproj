@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{389DF3C9-A628-4F6D-8C52-8924FA01DE66}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" /> <Import Project="lua_version.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\bin\Debug\Lua$(LUASFX)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\bin\Debug_64\Lua$(LUASFX)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\obj\Debug\$(ProjectName)\Lua$(LUASFX)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\obj\Debug_64\$(ProjectName)\Lua$(LUASFX)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateManifest>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateManifest>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">iuplua$(LUASFX)gtk</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">iuplua$(LUASFX)gtk</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\include;..\..\srclua5;..\..\srcconsole\lh;..\..\..\lua$(LUA_SUFFIX)\include;..\..\..\cd\include;..\..\..\im\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;IUPLUA_IMGLIB;USE_STATIC;IUPLUA_USELH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0416</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>iupgtk.lib;comctl32.lib;gtk-win32-2.0.lib;gdk-win32-2.0.lib;gdk_pixbuf-2.0.lib;pangocairo-1.0.lib;pango-1.0.lib;cairo.lib;pangowin32-1.0.lib;gobject-2.0.lib;gmodule-2.0.lib;glib-2.0.lib;iupcontrols.lib;iupimglib.lib;iup_pplot.lib;iupgl.lib;cdgdk.lib;cdcairo.lib;iupcd.lib;freetype6.lib;zlib1.lib;lua$(LUA_SUFFIX).lib;iuplua$(LUASFX).lib;iupluaim$(LUASFX).lib;iupluaimglib$(LUASFX).lib;iupluagl$(LUASFX).lib;iupluacontrols$(LUASFX).lib;iuplua_pplot$(LUASFX).lib;iupim.lib;opengl32.lib;glu32.lib;gdiplus.lib;im.lib;cdlua$(LUASFX).lib;iupluacd$(LUASFX).lib;imlua$(LUASFX).lib;imlua_process$(LUASFX).lib;cdluaim$(LUASFX).lib;im_process.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)iuplua$(LUASFX)gtk.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\..\im\lib\Debug;..\..\..\cd\lib\Debug;..\..\lib\Debug;..\..\..\im\lib\Debug\Lua$(LUASFX);..\..\..\cd\lib\Debug\Lua$(LUASFX);..\..\lib\Debug\Lua$(LUASFX);..\..\..\lua$(LUA_SUFFIX)\lib\vc12;d:\lng\gtk2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\include;..\..\srclua5;..\..\srcconsole\lh;..\..\..\lua$(LUA_SUFFIX)\include;..\..\..\cd\include;..\..\..\im\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;IUPLUA_IMGLIB;USE_STATIC;IUPLUA_USELH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0416</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>iupgtk.lib;comctl32.lib;gtk-win32-2.0.lib;gdk-win32-2.0.lib;gdk_pixbuf-2.0.lib;pangocairo-1.0.lib;pango-1.0.lib;cairo.lib;pangowin32-1.0.lib;gobject-2.0.lib;gmodule-2.0.lib;glib-2.0.lib;iupcontrols.lib;iupimglib.lib;iup_pplot.lib;iupgl.lib;cdgdk.lib;cdcairo.lib;iupcd.lib;freetype6.lib;zlib1.lib;lua$(LUA_SUFFIX).lib;iuplua$(LUASFX).lib;iupluaim$(LUASFX).lib;iupluaimglib$(LUASFX).lib;iupluagl$(LUASFX).lib;iupluacontrols$(LUASFX).lib;iuplua_pplot$(LUASFX).lib;iupim.lib;opengl32.lib;glu32.lib;gdiplus.lib;im.lib;cdlua$(LUASFX).lib;iupluacd$(LUASFX).lib;imlua$(LUASFX).lib;imlua_process$(LUASFX).lib;cdluaim$(LUASFX).lib;im_process.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)iuplua$(LUASFX)gtk.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\..\im\lib\Debug_64;..\..\..\cd\lib\Debug_64;..\..\lib\Debug;..\..\..\im\lib\Debug_64\Lua$(LUASFX);..\..\..\cd\lib\Debug_64\Lua$(LUASFX);..\..\lib\Debug\Lua$(LUASFX);..\..\..\lua$(LUA_SUFFIX)\lib\vc12_64;d:\lng\gtk2_x64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\..\srcconsole\console5.lua" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\srcconsole\iup_lua$(LUASFX).c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\iupcd.vcxproj">
+      <Project>{be7472e1-e76e-4969-a35f-054614f5884e}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\iupcontrols.vcxproj">
+      <Project>{5eefe977-c56d-462f-bdee-12a5452eb8cc}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\iupcore.vcxproj">
+      <Project>{2c7e83b9-7fe8-432a-97ba-fcf4d0728408}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\iupgl.vcxproj">
+      <Project>{e251b4f4-0b0a-482b-ba18-2509adc4b6aa}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\iupgtk.vcxproj">
+      <Project>{2c7e83b9-7fe8-5555-97ba-fcf4d0728408}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\iupim.vcxproj">
+      <Project>{e251b4f4-0b0a-482b-ba18-1234adc4b6aa}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="iuplua.vcxproj">
+      <Project>{1ebc7a53-4677-4c3a-8d4a-49d301f17d85}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="iupluacontrols.vcxproj">
+      <Project>{1ebc7a53-4677-75d7-8d4a-49d301f17d85}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="iupluagl.vcxproj">
+      <Project>{1ebc7a53-4677-4c3a-8d4a-49d301157985}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="iupluaim.vcxproj">
+      <Project>{1ebc7a53-4677-adf1-8d4a-49d301f17d85}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="iuplua_pplot.vcxproj">
+      <Project>{1ebc7a53-4677-aaaa-1234-49d301f17d85}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\iup_pplot.vcxproj">
+      <Project>{5a42018b-95ac-a789-e4e4-59a692649dca}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

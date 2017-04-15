@@ -1,6 +1,6 @@
 /***************************************************************************
  * data_png.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -41,7 +41,7 @@ MGL_NO_EXPORT unsigned char *mgl_create_scheme(const char *scheme,long &num)
 	mglColor col;
 	for(size_t i=0;i<l;i++)
 	{
-		col = mglColor(scheme[i]);
+		col.Set(scheme[i]);
 		if(col.Valid())
 		{	cc[3*np]=255*col.r;	cc[3*np+1]=255*col.g;	cc[3*np+2]=255*col.b;	np++;	}
 	}

@@ -92,7 +92,7 @@ int IupMap(Ihandle* ih)
   if (ih->iclass->nativetype != IUP_TYPEVOID &&
       ih->iclass->nativetype != IUP_TYPEIMAGE &&
       ih->iclass->nativetype != IUP_TYPEMENU)
-    iupUpdateStandardFontAttrib(ih);
+    iupUpdateFontAttrib(ih);
 
   /* ensure attributes default values, at this time only the ones that need to be set after map */
   iupClassObjectEnsureDefaultAttributes(ih);

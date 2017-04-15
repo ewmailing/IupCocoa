@@ -8,6 +8,9 @@
     <ClCompile Include="..\srcscintilla\win32\ScintillaWin.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
+    <ClCompile Include="..\srcscintilla\win32\HanjaDic.cxx">
+      <Filter>Scintilla</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scintilla">
@@ -19,6 +22,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\srcscintilla\win32\PlatWin.h">
+      <Filter>Scintilla\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\srcscintilla\win32\HanjaDic.h">
       <Filter>Scintilla\inc</Filter>
     </ClInclude>
   </ItemGroup>

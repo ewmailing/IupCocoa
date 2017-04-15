@@ -479,13 +479,13 @@ static int iMatrixExSetNumericAddQuantityAttrib(Ihandle* ih, const char* value)
     {
       imatex_quantities[imatex_quantity_count].q_name = value;
       imatex_quantities[imatex_quantity_count].units_count = 0;
-      imatex_quantities[imatex_quantity_count].units = IMATEX_CUSTOM_UNITS[imatex_quantity_count];
+      imatex_quantities[imatex_quantity_count].units = IMATEX_CUSTOM_UNITS[imatex_quantity_count - IMATEX_QUANTITY_COUNT];
 
       imatex_last_addquantity = imatex_quantity_count;
       imatex_quantity_count++;
     }
     else
-      imatex_last_addquantity = -1;
+      imatex_last_addquantity = -1;  /* no space left, return invalid quantity */
   }
   else
   {
@@ -653,6 +653,22 @@ static int iMatrixExSetNumericQuantityAttrib(Ihandle* ih, int col, const char* v
   return 0;
 }
 
+static int iMatrixExCheckQuantity(int quantity)
+{
+  if (quantity < 0 || quantity >= imatex_quantity_count)
+    return 0;
+  else
+    return 1;
+}
+
+static int iMatrixExCheckUnit(int quantity, int unit)
+{
+  if (unit < 0 || unit >= imatex_quantities[quantity].units_count)
+    return 0;
+  else
+    return 1;
+}
+
 static char* iMatrixExGetNumericQuantityAttrib(Ihandle* ih, int col)
 {
   if (!IupGetAttributeId(ih, "NUMERICQUANTITYINDEX", col))
@@ -660,6 +676,9 @@ static char* iMatrixExGetNumericQuantityAttrib(Ihandle* ih, int col)
   else
   {
     int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
+    if (!iMatrixExCheckQuantity(quantity))
+      return NULL;
+
     return (char*)imatex_quantities[quantity].q_name;
   }
 }
@@ -668,7 +687,9 @@ static int iMatrixExSetNumericUnitAttrib(Ihandle* ih, int col, const char* value
 {
   int unit;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
+    return 0;
+  if (!iMatrixExCheckQuantity(quantity))
     return 0;
 
   unit = iMatrixFindUnit(imatex_quantities[quantity].units, imatex_quantities[quantity].units_count, value);
@@ -681,21 +702,27 @@ static int iMatrixExSetNumericUnitAttrib(Ihandle* ih, int col, const char* value
 
 static char* iMatrixExGetNumericUnitAttrib(Ihandle* ih, int col)
 {
+  int unit;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return NULL;
-  else
-  {
-    int unit = IupGetIntId(ih, "NUMERICUNITINDEX", col);
-    return iMatrixExReturnUnit(imatex_quantities[quantity].units[unit].u_name);
-  }
+  if (!iMatrixExCheckQuantity(quantity))
+    return NULL;
+
+  unit = IupGetIntId(ih, "NUMERICUNITINDEX", col);
+  if (!iMatrixExCheckUnit(quantity, unit))
+    return NULL;
+
+  return iMatrixExReturnUnit(imatex_quantities[quantity].units[unit].u_name);
 }
 
 static int iMatrixExSetNumericUnitShownAttrib(Ihandle* ih, int col, const char* value)
 {
   int unit;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
+    return 0;
+  if (!iMatrixExCheckQuantity(quantity))
     return 0;
 
   unit = iMatrixFindUnit(imatex_quantities[quantity].units, imatex_quantities[quantity].units_count, value);
@@ -708,23 +735,29 @@ static int iMatrixExSetNumericUnitShownAttrib(Ihandle* ih, int col, const char* 
 
 static char* iMatrixExGetNumericUnitShownAttrib(Ihandle* ih, int col)
 {
+  int unit;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return NULL;
-  else
-  {
-    int unit = IupGetIntId(ih, "NUMERICUNITSHOWNINDEX", col);
-    return iMatrixExReturnUnit(imatex_quantities[quantity].units[unit].u_name);
-  }
+  if (!iMatrixExCheckQuantity(quantity))
+    return NULL;
+
+  unit = IupGetIntId(ih, "NUMERICUNITSHOWNINDEX", col);
+  if (!iMatrixExCheckUnit(quantity, unit))
+    return NULL;
+
+  return iMatrixExReturnUnit(imatex_quantities[quantity].units[unit].u_name);
 }
 
 static int iMatrixExSetNumericUnitSymbolShownAttrib(Ihandle* ih, int col, const char* value)
 {
   int unit, utf8;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return 0;
-  
+  if (!iMatrixExCheckQuantity(quantity))
+    return 0;
+
   utf8 = IupGetInt(NULL, "UTF8MODE");
 
   unit = iMatrixFindUnitSymbol(imatex_quantities[quantity].units, imatex_quantities[quantity].units_count, value, utf8);
@@ -737,23 +770,29 @@ static int iMatrixExSetNumericUnitSymbolShownAttrib(Ihandle* ih, int col, const 
 
 static char* iMatrixExGetNumericUnitSymbolAttrib(Ihandle* ih, int col)
 {
+  int unit;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return NULL;
-  else
-  {
-    int unit = IupGetIntId(ih, "NUMERICUNITINDEX", col);
-    return iMatrixExReturnSymbol(&(imatex_quantities[quantity].units[unit]));
-  }
+  if (!iMatrixExCheckQuantity(quantity))
+    return NULL;
+
+  unit = IupGetIntId(ih, "NUMERICUNITINDEX", col);
+  if (!iMatrixExCheckUnit(quantity, unit))
+    return NULL;
+
+  return iMatrixExReturnSymbol(&(imatex_quantities[quantity].units[unit]));
 }
 
 static int iMatrixExSetNumericUnitSymbolAttrib(Ihandle* ih, int col, const char* value)
 {
   int unit, utf8;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return 0;
-  
+  if (!iMatrixExCheckQuantity(quantity))
+    return 0;
+
   utf8 = IupGetInt(NULL, "UTF8MODE");
 
   unit = iMatrixFindUnitSymbol(imatex_quantities[quantity].units, imatex_quantities[quantity].units_count, value, utf8);
@@ -766,23 +805,29 @@ static int iMatrixExSetNumericUnitSymbolAttrib(Ihandle* ih, int col, const char*
 
 static char* iMatrixExGetNumericUnitSymbolShownAttrib(Ihandle* ih, int col)
 {
+  int unit;
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return NULL;
-  else
-  {
-    int unit = IupGetIntId(ih, "NUMERICUNITSHOWNINDEX", col);
-    return iMatrixExReturnSymbol(&(imatex_quantities[quantity].units[unit]));
-  }
+  if (!iMatrixExCheckQuantity(quantity))
+    return NULL;
+
+  unit = IupGetIntId(ih, "NUMERICUNITSHOWNINDEX", col);
+  if (!iMatrixExCheckUnit(quantity, unit))
+    return NULL;
+
+  return iMatrixExReturnSymbol(&(imatex_quantities[quantity].units[unit]));
 }
 
 static char* iMatrixExGetNumericUnitCountAttrib(Ihandle* ih, int col)
 {
   int quantity = IupGetIntId(ih, "NUMERICQUANTITYINDEX", col);
-  if (!quantity)
+  if (quantity == 0) /* NULL or None */
     return NULL;
-  else
-    return iupStrReturnInt(imatex_quantities[quantity].units_count);
+  if (!iMatrixExCheckQuantity(quantity))
+    return NULL;
+
+  return iupStrReturnInt(imatex_quantities[quantity].units_count);
 }
 
 void iupMatrixExRegisterUnits(Iclass* ic)

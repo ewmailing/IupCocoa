@@ -4,14 +4,14 @@
 ------------------------------------------------------------------------------
 local ctrl = {
   nick = "user",
-  parent = iup.WIDGET,
+  parent = iup.BOX,
   subdir = "elem",
   creation = "",
   callback = {}
 }
 
 function ctrl.createElement(class, param)
-   return iup.User()
+  return iup.User()
 end
 
 iup.RegisterWidget(ctrl)

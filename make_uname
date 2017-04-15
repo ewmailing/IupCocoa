@@ -28,10 +28,6 @@ cd srcplot
 ./make_uname $1 $2 $3 $4 $5 $6 $7 $8
 cd ..
 
-cd srcpplot
-./make_uname $1 $2 $3 $4 $5 $6 $7 $8
-cd ..
-
 cd srcmglplot
 ./make_uname $1 $2 $3 $4 $5 $6 $7 $8
 cd ..
@@ -65,19 +61,24 @@ cd srcview
 cd ..
 
 cd srclua5
-./make_uname $1 $2 $3 $4 $5 $6 $7 $8
-#./make_uname USE_LUA51=Yes $1 $2 $3 $4 $5 $6 $7 $8
-#./make_uname USE_LUA52=Yes $1 $2 $3 $4 $5 $6 $7 $8
-#./make_uname USE_LUA53=Yes $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+./make_uname USE_LUA51=Yes $1 $2 $3 $4 $5 $6 $7 $8
+./make_uname USE_LUA52=Yes $1 $2 $3 $4 $5 $6 $7 $8
+./make_uname USE_LUA53=Yes $1 $2 $3 $4 $5 $6 $7 $8
 cd ..
 
 cd srcconsole
-./make_uname $1 $2 $3 $4 $5 $6 $7 $8
-#./make_uname USE_LUA51=Yes $1 $2 $3 $4 $5 $6 $7 $8
-#./make_uname USE_LUA52=Yes $1 $2 $3 $4 $5 $6 $7 $8
-#./make_uname USE_LUA53=Yes $1 $2 $3 $4 $5 $6 $7 $8
+#./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+./make_uname USE_LUA51=Yes $1 $2 $3 $4 $5 $6 $7 $8
+./make_uname USE_LUA52=Yes $1 $2 $3 $4 $5 $6 $7 $8
+./make_uname USE_LUA53=Yes $1 $2 $3 $4 $5 $6 $7 $8
 cd ..
 
-cd test
+cd html/examples/tests
 ./make_uname $1 $2 $3 $4 $5 $6 $7 $8
-cd ..
+cd ../../..
+
+cd html/examples/tutorial/simple_paint2
+./make_uname $1 $2 $3 $4 $5 $6 $7 $8
+cd ../../../..
+

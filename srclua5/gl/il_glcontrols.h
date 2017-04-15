@@ -20,9 +20,11 @@ int iupglframelua_open(lua_State * L);
 int iupgllinklua_open(lua_State * L);
 int iupglprogressbarlua_open(lua_State * L);
 int iupglseparatorlua_open(lua_State * L);
+int iupglsizeboxlua_open(lua_State * L);
 int iupgltogglelua_open(lua_State * L);
 int iupglvallua_open(lua_State * L); 
 int iupglscrollboxlua_open(lua_State * L); 
+int iupgltextlua_open(lua_State * L); 
 
 
 #ifdef __cplusplus

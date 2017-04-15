@@ -1,6 +1,6 @@
 /***************************************************************************
  * obj.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -32,8 +32,6 @@ void MGL_NO_EXPORT mgl_printf(void *fp, bool gz, const char *str, ...);
 #include <float.h>
 #include <math.h>
 
-#include <string>
-#include <vector>
 #include <deque>
 #include <map>
 #include <iostream>

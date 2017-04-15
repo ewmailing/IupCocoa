@@ -50,6 +50,10 @@ static int iZboxCreateMethod(Ihandle* ih, void** params)
 
 static void iZboxChildAddedMethod(Ihandle* ih, Ihandle* child)
 {
+  /* make sure it has at least one name */
+  if (!iupAttribGetHandleName(child))
+    iupAttribSetHandleName(child);
+
   if (!ih->data->value_handle)
   {
     IupSetAttribute(child, "VISIBLE", IupGetAttribute(ih, "VISIBLE"));
@@ -205,7 +209,7 @@ static char* iZboxGetValueAttrib(Ihandle* ih)
 
   for (pos=0, child = ih->firstchild; child; child = child->brother, pos++)
   {
-    if (child == ih->data->value_handle) /* found child, just cheking */
+    if (child == ih->data->value_handle) /* found child, just checking */
       return IupGetName(ih->data->value_handle);
   }
 
@@ -374,7 +378,7 @@ Iclass* iupZboxNewClass(void)
   iupClassRegisterAttribute(ic, "VALUEPOS", iZboxGetValuePosAttrib, iZboxSetValuePosAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "VALUE_HANDLE", iZboxGetValueHandleAttrib, iZboxSetValueHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT | IUPAF_IHANDLE | IUPAF_NO_STRING);
 
-  /* Intercept VISIBLE since ZBOX works by showing and hidding its children */
+  /* Intercept VISIBLE since ZBOX works by showing and hiding its children */
   iupClassRegisterAttribute(ic, "VISIBLE", NULL, iZboxSetVisibleAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
 
   return ic;

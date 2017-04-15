@@ -477,7 +477,7 @@ Iclass* iupWebBrowserNewClass(void)
     iweb_module = new CComModule();
 
     /* Initializing ATL Support */
-    iweb_module->Init(NULL, GetModuleHandle(NULL));
+    iweb_module->Init(NULL, (HINSTANCE)IupGetGlobal("HINSTANCE"));
   }
 
   return ic;

@@ -93,7 +93,7 @@ void** iupObjectGetParamList(void* first, va_list arglist)
     params[count] = param;
     count++;
 
-    /* verifica se precisa realocar memoria */
+    /* check if needs to allocate memory */
     if (count >= max_count)
     {
       void **new_params = NULL;

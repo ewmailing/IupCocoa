@@ -355,9 +355,9 @@ static void iMatrixListSetFocusItem(Ihandle* ih, ImatrixListData* mtxList, int l
   }
 
   if (mtxList->label_col)
-    IupSetfAttribute(ih, "FOCUS_CELL", "%d:%d", lin, mtxList->label_col);
+    IupSetfAttribute(ih, "FOCUSCELL", "%d:%d", lin, mtxList->label_col);
   else
-    IupSetfAttribute(ih, "FOCUS_CELL", "%d:1", lin);
+    IupSetfAttribute(ih, "FOCUSCELL", "%d:1", lin);
 }
 
 /******************************************************************************
@@ -954,7 +954,7 @@ static int iMatrixListDrawImageCol(Ihandle *ih, ImatrixListData* mtxList, int li
     image_name = iupAttribGetStr(ih, attrib_name);  /* this will check for the default values also */
   }
 
-  image = IupGetHandle(image_name);
+  image = iupImageGetHandle(image_name);
   if (image)
   {
     int width  = IupGetInt(image, "WIDTH");
@@ -1144,7 +1144,7 @@ static int iMatrixListRelease_CB(Ihandle *ih, int lin, int col, char *status)
   {
     /* click on IMAGEADD - start editing */
     iMatrixListSetFocusItem(ih, mtxList, lin);
-    IupSetAttribute(ih, "EDIT_MODE", "Yes");
+    IupSetAttribute(ih, "EDITMODE", "Yes");
   }
   else if (iMatrixListCheckDelete(ih))
   {
@@ -1241,7 +1241,7 @@ static int iMatrixListKeyAny_CB(Ihandle *ih, int key)
 {
   ImatrixListData* mtxList = (ImatrixListData*)iupAttribGet(ih, "_IUPMTXLIST_DATA");
 
-  if (IupGetInt(ih, "EDIT_MODE"))
+  if (IupGetInt(ih, "EDITMODE"))
     return IUP_CONTINUE;
 
   if (key == K_SP || key == K_sSP)
@@ -1303,7 +1303,7 @@ static int iMatrixListKeyAny_CB(Ihandle *ih, int key)
   {
     int lin = ih->data->lines.focus_cell;
     iMatrixListSetFocusItem(ih, mtxList, lin);  /* this will position focus at the right cell */
-    IupSetAttribute(ih, "EDIT_MODE", "Yes");
+    IupSetAttribute(ih, "EDITMODE", "Yes");
     return IUP_IGNORE;
   }
   else
@@ -1314,8 +1314,8 @@ static int iMatrixListKeyAny_CB(Ihandle *ih, int key)
       int lin = ih->data->lines.focus_cell;
       iMatrixListSetFocusItem(ih, mtxList, lin);  /* this will position focus at the right cell */
 
-      IupSetAttribute(ih, "EDIT_MODE", "Yes");
-      if (IupGetInt(ih, "EDIT_MODE"))
+      IupSetAttribute(ih, "EDITMODE", "Yes");
+      if (IupGetInt(ih, "EDITMODE"))
       {
         char value[2] = {0,0};
         value[0] = (char)key;

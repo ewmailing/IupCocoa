@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <vector>
 #include <set>
+#include <limits>
+#include <mgl2/define.h>
 
 /*
 	for use in s_hull_pro.cpp
@@ -137,7 +139,7 @@ long T_flip_pro( std::vector<Shx> &pts, std::vector<Triad> &triads, std::vector<
 long T_flip_pro_idx( std::vector<Shx> &pts, std::vector<Triad> &triads, std::vector<long> &slump, std::set<long> &ids);
 
 long read_Shx(std::vector<Shx> &pts, char * fname);
-long de_duplicate( std::vector<Shx> &pts,  std::vector<long> &outx );
+long de_duplicate( std::vector<Shx> &pts,  std::vector<long> &outx, Dupex epsilon = Dupex(std::numeric_limits<float>::epsilon(),std::numeric_limits<float>::epsilon()) );
 long de_duplicateX( std::vector<Shx> &pts, std::vector<long> &outx,std::vector<Shx> &pts2 );
 long  test_center(Shx &pt0, Shx &pt1,Shx &pt2);
 

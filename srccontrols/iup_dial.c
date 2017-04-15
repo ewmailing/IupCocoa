@@ -284,6 +284,8 @@ static void iDialRepaint(Ihandle* ih)
   if (!ih->data->cd_canvas)
     return;
 
+  cdCanvasActivate(ih->data->cd_canvas);
+
   /* update render */
   cdCanvasBackground(ih->data->cd_canvas, ih->data->bgcolor);
   cdCanvasClear(ih->data->cd_canvas);
@@ -291,6 +293,7 @@ static void iDialRepaint(Ihandle* ih)
 
   /* update display */
   cdCanvasFlush(ih->data->cd_canvas);
+
   if (ih->data->has_focus)
   {
     cdCanvas* cd_canvas_front = (cdCanvas*)IupGetAttribute(ih, "_CD_CANVAS");  /* front buffer canvas */
@@ -519,6 +522,7 @@ static int iDialRedraw_CB(Ihandle* ih)
 
   /* update display */
   cdCanvasFlush(ih->data->cd_canvas);
+
   if (ih->data->has_focus)
   {
     cdCanvas* cd_canvas_front = (cdCanvas*)IupGetAttribute(ih, "_CD_CANVAS");  /* front buffer canvas */

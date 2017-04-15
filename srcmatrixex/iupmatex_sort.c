@@ -245,20 +245,20 @@ static Ihandle* iMatrixExSortCreateDialog(ImatExData* matex_data)
   IupSetAttribute(options_box,"GAP","10");
 
   sort = IupButton("_@IUP_SORT", NULL);
-  IupSetAttribute(sort,"PADDING" ,"12x2");
+  IupSetStrAttribute(sort, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback(sort, "ACTION", (Icallback)iMatrixExSortDialogSort_CB);
 
   invert = IupButton("_@IUP_INVERT", NULL);
-  IupSetAttribute(invert,"PADDING" ,"12x2");
+  IupSetStrAttribute(invert, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback(invert, "ACTION", (Icallback)iMatrixExSortDialogInvert_CB);
   IupSetStrAttribute(invert,"TIP" ,"_@IUP_INVERT_TIP");
 
   reset = IupButton("_@IUP_RESET", NULL);
-  IupSetAttribute(reset,"PADDING" ,"12x2");
+  IupSetStrAttribute(reset, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback(reset, "ACTION", (Icallback)iMatrixExSortDialogReset_CB);
 
   close = IupButton("_@IUP_CLOSE", NULL);
-  IupSetAttribute(close,"PADDING" ,"12x2");
+  IupSetStrAttribute(close, "PADDING", IupGetGlobal("DEFAULTBUTTONPADDING"));
   IupSetCallback(close, "ACTION", (Icallback)iMatrixExSortDialogClose_CB);
 
   button_box = IupHbox(
@@ -321,7 +321,7 @@ void iupMatrixExSortShowDialog(ImatExData* matex_data)
 
   ih_matrix = IupGetDialogChild(dlg_sort, "INTERVAL");
 
-  col = IupGetInt2(matex_data->ih, "FOCUS_CELL");
+  col = IupGetInt2(matex_data->ih, "FOCUSCELL");
   IupSetIntId2(ih_matrix, "", 1, 1, col);
   num_lin = IupGetInt(matex_data->ih, "NUMLIN");
   lin1 = 1;
@@ -347,19 +347,16 @@ void iupMatrixExSortShowDialog(ImatExData* matex_data)
   IupDestroy(dlg_sort);
 }
 
-void iupMatrixExRegisterSort(Iclass* ic)
+void iupMatrixExSetClassUpdateSort(Iclass* ic)
 {
-  /* Defined in IupMatrix - Exported
-    SORTCOLUMN   (RESET, INVERT, lin1-lin2)
-    SORTCOLUMNORDER  (ASCENDING, DESCENDING)
-    SORTCOLUMNCASESENSITIVE (Yes, No) */
-  
+  (void)ic;
+
   if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "ENGLISH"))
   {
     IupSetLanguageString("IUP_SORTBYCOLUMN", "Sort Lines by Column");
     IupSetLanguageString("IUP_INVERT", "Invert");
     IupSetLanguageString("IUP_SORT", "Sort");
-    
+
     IupSetLanguageString("IUP_INVERT_TIP", "Just invert the current sort. New parameters are ignored.");
 
     IupSetLanguageString("IUP_ORDER", "Order");
@@ -377,7 +374,7 @@ void iupMatrixExRegisterSort(Iclass* ic)
     IupSetLanguageString("IUP_SORTBYCOLUMN", "Classificar Linhas por Coluna");
     IupSetLanguageString("IUP_INVERT", "Inverter");
     IupSetLanguageString("IUP_SORT", "Ordenar");
-    
+
     IupSetLanguageString("IUP_INVERT_TIP", "Apenas inverte a ordenaÁ„o corrente. Novos par‚metros s„o ignorados.");
 
     IupSetLanguageString("IUP_ORDER", "Ordem");
@@ -393,13 +390,21 @@ void iupMatrixExRegisterSort(Iclass* ic)
     if (IupGetInt(NULL, "UTF8MODE"))
     {
       /* When seeing this file assuming ISO8859-1 encoding, above will appear correct.
-         When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
+      When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
 
       IupSetLanguageString("IUP_INVERT_TIP", "Apenas inverte a ordena√ß√£o corrente. Novos par√¢metros s√£o ignorados.");
       IupSetLanguageString("IUP_CASESENSITIVE", "Diferenciar mai√∫sculas e min√∫sculas");
       IupSetLanguageString("IUP_LASTLINE", "√öltima Linha");
     }
   }
+}
+
+void iupMatrixExRegisterSort(Iclass* ic)
+{
+  /* Defined in IupMatrix - Exported
+    SORTCOLUMN   (RESET, INVERT, lin1-lin2)
+    SORTCOLUMNORDER  (ASCENDING, DESCENDING)
+    SORTCOLUMNCASESENSITIVE (Yes, No) */
 
   (void)ic;
 }

@@ -4,6 +4,7 @@ EXPORTS
   iuplua_plugstate
   iuplua_getstate
   iuplua_checkihandle
+  iuplua_isihandle
   iuplua_call
   iuplua_call_ret_s
   iuplua_call_ret_d
@@ -28,5 +29,7 @@ EXPORTS
   iuplua_checkihandleornil
   iuplua_call_start
   iuplua_register_cb
-  iuplua_getglobaltable
+  iuplua_register_lib
+  iuplua_register_funcs
+  iuplua_show_error_message
   

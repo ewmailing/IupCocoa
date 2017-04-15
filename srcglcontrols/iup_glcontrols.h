@@ -26,6 +26,7 @@ Iclass* iupGLFrameNewClass(void);
 Iclass* iupGLExpanderNewClass(void);
 Iclass* iupGLScrollBoxNewClass(void);
 Iclass* iupGLSizeBoxNewClass(void);
+Iclass* iupGLTextNewClass(void);
 
 
 #ifdef __cplusplus

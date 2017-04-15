@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <gtk/gtk.h>
@@ -171,7 +172,7 @@ char *iupdrvGetGlobal(const char *name)
     GdkWindow *root = gdk_screen_get_root_window(gdk_screen_get_default());
     int x = 0;
     int y = 0;
-    int w = gdk_screen_get_width(screen); 
+    int w = gdk_screen_get_width(screen);
     int h = gdk_screen_get_height(screen);
     gdk_window_get_root_origin(root, &x, &y);
     return iupStrReturnStrf("%d %d %d %d", x, y, w, h);
@@ -181,17 +182,23 @@ char *iupdrvGetGlobal(const char *name)
     int i;
     GdkScreen *screen = gdk_screen_get_default();
     int monitors_count = gdk_screen_get_n_monitors(screen);
-    char *str = iupStrGetMemory(monitors_count*50);
+    char *str = iupStrGetMemory(monitors_count * 50);
     char* pstr = str;
     GdkRectangle rect;
 
-    for (i=0; i < monitors_count; i++)
+    for (i = 0; i < monitors_count; i++)
     {
       gdk_screen_get_monitor_geometry(screen, i, &rect);
       pstr += sprintf(pstr, "%d %d %d %d\n", rect.x, rect.y, rect.width, rect.height);
     }
 
     return str;
+  }
+  if (iupStrEqual(name, "MONITORSCOUNT"))
+  {
+    GdkScreen *screen = gdk_screen_get_default();
+    int monitors_count = gdk_screen_get_n_monitors(screen);
+    return iupStrReturnInt(monitors_count);
   }
   if (iupStrEqual(name, "TRUECOLORCANVAS"))
   {
@@ -205,6 +212,22 @@ char *iupdrvGetGlobal(const char *name)
   {
     return iupStrReturnBoolean(!iupgtkStrGetUTF8Mode());
   }
+#ifndef WIN32
+  if (iupStrEqual(name, "EXEFILENAME"))
+  {
+    char* argv0 = IupGetGlobal("ARGV0");
+    if (argv0)
+    {
+      char* exefilename = realpath(argv0, NULL);
+      if (exefilename)
+      {
+        char* str = iupStrReturnStr(exefilename);
+        free(exefilename);
+        return str;
+      }
+    }
+  }
+#endif
   if (iupStrEqual(name, "SHOWMENUIMAGES"))
   {
     gboolean menu_images;

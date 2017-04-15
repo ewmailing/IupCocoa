@@ -59,8 +59,24 @@ static int LoadImage(lua_State *L)
 {
   const char *filename = luaL_checkstring(L, 1);
   Ihandle* image = IupLoadImage(filename);
-  iuplua_plugstate(L, image);
   iuplua_pushihandle(L, image);
+  return 1;
+}
+
+static int LoadAnimation(lua_State *L)
+{
+  const char *filename = luaL_checkstring(L, 1);
+  Ihandle* animation = IupLoadAnimation(filename);
+  iuplua_pushihandle(L, animation);
+  return 1;
+}
+
+static int LoadAnimationFrames(lua_State *L)
+{
+  int file_count = (int)luaL_checkinteger(L, 2);
+  char** filename_list = iuplua_checkstring_array(L, 1, file_count);
+  Ihandle* animation = IupLoadAnimationFrames(filename_list, file_count);
+  iuplua_pushihandle(L, animation);
   return 1;
 }
 
@@ -69,6 +85,8 @@ int iupimlua_open(lua_State *L)
   iuplua_get_env(L);
   iuplua_register(L, LoadImage, "LoadImage");
   iuplua_register(L, SaveImage, "SaveImage");
+  iuplua_register(L, LoadAnimation, "LoadAnimation");
+  iuplua_register(L, LoadAnimationFrames, "LoadAnimationFrames");
   iuplua_register(L, GetNativeHandleImage, "GetNativeHandleImage");
   iuplua_register(L, GetImageNativeHandle, "GetImageNativeHandle");
   iuplua_register(L, ImageFromImImage, "ImageFromImImage");

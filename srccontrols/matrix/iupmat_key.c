@@ -36,7 +36,7 @@ static void iMatrixKeyCheckMarkStart(Ihandle* ih, int c, int mark_key)
   if (c==mark_key && ih->data->mark_multiple && ih->data->mark_mode != IMAT_MARK_NO)
   {
     if (ih->data->mark_lin1==-1 && ih->data->mark_col1==-1)
-      iupMatrixMarkBlockBegin(ih, 0, ih->data->lines.focus_cell, ih->data->columns.focus_cell);
+      iupMatrixMarkBlockSet(ih, 0, ih->data->lines.focus_cell, ih->data->columns.focus_cell);
   }
 }
 
@@ -47,7 +47,7 @@ static void iMatrixKeyCheckMarkEnd(Ihandle* ih, int c, int mark_key)
     if (c==mark_key)
     {
       if (ih->data->mark_lin1!=-1 && ih->data->mark_col1!=-1)
-        iupMatrixMarkBlockEnd(ih, ih->data->lines.focus_cell, ih->data->columns.focus_cell);
+        iupMatrixMarkBlockInc(ih, ih->data->lines.focus_cell, ih->data->columns.focus_cell);
     }
     else
       iupMatrixMarkBlockReset(ih);
@@ -178,12 +178,16 @@ int iupMatrixProcessKeyPress(Ihandle* ih, int c)
       {
         if (iupMatrixEditShow(ih))
           return IUP_IGNORE; /* do not redraw */
+        else
+          return IUP_DEFAULT; /* allow the dialog to process defaultenter */
       }
       break;
 
     case K_ESC:
       if (!ih->data->edit_hide_onfocus && ih->data->editing)
         iupMatrixEditAbort(ih);
+      else
+        return IUP_DEFAULT; /* allow the dialog to process defaultesc */
       break;
 
     case K_sDEL:

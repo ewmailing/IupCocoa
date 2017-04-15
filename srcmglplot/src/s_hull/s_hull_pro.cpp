@@ -532,6 +532,10 @@ long s_hull_pro( std::vector<Shx> &pts, std::vector<Triad> &triads)
 
 			}
 
+	if (e1 < 0) {
+		// Cannot find visible point - it might be caused by numerical issues on some kind of datasets
+		return (-5);
+	}
 
 			// triangle pidx starts at e1 and ends at e2 (inclusive).
 			if( e2 < numh )
@@ -766,20 +770,31 @@ void circle_cent4(double r1,double c1, double r2,double c2, double r3,double c3,
 }
 
 
+namespace {
+
+/**
+ * Rounds the value given to the nearest multiple of the epsilon given
+ */
+double coarsen(const double value, const double epsilon) {
+	const double minimal_epsilon = std::numeric_limits<double>::epsilon() * value;
+	return (epsilon < minimal_epsilon) ? value : floor(value / epsilon + 0.5) * epsilon;
+}
+
+}
+
 /* test a set of points for duplicates.
 
    erase duplicate points, do not change point ids.
 
 */
 
-long de_duplicate( std::vector<Shx> &pts, std::vector<long> &outx ) {
-
+long de_duplicate( std::vector<Shx> &pts, std::vector<long> &outx, const Dupex epsilon ) {
 	long nump = (long) pts.size();
 	std::vector<Dupex> dpx;
 	Dupex d;
 	for( long k=0; k<nump; k++) {
-		d.r = pts[k].r;
-		d.c = pts[k].c;
+		d.r = coarsen(pts[k].r, epsilon.r);
+		d.c = coarsen(pts[k].c, epsilon.c);
 		d.id = k;
 		dpx.push_back(d);
 	}
