@@ -37,7 +37,9 @@ SET(IUP_TESTS_CUSTOM_TARGET_NAME "testsiup")
 ADD_CUSTOM_TARGET(${IUP_TESTS_CUSTOM_TARGET_NAME})
 
 IF(EMSCRIPTEN)
-	OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" OFF)
+	# Emscripten documentation says .so is better than .a, but also implies .bc may be best.
+	# TODO: Figure out how .bc fits into all of this.
+	OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" ON)
 ELSEIF(APPLE)
 	IF(IOS)
 		OPTION(WANTS_BUILD_SHARED_LIBRARY "Build dynamic library" OFF)
