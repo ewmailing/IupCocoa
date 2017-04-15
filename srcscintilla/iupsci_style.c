@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 
 #include "iup.h"
@@ -274,7 +274,7 @@ static int iScintillaSetWeightStyleAttrib(Ihandle* ih, int style, const char* va
       weight = 999;
   }
 
-  IupScintillaSendMessage(ih, SCI_STYLESETWEIGHT, style, 0);
+  IupScintillaSendMessage(ih, SCI_STYLESETWEIGHT, style, weight);
 
   return 0;
 }
@@ -431,10 +431,10 @@ static int iScintillaSetStylingAttrib(Ihandle* ih, int style, const char* value)
   return 0;
 }
 
-static int iScintillaSetStandardFontAttrib(Ihandle* ih, const char* value)
+static int iScintillaSetFontAttrib(Ihandle* ih, const char* value)
 {
   if (!ih->handle)
-    return iupdrvSetStandardFontAttrib(ih, value);
+    return iupdrvSetFontAttrib(ih, value);
   else
   {
     int size = 0;
@@ -457,7 +457,7 @@ static int iScintillaSetStandardFontAttrib(Ihandle* ih, const char* value)
     iScintillaSetItalicStyleAttrib(ih, 0, is_italic ? "Yes" : "No");
     iScintillaSetUnderlineStyleAttrib(ih, 0, is_underline ? "Yes" : "No");
 
-    return iupdrvSetStandardFontAttrib(ih, value);
+    return iupdrvSetFontAttrib(ih, value);
   }
 }
 
@@ -475,7 +475,7 @@ static int iScintillaSetBgColorAttrib(Ihandle *ih, const char *value)
 
 void iupScintillaRegisterStyle(Iclass* ic)
 {
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, iScintillaSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "FONT", NULL, iScintillaSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iScintillaSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);  
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iScintillaSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);  /* usually black */
 

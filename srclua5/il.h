@@ -43,6 +43,7 @@ int iupsplitlua_open (lua_State * L);
 int iupgclua_open (lua_State * L);
 int iupvallua_open (lua_State * L);
 int iuptabslua_open (lua_State * L);
+int iupflattabslua_open(lua_State * L);
 int iupfontdlglua_open(lua_State * L);
 int iupmessagedlglua_open(lua_State * L);
 int iupcolordlglua_open(lua_State * L);
@@ -58,9 +59,16 @@ int iupprogressdlglua_open(lua_State * L);
 int iupdetachboxlua_open(lua_State * L);
 int iupbackgroundboxlua_open(lua_State * L);
 int iupflatbuttonlua_open(lua_State * L);
+int iupflatframelua_open(lua_State * L);
+int iupanimatedlabellua_open(lua_State * L);
+int iupcalendarlua_open(lua_State * L);
+int iupdatepicklua_open(lua_State * L);
 
 void iupgetparamlua_open (lua_State * L);
 void iupconfiglua_open(lua_State * L);
+int iupparamlua_open(lua_State * L);
+int iupparamboxlua_open(lua_State * L);
+void iupluadraw_open(lua_State * L);
 
 int iupluaScanf(lua_State *L);
 void iupluaapi_open(lua_State * L);
@@ -68,33 +76,34 @@ void iupluaapi_open(lua_State * L);
 
             /*     Registration    */
 
-/** Gets the global enviroment "iup".
-    Used by secondary iuplua modules.
- */
+/** Gets the global environment iup.
+    Used by secondary iuplua modules. */
 void iuplua_get_env(lua_State *L);
 
 /** Returns true if IupOpen was called from inside the IupLua initialization function (iuplua_open).
- * All the other C intialization functions are called from the respective IupLua initialization functions.
- */
+ * All the other C initialization functions are called from the respective IupLua initialization functions. */
 int iuplua_opencall_internal(lua_State *L);
 
-/** Register a function.
- */
+/** Register a function. */
 void iuplua_register(lua_State *L, lua_CFunction func, const char* name);
 
-/** Register a string.
- */
+/** Register a string. */
 void iuplua_regstring(lua_State *L, const char* str, const char* name);
 
-/** Returns the global table name */
-const char* iuplua_getglobaltable(void);
+/* Register a library. */
+void iuplua_register_lib(lua_State *L, const luaL_Reg* funcs);
+
+/* Register several functions. */
+void iuplua_register_funcs(lua_State *L, const luaL_Reg* funcs);
+
 
 
           /*              Callbacks             */
 
 /** Stores the Lua State inside the IUP element,
- * so it can be retreived from inside a callback.
+ * so it can be retrieved from inside a callback.
  * Used in the creation of the element.
+ * Only called before iuplua_pushihandle_raw.
  */
 void iuplua_plugstate(lua_State *L, Ihandle *ih);
 

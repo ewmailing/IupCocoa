@@ -4,11 +4,7 @@ else
   TECMAKE_CMD = $(MAKE) --no-print-directory -f ../tecmake.mak
 endif
 
-.PHONY: do_all iupview iupviewgtk
-do_all: iupview
+.PHONY: do_all
 
-iupview:
+do_all:
 	@$(TECMAKE_CMD) 
-
-iupviewgtk:
-	@$(TECMAKE_CMD) USE_GTK=Yes

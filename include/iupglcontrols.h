@@ -30,6 +30,14 @@ Ihandle* IupGLFrame(Ihandle* child);
 Ihandle* IupGLExpander(Ihandle* child);
 Ihandle* IupGLScrollBox(Ihandle* child);
 Ihandle* IupGLSizeBox(Ihandle* child);
+Ihandle* IupGLText(void);
+
+
+/* Utilities */
+void IupGLDrawImage(Ihandle* ih, const char* name, int x, int y, int active);
+void IupGLDrawText(Ihandle* ih, const char* str, int len, int x, int y);
+void IupGLDrawGetTextSize(Ihandle* ih, const char* str, int *w, int *h);
+void IupGLDrawGetImageInfo(const char* name, int *w, int *h, int *bpp);
 
 
 #ifdef __cplusplus

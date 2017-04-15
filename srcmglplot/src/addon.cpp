@@ -1,6 +1,6 @@
 /***************************************************************************
  * addon.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include <stdarg.h>
 #ifdef WIN32
-#include <io.h>
 #include <direct.h>
 #else
 #include <unistd.h>
@@ -45,13 +44,13 @@ void MGL_EXPORT mgl_strcls(char *str)
 	delete []tmp;
 }
 //-----------------------------------------------------------------------------
-long MGL_EXPORT_PURE mgl_strpos(const char *str,char *fnd)
+long MGL_EXPORT mgl_strpos(const char *str,char *fnd)
 {
 	const char *p=strstr(str,fnd);
 	return p?p-str:-1L;
 }
 //-----------------------------------------------------------------------------
-long MGL_EXPORT_PURE mgl_chrpos(const char *str,char ch)
+long MGL_EXPORT mgl_chrpos(const char *str,char ch)
 {
 	const char *p=str?strchr(str,ch):0;
 	return p?p-str:-1L;
@@ -75,12 +74,12 @@ MGL_EXPORT char *mgl_fgetstr(FILE *fp)
 void MGL_EXPORT mgl_fgetpar(FILE *fp, const char *str, ...)
 {
 	if(!str || !str[0])	return;
-	long len=strlen(str);
+	const size_t len=strlen(str);
 	char *s, *t;
 	va_list lst;
 	va_start(lst,str);
 	t = mgl_fgetstr(fp);
-	for(long i=0;i<len;i++)
+	for(size_t i=0;i<len;i++)
 	{
 		if(str[i]=='%')
 		{
@@ -172,6 +171,7 @@ void MGL_EXPORT mgl_difr_grid_old(dual *a,int n,int step,dual q,int Border,dual 
 		memcpy(b,d,n*sizeof(dual));
 		switch(Border)
 		{
+			default:
 			case 0:		// zero at border
 				b[0] = 0;	b[n-1] = 0;		break;
 			case 1:		// constant at border

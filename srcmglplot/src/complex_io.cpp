@@ -1,6 +1,6 @@
 /***************************************************************************
  * data_io.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -34,7 +34,7 @@
 
 inline bool isn(char ch)	{return ch=='\n';}
 MGL_NO_EXPORT char *mgl_read_gz(gzFile fp);
-mglDataC MGL_NO_EXPORT mglFormulaCalcC(const char *str, const std::vector<mglDataA*> &head);
+HADT MGL_NO_EXPORT mglFormulaCalcC(const char *str, const std::vector<mglDataA*> &head);
 //-----------------------------------------------------------------------------
 HADT MGL_EXPORT mgl_create_datac()	{	return new mglDataC;	}
 HADT MGL_EXPORT mgl_create_datac_size(long nx, long ny, long nz){	return new mglDataC(nx,ny,nz);	}
@@ -236,41 +236,49 @@ void MGL_EXPORT mgl_datac_set_id_(uintptr_t *d, const char *eq,int l)
 {	char *s=new char[l+1];	memcpy(s,eq,l);	s[l]=0;
 	mgl_datac_set_id(_DC_, s);	delete []s;	}
 //-----------------------------------------------------------------------------
-void MGL_NO_EXPORT mgl_cprint(FILE *fp, mreal re, mreal im, char ch)
+std::string MGL_NO_EXPORT mgl_cprint(mreal re, mreal im, char ch)
 {
-	if(im>0)	fprintf(fp,"%g+i%g%c",re,im,ch);
-	else if(im<0)	fprintf(fp,"%g-i%g%c",re,-im,ch);
-	else	fprintf(fp,"%g%c",re,ch);
+	char buf[128];
+	if(im>0)	snprintf(buf,128,"%g+i%g%c",re,im,ch);
+	else if(im<0)	snprintf(buf,128,"%g-i%g%c",re,-im,ch);
+	else	snprintf(buf,128,"%g%c",re,ch);
+	return std::string(buf);
 }
-void MGL_EXPORT mgl_datac_save(HCDT d, const char *fname,long ns)
+std::string MGL_EXPORT mgl_datac_to_string(HCDT d, long ns)
 {
+	std::string out;
 	const mglDataC *dd = dynamic_cast<const mglDataC*>(d);
-	if(!dd)	{	mgl_data_save(d,fname,ns);	return;	}
-	FILE *fp = fopen(fname,"w");
-	if(!fp)	return;
+	if(!dd)	{	return	mgl_data_to_string(d,ns);	}
 	long nx=dd->nx, ny=dd->ny, nz=dd->nz;
 	const std::string loc = setlocale(LC_NUMERIC, NULL);	setlocale(LC_NUMERIC, "C");
 	if(ns<0 || (ns>=nz && nz>1))	for(long k=0;k<nz;k++)
 	{	// save whole data
 		for(long i=0;i<ny;i++)
 		{
-			for(long j=0;j<nx-1;j++)	mgl_cprint(fp, real(dd->a[j+nx*(i+ny*k)]), imag(dd->a[j+nx*(i+ny*k)]),'\t');
-			mgl_cprint(fp, real(dd->a[nx-1+nx*(i+ny*k)]), imag(dd->a[nx-1+nx*(i+ny*k)]),'\n');
+			for(long j=0;j<nx-1;j++)
+				out+=mgl_cprint(real(dd->a[j+nx*(i+ny*k)]), imag(dd->a[j+nx*(i+ny*k)]),'\t');
+			out+=mgl_cprint(real(dd->a[nx-1+nx*(i+ny*k)]), imag(dd->a[nx-1+nx*(i+ny*k)]),'\n');
 		}
-		fprintf(fp,"\n");
+		out += "\n";
 	}
 	else
 	{	// save selected slice
 		if(nz>1)	for(long i=0;i<ny;i++)
 		{
-			for(long j=0;j<nx-1;j++)	mgl_cprint(fp, real(dd->a[j+nx*(i+ny*ns)]), imag(dd->a[j+nx*(i+ny*ns)]),'\t');
-			mgl_cprint(fp, real(dd->a[nx-1+nx*(i+ny*ns)]), imag(dd->a[nx-1+nx*(i+ny*ns)]),'\n');
+			for(long j=0;j<nx-1;j++)
+				out+=mgl_cprint(real(dd->a[j+nx*(i+ny*ns)]), imag(dd->a[j+nx*(i+ny*ns)]),'\t');
+			out+=mgl_cprint(real(dd->a[nx-1+nx*(i+ny*ns)]), imag(dd->a[nx-1+nx*(i+ny*ns)]),'\n');
 		}
 		else if(ns<ny)	for(long j=0;j<nx;j++)
-			mgl_cprint(fp, real(dd->a[j+nx*ns]), imag(dd->a[j+nx*ns]),'\t');
+			out+=mgl_cprint(real(dd->a[j+nx*ns]), imag(dd->a[j+nx*ns]),'\t');
 	}
 	setlocale(LC_NUMERIC, loc.c_str());
-	fclose(fp);
+	return out;
+}
+void MGL_EXPORT mgl_datac_save(HCDT d, const char *fname,long ns)
+{
+	FILE *fp = fopen(fname,"w");
+	if(fp)	{	fprintf(fp,"%s",mgl_datac_to_string(d,ns).c_str());	fclose(fp);	}
 }
 void MGL_EXPORT mgl_datac_save_(uintptr_t *d, const char *fname,int *ns,int l)
 {	char *s=new char[l+1];	memcpy(s,fname,l);	s[l]=0;
@@ -607,7 +615,7 @@ MGL_NO_EXPORT void *mgl_cmodify(void *par)
 void MGL_EXPORT mgl_datac_modify(HADT d, const char *eq,long dim)
 {
 	long nx=d->nx, ny=d->ny, nz=d->nz, par[3]={nx,ny,nz};
-	if(dim<=0)	mgl_datac_modify_vw(d,eq,0,0);	// fastes variant for whole array
+	if(dim<=0)	mgl_datac_modify_vw(d,eq,0,0);	// fastest variant for whole array
 	mglFormulaC f(eq);
 	if(nz>1)	// 3D array
 	{
@@ -639,7 +647,7 @@ void MGL_EXPORT mgl_datac_modify_vw(HADT d, const char *eq,HCDT vdat,HCDT wdat)
 	list.push_back(&x);	list.push_back(&y);	list.push_back(&z);	list.push_back(d);
 	list.push_back(&v);	list.push_back(&w);	list.push_back(&r);
 	list.push_back(&i);	list.push_back(&j);	list.push_back(&k);
-	d->Set(mglFormulaCalcC(eq,list));	d->s = s;
+	d->Move(mglFormulaCalcC(eq,list));	d->s = s;
 }
 void MGL_EXPORT mgl_datac_modify_vw_(uintptr_t *d, const char *eq, uintptr_t *v, uintptr_t *w,int l)
 {	char *s=new char[l+1];	memcpy(s,eq,l);	s[l]=0;
@@ -779,6 +787,22 @@ HMDT MGL_EXPORT mgl_datac_imag(HCDT d)
 uintptr_t MGL_EXPORT mgl_datac_imag_(uintptr_t *d)
 {	return uintptr_t(mgl_datac_imag(_DC_));	}
 //-----------------------------------------------------------------------------
+HMDT MGL_EXPORT mgl_datac_norm(HCDT d)
+{
+	long nx=d->GetNx(),ny=d->GetNy(),nz=d->GetNz();
+	mglData *r=new mglData(nx,ny,nz);
+	const mglDataC *dd = dynamic_cast<const mglDataC*>(d);
+	if(dd)
+#pragma omp parallel for
+		for(long i=0;i<nx*ny*nz;i++)	r->a[i] = norm(dd->a[i]);
+	else
+#pragma omp parallel for
+		for(long i=0;i<nx*ny*nz;i++)	r->a[i] = mgl_ipow(d->vthr(i),2);
+	return r;
+}
+uintptr_t MGL_EXPORT mgl_datac_norm_(uintptr_t *d)
+{	return uintptr_t(mgl_datac_norm(_DC_));	}
+//-----------------------------------------------------------------------------
 HMDT MGL_EXPORT mgl_datac_abs(HCDT d)
 {
 	long nx=d->GetNx(),ny=d->GetNy(),nz=d->GetNz();
@@ -871,18 +895,36 @@ int MGL_EXPORT mgl_datac_read_hdf(HADT d,const char *fname,const char *data)
 	if(hd<0)	return false;
 	hs = H5Dget_space(hd);
 	rank = H5Sget_simple_extent_ndims(hs);
-	if(rank>0 && rank<=3)
+	if(rank>0 && rank<=4)
 	{
 		H5Sget_simple_extent_dims(hs,dims,0);
-		if(rank==2)			{	dims[2]=dims[0];	dims[0]=dims[1]=1;	}
-		else if(rank==3)	{	dims[2]=dims[1];	dims[1]=dims[0];	dims[0]=1;	}
-//		else if(rank>3)		continue;
-		mgl_datac_create(d,dims[2],dims[1],dims[0]);
+		if(dims[rank-1]==2)
+		{
+			if(rank==1)			{	dims[2]=dims[0]=dims[1]=1;	}
+			else if(rank==2)	{	dims[2]=dims[0];	dims[0]=dims[1]=1;	}
+			else if(rank==3)	{	dims[2]=dims[1];	dims[1]=dims[0];	dims[0]=1;	}
+			mgl_datac_create(d,dims[2],dims[1],dims[0]);
 #if MGL_USE_DOUBLE
-		H5Dread(hd, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, d->a);
+			H5Dread(hd, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, d->a);
 #else
-		H5Dread(hd, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, d->a);
+			H5Dread(hd, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, d->a);
 #endif
+		}
+		else if(rank<=3)
+		{
+			if(rank==1)			{	dims[2]=dims[0];	dims[0]=dims[1]=1;	}
+			else if(rank==2)	{	dims[2]=dims[1];	dims[1]=dims[0];	dims[0]=1;	}
+			mgl_datac_create(d,dims[2],dims[1],dims[0]);
+			long nn = dims[2]*dims[1]*dims[0];
+			mreal *a = new mreal[nn];
+#if MGL_USE_DOUBLE
+			H5Dread(hd, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, a);
+#else
+			H5Dread(hd, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, a);
+#endif
+			for(long i=0;i<nn;i++)	d->a[i] = a[i];
+			delete []a;
+		}
 	}
 	H5Sclose(hs);	H5Dclose(hd);	H5Fclose(hf);	return true;
 }
@@ -902,4 +944,15 @@ void MGL_EXPORT mgl_datac_save_hdf_(uintptr_t *d, const char *fname, const char 
 {	char *s=new char[l+1];		memcpy(s,fname,l);	s[l]=0;
 	char *t=new char[n+1];		memcpy(t,data,n);	t[n]=0;
 	mgl_datac_save_hdf(_DC_,s,t,*rewrite);	delete []s;	delete []t;	}
+//-----------------------------------------------------------------------------
+void MGL_EXPORT mgl_datac_limit(HADT d, mreal v)
+{
+	long n = d->GetNN();
+	dual *a = d->a;
+	#pragma omp parallel for
+	for(long i=0;i<n;i++)
+	{	mreal b = abs(a[i]);	if(b>v)	a[i] *= v/b;	}
+}
+void MGL_EXPORT mgl_datac_limit_(uintptr_t *d, mreal *v)
+{	mgl_datac_limit(_DC_, *v);	}
 //-----------------------------------------------------------------------------

@@ -5,7 +5,7 @@ local ctrl = {
   nick = "spinbox",
   parent = iup.BOX,
   subdir = "elem",
-  creation = "i",
+  creation = "I",
   callback = {
     spin_cb = "n",
   },

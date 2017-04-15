@@ -6,7 +6,7 @@
 
 #---------------------------------#
 # Tecmake Version
-VERSION = 4.13
+VERSION = 4.15
 
 
 #---------------------------------#
@@ -26,8 +26,8 @@ TECMAKE  = $(TECMAKE_HOME)/tecmakewin.mak
 # If tecmake.bat is not used,
 # then at least define main system variables.
 
-WIN32UNAMES = vc12 vc11 vc10 vc9 vc8 vc7 vc6 owc1 bc55 bc56 bc6 gcc3 gcc4 mingw3 mingw4 dllw4 dllg4 dll dll7 dll8 dll9 dll10 dll11 dll12
-WIN64UNAMES = vc12_64 vc11_64 vc10_64 vc9_64 vc8_64 dll8_64 dll9_64 dll10_64 dll11_64 dll12_64 gcc4_64 mingw4_64 dllw4_64 dllg4_64
+WIN32UNAMES = vc14 vc12 vc11 vc10 vc9 vc8 vc7 vc6 owc1 bc55 bc56 bc6 gcc3 gcc4 mingw3 mingw4 dllw4 dllg4 dll dll7 dll8 dll9 dll10 dll11 dll12 dll14
+WIN64UNAMES = vc14_64 vc12_64 vc11_64 vc10_64 vc9_64 vc8_64 dll8_64 dll9_64 dll10_64 dll11_64 dll12_64 dll14_64 gcc4_64 mingw4_64 dllw4_64 dllg4_64
 
 ifdef TEC_UNAME
   ifneq ($(findstring $(TEC_UNAME), $(WIN32UNAMES)), )
@@ -125,6 +125,8 @@ LIB =
 
 #---------------------------------#
 # User Configuration File
+# Everything before this point can be overwritten
+# in the configuration file
 
 MAKENAME = config.mak
 
@@ -256,9 +258,13 @@ ifeq ($(MAKETYPE), APP)
 else
   TEC_UNAME_DIR ?= $(TEC_UNAME)
 endif
+TEC_UNAME_LIB_DIR ?= $(TEC_UNAME)
 
 ifdef DBG
   OPT:=
+  ifdef DBG_LIB_DIR
+    TEC_UNAME_LIB_DIR := $(TEC_UNAME_LIB_DIR)d
+  endif
   ifdef DBG_DIR
     TEC_UNAME_DIR := $(TEC_UNAME_DIR)d
   endif
@@ -266,30 +272,36 @@ endif
 
 # Suffix for Lua modules
 ifdef USE_LUA
-  LIBLUASFX := 3
+  LIBLUA_SFX := 3
 endif
 ifdef USE_LUA4
-  LIBLUASFX := 4
+  LIBLUA_SFX := 4
 endif
 ifdef USE_LUA5
-  LIBLUASFX := 5
+  LIBLUA_SFX := 5
 endif
 ifdef USE_LUA50
-  LIBLUASFX := 5
+  LIBLUA_SFX := 5
 endif
 ifdef USE_LUA51
-  LIBLUASFX := 51
+  LIBLUA_SFX := 51
 endif
 ifdef USE_LUA52
-  LIBLUASFX := 52
+  LIBLUA_SFX := 52
 endif
 ifdef USE_LUA53
-  LIBLUASFX := 53
+  LIBLUA_SFX := 53
+endif
+
+ifdef USE_OLDLIBLUA
+  TEC_UNAME_LIBLUA_DIR ?= $(TEC_UNAME_LIB_DIR)
+else
+  TEC_UNAME_LIBLUA_DIR ?= $(TEC_UNAME_LIB_DIR)/Lua$(LIBLUA_SFX)
 endif
 
 # Subfolder for Lua Modules
 ifdef LUAMOD_DIR
-  TEC_UNAME_DIR := $(TEC_UNAME_DIR)/Lua$(LIBLUASFX)
+  TEC_UNAME_DIR := $(TEC_UNAME_DIR)/Lua$(LIBLUA_SFX)
 endif
 
 OBJDIR := $(OBJROOT)/$(TEC_UNAME_DIR)
@@ -329,6 +341,7 @@ VC9 ?= x:/lng/vc9
 VC10 ?= x:/lng/vc10
 VC11 ?= x:/lng/vc11
 VC12 ?= x:/lng/vc12
+VC14 ?= x:/lng/vc14
 OWC1 ?= x:/lng/owc1
 BC55 ?= x:/lng/bc55
 BC56 ?= x:/lng/cbuilderx
@@ -349,6 +362,10 @@ ifdef USE_GTK3
 else
   GTKSFX:=2
   GTK ?= x:/lng/gtk
+endif
+
+ifdef USE_IUPWEB
+  override USE_ATL = Yes
 endif
 
 GLUT ?= x:/lng/glut
@@ -401,6 +418,10 @@ ifneq ($(findstring vc12, $(TEC_UNAME)), )
   COMPILER = $(VC12)
 endif
 
+ifneq ($(findstring vc14, $(TEC_UNAME)), )
+  COMPILER = $(VC14)
+endif
+
 ifeq "$(TEC_UNAME)" "dll"
   COMPILER = $(VC6)
 endif
@@ -437,6 +458,10 @@ endif
 
 ifneq ($(findstring dll12, $(TEC_UNAME)), )
   COMPILER = $(VC12)
+endif
+
+ifneq ($(findstring dll14, $(TEC_UNAME)), )
+  COMPILER = $(VC14)
 endif
 
 ifeq "$(COMPILER)" "$(VC6)"
@@ -492,9 +517,7 @@ ifeq "$(COMPILER)" "$(VC10)"
   NEW_VC_COMPILER = Yes
   TEC_CC = vc
   STDDEFS += -DMSVC10
-  ifdef USE_DLL
-#    GEN_MANIFEST ?= Yes
-  else
+  ifndef USE_DLL
     #there is no single thread RTL in VC10
     USE_MT = Yes
   endif
@@ -513,12 +536,9 @@ endif
 ifeq "$(COMPILER)" "$(VC11)"
   NEW_VC_COMPILER = Yes
   NEW_SDK_UM = Yes
-  UMDIR := /win8/um
   TEC_CC = vc
   STDDEFS += -DMSVC11
-  ifdef USE_DLL
-#    GEN_MANIFEST ?= Yes
-  else
+  ifndef USE_DLL
     #there is no single thread RTL in VC11
     USE_MT = Yes
   endif
@@ -529,21 +549,22 @@ ifeq "$(COMPILER)" "$(VC11)"
     PLATSDK ?= $(VC11)/WinSDK
   endif
   ifdef BUILD64
-    RESBIN := $(PLATSDK)/bin/x64
+    SDKLIBBIN := x64
   else
-    RESBIN := $(PLATSDK)/bin/x86
+    SDKLIBBIN := x86
   endif
+  RESBIN := $(PLATSDK)/bin/$(SDKLIBBIN)
+  WINSDKVERNUM := win8
+  PLATSDK_INC := $(PLATSDK)/include/shared $(PLATSDK)/include/um 
+  PLATSDK_LIB := $(PLATSDK)/lib/$(WINSDKVERNUM)/um/$(SDKLIBBIN)
 endif
 
 ifeq "$(COMPILER)" "$(VC12)"
   NEW_VC_COMPILER = Yes
   NEW_SDK_UM = Yes
-  UMDIR := /winv6.3/um
   TEC_CC = vc
   STDDEFS += -DMSVC12
-  ifdef USE_DLL
-#    GEN_MANIFEST ?= Yes
-  else
+  ifndef USE_DLL
     #there is no single thread RTL in VC12
     USE_MT = Yes
   endif
@@ -554,10 +575,42 @@ ifeq "$(COMPILER)" "$(VC12)"
     PLATSDK ?= $(VC12)/WinSDK
   endif
   ifdef BUILD64
-    RESBIN := $(PLATSDK)/bin/x64
+    SDKLIBBIN := x64
   else
-    RESBIN := $(PLATSDK)/bin/x86
+    SDKLIBBIN := x86
   endif
+  RESBIN := $(PLATSDK)/bin/$(SDKLIBBIN)
+  WINSDKVERNUM := winv6.3
+  PLATSDK_INC := $(PLATSDK)/include/shared $(PLATSDK)/include/um 
+  PLATSDK_LIB := $(PLATSDK)/lib/$(WINSDKVERNUM)/um/$(SDKLIBBIN)
+endif
+
+ifeq "$(COMPILER)" "$(VC14)"
+  NEW_VC_COMPILER = Yes
+  NEW_SDK_UM = Yes
+  TEC_CC = vc
+  STDDEFS += -DMSVC14
+  ifndef USE_DLL
+    #there is no single thread RTL in VC14
+    USE_MT = Yes
+  endif
+  ifdef VC14SDK
+    PLATSDK ?= $(VC14SDK)
+  else
+    # Not the real folder, we copied from "C:\Program Files (x86)\Windows Kits\10"
+    PLATSDK ?= $(VC14)/WinSDK
+  endif
+  ifdef BUILD64
+    SDKLIBBIN := x64
+  else
+    SDKLIBBIN := x86
+  endif
+  RESBIN := $(PLATSDK)/bin/$(SDKLIBBIN)
+  WINSDKVERNUM ?= 10.0.10240.0
+  WINSDKBASEINC := $(PLATSDK)/include/$(WINSDKVERNUM)
+  WINSDKBASELIB := $(PLATSDK)/lib/$(WINSDKVERNUM)
+  PLATSDK_INC := $(WINSDKBASEINC)/ucrt $(WINSDKBASEINC)/shared $(WINSDKBASEINC)/um
+  PLATSDK_LIB := $(WINSDKBASELIB)/ucrt/$(SDKLIBBIN) $(WINSDKBASELIB)/um/$(SDKLIBBIN)
 endif
 
 ifeq "$(TEC_CC)" "vc"
@@ -566,22 +619,13 @@ ifeq "$(TEC_CC)" "vc"
     MACHINE = X64
     GTK := $(GTK)_x64
     VCLIBBIN = /amd64
-    ifdef NEW_SDK_UM
-      SDKLIBBIN := $(UMDIR)/x64
-    else
-      SDKLIBBIN ?= /x64
-    endif
     ifdef USE_X86_CL64
       BIN = $(COMPILER)/bin/x86_amd64
     else
       BIN = $(COMPILER)/bin/amd64
     endif
   else
-    ifdef NEW_SDK_UM
-      SDKLIBBIN := $(UMDIR)/x86
-    else
-      VCLIBBIN =
-    endif
+    VCLIBBIN =
     MACHINE = X86
     BIN = $(COMPILER)/bin
   endif
@@ -592,21 +636,27 @@ ifeq "$(TEC_CC)" "vc"
   LINKER    = $(BIN)/link -nologo
   MT        = $(RESBIN)/mt -nologo
   RCC       = $(RESBIN)/rc -fo
-  ifdef NEW_SDK_UM
-    STDINCS = $(PLATSDK)/include/shared $(PLATSDK)/include/um $(COMPILER)/include
-  else
-    STDINCS = $(PLATSDK)/include $(COMPILER)/include
+  ifndef NEW_SDK_UM
+    ifdef BUILD64
+      SDKLIBBIN := /x64
+    else
+      SDKLIBBIN :=
+    endif
+    PLATSDK_LIB = $(PLATSDK)/lib$(SDKLIBBIN)
+    PLATSDK_INC = $(PLATSDK)/include
   endif
+  STDINCS = $(PLATSDK_INC) $(COMPILER)/include 
   STDFLAGS  = -c -Fo$(OBJDIR)/ -W3
   STDLFLAGS =
   DEPDEFS   = -D_WIN32 -D_M_IX86 -D_STDCALL_SUPPORTED
-  STDLIBDIR = -LIBPATH:$(COMPILER)/lib$(VCLIBBIN) -LIBPATH:$(PLATSDK)/lib$(SDKLIBBIN)
+  STDLIBDIR = $(PLATSDK_LIB) $(COMPILER)/lib$(VCLIBBIN) 
   OPTFLAGS := -O2
   DEBUGFLAGS := -Z7 -Od -GZ
   ifdef USE_ATL
     STDINCS += $(COMPILER)/atlmfc/include
-    STDLIBDIR += -LIBPATH:$(COMPILER)/atlmfc/lib$(VCLIBBIN)
+    STDLIBDIR += $(COMPILER)/atlmfc/lib$(VCLIBBIN)
   endif
+  STDLIBDIR := $(addprefix -LIBPATH:, $(STDLIBDIR))
   ifdef NEW_VC_COMPILER
     DEBUGFLAGS := -Z7 -Od -RTC1
     STDDEFS += -D_CRT_SECURE_NO_DEPRECATE
@@ -944,6 +994,9 @@ LUA   ?= $(TECTOOLS_HOME)/lua
 LUA51 ?= $(TECTOOLS_HOME)/lua5.1
 LUA52 ?= $(TECTOOLS_HOME)/lua52
 LUA53 ?= $(TECTOOLS_HOME)/lua53
+ZLIB  ?= $(TECTOOLS_HOME)/zlib
+FREETYPE ?= $(TECTOOLS_HOME)/freetype
+FTGL     ?= $(TECTOOLS_HOME)/ftgl
 
 
 #---------------------------------#
@@ -954,47 +1007,51 @@ LUA53 ?= $(TECTOOLS_HOME)/lua53
 # Library path order is reversed
 
 ifdef USE_LUA
-  LUA_SUFFIX ?=
+  LUA_SFX :=
 endif
 
 ifdef USE_LUA4
-  LUA_SUFFIX ?= 4
+  LUA_SFX := 4
   override USE_LUA = Yes
   LUA := $(LUA4)
 endif
 
 ifdef USE_LUA5
-  LUA_SUFFIX ?= 5
+  LUA_SFX := 5
   override USE_LUA = Yes
   LUA := $(LUA5)
 endif
 
 ifdef USE_LUA50
-  LUA_SUFFIX ?= 50
+  LUA_SFX := 50
   override USE_LUA = Yes
   LUA := $(LUA50)
   NO_LUALIB := Yes
 endif
 
 ifdef USE_LUA51
-  LUA_SUFFIX ?= 5.1
+  LUA_SFX := 5.1
   override USE_LUA = Yes
   LUA := $(LUA51)
   NO_LUALIB := Yes
 endif
 
 ifdef USE_LUA52
-  LUA_SUFFIX ?= 52
+  LUA_SFX := 52
   override USE_LUA = Yes
   LUA := $(LUA52)
   NO_LUALIB := Yes
 endif
 
 ifdef USE_LUA53
-  LUA_SUFFIX ?= 53
+  LUA_SFX := 53
   override USE_LUA = Yes
   LUA := $(LUA53)
   NO_LUALIB := Yes
+endif
+
+ifdef LUA_SUFFIX
+  LUA_SFX := $(LUA_SUFFIX)
 endif
 
 ifdef USE_IUP
@@ -1036,7 +1093,7 @@ ifdef USE_IUPCONTROLS
   override USE_CD = Yes
   override USE_IUP = Yes
   ifdef USE_IUPLUA
-    LIBS += iupluacontrols$(LIBLUASFX)
+    LIBS += iupluacontrols$(LIBLUA_SFX)
     override USE_CDLUA = Yes
   endif
   LIBS += iupcontrols
@@ -1045,38 +1102,57 @@ endif
 ifdef USE_IUPGLCONTROLS
   override USE_OPENGL = Yes
   override USE_IUP = Yes
+  override LINK_FTGL = Yes
   ifdef USE_IUPLUA
-    LIBS += iupluaglcontrols$(LIBLUASFX)
+    LIBS += iupluaglcontrols$(LIBLUA_SFX)
   endif
-  LIBS += iupglcontrols ftgl
+  LIBS += iupglcontrols
+endif
+
+ifdef USE_IUPWEB
+  override USE_IUP = Yes
+  ifdef USE_IUPLUA
+    LIBS += iupluaweb$(LIBLUA_SFX)
+  endif
+  LIBS += iupweb iupole comsuppw
 endif
 
 ifdef USE_IMLUA
   override USE_IM = Yes
-  LIBS += imlua$(LIBLUASFX)
+  LIBS += imlua$(LIBLUA_SFX)
+  IMLUA_LIB ?= $(IM)/lib/$(TEC_UNAME_LIBLUA_DIR)
+  LDIR += $(IMLUA_LIB)
 endif
 
 ifdef USE_CDLUA
   override USE_CD = Yes
-  LIBS += cdlua$(LIBLUASFX)
+  LIBS += cdlua$(LIBLUA_SFX)
+  CDLUA_LIB ?= $(CD)/lib/$(TEC_UNAME_LIBLUA_DIR)
+  LDIR += $(CDLUA_LIB)
 endif
 
 ifdef USE_IUPLUA
   override USE_IUP = Yes
   ifdef USE_CD
-    LIBS += iupluacd$(LIBLUASFX)
+    ifeq ($(findstring iupluacd, $(LIBNAME)), )
+      LIBS += iupluacd$(LIBLUA_SFX)
+    endif
   endif
   ifdef USE_OPENGL
-    LIBS += iupluagl$(LIBLUASFX)
+    ifeq ($(findstring iupluagl, $(LIBNAME)), )
+      LIBS += iupluagl$(LIBLUA_SFX)
+    endif
   endif
-  LIBS += iuplua$(LIBLUASFX)
+  LIBS += iuplua$(LIBLUA_SFX)
+  IUPLUA_LIB ?= $(IUP)/lib/$(TEC_UNAME_LIBLUA_DIR)
+  LDIR += $(IUPLUA_LIB)
 endif
 
 ifdef USE_LUA
   ifndef NO_LUALIB
-    LIBS += lualib$(LUA_SUFFIX)
+    LIBS += lualib$(LUA_SFX)
   endif
-  LIBS += lua$(LUA_SUFFIX)
+  LIBS += lua$(LUA_SFX)
 
   LUA_LIB ?= $(LUA)/lib/$(TEC_UNAME)
   LDIR += $(LUA_LIB)
@@ -1086,12 +1162,12 @@ ifdef USE_LUA
 
   LUA_BIN ?= $(LUA)/bin/$(TEC_SYSNAME)
   ifdef USE_BIN2C_LUA
-    BIN2C := $(LUA_BIN)/lua$(LUA_SUFFIX) $(BIN2C_PATH)bin2c.lua
+    BIN2C := $(LUA_BIN)/lua$(LUA_SFX) $(BIN2C_PATH)bin2c.lua
   else
-    BIN2C := $(LUA_BIN)/bin2c$(LUA_SUFFIX)
+    BIN2C := $(LUA_BIN)/bin2c$(LUA_SFX)
   endif
-  LUAC   := $(LUA_BIN)/luac$(LUA_SUFFIX)
-  LUABIN := $(LUA_BIN)/lua$(LUA_SUFFIX)
+  LUAC   := $(LUA_BIN)/luac$(LUA_SFX)
+  LUABIN := $(LUA_BIN)/lua$(LUA_SFX)
 endif
 
 ifdef USE_IUP
@@ -1148,15 +1224,6 @@ ifdef USE_CD
   INCLUDES += $(CD_INC)
 endif
 
-ifdef LINK_FREETYPE
-  # To be compatible with the existing DLLs of gnuwin32
-  LIBS += freetype6
-  
-  ifndef NO_ZLIB
-    LINK_ZLIB = Yes
-  endif
-endif
-
 ifdef USE_IM
   LIBS += im
   
@@ -1171,19 +1238,63 @@ ifdef USE_IM
   INCLUDES += $(IM_INC)
 endif
 
+ifdef USE_FTGL
+  LINK_FTGL = Yes
+  USE_FREETYPE = Yes
+  
+  FTGL_INC ?= $(FTGL)/include
+  INCLUDES += $(FTGL_INC)
+endif
+
+ifdef LINK_FTGL
+  LIBS += ftgl
+  LINK_FREETYPE = Yes
+  
+  FTGL_LIB ?= $(FTGL)/lib/$(TEC_UNAME)
+  LDIR += $(FTGL_LIB)
+endif
+
+ifdef USE_FREETYPE
+  LINK_FREETYPE = Yes
+  
+  FREETYPE_INC ?= $(FREETYPE)/include
+  INCLUDES += $(FREETYPE_INC)
+endif
+
+ifdef LINK_FREETYPE
+  # To be compatible with the existing DLLs of gnuwin32
+  LIBS += freetype6
+  
+  ifndef NO_ZLIB
+    LINK_ZLIB = Yes
+  endif
+  
+  FREETYPE_LIB ?= $(FREETYPE)/lib/$(TEC_UNAME)
+  LDIR += $(FREETYPE_LIB)
+endif
+
+ifdef USE_ZLIB
+  LINK_ZLIB = Yes
+  
+  ZLIB_INC ?= $(ZLIB)/include
+  INCLUDES += $(ZLIB_INC)
+endif
+
 ifdef LINK_ZLIB
-  ifndef ZLIB
-    ZLIB = zlib1
+  ifndef ZLIB_NAME
+    ZLIB_NAME = zlib1
     
     ifneq ($(findstring gcc, $(TEC_UNAME)), )
-      ZLIB = z
+      ZLIB_NAME = z
     endif
     ifneq ($(findstring mingw, $(TEC_UNAME)), )
-      ZLIB = z
+      ZLIB_NAME = z
     endif
   endif
+  LIBS += $(ZLIB_NAME)
 
-  LIBS += $(ZLIB)
+  ZLIB_LIB ?= $(ZLIB)/lib/$(TEC_UNAME)
+  LDIR += $(ZLIB_LIB)
 endif
 
 ifdef USE_OPENGL

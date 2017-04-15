@@ -219,23 +219,31 @@ static void gtkUpdateGlobalColors(GtkWidget* dialog, GtkWidget* text)
   color = style->text[GTK_STATE_NORMAL];
   gtkColorToRGBA(color, color3);
   gtkSetGlobalColorAttrib("TXTFGCOLOR", &color3);
+
+  color = style->base[GTK_STATE_SELECTED];
+  gtkColorToRGBA(color, color3);
+  gtkSetGlobalColorAttrib("TXTHLCOLOR", &color3);
 #else
   GdkRGBA color;
   GtkStyleContext* context = gtk_widget_get_style_context(dialog);
 
-  gtk_style_context_get_background_color(context, GTK_STATE_NORMAL, &color);
+  gtk_style_context_get_background_color(context, GTK_STATE_FLAG_NORMAL, &color);
   gtkSetGlobalColorAttrib("DLGBGCOLOR", &color);
 
-  gtk_style_context_get_color(context, GTK_STATE_NORMAL, &color);
+  gtk_style_context_get_color(context, GTK_STATE_FLAG_NORMAL, &color);
   gtkSetGlobalColorAttrib("DLGFGCOLOR", &color);
 
   context = gtk_widget_get_style_context(text);
 
-  gtk_style_context_get_background_color(context, GTK_STATE_NORMAL, &color);
+  gtk_style_context_get_color(context, GTK_STATE_FLAG_NORMAL, &color);
+  gtkSetGlobalColorAttrib("TXTFGCOLOR", &color);
+
+  gtk_style_context_get_background_color(context, GTK_STATE_FLAG_NORMAL, &color);
+  if (color.alpha == 0) { color.red = 1; color.green = 1; color.blue = 1; }  /* TODO: workaround for GTK > 3.14 */
   gtkSetGlobalColorAttrib("TXTBGCOLOR", &color);
 
-  gtk_style_context_get_color(context, GTK_STATE_NORMAL, &color);
-  gtkSetGlobalColorAttrib("TXTFGCOLOR", &color);
+  gtk_style_context_get_background_color(context, GTK_STATE_FLAG_SELECTED, &color);
+  gtkSetGlobalColorAttrib("TXTHLCOLOR", &color);
 #endif
 #else
   GtkStyle* style = gtk_widget_get_style(dialog);
@@ -253,6 +261,9 @@ static void gtkUpdateGlobalColors(GtkWidget* dialog, GtkWidget* text)
 
   color = style->text[GTK_STATE_NORMAL];
   gtkSetGlobalColorAttrib("TXTFGCOLOR", &color);
+
+  color = style->base[GTK_STATE_SELECTED];
+  gtkSetGlobalColorAttrib("TXTHLCOLOR", &color);
 #endif
 
   iupGlobalSetDefaultColorAttrib("LINKFGCOLOR", 0, 0, 238);
@@ -331,6 +342,9 @@ int iupdrvOpen(int *argc, char ***argv)
                                                       GTK_MINOR_VERSION, 
                                                       GTK_MICRO_VERSION);
 
+  if (argv && *argv && (*argv)[0] && (*argv)[0][0] != 0)
+    IupStoreGlobal("ARGV0", (*argv)[0]);
+
   gtkSetGlobalAttrib();
 
   gtkSetGlobalColors();
@@ -348,3 +362,12 @@ void iupdrvClose(void)
 {
   iupgtkStrRelease();
 }
+
+/* TODO:  (deprecated)
+
+foreground-gdk => -rgba
+background-gdk
+
+gtk_widget_reparent has been deprecated since version 3.14 and should not be used in newly-written code.
+Use gtk_container_remove() and gtk_container_add().
+*/

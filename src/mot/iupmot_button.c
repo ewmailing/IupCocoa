@@ -74,7 +74,7 @@ static int motButtonSetImageAttrib(Ihandle* ih, const char* value)
     if (!iupAttribGet(ih, "IMINACTIVE"))
     {
       /* if not active and IMINACTIVE is not defined 
-         then automaticaly create one based on IMAGE */
+         then automatically create one based on IMAGE */
       iupmotSetPixmap(ih, value, XmNlabelInsensitivePixmap, 1); /* make_inactive */
     }
     return 1;
@@ -173,7 +173,7 @@ static void motButtonActivateCallback(Widget w, Ihandle* ih, XtPointer call_data
 
 static void motButtonEnterLeaveWindowEvent(Widget w, Ihandle* ih, XEvent *evt, Boolean *cont)
 {
-  /* Used only when FLAT=Yes */
+  /* Used only when FLAT=Yes, to manage relief */
 
   iupmotEnterLeaveWindowEvent(w, ih, evt, cont);
 
@@ -185,6 +185,7 @@ static void motButtonEnterLeaveWindowEvent(Widget w, Ihandle* ih, XEvent *evt, B
 
 static int motButtonMapMethod(Ihandle* ih)
 {
+  int has_border = 1;
   char* value;
   int num_args = 0;
   Arg args[30];
@@ -200,6 +201,11 @@ static int motButtonMapMethod(Ihandle* ih)
     ih->data->type = IUP_BUTTON_TEXT;
     iupMOT_SETARG(args, num_args, XmNlabelType, XmSTRING);
   }
+
+  if (ih->data->type == IUP_BUTTON_IMAGE &&
+      iupAttribGet(ih, "IMPRESS") &&
+      !iupAttribGetBoolean(ih, "IMPRESSBORDER"))
+    has_border = 0;
 
   /* Core */
   iupMOT_SETARG(args, num_args, XmNmappedWhenManaged, False);  /* not visible when managed */
@@ -239,16 +245,16 @@ static int motButtonMapMethod(Ihandle* ih)
 
   XtAddCallback(ih->handle, XmNhelpCallback, (XtCallbackProc)iupmotHelpCallback, (XtPointer)ih);
 
-  value = iupAttribGet(ih, "IMPRESS");
-  if (iupAttribGetBoolean(ih, "FLAT") && !value)
+  if (has_border && iupAttribGetBoolean(ih, "FLAT"))
   {
     XtVaSetValues(ih->handle, XmNshadowThickness, 0, NULL);
+
     XtAddEventHandler(ih->handle, EnterWindowMask, False, (XtEventHandler)motButtonEnterLeaveWindowEvent, (XtPointer)ih);
     XtAddEventHandler(ih->handle, LeaveWindowMask, False, (XtEventHandler)motButtonEnterLeaveWindowEvent, (XtPointer)ih);
   }
   else
   {
-    if (value && !iupAttribGetBoolean(ih, "IMPRESSBORDER"))
+    if (!has_border)
     {
       /* In Motif the button will lose its focus feedback also */
       XtVaSetValues(ih->handle, XmNhighlightThickness, 0, NULL);
@@ -256,6 +262,7 @@ static int motButtonMapMethod(Ihandle* ih)
     }
     else
       XtVaSetValues(ih->handle, XmNshadowThickness, 2, NULL);
+
     XtAddEventHandler(ih->handle, EnterWindowMask, False, (XtEventHandler)iupmotEnterLeaveWindowEvent, (XtPointer)ih);
     XtAddEventHandler(ih->handle, LeaveWindowMask, False, (XtEventHandler)iupmotEnterLeaveWindowEvent, (XtPointer)ih);
   }

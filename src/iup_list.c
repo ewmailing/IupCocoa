@@ -416,15 +416,6 @@ static char* iListGetScrollbarAttrib(Ihandle* ih)
   return iupStrReturnBoolean (ih->data->sb); 
 }
 
-static char* iListGetMaskDataAttrib(Ihandle* ih)
-{
-  if (!ih->data->has_editbox)
-    return NULL;
-
-  /* Used only by the OLD iupmask API */
-  return (char*)ih->data->mask;
-}
-
 static char* iListGetMaskAttrib(Ihandle* ih)
 {
   if (!ih->data->has_editbox)
@@ -450,6 +441,26 @@ static int iListSetValueMaskedAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
+static int iListSetMaskNoEmptyAttrib(Ihandle* ih, const char* value)
+{
+  if (ih->data->mask)
+  {
+    int val = iupStrBoolean(value);
+    iupMaskSetNoEmpty(ih->data->mask, val);
+  }
+  return 1;
+}
+
+static int iListSetMaskCaseIAttrib(Ihandle* ih, const char* value)
+{
+  if (ih->data->mask)
+  {
+    int val = iupStrBoolean(value);
+    iupMaskSetCaseI(ih->data->mask, val);
+  }
+  return 1;
+}
+
 static int iListSetMaskAttrib(Ihandle* ih, const char* value)
 {
   if (!ih->data->has_editbox)
@@ -465,10 +476,15 @@ static int iListSetMaskAttrib(Ihandle* ih, const char* value)
   }
   else
   {
-    int casei = iupAttribGetInt(ih, "MASKCASEI");
-    Imask* mask = iupMaskCreate(value,casei);
+    Imask* mask = iupMaskCreate(value);
     if (mask)
     {
+      int val = iupAttribGetInt(ih, "MASKCASEI");
+      iupMaskSetCaseI(mask, val);
+
+      val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
+
       if (ih->data->mask)
         iupMaskDestroy(ih->data->mask);
 
@@ -501,12 +517,17 @@ static int iListSetMaskIntAttrib(Ihandle* ih, const char* value)
     if (iupStrToIntInt(value, &min, &max, ':')!=2)
       return 0;
 
-    mask = iupMaskCreateInt(min,max);
+    mask = iupMaskCreateInt(min, max);
+    if (mask)
+    {
+      int val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
 
-    if (ih->data->mask)
-      iupMaskDestroy(ih->data->mask);
+      if (ih->data->mask)
+        iupMaskDestroy(ih->data->mask);
 
-    ih->data->mask = mask;
+      ih->data->mask = mask;
+    }
   }
 
   return 0;
@@ -530,16 +551,23 @@ static int iListSetMaskFloatAttrib(Ihandle* ih, const char* value)
     Imask* mask;
     float min, max;
     char* decimal_symbol = iupAttribGet(ih, "MASKDECIMALSYMBOL");
+    if (!decimal_symbol)
+      decimal_symbol = IupGetGlobal("DEFAULTDECIMALSYMBOL");
 
     if (iupStrToFloatFloat(value, &min, &max, ':')!=2)
       return 0;
 
     mask = iupMaskCreateFloat(min, max, decimal_symbol);
+    if (mask)
+    {
+      int val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
 
-    if (ih->data->mask)
-      iupMaskDestroy(ih->data->mask);
+      if (ih->data->mask)
+        iupMaskDestroy(ih->data->mask);
 
-    ih->data->mask = mask;
+      ih->data->mask = mask;
+    }
   }
 
   return 0;
@@ -568,11 +596,16 @@ static int iListSetMaskRealAttrib(Ihandle* ih, const char* value)
       positive = 1;
 
     mask = iupMaskCreateReal(positive, decimal_symbol);
+    if (mask)
+    {
+      int val = iupAttribGetInt(ih, "MASKNOEMPTY");
+      iupMaskSetNoEmpty(mask, val);
 
-    if (ih->data->mask)
-      iupMaskDestroy(ih->data->mask);
+      if (ih->data->mask)
+        iupMaskDestroy(ih->data->mask);
 
-    ih->data->mask = mask;
+      ih->data->mask = mask;
+    }
   }
 
   return 0;
@@ -928,7 +961,7 @@ static void iListGetNaturalItemsSize(Ihandle *ih, int *w, int *h)
     if (ih->data->show_image && max_h > *h)  /* use the highest image to compute the natural size */
       *h = max_h;
 
-    iupdrvListAddItemSpace(ih, h);  /* this independs from spacing */
+    iupdrvListAddItemSpace(ih, h);  /* this is independent from spacing */
 
     *h += 2*ih->data->spacing;  /* this will be multiplied by the number of lines */
     *w += 2*ih->data->spacing;  /* include also horizontal spacing */
@@ -1072,13 +1105,13 @@ Iclass* iupListNewClass(void)
   iupClassRegisterAttribute(ic, "REMOVEITEM", NULL, iListSetRemoveItemAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "VALUEMASKED", NULL, iListSetValueMaskedAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "MASKCASEI", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MASKCASEI", NULL, iListSetMaskCaseIAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKDECIMALSYMBOL", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASK", iListGetMaskAttrib, iListSetMaskAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKINT", NULL, iListSetMaskIntAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKFLOAT", NULL, iListSetMaskFloatAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MASKREAL", NULL, iListSetMaskRealAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "OLD_MASK_DATA", iListGetMaskDataAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MASKNOEMPTY", NULL, iListSetMaskNoEmptyAttrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "VISIBLECOLUMNS", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "VISIBLELINES", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);

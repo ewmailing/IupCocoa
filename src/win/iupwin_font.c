@@ -27,14 +27,14 @@
 
 typedef struct IwinFont_
 {
-  char standardfont[200];
+  char font[200];
   HFONT hFont;
   int charwidth, charheight;
 } IwinFont;
 
 static Iarray* win_fonts = NULL;
 
-static IwinFont* winFindFont(const char *standardfont)
+static IwinFont* winFindFont(const char *font)
 {
   HFONT hFont;
   int height_pixels;  /* negative value */
@@ -48,15 +48,15 @@ static IwinFont* winFindFont(const char *standardfont)
   int i, count = iupArrayCount(win_fonts);
   const char* mapped_name;
 
-  /* Check if the standardfont already exists in cache */
+  /* Check if the font already exists in cache */
   IwinFont* fonts = (IwinFont*)iupArrayGetData(win_fonts);
   for (i = 0; i < count; i++)
   {
-    if (iupStrEqualNoCase(standardfont, fonts[i].standardfont))
+    if (iupStrEqualNoCase(font, fonts[i].font))
       return &fonts[i];
   }
 
-  if (!iupGetFontInfo(standardfont, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
+  if (!iupGetFontInfo(font, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
     return NULL;
 
   /* Map standard names to native names */
@@ -87,7 +87,7 @@ static IwinFont* winFindFont(const char *standardfont)
   /* create room in the array */
   fonts = (IwinFont*)iupArrayInc(win_fonts);
 
-  strcpy(fonts[i].standardfont, standardfont);
+  strcpy(fonts[i].font, font);
   fonts[i].hFont = hFont;
 
   {
@@ -96,9 +96,9 @@ static IwinFont* winFindFont(const char *standardfont)
 
     TEXTMETRIC tm;
     GetTextMetrics(hdc, &tm);
-    /* NOTICE that this is different from CD, 
-       here we need average width,
-       there is maximum width. */
+    /* NOTICE that this is different from CD.
+       In IUP we need "average" width,
+       in CD is "maximum" width. */
     fonts[i].charwidth = tm.tmAveCharWidth; 
     fonts[i].charheight = tm.tmHeight;
 
@@ -149,12 +149,12 @@ char* iupwinFindHFont(HFONT hFont)
 {
   int i, count = iupArrayCount(win_fonts);
 
-  /* Check if the standardfont already exists in cache */
+  /* Check if the font already exists in cache */
   IwinFont* fonts = (IwinFont*)iupArrayGetData(win_fonts);
   for (i = 0; i < count; i++)
   {
     if (hFont == fonts[i].hFont)
-      return fonts[i].standardfont;
+      return fonts[i].font;
   }
 
   return NULL;
@@ -186,7 +186,11 @@ static IwinFont* winFontGet(Ihandle *ih)
 {
   IwinFont* winfont = (IwinFont*)iupAttribGet(ih, "_IUP_WINFONT");
   if (!winfont)
-    winfont = winFontCreateNativeFont(ih, iupGetFontAttrib(ih));
+  {
+    winfont = winFontCreateNativeFont(ih, iupGetFontValue(ih));
+    if (!winfont)
+      winfont = winFontCreateNativeFont(ih, IupGetGlobal("DEFAULTFONT"));
+  }
   return winfont;
 }
 
@@ -199,7 +203,7 @@ char* iupwinGetHFontAttrib(Ihandle *ih)
     return (char*)winfont->hFont;
 }
 
-int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
 {
   IwinFont* winfont = winFontCreateNativeFont(ih, value);
   if (!winfont)
@@ -311,9 +315,9 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 
   line_end = strchr(str, '\n');
   if (line_end)
-    len = line_end-str;
+    len = (int)(line_end-str);
   else
-    len = strlen(str);
+    len = (int)strlen(str);
 
   wstr = iupwinStrToSystemLen(str, &len);
   GetTextExtentPoint32(hdc, wstr, len, &size);

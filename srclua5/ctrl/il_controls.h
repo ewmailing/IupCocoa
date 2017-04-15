@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-void iupmasklua_open (lua_State * L);
 int iupgaugelua_open (lua_State * L);
 int iupdiallua_open (lua_State * L);
 int iupcolorbrowserlua_open (lua_State * L);

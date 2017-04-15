@@ -4,7 +4,10 @@ LIBNAME = iupluaole
 IUP := ..
 
 OPT = YES
+# To not link with the Lua dynamic library in UNIX
 NO_LUALINK = Yes
+# To use a subfolder with the Lua version for binaries
+LUAMOD_DIR = Yes
 USE_BIN2C_LUA = Yes
 NO_LUAOBJECT = Yes
 
@@ -14,13 +17,26 @@ INCLUDES = ../srclua5
 LIBS = iupole
 DEF_FILE = ctrl/iupluaole.def
 
+ifdef USE_LUA_VERSION
+  USE_LUA51:=
+  USE_LUA52:=
+  USE_LUA53:=
+  ifeq ($(USE_LUA_VERSION), 53)
+    USE_LUA53:=Yes
+  endif
+  ifeq ($(USE_LUA_VERSION), 52)
+    USE_LUA52:=Yes
+  endif
+  ifeq ($(USE_LUA_VERSION), 51)
+    USE_LUA51:=Yes
+  endif
+endif
+
 ifdef USE_LUA53
   LUASFX = 53
-  DEFINES += LUA_COMPAT_MODULE
 else
 ifdef USE_LUA52
   LUASFX = 52
-  DEFINES += LUA_COMPAT_MODULE
 else
   USE_LUA51 = Yes
   LUASFX = 51

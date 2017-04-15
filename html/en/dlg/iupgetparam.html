@@ -1,0 +1,128 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupGetParam</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupGetParam</h2>
+<p>Shows a modal dialog for capturing 
+  parameter
+  values using several types of controls. The dialog uses the
+<a href="../elem/iupparam.html">IupParam</a> and
+<a href="../elem/iupparambox.html">IupParamBox</a> controls internally.</p>
+<h3><a name="Creation">Creation</a> and Show</h3>
+<dl>
+  <dl>
+	<pre>int IupGetParam(const char* <b>title</b>, Iparamcb <b>action</b>, void* <b>user_data</b>, const char* <b>format</b>,...); [in C]
+int IupGetParamv(const char* <b>title</b>, Iparamcb <b>action</b>, void* <b>user_data</b>, const char* <b>format</b>, int <strong>param_count</strong>, int <strong>param_extra</strong>, void** <strong>param_data</strong>); [in C]
+iup.GetParam(<b>title</b>: string, <b>action</b>: function, <b>format</b>: string,...) -&gt; (<strong>status</strong>: boolean, ...) [in Lua]</pre>
+	<b>
+	<p>title</b>: dialog title.<br>
+	<b>action:</b> user callback to be called whenever a parameter value was changed, 
+    and when the user pressed the OK button. It can be NULL. It is the same 
+	callback defined in <a href="../elem/iupparambox.html#Callbacks">IupParamBox</a>.<br>
+	<b>user_data</b>: user pointer passed to the user callback.<br>
+	<b>format</b>: <span>string describing all the parameters.&nbsp;It is a 
+	sequence of format strings for each parameter, see 
+	<a href="../elem/iupparam.html#Notes">IupParam</a>.</span><br>
+    ...: list of variables address with initial values for the parameters. The number of lines in the format string (number of '\n') will determine the number of required parameters. But separators 
+  will not count as parameters. There is no maximum number of parameters (since 
+3.13).<br>
+	<strong>param_count</strong>: number of regular parameters in the array. <br>
+	<strong>param_extra</strong>: number of extra parameters in the array 
+	(separator lines and button names). <br><strong>param_data</strong>: array 
+	of variables address with initial values for the parameters.</p>
+	<p><span class="style1">Returns:</span> a <strong>status</strong> code 1 if the button 
+	1 was pressed, 0 if the button 2 was pressed or if an error occurred.</p>
+	<p>The function 
+    will abort if there are errors in the format string as in the number of the expected parameters. 
+	In Lua, the values are returned by the function in the same order they were 
+	passed. The Lua type of each parameter is the equivalent C type (boolean is 
+	integer), except for the <strong>status</strong> code that it is a boolean.</p>
+	</dl>
+</dl>
+<h3><a name="Notes">Notes</a></h3>
+<p>The dialog is resizable if it contains a string, a multiline string or a 
+  number with a valuator. All the multiline strings will increase size equally in both directions.</p>
+<p>The dialog uses a global attribute called &quot;<strong>PARENTDIALOG</strong>&quot; as the parent dialog if it is defined. It also uses a 
+  global attribute called &quot;<strong>ICON</strong>&quot; as the dialog icon if it is defined.</p>
+<p>The function does not allocate memory space to store strings entered by the 
+user. Therefore, the string value parameter must be large enough to receive the user 
+input. If you want to set a maximum size for the string you can set the param 
+attribute <strong>MAXSTR</strong>, inside the callback when param_index=IUP_GETPARAM_INIT 
+(since 3.6). </p>
+<h3><a name="Examples">Examples</a></h3>
+<p><a href="../../examples/">Browse for Example Files</a></p>
+<p>Here is an example showing many of the possible parameters. We show only one for each type, but you can have as many 
+  parameters of the same type you want.</p>
+<pre>
+  int pboolean = 1;
+  int pinteger = 3456;
+  float preal = 3.543f;
+  int pinteger2 = 192;
+  float preal2 = 0.5f;
+  float pangle = 90;
+  char pstring[100] = "string text";
+  char pfont[100] = "Courier, 24";
+  char pcolor[100] = "255 0 128";
+  int plist = 2, poptions = 1;
+  char pstring2[200] = "second text\nsecond line";
+  char file_name[500] = "test.jpg";
+  
+  if (!IupGetParam("Title", param_action, 0,
+                   "Bt %u[, MyCancel, Help!]\n"
+                   "Boolean: %b[No,Yes]\n"
+                   "Integer: %i\n"
+                   "Real 1: %r\n"
+                   "Sep1 %t\n"
+                   "Integer: %i[0,255]\n"
+                   "Real 2: %r[-1.5,1.5,0.05]\n"
+                   "Sep2 %t\n"
+                   "Angle: %a[0,360]\n"
+                   "String: %s\n"
+                   "Options: %o|item0|item1|item2|\n" 
+                   "List: %l|item0|item1|item2|item3|item4|item5|item6|\n" 
+                   "File: %f[OPEN|*.bmp;*.jpg|CURRENT|NO|NO]\n"
+                   "Color: %c{Color Tip}\n"
+                   "Font: %n\n"
+                   "Sep3 %t\n"
+                   "Multiline: %m\n",
+                   &pboolean, &pinteger, &preal, &pinteger2, &preal2, &pangle, pstring, 
+                   &poptions, &plist, file_name, pcolor, pfont, pstring2, NULL))
+    return;
+</pre>
+
+<p align="center">
+<img ALIGN="center" src="images/getparam.png">
+</p>
+<h3><a name="SeeAlso">See Also</a></h3>
+
+<p><a href="iupscanf.html">IupScanf</a>, <a href="iupcolordlg.html">IupColorDlg</a>,
+  <a href="iupfontdlg.html">IupFontDlg</a>, <a href="../elem/iupval.html">IupVal</a>, 
+<a href="../ctrl/iupdial.html">IupDial</a>,
+  <a href="../elem/iuplist.html">IupList</a>, <a href="iupfiledlg.html">
+IupFileDlg</a>. 
+</p>
+
+</body>
+
+</html>

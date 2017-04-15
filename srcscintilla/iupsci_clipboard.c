@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 
 #include "iup.h"
@@ -61,8 +61,8 @@ SCI_REDO
 SCI_CANREDO
 SCI_SETUNDOCOLLECTION(bool collectUndo)
 SCI_GETUNDOCOLLECTION
---SCI_BEGINUNDOACTION
---SCI_ENDUNDOACTION
+SCI_BEGINUNDOACTION
+SCI_ENDUNDOACTION
 --SCI_ADDUNDOACTION(int token, int flags)
 */
 
@@ -108,10 +108,20 @@ static char* iScintillaGetUndoCollectAttrib(Ihandle* ih)
   return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_GETUNDOCOLLECTION, 0, 0)); 
 }
 
+static int iScintillaSetUndoActionAttrib(Ihandle *ih, const char *value)
+{
+  if (iupStrEqualNoCase(value, "BEGIN"))
+    IupScintillaSendMessage(ih, SCI_BEGINUNDOACTION, 0, 0);
+  else if(iupStrEqualNoCase(value, "END"))
+    IupScintillaSendMessage(ih, SCI_ENDUNDOACTION, 0, 0);
+  return 0;
+}
+
 void iupScintillaRegisterClipboard(Iclass* ic)
 {
   iupClassRegisterAttribute(ic, "CLIPBOARD", iScintillaGetCanPasteAttrib, iScintillaSetClipboardAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "UNDO", iScintillaGetUndoAttrib, iScintillaSetUndoAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REDO", iScintillaGetRedoAttrib, iScintillaSetRedoAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "UNDOCOLLECT", iScintillaGetUndoCollectAttrib, iScintillaSetUndoCollectAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "UNDOACTION", NULL, iScintillaSetUndoActionAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
 }

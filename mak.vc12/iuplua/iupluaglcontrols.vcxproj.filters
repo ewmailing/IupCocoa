@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\srclua5\gl\il_glbutton.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\iuplua_glcontrols.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_gllabel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_gllink.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glprogressbar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glseparator.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glsubcanvas.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_gltoggle.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glval.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glcanvasbox.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glexpander.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glframe.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glscrollbox.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_glsizebox.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\gl\il_gltext.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\srclua5\gl\il_glcontrols.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\iupluaglcontrols.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\srclua5\gl\glbutton.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glcanvasbox.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glexpander.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glframe.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\gllabel.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\gllink.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glprogressbar.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glseparator.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glsubcanvas.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\gltoggle.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glval.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\iupluaglcontrols.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glscrollbox.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\glsizebox.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\gl\gltext.lua">
+      <Filter>Lua</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Lua">
+      <UniqueIdentifier>{70484bc6-7388-4069-8e82-50a74d9c6882}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{bfcb7e8a-fb5e-441c-a7f8-afd7b311f493}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes">
+      <UniqueIdentifier>{b691f52b-76e1-42a1-b9d8-612a0fa2876c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

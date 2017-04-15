@@ -212,9 +212,6 @@
     <ClCompile Include="..\srcmglplot\src\surf.cpp">
       <Filter>mgl</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcmglplot\src\tex_table.cpp">
-      <Filter>mgl</Filter>
-    </ClCompile>
     <ClCompile Include="..\srcmglplot\src\vect.cpp">
       <Filter>mgl</Filter>
     </ClCompile>
@@ -238,6 +235,9 @@
     </ClCompile>
     <ClCompile Include="..\srcmglplot\iup_mglplot.cpp" />
     <ClCompile Include="..\srcmglplot\src\complex_ex.cpp">
+      <Filter>mgl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srcmglplot\src\fractal.cpp">
       <Filter>mgl</Filter>
     </ClCompile>
   </ItemGroup>

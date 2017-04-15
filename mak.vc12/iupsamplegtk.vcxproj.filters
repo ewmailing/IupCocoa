@@ -123,9 +123,6 @@
     <ClCompile Include="..\html\examples\C\ole_browser.cpp">
       <Filter>C</Filter>
     </ClCompile>
-    <ClCompile Include="..\html\examples\C\pplot.cpp">
-      <Filter>C</Filter>
-    </ClCompile>
     <ClCompile Include="..\html\examples\C\progressbar.c">
       <Filter>C</Filter>
     </ClCompile>

@@ -1024,7 +1024,7 @@ static int motTextMapMethod(Ihandle* ih)
     if (iupAttribGetBoolean(ih, "WORDWRAP"))
     {
       wordwrap = 1;
-      ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scroolbar */
+      ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scrollbar */
     }
 
     /******************************/
@@ -1104,9 +1104,10 @@ static int motTextMapMethod(Ihandle* ih)
     {
       /* Spin Constraints */
       iupMOT_SETARG(args, num_args, XmNspinBoxChildType, XmNUMERIC);
-      iupMOT_SETARG(args, num_args, XmNminimumValue, 0);
-      iupMOT_SETARG(args, num_args, XmNmaximumValue, 100);
-      iupMOT_SETARG(args, num_args, XmNposition, 0);
+      iupMOT_SETARG(args, num_args, XmNminimumValue, iupAttribGetInt(ih, "SPINMIN"));
+      iupMOT_SETARG(args, num_args, XmNmaximumValue, iupAttribGetInt(ih, "SPINMAX"));
+      iupMOT_SETARG(args, num_args, XmNincrementValue, iupAttribGetInt(ih, "SPININC"));
+      iupMOT_SETARG(args, num_args, XmNposition, iupAttribGetInt(ih, "SPINMIN"));
 
       if (iupAttribGetBoolean(ih, "SPINWRAP"))
         iupMOT_SETARG(args, num_args, XmNwrap, TRUE);
@@ -1196,6 +1197,7 @@ static int motTextMapMethod(Ihandle* ih)
   {
     iupmotSetGlobalColorAttrib(ih->handle, XmNbackground, "TXTBGCOLOR");
     iupmotSetGlobalColorAttrib(ih->handle, XmNforeground, "TXTFGCOLOR");
+    iupmotSetGlobalColorAttrib(ih->handle, XmNhighlightColor, "TXTHLCOLOR");
     IupSetGlobal("_IUP_RESET_TXTCOLORS", NULL);
   }
 

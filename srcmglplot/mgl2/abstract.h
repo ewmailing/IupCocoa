@@ -1,6 +1,6 @@
 /***************************************************************************
- * thread.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * abstract.h is part of Math Graphic Library
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,7 +23,6 @@
 #include "mgl2/define.h"
 //-----------------------------------------------------------------------------
 #ifdef __cplusplus
-#include <string>
 #include "mgl2/type.h"
 #define MGL_TO_WCS(str,code)	if(str && *str){size_t s=mbstowcs(0,str,0); wchar_t *wcs=new wchar_t[s+1]; mbstowcs(wcs,str,s); wcs[s]=0; code; delete []wcs;}else{const wchar_t *wcs=L""; code;}
 //-----------------------------------------------------------------------------
@@ -42,9 +41,29 @@ typedef mglParser* HMPR;
 typedef mglFormula* HMEX;
 typedef mglFormulaC* HAEX;
 typedef const mglDataA* HCDT;
-#ifdef __cplusplus
+
+std::string MGL_EXPORT mgl_data_to_string(HCDT d, long ns);
+std::string MGL_EXPORT mgl_datac_to_string(HCDT d, long ns);
 extern "C" {
+
+#else
+#define mglDataA void
+typedef void *HMGL;
+typedef void *HMDT;
+typedef void *HADT;
+typedef void *HMEX;
+typedef void *HAEX;
+typedef void *HMPR;
+typedef const void *HCDT;
 #endif
+
+/// Set seed for random numbers
+void MGL_EXPORT mgl_srnd(long seed);
+void MGL_EXPORT mgl_srnd_(int *seed);
+/// Get random number
+double MGL_EXPORT mgl_rnd();
+double MGL_EXPORT mgl_rnd_();
+
 /// Set name for data variable (can be used in mgl_formula_calc() or in MGL scripts)
 void MGL_EXPORT mgl_data_set_name(mglDataA *dat, const char *name);
 void MGL_EXPORT mgl_data_set_name_(uintptr_t *dat, const char *name,int);
@@ -108,13 +127,23 @@ mreal MGL_EXPORT mgl_data_min_real_(uintptr_t *dat, mreal *x, mreal *y, mreal *z
 mreal MGL_EXPORT mgl_data_momentum_val(HCDT d, char dir, mreal *m, mreal *w, mreal *s, mreal *k);
 mreal MGL_EXPORT mgl_data_momentum_val_(uintptr_t *dat, char *dir, mreal *m, mreal *w, mreal *s, mreal *k,int);
 
-#ifdef __cplusplus
-}
-#endif
+/// Interpolate by linear function the data to given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
+mreal MGL_EXPORT mgl_data_linear(HCDT dat, mreal x,mreal y,mreal z);
+mreal MGL_EXPORT mgl_data_linear_(uintptr_t *dat, mreal *x,mreal *y,mreal *z);
+/// Interpolate by linear function the data and return its derivatives at given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
+mreal MGL_EXPORT mgl_data_linear_ext(HCDT dat, mreal x,mreal y,mreal z, mreal *dx,mreal *dy,mreal *dz);
+mreal MGL_EXPORT mgl_data_linear_ext_(uintptr_t *dat, mreal *x,mreal *y,mreal *z, mreal *dx,mreal *dy,mreal *dz);
+
+/// Internal function for (un-)locking mutex in mglStack
+void MGL_EXPORT mgl_mutex_lock(void *);
+void MGL_EXPORT mgl_mutex_unlock(void *);
+
 //-----------------------------------------------------------------------------
 /// Callback function for asking user a question. Result shouldn't exceed 1024.
 extern MGL_EXPORT void (*mgl_ask_func)(const wchar_t *quest, wchar_t *res);
 //-----------------------------------------------------------------------------
+#ifdef __cplusplus
+}
 /// Abstract class for data array
 class MGL_EXPORT mglDataA
 {
@@ -126,9 +155,22 @@ public:
 
 	mglDataA()	{	temp=false;	func=0;	o=0;	}
 	virtual ~mglDataA()	{	if(func)	func(o);	}
-	virtual void set_v(mreal val, long i,long j=0,long k=0)	{}
+	virtual void set_v(mreal /*val*/, long /*i*/,long /*j*/=0,long /*k*/=0)	{}
+	/// Get the interpolated value and its derivatives in given data cell without border checking
+	virtual mreal valueD(mreal x,mreal y=0,mreal z=0,mreal *dx=0,mreal *dy=0,mreal *dz=0) const =0;
+	/// Get the interpolated value in given data cell without border checking
+	virtual mreal value(mreal x,mreal y=0,mreal z=0) const =0;
+	/// Interpolate by linear function the data to given point
+	inline mreal linear(mreal x,mreal y=0,mreal z=0)	const
+	{	return mgl_data_linear_ext(this,x,y,z,0,0,0);	}
+	/// Interpolate by linear function the data to given point and get the gradient
+	inline mreal linearD(mreal x,mreal y=0,mreal z=0,mreal *dx=0,mreal *dy=0,mreal *dz=0)	const
+	{	return mgl_data_linear_ext(this,x,y,z,dx,dy,dz);	}
 	virtual mreal v(long i,long j=0,long k=0) const = 0;
-	virtual mreal vthr(long i) const = 0;
+	virtual mreal vthr(long i) const
+	{	return v(i%GetNx(), (i/GetNx())%GetNy(), i/(GetNx()*GetNy()));	}
+	virtual dual vc(long i,long j=0,long k=0) const	{	return v(i,j,k);	}
+	virtual dual vcthr(long i) const	{	return vthr(i);	}
 	virtual long GetNx() const = 0;
 	virtual long GetNy() const = 0;
 	virtual long GetNz() const = 0;
@@ -144,6 +186,9 @@ public:
 	/// Save whole data array (for ns=-1) or only ns-th slice to text file
 	virtual void Save(const char *fname,long ns=-1) const
 	{	mgl_data_save(this,fname,ns);	}
+	/// Get whole data array (for ns=-1) or only ns-th slice to string
+	virtual std::string Get(long ns=-1) const
+	{	return mgl_data_to_string(this,ns);	}
 	/// Export data array (for ns=-1) or only ns-th slice to PNG file according color scheme
 	inline void Export(const char *fname,const char *scheme,mreal v1=0,mreal v2=0,long ns=-1) const
 	{	mgl_data_export(this,fname,scheme,v1,v2,ns);	}
@@ -197,6 +242,34 @@ public:
 	/// Find if any nonzero value of formula
 	inline bool FindAny(const char *cond) const
 	{	return mgl_data_find_any(this,cond);	}
+
+	/// Interpolate by cubic spline the data to given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
+	inline mreal Spline(mreal x,mreal y=0,mreal z=0) const
+	{	return value(x,y,z);	}
+	/// Interpolate by cubic spline the data to given point x,\a y,\a z which normalized in range [0, 1]
+	inline mreal Spline1(mreal x,mreal y=0,mreal z=0) const
+	{	return value(x*(GetNx()-1),y*(GetNy()-1),z*(GetNz()-1));	}
+	/// Interpolate by cubic spline the data and return its derivatives at given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
+	inline mreal Spline(mglPoint &dif, mreal x,mreal y=0,mreal z=0) const
+	{	return valueD(x,y,z, &(dif.x),&(dif.y), &(dif.z));	}
+	/// Interpolate by cubic spline the data and return its derivatives at given point x,\a y,\a z which normalized in range [0, 1]
+	inline mreal Spline1(mglPoint &dif, mreal x,mreal y=0,mreal z=0) const
+	{	mreal res=valueD(x*(GetNx()-1),y*(GetNy()-1),z*(GetNz()-1), &(dif.x),&(dif.y), &(dif.z));
+		dif.x*=GetNx()>1?GetNx()-1:1;	dif.y*=GetNy()>1?GetNy()-1:1;	dif.z*=GetNz()>1?GetNz()-1:1;	return res;	}
+
+	/// Interpolate by linear function the data to given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
+	inline mreal Linear(mreal x,mreal y=0,mreal z=0)	const
+	{	return mgl_data_linear_ext(this,x,y,z,0,0,0);	}
+	/// Interpolate by line the data to given point x,\a y,\a z which normalized in range [0, 1]
+	inline mreal Linear1(mreal x,mreal y=0,mreal z=0) const
+	{	return mgl_data_linear_ext(this,x*(GetNx()-1),y*(GetNy()-1),z*(GetNz()-1),0,0,0);	}
+	/// Interpolate by linear function the data and return its derivatives at given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
+	inline mreal Linear(mglPoint &dif, mreal x,mreal y=0,mreal z=0)	const
+	{	return mgl_data_linear_ext(this,x,y,z, &(dif.x),&(dif.y), &(dif.z));	}
+	/// Interpolate by line the data and return its derivatives at given point x,\a y,\a z which normalized in range [0, 1]
+	inline mreal Linear1(mglPoint &dif, mreal x,mreal y=0,mreal z=0) const
+	{	mreal res=mgl_data_linear_ext(this,x*(GetNx()-1),y*(GetNy()-1),z*(GetNz()-1), &(dif.x),&(dif.y), &(dif.z));
+		dif.x*=GetNx()>1?GetNx()-1:1;	dif.y*=GetNy()>1?GetNy()-1:1;	dif.z*=GetNz()>1?GetNz()-1:1;	return res;	}
 };
 //-----------------------------------------------------------------------------
 /// Structure for color ID
@@ -208,15 +281,6 @@ struct MGL_EXPORT mglColorID
 MGL_EXPORT extern mglColorID mglColorIds[31];
 MGL_EXPORT extern std::string mglGlobalMess;	///< Buffer for receiving global messages
 //-----------------------------------------------------------------------------
-#else
-#define mglDataA void
-typedef void *HMGL;
-typedef void *HMDT;
-typedef void *HADT;
-typedef void *HMEX;
-typedef void *HAEX;
-typedef void *HMPR;
-typedef const void *HCDT;
 #endif
 
 #ifdef MGL_SRC

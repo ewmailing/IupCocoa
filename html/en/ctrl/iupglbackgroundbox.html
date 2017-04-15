@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupGLBackgroundBox</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupGLBackgroundBox<span class="style1"> (since 3.18)</span></h2>
+<p>Creates a simple native container with no decorations, but with OpenGL 
+enabled. It inherits from
+  <a href="iupglcanvas.html">IupGLCanvas</a>. </p>
+<p>OBS: this is identical to the IupBackgroundBox element, but with OpenGL 
+enabled.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+
+<pre>Ihandle* IupGLBackgroundBox(Ihandle*<strong> child</strong>); [in C]
+iup.glbackgroundbox{<strong>child</strong>: ihandle} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
+glbackgroundbox(<strong>child</strong>) [in LED]</pre>
+  <p><strong>child</strong>: Identifier of an interface element which will 
+  receive the box. It can be NULL (nil in Lua), not optional in LED.</p>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+<p>Inherits all attributes and callbacks of the <a href="iupglcanvas.html">IupGLCanvas</a>, 
+but redefines a few attributes.</p>
+<p><a href="../attrib/iup_bgcolor.html">BGCOLOR</a>: by default will use the 
+background color of the native parent, but can be set to a custom value (since 
+3.11).</p>
+
+<p><b>BORDER </b>(creation only):
+  
+  the default value is "NO".</p>
+<p>
+<font SIZE="3">
+	<strong>CANVASBOX</strong> (non inheritable): enable the behavior of a 
+canvas box instead of a regular container. This will affect the EXPAND 
+attribute, the Natural size computation, and child layout distribution. Can be Yes or No. Default: No. (since 
+3.19)</font></p>
+<p><strong>CHILDOFFSET</strong><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; letter-spacing: normal; line-height: 20.799999237060547px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);"> (<font SIZE="3">non inheritable</font>):</span>
+
+  Allow to specify a position offset for the 
+child. Available for native containers only. It will not affect the natural 
+size, and allows to position controls outside the client area. Format &quot;<em>dx</em>x<em>dy</em>&quot;,
+  where <em>dx</em> and <em>dy</em> are integer values corresponding to the horizontal and vertical 
+offsets, respectively, in pixels. Default: 0x0. (since 3.14)</p>
+<p><strong>DECORATION</strong> (<font SIZE="3">non inheritable</font>): Enable a decoration area around the child. Can 
+be Yes or No. Default No. (since 3.20)</p>
+<p><strong>DECORSIZE</strong> (<font SIZE="3">non inheritable</font>): total size of the decoration in the format &quot;WidthxHeight&quot; 
+(in C &quot;%dx%d). Used only when DECORATION=Yes. (since 3.20)</p>
+<p><strong>DECOROFFSET</strong> (<font SIZE="3">non inheritable</font>): decoration offset from left border and top 
+border in the format &quot;XxY&quot; (in C &quot;%dx%d). Used only when DECORATION=Yes. (since 
+3.20)</p>
+
+<p><a href="../attrib/iup_expand.html">EXPAND</a> (<font SIZE="3">non inheritable</font>):&nbsp; 
+behaves as a container. See CANVASBOX attribute.</p>
+<p>
+<strong style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; letter-spacing: normal; line-height: 20.799999237060547px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
+CANFOCUS</strong><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; letter-spacing: normal; line-height: 20.799999237060547px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);"> (<font SIZE="3">non inheritable</font>): 
+the default is changed to NO. But it can receive the focus (since 3.19).</p>
+
+  </span>
+
+  <blockquote>
+    <hr>
+</blockquote>
+
+  <p>
+  <a href="../attrib/iup_clientsize.html">CLIENTSIZE</a>, 
+	<a href="../attrib/iup_clientoffset.html">CLIENTOFFSET</a>: 
+also accepted.</p>
+
+<h3>Notes</h3>
+
+<p>The box can be created with no elements and be dynamic filled using
+  <a href="../func/iupappend.html">IupAppend</a> or
+<a href="../func/iupinsert.html">IupInsert</a>.</p>
+<p>The ACTION callback can be defined and the application can draw bellow other 
+children inside the GLBackgroundBox, but only with the OpenGL API. To avoid 
+overlapping the drawing areas it is recommended that children must be inside 
+native containers.</p>
+
+
+<h3><a name="Examples">Examples</a></h3>
+<p><a href="../../examples/">Browse for Example Files</a></p>
+
+<div align="center">
+  <center>
+  &nbsp;</center>
+</div>
+
+</body>
+
+</html>

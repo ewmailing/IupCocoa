@@ -143,7 +143,7 @@ void iupdrvReparent(Ihandle* ih)
 {
   GtkWidget* old_parent;
   GtkWidget* new_parent = gtkGetNativeParent(ih);
-  GtkWidget* widget = (GtkWidget*)iupAttribGet(ih, "_IUP_EXTRAPARENT");  /* here is used as the native child because is the outermost component of the elemement */
+  GtkWidget* widget = (GtkWidget*)iupAttribGet(ih, "_IUP_EXTRAPARENT");  /* here is used as the native child because is the outermost component of the element */
   if (!widget) widget = ih->handle;
   old_parent = gtk_widget_get_parent(widget);
   if (old_parent != new_parent)
@@ -156,7 +156,7 @@ void iupdrvReparent(Ihandle* ih)
 void iupgtkAddToParent(Ihandle* ih)
 {
   GtkWidget* parent = gtkGetNativeParent(ih);
-  GtkWidget* widget = (GtkWidget*)iupAttribGet(ih, "_IUP_EXTRAPARENT"); /* here is used as the native child because is the outermost component of the elemement */
+  GtkWidget* widget = (GtkWidget*)iupAttribGet(ih, "_IUP_EXTRAPARENT"); /* here is used as the native child because is the outermost component of the element */
   if (!widget) widget = ih->handle;
 
   iupgtkNativeContainerAdd(parent, widget);
@@ -667,30 +667,32 @@ int iupdrvGetScrollbarSize(void)
 {
   static int size = 0;
 
+  if (iupStrBoolean(IupGetGlobal("OVERLAYSCROLLBAR")))
+    return 1;
+
   if (size == 0)
   {
-    GtkRequisition requisition;
-    GtkWidget* win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gint slider_width, trough_border;
+
 #if GTK_CHECK_VERSION(3, 0, 0)
     GtkWidget* sb = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
 #else
     GtkWidget* sb = gtk_vscrollbar_new(NULL);
 #endif
-    gtk_container_add((GtkContainer*)win, sb);
-    gtk_widget_realize(win);
-#if GTK_CHECK_VERSION(3, 0, 0)
-    gtk_widget_get_preferred_size(sb, NULL, &requisition);
-#else
-    gtk_widget_size_request(sb, &requisition);
-#endif
-    size = requisition.width+1;
-    gtk_widget_destroy(win);
+
+    gtk_widget_style_get(sb, "slider-width", &slider_width,
+                             "trough-border", &trough_border,
+                             NULL);
+
+    size = trough_border * 2 + slider_width;
+
+    gtk_widget_destroy(sb);
   }
 
   return size;
 }
 
-void iupdrvDrawFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
+void iupdrvPaintFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
 {
 #if GTK_CHECK_VERSION(3, 0, 0)
   cairo_t* cr = (cairo_t*)_gc;
@@ -992,6 +994,19 @@ void iupgtkWindowGetPointer(GdkWindow *window, int *x, int *y, GdkModifierType *
   gdk_window_get_device_position(window, device, x, y, mask);
 #else
   gdk_window_get_pointer(window, x, y, mask);
+#endif
+}
+
+void iupgtkClearSizeStyleCSS(GtkWidget* widget)
+{
+#if GTK_CHECK_VERSION(3, 0, 0)
+  GtkStyleContext *context = gtk_widget_get_style_context(widget);
+  const char* str = "*{ padding-bottom: 0px ; padding-top: 0px; padding-left: 2px;  padding-right: 2px; "
+                        "margin-bottom: 0px;  margin-top: 0px;  margin-left: 0px;   margin-right: 0px; }";
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider), str, -1, NULL);
+  gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  g_object_unref(provider);
 #endif
 }
 

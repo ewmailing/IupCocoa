@@ -218,14 +218,10 @@ static int iMatrixEditCallDropdownCb(Ihandle* ih, int lin, int col)
     if (!value) value = "";
 
     IupStoreAttribute(ih->data->droph, "PREVIOUSVALUE", value);
-    IupSetAttribute(ih->data->droph, "VALUE", "1");
-
-    ret = cb(ih, ih->data->droph, lin, col);
-
-    /* check if the user set an invalid value */
-    if (IupGetInt(ih->data->droph, "VALUE") == 0)
+    if (!IupGetInt(ih->data->droph, "EDITBOX"))
       IupSetAttribute(ih->data->droph, "VALUE", "1");
 
+    ret = cb(ih, ih->data->droph, lin, col);
     if(ret == IUP_DEFAULT)
       return 1;
   }
@@ -256,7 +252,7 @@ static int iMatrixEditDropDownAction_CB(Ihandle* ih_list, char* t, int i, int v)
 static void iMatrixEditChooseElement(Ihandle* ih)
 {
   int drop = iMatrixEditCallDropdownCb(ih, ih->data->edit_lin, ih->data->edit_col);
-  if(drop)
+  if (drop)
     ih->data->datah = ih->data->droph;
   else
   {
@@ -426,22 +422,29 @@ int iupMatrixEditShowXY(Ihandle* ih, int x, int y)
   IupStoreAttribute(ih->data->datah, "FGCOLOR", iupMatrixGetFgColorStr(ih, ih->data->edit_lin, ih->data->edit_col));
   IupSetAttribute(ih->data->datah, "FONT", iupMatrixGetFont(ih, ih->data->edit_lin, ih->data->edit_col));
 
-  mask = IupGetAttributeId2(ih, "MASK", ih->data->edit_lin, ih->data->edit_col);
+  mask = iupMatrixGetMaskStr(ih, "MASK", ih->data->edit_lin, ih->data->edit_col);
   if (mask)
   {
-    IupSetAttribute(ih->data->datah, "MASKCASEI", IupGetAttributeId2(ih, "MASKCASEI", ih->data->edit_lin, ih->data->edit_col));
+    IupSetAttribute(ih->data->datah, "MASKCASEI", iupMatrixGetMaskStr(ih, "MASKCASEI", ih->data->edit_lin, ih->data->edit_col));
+    IupSetAttribute(ih->data->datah, "MASKNOEMPTY", iupMatrixGetMaskStr(ih, "MASKNOEMPTY", ih->data->edit_lin, ih->data->edit_col));
     IupSetAttribute(ih->data->datah, "MASK", mask);
   }
   else
   {
-    mask = IupGetAttributeId2(ih, "MASKINT", ih->data->edit_lin, ih->data->edit_col);
+    mask = iupMatrixGetMaskStr(ih, "MASKINT", ih->data->edit_lin, ih->data->edit_col);
     if (mask)
+    {
+      IupSetAttribute(ih->data->datah, "MASKNOEMPTY", iupMatrixGetMaskStr(ih, "MASKNOEMPTY", ih->data->edit_lin, ih->data->edit_col));
       IupSetAttribute(ih->data->datah, "MASKINT", mask);
+    }
     else
     {
-      mask = IupGetAttributeId2(ih, "MASKFLOAT", ih->data->edit_lin, ih->data->edit_col);
+      mask = iupMatrixGetMaskStr(ih, "MASKFLOAT", ih->data->edit_lin, ih->data->edit_col);
       if (mask)
+      {
+        IupSetAttribute(ih->data->datah, "MASKNOEMPTY", iupMatrixGetMaskStr(ih, "MASKNOEMPTY", ih->data->edit_lin, ih->data->edit_col));
         IupSetAttribute(ih->data->datah, "MASKFLOAT", mask);
+      }
       else
         IupSetAttribute(ih->data->datah, "MASK", NULL);
     }
@@ -659,7 +662,12 @@ static int iMatrixEditDropDownKeyAny_CB(Ihandle* ih_list, int c)
 char* iupMatrixEditGetValue(Ihandle* ih)
 {
   if (ih->data->datah == ih->data->droph)
-    return IupGetAttribute(ih->data->datah, IupGetAttribute(ih->data->droph, "VALUE"));
+  {
+    if (!IupGetInt(ih->data->droph, "EDITBOX"))
+      return IupGetAttribute(ih->data->datah, IupGetAttribute(ih->data->droph, "VALUE"));
+    else
+      return IupGetAttribute(ih->data->droph, "VALUE");
+  }
   else
     return IupGetAttribute(ih->data->datah, "VALUE");
 }

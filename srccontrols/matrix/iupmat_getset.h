@@ -38,6 +38,8 @@ void iupMatrixGetBgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned
 void iupMatrixGetFgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned char *g, unsigned char *b, int mark, int active);
 void iupMatrixGetTypeRGB(Ihandle* ih, const char* color, unsigned char *r, unsigned char *g, unsigned char *b, int mark, int active);
 
+char* iupMatrixGetMaskStr(Ihandle* ih, const char* name, int lin, int col);
+
 char* iupMatrixGetSize(Ihandle* ih, int index, int m, int pixels_unit);
 int   iupMatrixGetVisibleCellDim(Ihandle* ih, int lin, int col, int* x, int* y, int* w, int* h);
 int   iupMatrixGetColumnWidth(Ihandle* ih, int col, int use_value);

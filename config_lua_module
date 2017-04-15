@@ -20,7 +20,7 @@ echo ' '
 
 Make_Lua_Link()
 {
-  ln -fsv $TEC_SYSTEM_LIB/lib$1$LUA_PFX.so $1.so
+  ln -fsv $TEC_SYSTEM_LIB/lib$1$LUA_SFX.so $1.so
 }
 
 # From tec_uname script

@@ -44,6 +44,8 @@ int iupClassIsGlobalDefault(const char* name, int colors)
     return 1;
   if (iupStrEqual(name, "TXTFGCOLOR"))
     return 1;
+  if (iupStrEqual(name, "TXTHLCOLOR"))
+    return 1;
   if (iupStrEqual(name, "LINKFGCOLOR"))
     return 1;
   if (iupStrEqual(name, "MENUBGCOLOR"))
@@ -73,7 +75,7 @@ static const char* iClassFindId(const char* name)
 static const char* iClassCutNameId(const char* name, const char* name_id)
 {
   static char str[100];
-  int len = name_id - name;
+  int len = (int)(name_id - name);
   if (len == 0)
     return NULL;
 
@@ -1002,4 +1004,11 @@ void iupClassObjectEnsureDefaultAttributes(Ihandle* ih)
 
     name = iupTableNext(ic->attrib_func);
   }
+}
+
+void iupClassUpdate(Iclass* ic)
+{
+  IattribFunc* afunc = (IattribFunc*)iupTableGet(ic->attrib_func, "CLASSUPDATE");
+  if (afunc && afunc->set)
+    afunc->set((Ihandle*)ic, NULL);
 }

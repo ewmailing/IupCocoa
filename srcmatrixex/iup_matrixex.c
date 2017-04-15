@@ -33,7 +33,7 @@ void iupMatrixExGetDialogPosition(ImatExData* matex_data, int *x, int *y)
   int cx, cy, cw, ch, lin, col;
   char attrib[50];
   IupGetIntInt(matex_data->ih, "SCREENPOSITION", x, y);
-  IupGetIntInt(matex_data->ih, "FOCUS_CELL", &lin, &col);
+  IupGetIntInt(matex_data->ih, "FOCUSCELL", &lin, &col);
   IupSetfAttribute(matex_data->ih,"SHOW", "%d:%d", lin, col);
   sprintf(attrib, "CELLOFFSET%d:%d", lin, col);
   IupGetIntInt(matex_data->ih, attrib, &cx, &cy);
@@ -115,7 +115,7 @@ static int iMatrixExSetFreezeAttrib(Ihandle *ih, const char* value)
 
   if (iupStrBoolean(value))
   {
-    IupGetIntInt(ih, "FOCUS_CELL", &lin, &col);
+    IupGetIntInt(ih, "FOCUSCELL", &lin, &col);
     freeze = 1;
   }
   else
@@ -156,6 +156,10 @@ static int iMatrixExSetFreezeAttrib(Ihandle *ih, const char* value)
 static char* iMatrixExFileDlg(ImatExData* matex_data, int save, const char* title, const char* filter, const char* info, const char* extfilter)
 {
   Ihandle* dlg = IupFileDlg();
+
+  char* last_filename = IupGetAttribute(matex_data->ih, "LASTFILENAME");
+  if (last_filename)
+    IupSetStrAttribute(dlg, "FILE", last_filename);
 
   IupSetAttribute(dlg,"DIALOGTYPE", save? "SAVE": "OPEN");
   IupSetStrAttribute(dlg, "TITLE", title);
@@ -200,7 +204,7 @@ static int iMatrixExItemExport_CB(Ihandle* ih_item)
   {
     filter = "*.txt";
     info = "Text file";
-    extfilter = "Text file|*.txt|All Files|*.*|";
+    extfilter = "Text file|*.txt;*.csv|All Files|*.*|";
   }
 
   filename = iMatrixExFileDlg(matex_data, 1, "_@IUP_EXPORT", filter, info, extfilter);
@@ -212,6 +216,8 @@ static int iMatrixExItemExport_CB(Ihandle* ih_item)
 
     iMatrixListShowLastError(matex_data->ih);
   }
+  else
+    IupSetAttribute(matex_data->ih, "LASTFILENAME", NULL);
 
   return IUP_DEFAULT;
 }
@@ -229,8 +235,12 @@ static int iMatrixExItemImport_CB(Ihandle* ih_item)
   if (filename)
   {
     IupSetStrAttribute(matex_data->ih, "PASTEFILE", filename);
+    IupSetStrAttribute(matex_data->ih, "LASTFILENAME", filename);
+
     iMatrixListShowLastError(matex_data->ih);
   }
+  else
+    IupSetAttribute(matex_data->ih, "LASTFILENAME", NULL);
 
   return IUP_DEFAULT;
 }
@@ -245,7 +255,7 @@ static int iMatrixExItemSettings_CB(Ihandle* ih_item)
   if (sep == ';') sep_index = 1;
   else if (sep == ' ') sep_index = 2;
 
-  decimal_symbol = IupGetAttribute(matex_data->ih, "NUMERICDECIMALSYMBOL");
+  decimal_symbol = IupGetAttribute(matex_data->ih, "NUMERICDECIMALSYMBOL");  /* this will also check for global "DEFAULTDECIMALSYMBOL" */
   if (decimal_symbol)
   {
     if (decimal_symbol[0] == ',')  /* else is '.' */
@@ -343,7 +353,7 @@ static int iMatrixExItemCopyColTo_CB(Ihandle* ih_item)
   int lin, col;
 
   IupGetIntInt(ih_item, "MENUCONTEXT_CELL", &lin, &col);
-  IupSetfAttribute(matex_data->ih, "FOCUS_CELL", "%d:%d", lin, col);
+  IupSetfAttribute(matex_data->ih, "FOCUSCELL", "%d:%d", lin, col);
 
   if (iupStrEqual(value, "INTERVAL"))
   {
@@ -416,7 +426,7 @@ static int iMatrixExItemUndoList_CB(Ihandle* ih_item)
 static int iMatrixExItemFind_CB(Ihandle* ih_item)
 {
   ImatExData* matex_data = (ImatExData*)IupGetAttribute(ih_item, "MATRIX_EX_DATA");
-  IupSetStrAttribute(matex_data->ih, "FOCUS_CELL", IupGetAttribute(ih_item, "MENUCONTEXT_CELL"));
+  IupSetStrAttribute(matex_data->ih, "FOCUSCELL", IupGetAttribute(ih_item, "MENUCONTEXT_CELL"));
   iupMatrixExFindShowDialog(matex_data);
   return IUP_DEFAULT;
 }
@@ -477,7 +487,7 @@ static int iMatrixExItemGoTo_CB(Ihandle* ih_item)
       int col = iMatrixExFindCol(matex_data->ih, column);
 
       IupSetfAttribute(matex_data->ih, "SHOW", "%d:%d", lin, col);
-      IupSetfAttribute(matex_data->ih, "FOCUS_CELL", "%d:%d", lin, col);
+      IupSetfAttribute(matex_data->ih, "FOCUSCELL", "%d:%d", lin, col);
 
       iupAttribSetStr(matex_data->ih, "_IUP_LAST_GOTO_LIN", line);
       iupAttribSetStr(matex_data->ih, "_IUP_LAST_GOTO_COL", column);
@@ -491,7 +501,7 @@ static int iMatrixExItemGoTo_CB(Ihandle* ih_item)
     if (IupGetParam("_@IUP_GOTO", NULL, NULL, "_@IUP_LINE%i[1,,]\n_@IUP_COLUMN%i[1,,]\n", &lin, &col, NULL))
     {
       IupSetStrf(matex_data->ih, "SHOW", "%d:%d", lin, col);
-      IupSetStrf(matex_data->ih, "FOCUS_CELL", "%d:%d", lin, col);
+      IupSetStrf(matex_data->ih, "FOCUSCELL", "%d:%d", lin, col);
 
       iupAttribSetInt(matex_data->ih, "_IUP_LAST_GOTO_LIN", lin);
       iupAttribSetInt(matex_data->ih, "_IUP_LAST_GOTO_COL", col);
@@ -504,7 +514,7 @@ static int iMatrixExItemGoTo_CB(Ihandle* ih_item)
 static int iMatrixExItemSort_CB(Ihandle* ih_item)
 {
   ImatExData* matex_data = (ImatExData*)IupGetAttribute(ih_item, "MATRIX_EX_DATA");
-  IupSetStrAttribute(matex_data->ih, "FOCUS_CELL", IupGetAttribute(ih_item, "MENUCONTEXT_CELL"));
+  IupSetStrAttribute(matex_data->ih, "FOCUSCELL", IupGetAttribute(ih_item, "MENUCONTEXT_CELL"));
   iupMatrixExSortShowDialog(matex_data);
   return IUP_DEFAULT;
 }
@@ -707,8 +717,7 @@ static Ihandle* iMatrixExCreateMenuContext(Ihandle* ih, int lin, int col)
 
   /************************** View ****************************/
 
-  if (!readonly)
-    IupAppend(menu, IupSetCallbacks(IupSetAttributes(IupItem("_@IUP_SORTDLG", NULL), "IMAGE=IUP_ToolsSortAscend"), "ACTION", iMatrixExItemSort_CB, NULL));
+  IupAppend(menu, IupSetCallbacks(IupSetAttributes(IupItem("_@IUP_SORTDLG", NULL), "IMAGE=IUP_ToolsSortAscend"), "ACTION", iMatrixExItemSort_CB, NULL));
 
   {
     int flin, fcol;
@@ -783,6 +792,57 @@ static int iMatrixSetShowMenuContextAttribId(Ihandle *ih, int lin, int col, cons
   if (menucontext_cb) menucontext_cb(ih, menu, lin, col);
 
   IupDestroy(menu);
+  return 0;
+}
+
+static int iMatrixExSetShowDialogAttrib(Ihandle *ih, const char* value)
+{
+  ImatExData* matex_data = (ImatExData*)iupAttribGet(ih, "_IUP_MATEX_DATA");
+  int readonly = IupGetInt(ih, "READONLY");
+
+  IupSetAttribute(ih, "MATRIX_EX_DATA", (char*)matex_data);  /* do not use "_IUP_MATEX_DATA" to enable inheritance */
+  IupSetStrAttribute(ih, "MENUCONTEXT_CELL", IupGetAttribute(ih, "FOCUSCELL"));
+
+  if (iupStrEqualNoCase(value, "SETTINGS"))
+    iMatrixExItemSettings_CB(ih);
+  else if (iupStrEqualNoCase(value, "EXPORT_TXT"))
+  {
+    IupSetAttribute(ih, "FILEFORMAT", "TXT");
+    iMatrixExItemExport_CB(ih);
+    IupSetAttribute(ih, "FILEFORMAT", NULL);
+  }
+  else if (iupStrEqualNoCase(value, "EXPORT_LATEX"))
+  {
+    IupSetAttribute(ih, "FILEFORMAT", "LaTeX");
+    iMatrixExItemExport_CB(ih);
+    IupSetAttribute(ih, "FILEFORMAT", NULL);
+  }
+  else if (iupStrEqualNoCase(value, "EXPORT_HTML"))
+  {
+    IupSetAttribute(ih, "FILEFORMAT", "HTML");
+    iMatrixExItemExport_CB(ih);
+    IupSetAttribute(ih, "FILEFORMAT", NULL);
+  }
+  else if (!readonly && iupStrEqualNoCase(value, "IMPORT_TXT"))
+    iMatrixExItemImport_CB(ih);
+  else if (!readonly && iupStrEqualNoCase(value, "UNDOLIST"))
+    iMatrixExItemUndoList_CB(ih);
+  else if (iupStrEqualNoCase(value, "FIND"))
+    iMatrixExItemFind_CB(ih);
+  else if (iupStrEqualNoCase(value, "GOTO"))
+    iMatrixExItemGoTo_CB(ih);
+  else if (iupStrEqualNoCase(value, "SORT"))
+    iMatrixExItemSort_CB(ih);
+  else if (!readonly && iupStrEqualNoCase(value, "COPYCOLTO_INTERVAL"))
+  {
+    IupSetAttribute(ih, "COPYCOLTO", "INTERVAL");
+    iMatrixExItemCopyColTo_CB(ih);
+    IupSetAttribute(ih, "COPYCOLTO", NULL);
+  }
+
+  IupSetAttribute(ih, "MENUCONTEXT_CELL", NULL);
+  IupSetAttribute(ih, "MATRIX_EX_DATA", NULL);
+
   return 0;
 }
 
@@ -983,25 +1043,9 @@ static void iMatrixExDestroyMethod(Ihandle* ih)
   free(matex_data);
 }
 
-static void iMatrixExInitAttribCb(Iclass* ic)
+static void iMatrixExSetClassUpdate(Iclass* ic)
 {
-  iupClassRegisterAttribute(ic, "FREEZE", NULL, iMatrixExSetFreezeAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "FREEZECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "0 0 255", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-
-  iupClassRegisterCallback(ic, "MENUCONTEXT_CB", "nii");
-  iupClassRegisterCallback(ic, "MENUCONTEXTCLOSE_CB", "nii");
-  iupClassRegisterAttribute(ic, "MENUCONTEXT", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NO_INHERIT);
-  iupClassRegisterAttributeId2(ic, "SHOWMENUCONTEXT", NULL, iMatrixSetShowMenuContextAttribId, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
-
-  iupMatrixExRegisterClipboard(ic);
-  iupMatrixExRegisterBusy(ic);
-  iupMatrixExRegisterVisible(ic);
-  iupMatrixExRegisterExport(ic);
-  iupMatrixExRegisterCopy(ic);
-  iupMatrixExRegisterUnits(ic);
-  iupMatrixExRegisterUndo(ic);
-  iupMatrixExRegisterFind(ic);
-  iupMatrixExRegisterSort(ic);
+  (void)ic;
 
   if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "ENGLISH"))
   {
@@ -1034,9 +1078,9 @@ static void iMatrixExInitAttribCb(Iclass* ic)
     IupSetLanguageString("IUP_SELECTEDLINES", "Selected lines");
 
     IupSetLanguageString("IUP_VISIBILITY", "Visibility");
-    IupSetLanguageString("IUP_HIDECOLUMN", "Hide Column");  
+    IupSetLanguageString("IUP_HIDECOLUMN", "Hide Column");
     IupSetLanguageString("IUP_SHOWHIDDENCOLUMNS", "Show Hidden Columns");
-    IupSetLanguageString("IUP_HIDELINE", "Hide Line");    
+    IupSetLanguageString("IUP_HIDELINE", "Hide Line");
     IupSetLanguageString("IUP_SHOWHIDDENLINES", "Show Hidden Lines");
 
     IupSetLanguageString("IUP_COPYTOINTERVAL", "Copy To - Interval");
@@ -1091,9 +1135,9 @@ static void iMatrixExInitAttribCb(Iclass* ic)
     IupSetLanguageString("IUP_SELECTEDLINES", "Linhas Selecionadas");
 
     IupSetLanguageString("IUP_VISIBILITY", "Visibilidade");
-    IupSetLanguageString("IUP_HIDECOLUMN", "Esconder Coluna");  
+    IupSetLanguageString("IUP_HIDECOLUMN", "Esconder Coluna");
     IupSetLanguageString("IUP_SHOWHIDDENCOLUMNS", "Mostrar Coluna Escondidas");
-    IupSetLanguageString("IUP_HIDELINE", "Esconder Linha");    
+    IupSetLanguageString("IUP_HIDELINE", "Esconder Linha");
     IupSetLanguageString("IUP_SHOWHIDDENLINES", "Mostrar Linhas Escondidas");
 
     IupSetLanguageString("IUP_UNITS", "Unidades:");
@@ -1120,7 +1164,7 @@ static void iMatrixExInitAttribCb(Iclass* ic)
     if (IupGetInt(NULL, "UTF8MODE"))
     {
       /* When seeing this file assuming ISO8859-1 encoding, above will appear correct.
-         When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
+      When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
       IupSetLanguageString("IUP_SETTINGSDLG", "Definições...");
       IupSetLanguageString("IUP_TEXTSEPARATOR", "Separador de Números:");
       IupSetLanguageString("IUP_DECIMALSYMBOL", "Símbolo Decimal:");
@@ -1131,6 +1175,35 @@ static void iMatrixExInitAttribCb(Iclass* ic)
       IupSetLanguageString("IUP_ERRORINVALIDINTERVAL", "Intervalo inválido.");
     }
   }
+
+  iupMatrixExSetClassUpdateFind(ic);
+  iupMatrixExSetClassUpdateSort(ic);
+  iupMatrixExSetClassUpdateUndo(ic);
+}
+
+static void iMatrixExInitAttribCb(Iclass* ic)
+{
+  iupClassRegisterAttribute(ic, "FREEZE", NULL, iMatrixExSetFreezeAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FREEZECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "0 0 255", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+
+  iupClassRegisterCallback(ic, "MENUCONTEXT_CB", "nii");
+  iupClassRegisterCallback(ic, "MENUCONTEXTCLOSE_CB", "nii");
+  iupClassRegisterAttribute(ic, "MENUCONTEXT", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId2(ic, "SHOWMENUCONTEXT", NULL, iMatrixSetShowMenuContextAttribId, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SHOWDIALOG", NULL, iMatrixExSetShowDialogAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CLASSUPDATE", NULL, (IattribSetFunc)iMatrixExSetClassUpdate, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+
+  iMatrixExSetClassUpdate(ic);
+
+  iupMatrixExRegisterClipboard(ic);
+  iupMatrixExRegisterBusy(ic);
+  iupMatrixExRegisterVisible(ic);
+  iupMatrixExRegisterExport(ic);
+  iupMatrixExRegisterCopy(ic);
+  iupMatrixExRegisterUnits(ic);
+  iupMatrixExRegisterUndo(ic);
+  iupMatrixExRegisterFind(ic);
+  iupMatrixExRegisterSort(ic);
 }
 
 static Iclass* iMatrixExNewClass(void)

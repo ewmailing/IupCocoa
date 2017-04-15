@@ -19,21 +19,13 @@ extern "C" {
 
 /* Converts from RGB to HSI.
  */
-void iupColorRGB2HSI(unsigned char r, unsigned char g, unsigned char b, float *h, float *s, float *i);
+void iupColorRGB2HSI(unsigned char r, unsigned char g, unsigned char b, double *h, double *s, double *i);
 
 /* Converts from HSI to RGB.
  */
-void iupColorHSI2RGB(float h, float s, float i, unsigned char *r, unsigned char *g, unsigned char *b);
+void iupColorHSI2RGB(double h, double s, double i, unsigned char *r, unsigned char *g, unsigned char *b);
 
-int iupStrToHSI(const char *str, float *h, float *s, float *i);
-
-#ifdef IUP_DEFMATHFLOAT
-#define atan2f(_X, _Y) ((float)atan2((double)_X, (double)_Y))
-#define cosf(_X)  ((float)cos((double)_X))
-#define fmodf(_X, _Y) ((float)fmod((double)_X, (double)_Y))
-#define sinf(_X) ((float)sin((double)_X))
-#define sqrtf(_X) ((float)sqrt((double)_X))
-#endif
+int iupStrToHSI(const char *str, double *h, double *s, double *i);
 
 
 

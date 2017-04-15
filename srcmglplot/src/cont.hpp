@@ -28,8 +28,8 @@ struct mglSegment
 		if(v1==v2 && u1==u2)	res=false;	// NOTE: shouldn't be here never
 		if(res)
 		{
-			p1 = mglPoint(mgl_data_linear(x,i+u1,j+v1,k), mgl_data_linear(y,i+u1,j+v1,k), mgl_data_linear(z,i+u1,j+v1,k));
-			p2 = mglPoint(mgl_data_linear(x,i+u2,j+v2,k), mgl_data_linear(y,i+u2,j+v2,k), mgl_data_linear(z,i+u2,j+v2,k));
+			p1.Set(mgl_data_linear(x,i+u1,j+v1,k), mgl_data_linear(y,i+u1,j+v1,k), mgl_data_linear(z,i+u1,j+v1,k));
+			p2.Set(mgl_data_linear(x,i+u2,j+v2,k), mgl_data_linear(y,i+u2,j+v2,k), mgl_data_linear(z,i+u2,j+v2,k));
 		}
 		return res;
 	}
