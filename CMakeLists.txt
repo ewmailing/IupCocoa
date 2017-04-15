@@ -267,7 +267,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_classbase.h
 	${CMAKE_SOURCE_DIR}/src/iup_colordlg.c
 	${CMAKE_SOURCE_DIR}/src/iup_config.c
-	${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+#	${CMAKE_SOURCE_DIR}/src/iup_datepick.c
 	${CMAKE_SOURCE_DIR}/src/iup_detachbox.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.h
@@ -377,8 +377,11 @@ SET(IUP_FOREIGN_SOURCE_FILES "")
 IF(IUP_USE_EMSCRIPTEN)
 
 	SET(IUP_EMSCRIPTEN_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_button.c
-#		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_calendar.c
+		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_calendar.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_canvas.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_clipboard.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_colordlg.c
@@ -431,11 +434,14 @@ ELSEIF(IUP_USE_ANDROID)
 ELSEIF(IUP_USE_COCOATOUCH)
 
 	SET(IUP_COCOATOUCH_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupAppDelegateProtocol.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_button.m
-#		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_calendar.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_calendar.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_canvas.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_clipboard.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_colordlg.m
@@ -492,10 +498,13 @@ ELSEIF(IUP_USE_COCOATOUCH)
 ELSEIF(IUP_USE_COCOA)
 
 	SET(IUP_COCOA_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_button.m
-#		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_calendar.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_calendar.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_canvas.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_clipboard.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_colordlg.m
@@ -633,6 +642,9 @@ ELSEIF(IUP_USE_WIN32)
 ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 
 	SET(IUP_GTK_SOURCE_FILES
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_button.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_calendar.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_canvas.c
@@ -723,6 +735,9 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 ELSEIF(IUP_USE_MOTIF)
 
 	SET(IUP_MOTIF_SOURCE_FILES
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_button.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_calendar.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_canvas.c
