@@ -169,11 +169,26 @@ static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
   return macfont;
 }
 
+
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
+{
+	return 1;
+}
+
+const char* iupdrvGetFontAttrib(Ihandle* ih)
+{
+	return NULL;
+}
+
+
 static ImacFont* macFontGet(Ihandle *ih)
 {
   ImacFont* macfont = (ImacFont*)iupAttribGet(ih, "_IUP_WINFONT");
   if (!macfont)
-    macfont = macFontCreateNativeFont(ih, iupGetFontAttrib(ih));
+  {
+	  // FIXME: Used to call iupGetFontAttrib, but function seems to have been removed between 3.15 and 3.21
+    macfont = macFontCreateNativeFont(ih, iupdrvGetFontAttrib(ih));
+  }
   return macfont;
 }
 

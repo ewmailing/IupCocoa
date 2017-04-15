@@ -323,6 +323,10 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
 	return 1;
 }
 
+void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
+{
+	
+}
 
 /****************************************************************
  Callbacks and Events

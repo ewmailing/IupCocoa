@@ -9,7 +9,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
-#include "iupdraw.h"
+#include "iup_drvdraw.h"
 
 #include "iup_object.h"
 #include "iup_attrib.h"

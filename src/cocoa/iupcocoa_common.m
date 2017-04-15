@@ -339,10 +339,6 @@ int iupdrvGetScrollbarSize(void)
   return 0;
 }
 
-void iupdrvDrawFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
-{
-
-}
 
 void iupdrvBaseRegisterCommonAttrib(Iclass* ic)
 {
