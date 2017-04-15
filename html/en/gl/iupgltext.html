@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupGLText</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupGLText <span class="style1">(since 3.19)</span></h2>
+
+  <p>
+  Creates an embedded OpenGL text interface element, which displays a text and 
+  allows to edit it when clicked. It 
+  inherits from <a href="iupglsubcanvas.html">IupGLSubCanvas</a>. It exists only 
+  inside an
+<a href="iupglcanvasbox.html">IupGLCanvasBox</a>.</p>
+<p>
+  Internally uses an <a href="../elem/iuptext.html">IupText</a> when the user 
+  clicks the control to allow the user to edit the text. Once the <strong>
+  IupText</strong> loses its focus the text is updated and the <strong>IupText</strong> 
+  is hidden. The <strong>IupText</strong> is an internal child of the <strong>
+  IupGLText</strong>. The application can use the
+  <a href="../func/iupgetchild.html">IupGetChild</a> function to get access to 
+  the <strong>IupText</strong> control.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupGLText(void); [in C]
+iup.gltext{} -&gt; (<strong>elem</strong>: ihandle) [in Lua]
+gltext() [in LED]</pre>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+<p>The 
+  <strong>IupGLText</strong> element handle all attributes defined for a
+<a href="iupglsubcanvas.html">IupGLSubCanvas</a> control.</p>
+<blockquote>
+  <hr>
+</blockquote>
+
+
+
+<p><b>ALIGNMENT</b> (<font size="3">non inheritable</font>): horizontal and 
+vertical alignment. Possible values: &quot;ALEFT&quot;, &quot;ACENTER&quot; and &quot;ARIGHT&quot;,&nbsp; 
+combined to &quot;ATOP&quot;, &quot;ACENTER&quot; and &quot;ABOTTOM&quot;. Default: &quot;ACENTER:ACENTER&quot;. Partial 
+values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be used 
+from the current alignment. </p>
+
+  <p><a href="../attrib/iup_fgcolor.html">FGCOLOR</a>: Text color. Can have an 
+  alpha component. Default: &quot;0 0 
+  0&quot;.</p>
+
+
+  <p><b>PADDING</b><strong> </strong>(<font size="3">non inheritable</font>): 
+  internal margin. Default value: &quot;0x0&quot;.</p>
+
+
+<p><a href="../attrib/iup_size.html">SIZE</a> (<font size="3">non inheritable</font>): 
+	Since the contents can be changed by the user, the <strong>Natural</strong>
+	<strong>Size</strong> is not affected by the text contents. Use VISIBLECOLUMNS and VISIBLELINES to control the <strong>Natural Size</strong>.</p>
+<p><strong>TEXT</strong><b> </b>(<font size="3">non inheritable</font>): returns 
+the name of the internal <strong>IupText</strong> used to edit the text when the 
+user clicks the control. Another way to get access to the internal child <strong>
+IupText</strong>.</p>
+<p><b>TEXT_HANDLE </b>(<font size="3">non inheritable</font>): returns the 
+Ihandle of the internal <strong>IupText</strong>.</p>
+
+<p><b>VALUE </b>(<font size="3">non inheritable</font>): Text entered by the 
+user.</p>
+
+<p><strong>VISIBLECOLUMNS</strong>: Defines the number of visible columns for 
+the <strong>Natural</strong> <strong>Size</strong>, this means that will act 
+also as minimum number of visible columns. It uses a wider character size than 
+the one used for the SIZE attribute so strings will fit better without the need 
+of extra columns. As for SIZE you can set to NULL after map to use it as an 
+initial value. Default: 5</p>
+
+<h3><a name="Callbacks">Callbacks</a></h3>
+
+
+<p>The 
+  <strong>IupGLText</strong> element handle all callbacks defined for the
+<strong>IupGLSubCanvas</strong> control.</p>
+<blockquote>
+  <hr>
+</blockquote>
+
+
+<p><strong>VALUECHANGED_CB</strong>:
+  Called after the value was interactively changed by the user.</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>elem</strong>:valuechanged_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+
+
+
+<h3><a name="Notes">Notes</a></h3>
+
+
+<p>Visually the difference between an <strong>IupGLText</strong> and an <strong>
+IupGLButton</strong> is that by default the border is always visible in the
+<strong>IupGLText</strong>.</p>
+
+
+<h3><a name="SeeAlso">See Also</a></h3>
+
+<p>&nbsp;<a href="iupgllabel.html">IupGLLabel</a>, <a href="iupglbutton.html">IupGLButton</a>, <a href="iupgltoggle.html">IupGLToggle</a>.</p>
+
+
+</body>
+
+</html>

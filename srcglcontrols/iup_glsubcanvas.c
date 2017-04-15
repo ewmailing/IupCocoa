@@ -495,7 +495,7 @@ Iclass* iupGLSubCanvasNewClass(void)
   /* redefine common attributes */
   iupClassRegisterAttribute(ic, "SIZE", iGLSubCanvasGetSizeAttrib, iGLSubCanvasSetSizeAttrib, NULL, NULL, IUPAF_NO_SAVE | IUPAF_NO_DEFAULTVALUE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CHARSIZE", iGLSubCanvasGetCharSizeAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, iupGLFontSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE | IUPAF_NOT_MAPPED);  /* use inheritance to retrieve standard fonts */
+  iupClassRegisterAttribute(ic, "FONT", NULL, iupGLFontSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   /* Visual */
   iupBaseRegisterVisualAttrib(ic);

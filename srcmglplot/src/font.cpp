@@ -1,6 +1,6 @@
 /***************************************************************************
  * font.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,10 +29,9 @@
 
 #include "mgl2/base.h"
 #include "mgl2/font.h"
-#include "def_font.cpp"
+#include "def_font.cc"
+#include "tex_table.cc"
 //-----------------------------------------------------------------------------
-extern mglTeXsymb mgl_tex_symb[];
-extern long mgl_tex_num;
 //mglFont mglDefFont("nofont");
 mglFont mglDefFont;
 //-----------------------------------------------------------------------------
@@ -277,6 +276,7 @@ unsigned mglFont::Parse(const wchar_t *s) const
 	else if(!wcscmp(s,L"textbf"))	res = MGL_FONT_BOLD;
 	else if(!wcscmp(s,L"textit"))	res = MGL_FONT_ITAL;
 	else if(!wcscmp(s,L"textrm"))	res = unsigned(-1);
+	else if(!wcscmp(s,L"T2A"))		res = unsigned(-1);
 	else if(!wcscmp(s,L"w"))		res = MGL_FONT_WIRE;
 	else if(!wcscmp(s,L"wire"))		res = MGL_FONT_WIRE;
 	else if(!wcsncmp(s,L"color",5))	res = MGL_COLOR_MASK + (0xff & s[5]);
@@ -310,6 +310,7 @@ void mglFont::Convert(const wchar_t *str, unsigned *res) const
 				}
 			}
 		}
+		else if(ch=='-' && str[i+1]=='-')	{	res[j++] = 0x2212;	i++;	}
 		else if(ch=='\b'){}
 		else if(ch<=' ' && ch!='\n')	res[j++] = ' ';	// no \t at this moment :(
 		else if(ch=='_')	res[j++] = MGL_FONT_LOWER;
@@ -506,15 +507,27 @@ float mglFont::Puts(const unsigned *text, float x,float y,float f,int style,floa
 			if(ss)	// draw symbol (glyph)
 			{
 				long j = Internal('!');
+				float dx=0;
 				if(ss>' ')
 				{
 					j = Internal(ss);
 					if(j==-1)	continue;
-					if(s & MGL_FONT_ZEROW)	yy += 100*ff/fact[a];
+					if(s & MGL_FONT_ZEROW)
+					{
+						long j=1;
+						yy += 100*ff/fact[a];
+						while(str[i+j]>=unsigned(-15))	j++;
+						unsigned sn = str[i+j];
+						if(sn<unsigned(-15) && (sn&MGL_FONT_MASK)>' ')	// specially center
+						{
+							dx = 0.75*ff*(GetWidth(a,Internal(sn&MGL_FONT_MASK))-GetWidth(a,j))/fact[a];
+							if(dx<0)	dx=0;
+						}
+					}
 					if(gr && !(style&0x10))
 					{
-						if(st & MGL_FONT_WIRE)	gr->Glyph(x,yy,ff,a+4,j,ccol);
-						else					gr->Glyph(x,yy,ff,a,j,ccol);
+						if(st & MGL_FONT_WIRE)	gr->Glyph(x+dx,yy,ff,a+4,j,ccol);
+						else					gr->Glyph(x+dx,yy,ff,a,j,ccol);
 					}
 				}
 				ww = ff*GetWidth(a,j)/fact[a];
@@ -665,6 +678,48 @@ bool mglFont::read_main(const char *fname, std::vector<short> &buf)
 	return true;
 }
 //-----------------------------------------------------------------------------
+size_t mglFont::SaveBin(const char *fname)
+{
+	FILE *fp = fopen(fname,"wb");
+	if(!fp)	return 0;
+	size_t sum=0;
+	fwrite(&numb,sizeof(size_t),1,fp);	sum += sizeof(size_t);
+	fwrite(fact,sizeof(float),4,fp);	sum += sizeof(float)*4;
+	fwrite(Buf,sizeof(short),numb,fp);	sum += sizeof(short)*numb;
+	size_t len = glyphs.size();
+	fwrite(&len,sizeof(size_t),1,fp);	sum += sizeof(long);
+	fwrite(&(glyphs[0]),sizeof(mglGlyphDescr),len,fp);	sum += sizeof(mglGlyphDescr)*len;
+	fclose(fp);	return sum;
+}
+//-----------------------------------------------------------------------------
+bool mglFont::LoadBin(const char *base, const char *path)
+{
+	Clear();	// first clear old
+	if(!path)	path = MGL_FONT_PATH;
+	char str[256], sep='/';
+	snprintf(str,256,"%s%c%s.vfmb",path,sep,base?base:"");	str[255]=0;
+	FILE *fp = fopen(str,"rb");		if(!fp)	return false;
+	size_t s, len;
+	bool res = true;
+	s = fread(&numb,sizeof(size_t),1,fp);
+	if(s<1)	res = false;
+	s = fread(fact,sizeof(float),4,fp);
+	if(s<4)	res = false;
+	Buf = new short[numb];
+	s = fread(Buf,sizeof(short),numb,fp);
+	if(s<numb)	res = false;
+	s = fread(&len,sizeof(size_t),1,fp);
+	if(s<1)	res = false;
+	if(res)
+	{
+		glyphs.clear();	glyphs.resize(len);
+		s = fread(&(glyphs[0]),sizeof(mglGlyphDescr),len,fp);
+		if(s<len)	res = false;
+	}
+//	if(!res)	Clear();
+	fclose(fp);		return res;
+}
+//-----------------------------------------------------------------------------
 bool mglFont::Load(const char *base, const char *path)
 {
 //	base = 0;
@@ -685,6 +740,8 @@ bool mglFont::Load(const char *base, const char *path)
 			for(i=strlen(buf);i>=0 && buf[i]!=sep;i--);
 			path = buf;		buf[i]=0;	base = buf+i+1;
 		}
+		if(LoadBin(base,path))
+		{	delete []buf;	return true;	}
 	}
 	Clear();	// first clear old
 
@@ -719,12 +776,12 @@ bool mglFont::Load(const char *base, const char *path)
 	// now collect data
 	numb = norm.size()+bold.size()+ital.size()+both.size();
 	Buf = new short[numb];
-	memcpy(Buf,norm.data(),norm.size()*sizeof(short));
+	memcpy(Buf,&norm[0],norm.size()*sizeof(short));
 	long cur = norm.size(), len = long(bold.size());
 	if(bold.size()>0)
-		memcpy(Buf+cur,bold.data(),bold.size()*sizeof(short));
+		memcpy(Buf+cur,&bold[0],bold.size()*sizeof(short));
 #pragma omp parallel for
-	for(long i=0;i<GetNumGlyph();i++)	if(glyphs[i].ln[1]<0)
+	for(long i=0;i<long(GetNumGlyph());i++)	if(glyphs[i].ln[1]<0)
 	{	glyphs[i].ln[1] = cur-1-glyphs[i].ln[1];	glyphs[i].tr[1] = cur-1-glyphs[i].tr[1];	}
 #pragma omp parallel for
 	for(long i=0;i<long(ex_b.size());i++)	if(ex_b[i].ln[1]<0)
@@ -735,9 +792,9 @@ bool mglFont::Load(const char *base, const char *path)
 	}
 	cur += len;		len = long(ital.size());
 	if(ital.size()>0)
-		memcpy(Buf+cur,ital.data(),ital.size()*sizeof(short));
+		memcpy(Buf+cur,&ital[0],ital.size()*sizeof(short));
 #pragma omp parallel for
-	for(long i=0;i<GetNumGlyph();i++)	if(glyphs[i].ln[2]<0)
+	for(long i=0;i<long(GetNumGlyph());i++)	if(glyphs[i].ln[2]<0)
 	{	glyphs[i].ln[2] = cur-1-glyphs[i].ln[2];	glyphs[i].tr[2] = cur-1-glyphs[i].tr[2];	}
 #pragma omp parallel for
 	for(long i=0;i<long(ex_i.size());i++)	if(ex_i[i].ln[2]<0)
@@ -748,9 +805,9 @@ bool mglFont::Load(const char *base, const char *path)
 	}
 	cur += len;
 	if(both.size()>0)
-		memcpy(Buf+cur,both.data(),both.size()*sizeof(short));
+		memcpy(Buf+cur,&both[0],both.size()*sizeof(short));
 #pragma omp parallel for
-	for(long i=0;i<GetNumGlyph();i++)	if(glyphs[i].ln[3]<0)
+	for(long i=0;i<long(GetNumGlyph());i++)	if(glyphs[i].ln[3]<0)
 	{	glyphs[i].ln[3] = cur-1-glyphs[i].ln[3];	glyphs[i].tr[3] = cur-1-glyphs[i].tr[3];	}
 #pragma omp parallel for
 	for(long i=0;i<long(ex_bi.size());i++)	if(ex_bi[i].ln[3]<0)
@@ -857,6 +914,21 @@ void mglFont::Copy(mglFont *f)
 	numb = f->numb;	Buf = new short[numb];	memcpy(Buf, f->Buf, numb*sizeof(short));
 	// copy symbol parameters
 	glyphs.resize(f->glyphs.size());
-	memcpy(glyphs.data(),f->glyphs.data(),glyphs.size()*sizeof(mglGlyphDescr));
+	memcpy(&glyphs[0],&(f->glyphs)[0],glyphs.size()*sizeof(mglGlyphDescr));
 }
 //-----------------------------------------------------------------------------
+long MGL_EXPORT mgl_check_tex_table()
+{
+	size_t i=0;	while(mgl_tex_symb[i].tex[0])	i++;
+	long res = 0;
+	if(mgl_tex_num!=i)
+	{	printf("real=%zu, set=%zu\n",i,mgl_tex_num);	res = -1;	}
+	for(i=0;mgl_tex_symb[i].tex[0];i++)
+	{
+		mglTeXsymb tst, *rts;	tst.tex = mgl_tex_symb[i].tex;
+		rts = (mglTeXsymb *) bsearch(&tst, mgl_tex_symb, mgl_tex_num, sizeof(mglTeXsymb), mgl_tex_symb_cmp);
+		if(!rts)
+		{	printf("Bad '%ls' at %zu\n",mgl_tex_symb[i].tex,i);	res = 1+i;	}
+	}
+	return res;
+}

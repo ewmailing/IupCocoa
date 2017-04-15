@@ -6,30 +6,30 @@ extern "C" {
 #endif
 
 #ifdef WIN32
-void iupImglibBitmapsOpen(void);     /* Used only by the Win32 driver */
+void iupImglibBaseLibWin16x16Open(void);     /* Used only by the Win32 driver */
+void iupImglibBaseLibWin32x32Open(void);
 #endif
 #ifndef WIN32
-void iupImglibBitmaps8Open(void);    /* Used only by the Motif driver */
+void iupImglibBaseLibMot16x16Open(void);    /* Used only by the Motif driver */
 #endif
 
-void iupImglibBitmapsGtkOpen(void);  /* Used only by the GTK driver in UNIX or Windows */
+void iupImglibBaseLibGtk16x16Open(void);  /* Used only by the GTK driver in UNIX or Windows */
 
 #ifndef WIN32
-void iupImglibIcons8Open(void);      /* Used only by the Motif driver */
-void iupImglibLogos8Open(void);      /* Used only by the Motif driver */
+void iupImglibLogosMot32x32Open(void);      /* Used only by the Motif driver */
+void iupImglibLogosMot48x48Open(void);      /* Used only by the Motif driver */
 #endif
 
-void iupImglibIconsOpen(void);
+void iupImglibLogos32x32Open(void);
 
-#ifdef IUP_IMGLIB_LARGE
-void iupImglibLogosOpen(void);
-void iupImglibLogosGtkOpen(void);
+void iupImglibLogos48x48Open(void);
+void iupImglibIconsGtk48x48Open(void);
+
+void iupImglibCircleProgress(void);
 
 #ifdef WIN32
-void iupImglibLogosWin32Open(void);
-void iupImglibLogosWin32MsgOpen(void);
+void iupImglibIconsWin48x48Open(void);
 #endif
-#endif  
 
 #ifdef __cplusplus
 }

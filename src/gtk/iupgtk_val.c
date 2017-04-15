@@ -33,6 +33,7 @@
 
 void iupdrvValGetMinSize(Ihandle* ih, int *w, int *h)
 {
+  /* LAYOUT_DECORATION_ESTIMATE */
   if (ih->data->orientation == IVAL_HORIZONTAL)
   {
     *w = 20;

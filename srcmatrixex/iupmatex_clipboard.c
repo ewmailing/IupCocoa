@@ -148,12 +148,24 @@ static void iMatrixExArrayAddStr(Iarray* data, char* str)
   memcpy(str_data+last_count, str, add_count);
 }
 
-static void iMatrixExArrayAddCell(ImatExData* matex_data, Iarray* data, int lin, int col)
+static void iMatrixExArrayAddCell(ImatExData* matex_data, Iarray* data, int lin, int col, char sep)
 {
   char* value = iupMatrixExGetCellValue(matex_data->ih, lin, col, 1);  /* get displayed value */
 
   if (value)
+  {
+    int add_sep = 0;
+    if (strchr(value, sep))
+      add_sep = 1;
+
+    if (add_sep)
+      iMatrixExArrayAddChar(data, '\"');
+
     iMatrixExArrayAddStr(data, value);
+
+    if (add_sep)
+      iMatrixExArrayAddChar(data, '\"');
+  }
   else
     iMatrixExArrayAddChar(data, ' ');
 }
@@ -163,11 +175,11 @@ static void iMatrixExCopyGetDataMarkedCol(ImatExData* matex_data, Iarray* data, 
   int lin, col;
   int add_sep;
 
-  for(lin = 1; lin <= num_lin; ++lin)  /* all lines */
+  for(lin = 1; lin <= num_lin; ++lin)  /* always organize data in lines */
   {
     add_sep = 0;
 
-    if (iupMatrixExIsLineVisible(matex_data->ih, lin))  
+    if (iupMatrixExIsLineVisible(matex_data->ih, lin))
     {
       for(col = 1; col <= num_col; ++col)
       {
@@ -177,7 +189,7 @@ static void iMatrixExCopyGetDataMarkedCol(ImatExData* matex_data, Iarray* data, 
           if (add_sep)
             iMatrixExArrayAddChar(data, sep);
 
-          iMatrixExArrayAddCell(matex_data, data, lin, col);
+          iMatrixExArrayAddCell(matex_data, data, lin, col, sep);
           add_sep = 1;
         }
       }
@@ -206,7 +218,7 @@ static void iMatrixExCopyGetDataMarkedLin(ImatExData* matex_data, Iarray* data, 
           if (add_sep)
             iMatrixExArrayAddChar(data, sep);
 
-          iMatrixExArrayAddCell(matex_data, data, lin, col);
+          iMatrixExArrayAddCell(matex_data, data, lin, col, sep);
           add_sep = 1;
         }
       }
@@ -231,18 +243,20 @@ static void iMatrixExCopyGetDataMarkedCell(ImatExData* matex_data, Iarray* data,
       {
         if (iupMatrixExIsColumnVisible(matex_data->ih, col))
         {
-          int pos = (lin-1) * num_col + (col-1);  /* marked array does not include titles */
+          int pos = (lin - 1) * num_col + (col - 1);  /* marked array does not include titles */
           if (marked[pos] == '1')
           {
             if (add_sep)
               iMatrixExArrayAddChar(data, sep);
-            iMatrixExArrayAddCell(matex_data, data, lin, col);
+
+            iMatrixExArrayAddCell(matex_data, data, lin, col, sep);
             add_sep = 1;
           }
           else if (keep_struct)
           {
             if (add_sep)
               iMatrixExArrayAddChar(data, sep);
+
             iMatrixExArrayAddChar(data, ' ');
             add_sep = 1;
           }
@@ -272,7 +286,7 @@ static void iMatrixExCopyGetData(ImatExData* matex_data, Iarray* data, int lin1,
           if (add_sep)
             iMatrixExArrayAddChar(data, sep);
 
-          iMatrixExArrayAddCell(matex_data, data, lin, col);
+          iMatrixExArrayAddCell(matex_data, data, lin, col, sep);
 
           add_sep = 1;
         }
@@ -443,7 +457,7 @@ static int iMatrixExStrGetDataSize(const char* data, int *num_lin, int *num_col,
   return 1;
 }
 
-static char* iMatrixExStrCopyValue(char* value, int *value_max_size, const char* data, int value_len)
+static char* iMatrixExStrCopyData(char* value, int *value_max_size, const char* data, int value_len)
 {
   if (*value_max_size < value_len)
   {
@@ -466,7 +480,7 @@ static void iMatrixExPasteSetData(Ihandle *ih, const char* data, int data_num_li
 
   lin = start_lin;
   l = 0;
-  while (lin <= num_lin && l<data_num_lin)
+  while (lin <= num_lin && l<data_num_lin && *data)
   {
     if (iupMatrixExIsLineVisible(ih, lin))
     {
@@ -474,7 +488,7 @@ static void iMatrixExPasteSetData(Ihandle *ih, const char* data, int data_num_li
 
       col = start_col;
       c = 0;
-      while (col <= num_col && c<data_num_col)
+      while (len && col <= num_col && c<data_num_col)
       {
         if (iupMatrixExIsColumnVisible(ih, col))
         {
@@ -482,7 +496,13 @@ static void iMatrixExPasteSetData(Ihandle *ih, const char* data, int data_num_li
 
           if (value_len)
           {
-            value = iMatrixExStrCopyValue(value, &value_max_size, data, value_len);
+            if (data[0] == '\"' && data[value_len - 1] == '\"')
+            {
+              data++;
+              value_len -= 2;
+            }
+
+            value = iMatrixExStrCopyData(value, &value_max_size, data, value_len);
             iupMatrixExSetCellValue(matex_data->ih, lin, col, value);
           }
           else
@@ -557,17 +577,19 @@ static void iMatrixExPasteData(Ihandle *ih, const char* data, int lin, int col, 
   skip_lines = IupGetInt(ih, "TEXTSKIPLINES");
   if (skip_lines)
   {
-    int i, len;
-    const char *next_line;
-    for (i=0; i<skip_lines; i++)
+    int i;
+
+    for (i=0; i<skip_lines && *data; i++)
     {
-      next_line = iupStrNextLine(data, &len);
-      if (next_line==data) /* no next line */ 
-      {
-        iupAttribSet(ih, "LASTERROR", "IUP_ERRORNOTEXT");
-        return;
-      }
+      int len;
+      const char *next_line = iupStrNextLine(data, &len);
       data = (char*)next_line;
+    }
+
+    if (i != skip_lines)
+    {
+      iupAttribSet(ih, "LASTERROR", "IUP_ERRORNOTEXT");
+      return;
     }
   }
 
@@ -614,7 +636,7 @@ static int iMatrixExSetPasteAttrib(Ihandle *ih, const char* value)
   IupDestroy(clipboard);
 
   if (iupStrEqualNoCase(value, "FOCUS"))
-    IupGetIntInt(ih, "FOCUS_CELL", &lin, &col);
+    IupGetIntInt(ih, "FOCUSCELL", &lin, &col);
   else if (iupStrEqualNoCase(value, "MARKED"))
   {
     char *marked = IupGetAttribute(ih,"MARKED");
@@ -638,7 +660,7 @@ static int iMatrixExSetPasteAttrib(Ihandle *ih, const char* value)
 static int iMatrixExSetPasteDataAttrib(Ihandle *ih, const char* data)
 {
   int lin=0, col=0;
-  IupGetIntInt(ih, "FOCUS_CELL", &lin, &col);
+  IupGetIntInt(ih, "FOCUSCELL", &lin, &col);
   iMatrixExPasteData(ih, data, lin, col, "PASTEDATA");
   return 0;
 }
@@ -646,7 +668,8 @@ static int iMatrixExSetPasteDataAttrib(Ihandle *ih, const char* data)
 static int iMatrixExSetPasteFileAttrib(Ihandle *ih, const char* value)
 {
   size_t size;
-  char* data;
+  char* data, *paste_at;
+  int lin = 0, col = 0;
 
   FILE *file = fopen(value, "rb");
   if (!file)
@@ -664,7 +687,19 @@ static int iMatrixExSetPasteFileAttrib(Ihandle *ih, const char* value)
   data[size] = 0;
   fclose(file);
 
-  iMatrixExPasteData(ih, data, 0, 0, "PASTEFILE");
+  paste_at = iupAttribGet(ih, "PASTEFILEAT");
+  if (paste_at)
+  {
+    if (iupStrEqualNoCase(paste_at, "FOCUS"))
+      IupGetIntInt(ih, "FOCUSCELL", &lin, &col);
+    else
+    {
+      if (iupStrToIntInt(paste_at, &lin, &col, ':') != 2)
+        return 0;
+    }
+  }
+
+  iMatrixExPasteData(ih, data, lin, col, "PASTEFILE");
 
   free(data);
   return 0;

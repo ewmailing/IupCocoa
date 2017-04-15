@@ -10,6 +10,9 @@
     <Filter Include="src_controls">
       <UniqueIdentifier>{4bae3b95-7126-4f3d-9363-be7389bd6566}</UniqueIdentifier>
     </Filter>
+    <Filter Include="windows">
+      <UniqueIdentifier>{20045022-ddfd-4b01-aacf-93d90875de25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\win\iupwin_brush.h">
@@ -136,6 +139,15 @@
     </ClCompile>
     <ClCompile Include="..\src\win\iupwin_str.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\iupwin_calendar.c">
+      <Filter>src_controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\iupwin_datepick.c">
+      <Filter>src_controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win\iupwindows_help.c">
+      <Filter>windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

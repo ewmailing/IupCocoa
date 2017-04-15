@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupExecute</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	text-decoration: underline;
+}
+.auto-style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+
+<h2>IupExecute<span class="auto-style1"> (since 3.17)</span></h2>
+<p>Runs the executable with the given parameters.</p>
+<p>It is a non synchronous operation, i.e. the function will return just after 
+execute the command and it will not wait for its result.</p>
+<p>In Windows, there is no need to add the &quot;.exe&quot; file extension.</p>
+<p>Used by the <a href="iuphelp.html">IupHelp</a> function.</p>
+<h3>
+Parameters/Return</h3>
+<pre>int IupExecute(const char* <strong>filename</strong>, const char* <strong>parameters</strong>); [in C]
+iup.Execute(<strong>filename[, parameters]</strong>: string) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+<p><strong>filename</strong>: name of the executable. Can contains a path.<br>
+<strong>parameters</strong>: optional parameters. Can be NULL.</p>
+<p><span class="style1">Returns:</span> 1 if successful, -1 if failed. In Windows 
+and GTK can return -2 if file not found.</p>
+
+</body>
+
+</html>

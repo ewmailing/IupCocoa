@@ -42,6 +42,137 @@ static int winDibNumColors(BITMAPINFOHEADER* bmih)
   }
 }
 
+void iupdrvImageGetData(void* handle, unsigned char* imgdata)
+{
+  int x, y, w, h, bpp, bmp_line_size, bits_size, planesize;
+  BYTE* bits;
+  HANDLE hHandle = (HANDLE)handle;
+  void* dib = GlobalLock(hHandle);
+  BITMAPINFOHEADER* bmih = (BITMAPINFOHEADER*)dib;
+  unsigned char* line_data;
+
+  w = bmih->biWidth;
+  h = abs(bmih->biHeight);
+  bpp = iupImageNormBpp(bmih->biBitCount);
+  bmp_line_size = ((w * bmih->biBitCount + 31) / 32) * 4;    /* DWORD aligned, 4 bytes boundary in a N bpp image */
+  bits_size = bmp_line_size*h;
+  planesize = w*h;
+
+  bits = ((BYTE*)dib) + sizeof(BITMAPINFOHEADER) + winDibNumColors(bmih)*sizeof(RGBQUAD);
+
+  /* windows bitmaps are bottom up */
+  /* planes are packed and top-bottom in this imgdata */
+
+  if (bmih->biHeight < 0)
+    bits = bits + (bits_size - bmp_line_size); /* start of last line */
+
+  if (bpp == 8)
+  {
+    for (y = 0; y < h; y++)
+    {
+      line_data = imgdata + (h - 1 - y) * planesize;  /* imgdata is top-bottom */
+
+      for (x = 0; x < w; x++)
+      {
+        switch (bmih->biBitCount)
+        {
+        case 1:
+          *line_data++ = (unsigned char)((bits[x / 8] >> (7 - x % 8)) & 0x01);
+          break;
+        case 4:
+          *line_data++ = (unsigned char)((bits[x / 2] >> ((1 - x % 2) * 4)) & 0x0F);
+          break;
+        case 8:
+          *line_data++ = bits[x];
+          break;
+        }
+      }
+
+      if (bmih->biHeight < 0)
+        bits -= bmp_line_size;
+      else
+        bits += bmp_line_size;
+    }
+  }
+  else
+  {
+    int offset;
+    unsigned short color;
+    unsigned int rmask = 0, gmask = 0, bmask = 0,
+      roff = 0, goff = 0, boff = 0; /* pixel bit mask control when reading 16 and 32 bpp images */
+
+    if (bmih->biBitCount == 16)
+      offset = bmp_line_size;  /* do not increment for each pixel, jump line */
+    else
+      offset = bmp_line_size - (w*bmih->biBitCount) / 8;   /* increment for each pixel, jump pad */
+
+    if (bmih->biCompression == BI_BITFIELDS)
+    {
+      unsigned int Mask;
+      unsigned int* palette = (unsigned int*)(((BYTE*)bmih) + sizeof(BITMAPINFOHEADER));
+
+      rmask = Mask = palette[0];
+      while (!(Mask & 0x01))
+      {
+        Mask >>= 1; roff++;
+      }
+
+      gmask = Mask = palette[1];
+      while (!(Mask & 0x01))
+      {
+        Mask >>= 1; goff++;
+      }
+
+      bmask = Mask = palette[2];
+      while (!(Mask & 0x01))
+      {
+        Mask >>= 1; boff++;
+      }
+    }
+    else if (bmih->biBitCount == 16)
+    {
+      bmask = 0x001F;
+      gmask = 0x03E0;
+      rmask = 0x7C00;
+      boff = 0;
+      goff = 5;
+      roff = 10;
+    }
+
+    for (y = 0; y < h; y++)
+    {
+      line_data = imgdata + (h - 1 - y) * planesize;  /* imgdata is top-bottom */
+
+      for (x = 0; x < w; x++)
+      {
+        if (bmih->biBitCount == 16)
+        {
+          color = ((unsigned short*)bits)[x];
+          *line_data++ = (unsigned char)((((rmask & color) >> roff) * 255) / (rmask >> roff));
+          *line_data++ = (unsigned char)((((gmask & color) >> goff) * 255) / (gmask >> goff));
+          *line_data++ = (unsigned char)((((bmask & color) >> boff) * 255) / (bmask >> boff));
+        }
+        else
+        {
+          *line_data++ = *bits++;
+          *line_data++ = *bits++;
+          *line_data++ = *bits++;
+
+          if (bmih->biBitCount == 32)
+            *line_data++ = *bits++;
+        }
+      }
+
+      bits += offset;
+
+      if (bmih->biHeight < 0)
+        bits -= 2 * bmp_line_size;
+    }
+  }
+
+  GlobalUnlock(hHandle);
+}
+
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 {
   int x, y, w, h, bpp, bmp_line_size, bits_size;
@@ -154,12 +285,7 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
           *red++ = *bits++;
           
           if (bmih->biBitCount == 32)
-          {
-            if (alpha)
-              *alpha++ = *bits++;
-            else
-              bits++;
-          }
+            *alpha++ = *bits++;
         }
       }
       
@@ -177,7 +303,7 @@ void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors
 {
   int y,x,bmp_line_size,channels,bits_size,header_size;
   HANDLE hHandle;
-  BYTE* bits;   /* DIB bitmap bits, created in CreateDIBSection and filled here */
+  BYTE* bits;
   void* dib;
   BITMAPINFOHEADER* bmih;
 
@@ -630,11 +756,11 @@ void* iupdrvImageCreateMask(Ihandle *ih)
 void* iupdrvImageLoad(const char* name, int type)
 {
   int iup2win[3] = {IMAGE_BITMAP, IMAGE_ICON, IMAGE_CURSOR};
-  HANDLE hImage = LoadImage(iupwin_hinstance, iupwinStrToSystem(name), iup2win[type], 0, 0, type==0?LR_CREATEDIBSECTION:0);
+  HANDLE hImage = LoadImage(iupwin_hinstance, iupwinStrToSystem(name), iup2win[type], 0, 0, type == IUPIMAGE_IMAGE ? LR_CREATEDIBSECTION : 0);
   if (!hImage && iupwin_dll_hinstance)
-    hImage = LoadImage(iupwin_dll_hinstance, iupwinStrToSystem(name), iup2win[type], 0, 0, type==0?LR_CREATEDIBSECTION:0);
+    hImage = LoadImage(iupwin_dll_hinstance, iupwinStrToSystem(name), iup2win[type], 0, 0, type == IUPIMAGE_IMAGE ? LR_CREATEDIBSECTION : 0);
   if (!hImage)
-    hImage = LoadImage(NULL, iupwinStrToSystemFilename(name), iup2win[type], 0, 0, LR_LOADFROMFILE|(type==0?LR_CREATEDIBSECTION:0));
+    hImage = LoadImage(NULL, iupwinStrToSystemFilename(name), iup2win[type], 0, 0, LR_LOADFROMFILE | (type == IUPIMAGE_IMAGE ? LR_CREATEDIBSECTION : 0));
   return hImage;
 }
 

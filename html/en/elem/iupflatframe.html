@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupFlatFrame</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.auto-style1 {
+	font-size: large;
+}
+.auto-style2 {
+	text-align: center;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupFlatFrame<span class="auto-style1"> (since 3.20)</span></h2>
+
+  <p>
+  Creates a 
+  native container, which draws a frame with 
+  a title around its child. The decorations are manually drawn. The control 
+  inherits from <a href="iupbackgroundbox.html">IupBackgroundBox</a>.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupFlatFrame(Ihandle *<strong>child</strong>); [in C]
+iup.flatframe{<strong>child</strong>: ihandle} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
+flatframe(<strong>child</strong>) [in LED]</pre>
+  <p><strong>child</strong>: Identifier of an interface element which will 
+  receive the frame around. It can be NULL (nil in Lua), not optional in LED.</p>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+<p>Inherits all attributes and callbacks of the <a href="iupbackgroundbox.html">
+IupBackgroundBox</a>, 
+but redefines a few attributes.</p>
+<p><strong>DECORATION</strong> [read-only] (<font SIZE="3">non inheritable</font>): 
+return Yes.</p>
+<p><strong>DECOROFFSET </strong>and<strong> DECORSIZE</strong> [read-only] (<font SIZE="3">non inheritable</font>): 
+are calculated according FRAME, FRAMEWIDTH, FRAMESPACE and the title area.</p>
+
+
+<p>
+<strong>BGCOLOR</strong>: background color 
+of the child area. Default: the global attribute DLGBGCOLOR.</p>
+<p>
+<strong>FRAME</strong> (<font SIZE="3">non inheritable</font>): enables the frame line. Default: 
+Yes.</p>
+<p>
+<strong>FRAMECOLOR</strong> (<font SIZE="3">non inheritable</font>): frame line color. Default: 
+the global attribute DLGFGCOLOR.</p>
+<p>
+<strong>FRAMEWIDTH</strong> (<font SIZE="3">non inheritable</font>): frame line width. Default: 
+1.</p>
+<p>
+<strong>FRAMESPACE</strong> (<font SIZE="3">non inheritable</font>): spacing 
+between frame line and child area. Used only when FRAME=Yes. Default: 2.</p>
+<p><a href="../attrib/iup_title.html">TITLE</a> (<font SIZE="3">non inheritable</font>): 
+  Text the user will see at the top of the frame. </p>
+<p><strong>TITLECOLOR</strong> (<font SIZE="3">non inheritable</font>): title text color. Default: the global 
+	attribute DLGFGCOLOR.</p>
+<p><strong>TITLEBGCOLOR</strong> (<font SIZE="3">non inheritable</font>): background color 
+of the title area. Default: the global attribute DLGBGCOLOR.</p>
+<p><strong>TITLELINE</strong> (<font SIZE="3">non inheritable</font>): enables 
+the title line. Horizontal line that separates the title area from the child 
+area. Default: Yes.</p>
+<p><strong>TITLELINECOLOR</strong> (<font SIZE="3">non inheritable</font>): title line color. 
+Default: the global attribute DLGFGCOLOR.</p>
+<p><strong>TITLELINEWIDTH</strong> (<font SIZE="3">non inheritable</font>): title line width. 
+Default: 1.</p>
+<p><strong>TITLEIMAGE</strong> (<font SIZE="3">non inheritable</font>): image name to be used in 
+title. Use
+	<a href="../func/iupsethandle.html">IupSetHandle</a> or
+	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
+	associate an image to a name. See also
+	<a href="../elem/iupimage.html">IupImage</a>.</p>
+<p><strong>TITLEIMAGEPOSITION</strong> (<font SIZE="3">non inheritable</font>): position of the 
+image relative to the text when both are displayed. Can be: LEFT, RIGHT, TOP, 
+BOTTOM. Default: LEFT.</p>
+<p><strong>TITLEIMAGESPACING</strong> (<font SIZE="3">non inheritable</font>): spacing between the 
+image and the text. Default: &quot;2&quot;.</p>
+<p><strong>TITLEALIGNMENT</strong> (<font SIZE="3">non inheritable</font>): horizontal alignment. 
+Possible values: &quot;ALEFT&quot;, &quot;ACENTER&quot; and &quot;ARIGHT&quot;. Default: &quot;ACENTER&quot;.</p>
+<p><strong>TITLEPADDING</strong> (<font SIZE="3">non inheritable</font>): title internal margin. 
+Default value: &quot;0x0&quot;.</p>
+
+<h3><a name="Examples">Examples</a></h3>
+<p><a href="../../examples/">Browse for Example Files</a></p>
+
+<pre>
+  frame1 = IupFlatFrame
+          (
+            IupVbox
+            (
+              IupLabel("Label1"),
+              IupSetAttributes(IupLabel("Label2"), "SIZE=70x"),
+              IupLabel("Label3"),
+              NULL
+            )
+          );
+
+  frame2 = IupFlatFrame
+          (
+            IupVbox
+            (
+              IupSetAttributes(IupLabel("Label4"), "EXPAND=HORIZONTAL"),
+              IupLabel("Label5"),
+              IupLabel("Label6"),
+              NULL
+            )
+          );
+
+  frame3 = IupFlatFrame
+          (
+            IupVbox
+            (
+              IupLabel("Label7"),
+              IupSetAttributes(IupLabel("Label8"), "SIZE=70x"),
+              IupLabel("Label9"),
+              NULL
+            )
+          );
+
+  IupSetAttribute(frame1, "TITLE", "Title Text");
+  IupSetAttribute(frame1, "BGCOLOR", "64 192 255");
+  IupSetAttribute(frame1, "FRAMECOLOR", "255 255 255");
+  IupSetAttribute(frame1, "TITLELINECOLOR", "255 255 255");
+  IupSetAttribute(frame1, "TITLEBGCOLOR", "64 128 255");
+  IupSetAttribute(frame1, "TITLECOLOR", "255 255 255");
+  IupSetAttribute(frame1, "TITLELINEWIDTH", "2");
+  IupSetAttribute(frame1, "FRAMEWIDTH", "2");
+  IupSetAttribute(frame1, "FRAMESPACE", "5");
+
+  IupSetAttribute(frame2, "BGCOLOR", "0 128 0");
+  IupSetAttribute(frame2, "FRAMEWIDTH", "5");
+  IupSetAttribute(frame2, "FRAMESPACE", "20");
+  IupSetAttribute(frame2, "FGCOLOR", "255 128 128");  /* recursive set for labels */
+  IupSetAttribute(frame2, "FONTSTYLE", "Bold");
+  IupSetAttribute(frame2, "FONTSIZE", "14");
+
+  IupSetAttribute(frame3, "FRAME", "No");
+  IupSetAttribute(frame3, "TITLE", "Title Text");
+  IupSetAttribute(frame3, "TITLELINE", "No");
+  IupSetAttribute(frame3, "TITLEBGCOLOR", "64 128 255");</pre>
+<p class="auto-style2">
+  <img height="249" src="images/iupflatframe.png" width="905"><br>
+</p>
+
+
+<h3><a name="SeeAlso">See Also</a></h3>
+
+
+<p><a href="iupimage.html">IupImage</a>, <a href="iupframe.html">IupFrame</a></p>
+
+</body>
+
+</html>

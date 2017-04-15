@@ -16,6 +16,18 @@
     <Filter Include="Tutorial">
       <UniqueIdentifier>{74eb8fe2-adf3-4e2d-801e-0a023425674e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tutorial\C">
+      <UniqueIdentifier>{cce422e6-aed4-4f2b-8f24-a514bf5e56bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tutorial\Lua">
+      <UniqueIdentifier>{aba2ca37-d61c-44f2-b8ed-04e32cc77853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tutorial\CPP1">
+      <UniqueIdentifier>{c1f94234-878f-408a-ae05-c3bbaf8eb98a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CPP">
+      <UniqueIdentifier>{78b2e9e2-f43b-441f-b287-57053de8a2e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\html\examples\C\alarm.c">
@@ -138,9 +150,6 @@
     <ClCompile Include="..\html\examples\C\ole_browser.cpp">
       <Filter>C</Filter>
     </ClCompile>
-    <ClCompile Include="..\html\examples\C\pplot.cpp">
-      <Filter>C</Filter>
-    </ClCompile>
     <ClCompile Include="..\html\examples\C\progressbar.c">
       <Filter>C</Filter>
     </ClCompile>
@@ -204,9 +213,6 @@
     <ClCompile Include="..\html\examples\LED\gauge.c">
       <Filter>LED\src</Filter>
     </ClCompile>
-    <ClCompile Include="..\html\examples\LED\matrix.c">
-      <Filter>LED\src</Filter>
-    </ClCompile>
     <ClCompile Include="..\html\examples\LED\tabs.c">
       <Filter>LED\src</Filter>
     </ClCompile>
@@ -234,59 +240,179 @@
     <ClCompile Include="..\html\examples\C\mgllabel.c">
       <Filter>C</Filter>
     </ClCompile>
-    <ClCompile Include="..\html\examples\tutorial\simple_notepad.c">
-      <Filter>Tutorial</Filter>
-    </ClCompile>
-    <ClCompile Include="..\html\examples\tutorial\example3_7.c">
-      <Filter>Tutorial</Filter>
-    </ClCompile>
-    <ClCompile Include="..\html\examples\tutorial\example3_8.c">
-      <Filter>Tutorial</Filter>
-    </ClCompile>
-    <ClCompile Include="..\html\examples\tutorial\example3_9.c">
-      <Filter>Tutorial</Filter>
-    </ClCompile>
-    <ClCompile Include="..\html\examples\tutorial\example3_10.c">
-      <Filter>Tutorial</Filter>
-    </ClCompile>
-    <ClCompile Include="..\html\examples\tutorial\example3_11.c">
-      <Filter>Tutorial</Filter>
-    </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example2_1.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example2_2.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example2_3.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example2_4.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example2_5.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example2_5a.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example3_1.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example3_2.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example3_3.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example3_4.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example3_5.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
     </ClCompile>
     <ClCompile Include="..\html\examples\tutorial\example3_6.c">
-      <Filter>Tutorial</Filter>
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example3_7.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example3_8.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example3_9.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example3_10.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example3_11.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example4_1.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example4_2.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example4_3.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example4_4.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\example4_5.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\simple_notepad.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\simple_paint.c">
+      <Filter>Tutorial\C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\tutorial\simple_paint1.cpp">
+      <Filter>Tutorial\CPP1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\plot.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\alarm.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\backgroundbox.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\message.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\getcolor.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\sbox.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\mgllabel.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\mask.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\getfile.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\filedlg.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\multiline1.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\split1.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\dialog2.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\timer.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\ole_browser.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\frame.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\listdialog.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\expander.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\radio.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\tabs.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\menu.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\matrix.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\text.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\fill.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\sbox2.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\glcanvas.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\getxy_showxy.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\cells_checkboard.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\cells_numbering.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\canvas3.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\zbox.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\CPP\val.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\gridbox2.c">
+      <Filter>C</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -509,8 +635,80 @@
     <None Include="..\html\examples\LED\zbox.led">
       <Filter>LED</Filter>
     </None>
+    <None Include="..\html\examples\tutorial\example2_4.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example2_5.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example2_5a.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_1.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_2.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_3.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_4.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_5.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_6.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_7.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_8.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_9.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_10.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example3_11.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example4_1.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example4_2.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example4_3.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example4_4.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example4_5.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\simple_notepad.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example2_1.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example2_2.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\example2_3.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\examples\tutorial\simple_paint.lua">
+      <Filter>Tutorial\Lua</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\test\iuptest.rc" />
+    <ResourceCompile Include="..\html\examples\tests\iuptest.rc" />
   </ItemGroup>
 </Project>

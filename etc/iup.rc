@@ -5,8 +5,8 @@ CURSOR_PEN CURSOR "pen.cur"
 /* Applications can change or remove this */
 
 1 VERSIONINFO
- FILEVERSION 3,9,0,0
- PRODUCTVERSION 3,9,0,0
+ FILEVERSION 3,21,0,0
+ PRODUCTVERSION 3,21,0,0
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
@@ -15,11 +15,11 @@ BEGIN
             VALUE "Comments", "www.tecgraf.puc-rio.br/iup\0"
             VALUE "CompanyName", "Tecgraf/PUC-Rio\0"
             VALUE "FileDescription", "IUP - Portable User Interface\0"
-            VALUE "FileVersion", "3.9.0\0"
-            VALUE "LegalCopyright", "Copyright © 1994-2013 Tecgraf, PUC-Rio.\0"
+            VALUE "FileVersion", "3.21.0\0"
+            VALUE "LegalCopyright", "Copyright © 1994-2017 Tecgraf/PUC-Rio.\0"
             VALUE "OriginalFilename", "iup.dll\0"
             VALUE "ProductName", "IUP for Windows\0"
-            VALUE "ProductVersion", "3.9.0\0"
+            VALUE "ProductVersion", "3.21.0\0"
         END
     END
 END
@@ -36,12 +36,13 @@ END
 #define SS_OWNERDRAW        0x0000000DL
 #define WS_EX_STATICEDGE    0x00020000L
 
-#define IUP_PREVIEWCANVAS 3000
+#define IUP_PREVIEWCANVAS 3000  /* 0x0BB8 */
 
 iupPreviewDlg DIALOG DISCARDABLE  0, 0, 250, 95
 STYLE WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_CONTROL
 FONT 8, "MS Shell Dlg"
 BEGIN
+  /* ..., SS_OWNERDRAW, x, y, width, height, ... */
   CONTROL  "", IUP_PREVIEWCANVAS, "STATIC", SS_OWNERDRAW, 70, 0, 120, 90, WS_EX_STATICEDGE
 END
 

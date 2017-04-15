@@ -1,6 +1,6 @@
 /***************************************************************************
  * datac.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,13 +22,14 @@
 
 #include "mgl2/data.h"
 #include "mgl2/datac_cf.h"
-#ifdef __cplusplus
 //-----------------------------------------------------------------------------
 #include <vector>
 #include <string>
-#define mgl2 	mreal(2)
-#define mgl3 	mreal(3)
-#define mgl4 	mreal(4)
+//-----------------------------------------------------------------------------
+#ifndef SWIG
+dual MGL_EXPORT mglLinearC(const dual *a, long nx, long ny, long nz, mreal x, mreal y, mreal z);
+dual MGL_EXPORT mglSpline3C(const dual *a, long nx, long ny, long nz, mreal x, mreal y, mreal z,dual *dx=0, dual *dy=0, dual *dz=0);
+dual MGL_EXPORT mglSpline3Cs(const dual *a, long nx, long ny, long nz, mreal x, mreal y, mreal z);
 //-----------------------------------------------------------------------------
 /// Class for working with complex data array
 class MGL_EXPORT mglDataC : public mglDataA
@@ -71,12 +72,29 @@ using mglDataA::Momentum;
 	mglDataC(const double *d, int rows, int cols)	{	a=0;	Set(d,cols,rows);	}
 	mglDataC(const float *d, int size)	{	a=0;	Set(d,size);	}
 	mglDataC(const float *d, int rows, int cols)	{	a=0;	Set(d,cols,rows);	}
+	/// Allocate memory and copy data from std::vector<T>
+	mglDataC(const std::vector<int> &d)		{	a=0;	Set(d);	}
+	mglDataC(const std::vector<float> &d)	{	a=0;	Set(d);	}
+	mglDataC(const std::vector<double> &d)	{	a=0;	Set(d);	}
+	mglDataC(const std::vector<std::complex<double> > &d)	{	a=0;	Set(d);	}
+	mglDataC(const std::vector<std::complex<float> > &d)	{	a=0;	Set(d);	}
 	/// Read data from file
 	mglDataC(const char *fname)			{	a=0;	Read(fname);	}
 	/// Allocate the memory for data array and initialize it zero
 	mglDataC(long xx=1,long yy=1,long zz=1)	{	a=0;	Create(xx,yy,zz);	}
 	/// Delete the array
 	virtual ~mglDataC()	{	if(!link && a)	delete []a;	}
+
+	/// Move all data from variable d, and delete this variable.
+	inline void Move(mglDataC *d)	// NOTE: Variable d will be deleted!!!
+	{	if(d && d->GetNN()>1)
+		{	bool l=link;	dual *b=a;
+			nx=d->nx;	ny=d->ny;	nz=d->nz;	a=d->a;	d->a=b;
+			temp=d->temp;	func=d->func;	o=d->o;	s=d->s;
+			id=d->id;	link=d->link;	d->link=l;	delete d;	}
+		else if(d)	{	*this = d->a[0];	delete d;	}
+	}
+
 	inline dual GetVal(long i, long j=0, long k=0) const
 	{	return mgl_datac_get_value(this,i,j,k);}
 	inline void SetVal(dual f, long i, long j=0, long k=0)
@@ -116,17 +134,18 @@ using mglDataA::Momentum;
 	{	mgl_datac_set_ap(this, &ampl, &phase);	}
 	/// Allocate memory and copy data from std::vector<T>
 	inline void Set(const std::vector<int> &d)
-	{	if(d.size()<1)	return;
-		Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
+	{	if(d.size()>0)	{	Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
+		else	Create(1);	}
 	inline void Set(const std::vector<float> &d)
-	{	if(d.size()<1)	return;
-		Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
+	{	if(d.size()>0)	Set(&(a[0]),d.size());	else	Create(1);	}
 	inline void Set(const std::vector<double> &d)
-	{	if(d.size()<1)	return;
-		Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
-	inline void Set(const std::vector<dual> &d)
-	{	if(d.size()<1)	return;
-		Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
+	{	if(d.size()>0)	Set(&(a[0]),d.size());	else	Create(1);	}
+	inline void Set(const std::vector<std::complex<double> > &d)
+	{	if(d.size()>0)	{	Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
+		else	Create(1);	}
+	inline void Set(const std::vector<std::complex<float> > &d)
+	{	if(d.size()>0)	{	Create(d.size());	for(long i=0;i<nx;i++)	a[i] = d[i];	}
+		else	Create(1);	}
 
 	/// Create or recreate the array with specified size and fill it by zero
 	inline void Create(long mx,long my=1,long mz=1)
@@ -176,6 +195,27 @@ using mglDataA::Momentum;
 	inline void Fill(dual x1,dual x2=mglNaN,char dir='x')
 	{	mgl_datac_fill(this,x1,x2,dir);	}
 
+		/// Fill the data by interpolated values of vdat parametrically depended on xdat,ydat,zdat for x,y,z in range [p1,p2] using global spline
+	inline void RefillGS(const mglDataA &xdat, const mglDataA &vdat, mreal x1, mreal x2,long sl=-1)
+	{	mgl_datac_refill_gs(this,&xdat,&vdat,x1,x2,sl);	}
+	/// Fill the data by interpolated values of vdat parametrically depended on xdat,ydat,zdat for x,y,z in range [p1,p2]
+	inline void Refill(const mglDataA &xdat, const mglDataA &vdat, mreal x1, mreal x2,long sl=-1)
+	{	mgl_datac_refill_x(this,&xdat,&vdat,x1,x2,sl);	}
+	inline void Refill(const mglDataA &xdat, const mglDataA &vdat, mglPoint p1, mglPoint p2,long sl=-1)
+	{	mgl_datac_refill_x(this,&xdat,&vdat,p1.x,p2.x,sl);	}
+	inline void Refill(const mglDataA &xdat, const mglDataA &ydat, const mglDataA &vdat, mglPoint p1, mglPoint p2,long sl=-1)
+	{	mgl_datac_refill_xy(this,&xdat,&ydat,&vdat,p1.x,p2.x,p1.y,p2.y,sl);	}
+	inline void Refill(const mglDataA &xdat, const mglDataA &ydat, const mglDataA &zdat, const mglDataA &vdat, mglPoint p1, mglPoint p2)
+	{	mgl_datac_refill_xyz(this,&xdat,&ydat,&zdat,&vdat,p1.x,p2.x,p1.y,p2.y,p1.z,p2.z);	}
+	/// Fill the data by interpolated values of vdat parametrically depended on xdat,ydat,zdat for x,y,z in axis range of gr
+	inline void Refill(HMGL gr, const mglDataA &xdat, const mglDataA &vdat, long sl=-1, const char *opt="")
+	{	mgl_datac_refill_gr(gr,this,&xdat,0,0,&vdat,sl,opt);	}
+	inline void Refill(HMGL gr, const mglDataA &xdat, const mglDataA &ydat, const mglDataA &vdat, long sl=-1, const char *opt="")
+	{	mgl_datac_refill_gr(gr,this,&xdat,&ydat,0,&vdat,sl,opt);	}
+	inline void Refill(HMGL gr, const mglDataA &xdat, const mglDataA &ydat, const mglDataA &zdat, const mglDataA &vdat, const char *opt="")
+	{	mgl_datac_refill_gr(gr,this,&xdat,&ydat,&zdat,&vdat,-1,opt);	}
+
+
 		/// Put value to data element(s)
 	inline void Put(dual val, long i=-1, long j=-1, long k=-1)
 	{	mgl_datac_put_val(this,val,i,j,k);	}
@@ -198,6 +238,10 @@ using mglDataA::Momentum;
 	/// Save whole data array (for ns=-1) or only ns-th slice to text file
 	void Save(const char *fname,long ns=-1) const
 	{	mgl_datac_save(this,fname,ns);	}
+	/// Get whole data array (for ns=-1) or only ns-th slice to string
+	std::string Get(long ns=-1) const
+	{	return mgl_datac_to_string(this,ns);	}
+
 	/// Read data from tab-separated text files with auto determining size which filenames are result of sprintf(fname,templ,t) where t=from:step:to
 	inline bool ReadRange(const char *templ, double from, double to, double step=1, bool as_slice=false)
 	{	return mgl_datac_read_range(this,templ,from,to,step,as_slice);	}
@@ -221,9 +265,12 @@ using mglDataA::Momentum;
 	/// Get imaginary part of data values
 	inline mglData Imag() const
 	{	return mglData(true,mgl_datac_imag(this));	}
-	/// Get absolute value of data values
+	/// Get absolute value of data values, i.e. |u|
 	inline mglData Abs() const
 	{	return mglData(true,mgl_datac_abs(this));	}
+	/// Get square of absolute value of data values, i.e. |u|^2
+	inline mglData Norm() const
+	{	return mglData(true,mgl_datac_norm(this));	}
 	/// Get argument of data values
 	inline mglData Arg() const
 	{	return mglData(true,mgl_datac_arg(this));	}
@@ -299,8 +346,17 @@ using mglDataA::Momentum;
 	/// Mirror the data in given direction (useful for fourier spectrums)
 	inline void Mirror(const char *dir)		{	mgl_datac_mirror(this,dir);	}
 	/// Smooth the data on specified direction or directions
+	/** String \a dir may contain:
+	 *  ‘x’, ‘y’, ‘z’ for 1st, 2nd or 3d dimension;
+	 *  ‘dN’ for linear averaging over N points;
+	 *  ‘3’ for linear averaging over 3 points;
+	 *  ‘5’ for linear averaging over 5 points.
+	 *  By default quadratic averaging over 5 points is used. */
 	inline void Smooth(const char *dirs="xyz",mreal delta=0)
 	{	mgl_datac_smooth(this,dirs,delta);	}
+	/// Limit the data to be inside [-v,v], keeping the original sign
+	inline void Limit(mreal v)
+	{	mgl_datac_limit(this, v);	}
 
 	/// Hankel transform
 	inline void Hankel(const char *dir)	{	mgl_datac_hankel(this,dir);	}
@@ -317,23 +373,23 @@ using mglDataA::Momentum;
 	{	return mgl_datac_spline(this, x*(nx-1),y*(ny-1),z*(nz-1));	}
 	/// Interpolate by linear function the data to given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
 	inline dual Linear(mreal x,mreal y=0,mreal z=0)	const
-	{	return mgl_datac_linear(this,x,y,z);	}
+	{	return mgl_datac_linear_ext(this,x,y,z,0,0,0);	}
 	/// Interpolate by line the data to given point x,\a y,\a z which normalized in range [0, 1]
 	inline dual Linear1(mreal x,mreal y=0,mreal z=0) const
-	{	return mgl_datac_linear(this,x*(nx-1),y*(ny-1),z*(nz-1));	}
+	{	return mgl_datac_linear_ext(this,x*(nx-1),y*(ny-1),z*(nz-1),0,0,0);	}
 	/// Interpolate by linear function the data and return its derivatives at given point x=[0...nx-1], y=[0...ny-1], z=[0...nz-1]
 	inline dual Linear(mglPoint &dif, mreal x,mreal y=0,mreal z=0)	const
 	{
 		dual val,dx,dy,dz;
 		val = mgl_datac_linear_ext(this,x,y,z, &dx, &dy, &dz);
-		dif = mglPoint(dx.real(),dy.real(),dz.real());	return val;
+		dif.Set(dx.real(),dy.real(),dz.real());	return val;
 	}
 	/// Interpolate by line the data and return its derivatives at given point x,\a y,\a z which normalized in range [0, 1]
 	inline dual Linear1(mglPoint &dif, mreal x,mreal y=0,mreal z=0) const
 	{
 		dual val,dx,dy,dz;
 		val = mgl_datac_linear_ext(this,x,y,z, &dx, &dy, &dz);
-		dif = mglPoint(dx.real(),dy.real(),dz.real());
+		dif.Set(dx.real(),dy.real(),dz.real());
 		dif.x/=nx>1?nx-1:1;	dif.y/=ny>1?ny-1:1;	dif.z/=nz>1?nz-1:1;
 		return val;
 	}
@@ -352,9 +408,29 @@ using mglDataA::Momentum;
 	inline const mglDataC &operator=(const mglDataC &d)
 	{	if(this!=&d)	Set(&d);	return d;	}
 	inline dual operator=(dual val)
-	{	for(long i=0;i<nx*ny*nz;i++)	a[i]=val;	return val;	}
+	{
+#pragma omp parallel for
+		for(long i=0;i<nx*ny*nz;i++)	a[i]=val;	return val;	}
 	inline dual operator=(mreal val)
-	{	for(long i=0;i<nx*ny*nz;i++)	a[i]=val;	return val;	}
+	{
+#pragma omp parallel for
+		for(long i=0;i<nx*ny*nz;i++)	a[i]=val;	return val;	}
+	/// Multiply the data by other one for each element
+	inline void operator*=(const mglDataA &d)	{	mgl_datac_mul_dat(this,&d);	}
+	/// Divide the data by other one for each element
+	inline void operator/=(const mglDataA &d)	{	mgl_datac_div_dat(this,&d);	}
+	/// Add the other data
+	inline void operator+=(const mglDataA &d)	{	mgl_datac_add_dat(this,&d);	}
+	/// Subtract the other data
+	inline void operator-=(const mglDataA &d)	{	mgl_datac_sub_dat(this,&d);	}
+	/// Multiply each element by the number
+	inline void operator*=(dual d)		{	mgl_datac_mul_num(this,d);	}
+	/// Divide each element by the number
+	inline void operator/=(dual d)		{	mgl_datac_div_num(this,d);	}
+	/// Add the number
+	inline void operator+=(dual d)		{	mgl_datac_add_num(this,d);	}
+	/// Subtract the number
+	inline void operator-=(dual d)		{	mgl_datac_sub_num(this,d);	}
 #ifndef SWIG
 	/// Direct access to the data cell
 	inline dual &operator[](long i)	{	return a[i];	}
@@ -372,24 +448,31 @@ using mglDataA::Momentum;
 	/// Set the value in given cell of the data
 	void set_v(mreal val, long i,long j=0,long k=0)	{	mgl_datac_set_value(this,val,i,j,k);	}
 #endif
+	/// Get the complex value in given cell of the data
+	dual vc(long i,long j=0,long k=0) const	{	return a[i+nx*(j+ny*k)];	}
+	dual vcthr(long i) const	{	return a[i];	}
+	/// Get the interpolated value and its derivatives in given data cell without border checking
+	mreal valueD(mreal x,mreal y=0,mreal z=0,mreal *dx=0,mreal *dy=0,mreal *dz=0) const
+	{	dual aa,ax,ay,az;	mreal res;
+		aa = mglSpline3C(a,nx,ny,nz,x,y,z,&ax,&ay,&az);	res = abs(aa);
+		if(dx)	*dx = res?(real(aa)*real(ax)+imag(aa)*imag(ax))/res:0;
+		if(dy)	*dy = res?(real(aa)*real(ay)+imag(aa)*imag(ay))/res:0;
+		if(dz)	*dz = res?(real(aa)*real(az)+imag(aa)*imag(az))/res:0;	return res;	}
+	/// Get the interpolated value in given data cell without border checking
+	mreal value(mreal x,mreal y=0,mreal z=0) const
+	{	return abs(mglSpline3Cs(a,nx,ny,nz,x,y,z));	}
 	mreal vthr(long i) const {	return abs(a[i]);	}
 	// add for speeding up !!!
 	mreal dvx(long i,long j=0,long k=0) const
 	{   register long i0=i+nx*(j+ny*k);
-		return i>0? abs(i<nx-1? (a[i0+1]-a[i0-1])/mgl2:a[i0]-a[i0-1]) : abs(a[i0+1]-a[i0]);	}
+		return i>0? abs(i<nx-1? (a[i0+1]-a[i0-1])/mreal(2):a[i0]-a[i0-1]) : abs(a[i0+1]-a[i0]);	}
 	mreal dvy(long i,long j=0,long k=0) const
 	{   register long i0=i+nx*(j+ny*k);
-		return j>0? abs(j<ny-1? (a[i0+nx]-a[i0-nx])/mgl2:a[i0]-a[i0-nx]) : abs(a[i0+nx]-a[i0]);}
+		return j>0? abs(j<ny-1? (a[i0+nx]-a[i0-nx])/mreal(2):a[i0]-a[i0-nx]) : abs(a[i0+nx]-a[i0]);}
 	mreal dvz(long i,long j=0,long k=0) const
 	{   register long i0=i+nx*(j+ny*k), n=nx*ny;
-		return k>0? abs(k<nz-1? (a[i0+n]-a[i0-n])/mgl2:a[i0]-a[i0-n]) : abs(a[i0+n]-a[i0]);	}
+		return k>0? abs(k<nz-1? (a[i0+n]-a[i0-n])/mreal(2):a[i0]-a[i0-n]) : abs(a[i0+n]-a[i0]);	}
 };
-//-----------------------------------------------------------------------------
-#ifndef SWIG
-dual MGL_EXPORT_PURE mglLinearC(const dual *a, long nx, long ny, long nz, mreal x, mreal y, mreal z);
-dual MGL_EXPORT_PURE mglSpline3C(const dual *a, long nx, long ny, long nz, mreal x, mreal y, mreal z,dual *dx=0, dual *dy=0, dual *dz=0);
-dual MGL_EXPORT_PURE mglSpline3Cs(const dual *a, long nx, long ny, long nz, mreal x, mreal y, mreal z);
-#endif
 //-----------------------------------------------------------------------------
 /// Saves result of PDE solving (|u|^2) for "Hamiltonian" ham with initial conditions ini
 inline mglDataC mglPDEc(mglBase *gr, const char *ham, const mglDataA &ini_re, const mglDataA &ini_im, mreal dz=0.1, mreal k0=100,const char *opt="")
@@ -404,6 +487,25 @@ inline mglDataC mglQO3dc(const char *ham, const mglDataA &ini_re, const mglDataA
 {	return mglDataC(true, mgl_qo3d_solve_c(ham, &ini_re, &ini_im, &ray, r, k0, 0, 0, 0));	}
 inline mglDataC mglQO3dc(const char *ham, const mglDataA &ini_re, const mglDataA &ini_im, const mglDataA &ray, mglData &xx, mglData &yy, mglData &zz, mreal r=1, mreal k0=100)
 {	return mglDataC(true, mgl_qo3d_solve_c(ham, &ini_re, &ini_im, &ray, r, k0, &xx, &yy, &zz));	}
+//-----------------------------------------------------------------------------
+/// Get array as solution of tridiagonal system of equations a[i]*x[i-1]+b[i]*x[i]+c[i]*x[i+1]=d[i]
+/** String \a how may contain:
+ * 'x', 'y', 'z' for solving along x-,y-,z-directions, or
+ * 'h' for solving along hexagonal direction at x-y plain (need nx=ny),
+ * 'c' for using periodical boundary conditions,
+ * 'd' for diffraction/diffuse calculation. */
+inline mglDataC mglTridMatC(const mglDataA &A, const mglDataA &B, const mglDataA &C, const mglDataC &D, const char *how)
+{	return mglDataC(true, mgl_datac_tridmat(&A, &B, &C, &D, how));	}
+//-----------------------------------------------------------------------------
+/// Get sub-array of the data with given fixed indexes
+inline mglDataC mglSubDataC(const mglDataA &dat, long xx, long yy=-1, long zz=-1)
+{	return mglDataC(true,mgl_datac_subdata(&dat,xx,yy,zz));	}
+inline mglDataC mglSubDataC(const mglDataA &dat, const mglDataA &xx, const mglDataA &yy, const mglDataA &zz)
+{	return mglDataC(true,mgl_datac_subdata_ext(&dat,&xx,&yy,&zz));	}
+inline mglDataC mglSubDataC(const mglDataA &dat, const mglDataA &xx, const mglDataA &yy)
+{	return mglDataC(true,mgl_datac_subdata_ext(&dat,&xx,&yy,0));	}
+inline mglDataC mglSubDataC(const mglDataA &dat, const mglDataA &xx)
+{	return mglDataC(true,mgl_datac_subdata_ext(&dat,&xx,0,0));	}
 //-----------------------------------------------------------------------------
 /// Prepare coefficients for global spline interpolation
 inline mglDataC mglGSplineCInit(const mglDataA &xdat, const mglDataA &ydat)

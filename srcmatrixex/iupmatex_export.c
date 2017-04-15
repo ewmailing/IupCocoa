@@ -88,7 +88,12 @@ static void iMatrixExCopyTXT(Ihandle *ih, FILE* file, int num_lin, int num_col, 
 
           str = iupMatrixExGetCellValue(matex_data->ih, lin, col, 1);  /* get displayed value */
           if (str)
-            fprintf(file, "%s", str);
+          {
+            if (strchr(str, sep))
+              fprintf(file, "\"%s\"", str);
+            else
+              fprintf(file, "%s", str);
+          }
           else
             fprintf(file, "%s", " ");
 

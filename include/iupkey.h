@@ -196,7 +196,7 @@
 /* These definitions are here for backward compatibility 
    and to simplify some key combination usage.
    But since IUP 3.9, modifiers can be combined with any key
-   and they can be mixed togheter. */
+   and they can be mixed together. */
 
 #define K_sHOME    iup_XkeyShift(K_HOME   )
 #define K_sUP      iup_XkeyShift(K_UP     )

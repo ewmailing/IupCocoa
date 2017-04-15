@@ -25,7 +25,7 @@ enum {IUP_TOGGLE_IMAGE, IUP_TOGGLE_TEXT};
 struct _IcontrolData 
 {
   int type,                         /* the 2 toggle possibilities */
-      radio,
+      is_radio,
       flat,
       horiz_padding, vert_padding;  /* toggle margin for images */
 };

@@ -64,6 +64,10 @@ void iupMatrixExRegisterUndo(Iclass* ic);
 void iupMatrixExRegisterFind(Iclass* ic);
 void iupMatrixExRegisterSort(Iclass* ic);
 
+void iupMatrixExSetClassUpdateFind(Iclass* ic);
+void iupMatrixExSetClassUpdateSort(Iclass* ic);
+void iupMatrixExSetClassUpdateUndo(Iclass* ic);
+
 /* Implemented in IupMatrix */
 char* iupMatrixExGetCellValue(Ihandle* ih, int lin, int col, int display);
 void  iupMatrixExSetCellValue(Ihandle* ih, int lin, int col, const char* value);  /* NO numeric conversion */

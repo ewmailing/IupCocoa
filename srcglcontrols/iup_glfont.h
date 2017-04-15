@@ -18,7 +18,7 @@ void iupGLFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *
 void iupGLFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight);
 void iupGLFontGetDim(Ihandle* ih, int *maxwidth, int *height, int *ascent, int *descent);
 
-int iupGLFontSetStandardFontAttrib(Ihandle* ih, const char* value);
+int iupGLFontSetFontAttrib(Ihandle* ih, const char* value);
 void iupGLFontRenderString(Ihandle* ih, const char* str, int len);
 void iupGLFontInit(void);
 void iupGLFontFinish(void);

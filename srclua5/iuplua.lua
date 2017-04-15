@@ -101,9 +101,9 @@ iup.SetMethod("iupWidget", "__index", widget_gettable)
 local ihandle_gettable = function(ih, index)
   local INDEX = string.upper(index)
   if (iup.callbacks[INDEX]) then 
-   local widget = iup.GetWidget(ih)
-   if (not widget or type(widget)~="table") then error("invalid IUP handle") end
-   return widget[index]
+    local widget = iup.GetWidget(ih)
+    if (not widget or type(widget)~="table") then error("invalid IUP handle") end
+    return widget[index]
   else
     local value = iup.GetAttribute(ih, INDEX)
     if (not value) then
@@ -146,10 +146,10 @@ local ihandle_settable = function(ih, index, value)
       iup.SetAttribute(ih, INDEX, value)
       widget[index] = nil -- if there was something in Lua remove it
     else
-      widget[index] = value -- store also in Lua
+      widget[index] = value -- store only in Lua
     end
   else
-    widget[index] = value -- store also in Lua
+    widget[index] = value -- store only in Lua
   end
 end
 
@@ -177,7 +177,7 @@ end
 function iup.RegisterWidget(ctrl) -- called by all the controls initialization functions
   iup[ctrl.nick] = function(param)
     if (not ctrl.constructor) then 
-      error("IUP contructor missing for:" .. ctrl.nick) 
+      error("IUP constructor missing for:" .. ctrl.nick) 
     end
     return ctrl:constructor(param)
   end
@@ -191,7 +191,11 @@ function iup.RegisterHandle(ih, typename)
   if not widget then
     local class = iup[string.upper(typename)]
     if not class then
-      class = iup.WIDGET
+      if (iup.IsContainer(ih)) then
+        class = iup.BOX
+      else
+        class = iup.WIDGET
+      end
     end
 
     local widget = { 
@@ -304,39 +308,6 @@ iup.SetClass(iup.BOX, "iupWidget")
 -- Compatibility functions.
 ------------------------------------------------------------------------------
 
-iup.pack = function (...) return {...} end
-
-function iup.protectedcall(f, msg)
-  if not f then 
-    iup._ERRORMESSAGE(msg)
-    return 
-  end
-  local ret = iup.pack(pcall(f))
-  if not ret[1] then 
-    iup._ERRORMESSAGE(ret[2])
-    return
-  else  
-    table.remove(ret, 1)
-    if (table.unpack) then
-      return table.unpack(ret)
-    else
-      return unpack(ret)
-    end
-  end
-end
-
-function iup.dostring(s) 
-  if (loadstring) then
-    return iup.protectedcall(loadstring(s)) 
-  else
-    return iup.protectedcall(load(s)) 
-  end
-end
-
-function iup.dofile(f) 
-  return iup.protectedcall(loadfile(f)) 
-end
-
 function iup.RGB(r, g, b)
   return string.format("%d %d %d", 255*r, 255*g, 255*b)
 end
@@ -344,9 +315,9 @@ end
 -- This will allow both names to be used in the same application
 -- also will allow static linking to work with require for the main library (only)
 if _G.package then
-   _G.package.loaded["iuplua"] = iup
-   iup._M = iup
-   iup._PACKAGE = "iuplua"
+  _G.package.loaded["iuplua"] = iup
+  iup._M = iup
+  iup._PACKAGE = "iuplua"
 end
 
 function iup.layoutdialog(obj)

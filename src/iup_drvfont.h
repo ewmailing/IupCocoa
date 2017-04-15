@@ -42,24 +42,20 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
  * \ingroup drvfont */
 char* iupdrvGetSystemFont(void);
 
-/** STANDARDFONT attribute set function.
- * \ingroup drvfont */
-int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value);
-
-
-
-/** FONT attribute get function.
- * \ingroup drvfont */
-char* iupGetFontAttrib(Ihandle* ih);
-
 /** FONT attribute set function.
  * \ingroup drvfont */
-int iupSetFontAttrib(Ihandle* ih, const char* value);
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value);
+
+
+
+/** Compensates IupMatrix limitation in Get FONT.
+  * \ingroup drvfont */
+char* iupGetFontValue(Ihandle* ih);
 
 /** Parse the font format description.
  * Returns a non zero value if successful.
  * \ingroup drvfont */
-int iupGetFontInfo(const char* standardfont, char* typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout);
+int iupGetFontInfo(const char* font, char* typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout);
 
 /** Parse the Pango font format description.
  * Returns a non zero value if successful.
@@ -110,10 +106,10 @@ int   iupSetDefaultFontFaceGlobalAttrib(const char* value);
 char* iupGetDefaultFontFaceGlobalAttrib(void);
 
 
-/* Updates the STANDARDFONT attrib.
+/* Updates the FONT attrib.
  * Called only from IupMap.
  */
-void iupUpdateStandardFontAttrib(Ihandle* ih);
+void iupUpdateFontAttrib(Ihandle* ih);
 
 /* Used to map foreign names into native names */
 const char* iupFontGetWinName(const char* typeface);

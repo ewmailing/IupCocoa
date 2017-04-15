@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupCalendar</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	border-width: 0;
+}
+.auto-style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupCalendar<span class="auto-style1"> (since 3.17)</span></h2>
+
+  <p>
+  Creates a month calendar interface element, where the user can select a date.</p>
+<p>
+  GTK and Windows only. NOT available in Motif.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupCalendar(void); [in C]
+iup.calendar{} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
+calendar() [in LED]</pre>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+  <p><strong>TODAY</strong> (read-only): Returns the date corresponding to today 
+  in VALUE format.</p>
+<p><strong>VALUE</strong>: the current date always in the format 
+&quot;year/month/day&quot; (&quot;%d/%d/%d&quot; in C). Can be set to &quot;TODAY&quot;. Default value is the 
+today date.</p>
+<p><strong>WEEKNUMBERS</strong>: Shows the number of the week along the year. 
+Default: NO.</p>
+<h3><a name="Callbacks">Callbacks</a></h3>
+
+  
+  
+<p><strong>VALUECHANGED_CB</strong>:
+  Called after the value was interactively changed by the user.</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>ih</strong>:valuechanged_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+
+<blockquote>
+  
+  <hr>
+</blockquote>
+
+
+<p><a href="../call/iup_map_cb.html">MAP_CB</a>,  
+<a href="../call/iup_unmap_cb.html">UNMAP_CB</a>, 
+<a href="../call/iup_destroy_cb.html">DESTROY_CB</a>, 
+<a href="../call/iup_getfocus_cb.html">GETFOCUS_CB</a>,
+  <a href="../call/iup_killfocus_cb.html">KILLFOCUS_CB</a>, 
+<a href="../call/iup_enterwindow_cb.html">ENTERWINDOW_CB</a>,
+  <a href="../call/iup_leavewindow_cb.html">LEAVEWINDOW_CB</a>, 
+<a href="../call/iup_k_any.html">K_ANY</a>,
+  <a href="../call/iup_help_cb.html">HELP_CB</a>: All common callbacks are 
+supported.</p>
+
+<h3><a name="Notes">Notes</a></h3>
+
+<p>In Windows, the view is changed when the month of year is clicked, so the 
+user can select the month of the year or an year among years.</p>
+<p>In GTK the today date is not marked in the calendar.</p>
+
+<h3><a name="Examples">Examples</a></h3>
+
+
+<table align="center">
+
+	<tbody>
+    <tr>
+
+		<th><br>Windows <br>
+
+		Classic</th>
+
+		<th>Windows <br>
+
+		w/ Styles</th>
+
+		<th>GTK</th>
+
+	</tr>
+
+	<tr>
+
+		<td class="bg_win2k"><img src="images/iupcalendar_win2k.png"></td>
+
+		<td class="bg_winxp"><img src="images/iupcalendar_winxp.png"></td>
+
+		<td class="bg_gtk"><img src="images/iupcalendar_gtk.png"></td>
+
+	</tr>
+
+	
+  </tbody>
+</table>
+
+
+<p><a href="../../examples/">Browse for Example Files</a></p>
+<h3><a name="SeeAlso">See Also</a></h3>
+
+<p> <a href="iupdatepick.html">IupDatePick</a>.</p>
+
+
+</body>
+
+</html>

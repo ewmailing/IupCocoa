@@ -405,7 +405,7 @@ static void iGLExpanderDrawExtraButton(Ihandle* ih, int button, int x, int y, in
   if (height > img_height)
     y += (height - img_height) / 2;
 
-  iupGLDrawImage(ih, x, y, NULL, image, !active);
+  iupGLDrawIconImage(ih, x, y, NULL, image, !active);
 }
 
 static int iGLExpanderACTION_CB(Ihandle* ih)
@@ -453,7 +453,7 @@ static int iGLExpanderACTION_CB(Ihandle* ih)
 
   /* draw bar box */
   if (bgimage)
-    iupGLDrawImageZoom(ih, x1, x2, y1, y2, "TITLEBACKIMAGE", bgimage, active);
+    iupGLDrawIconImageZoom(ih, x1, x2, y1, y2, "TITLEBACKIMAGE", bgimage, active);
   else
     iupGLDrawBox(ih, x1, x2, y1, y2, bgcolor, 1);  /* always active */
 
@@ -488,7 +488,7 @@ static int iGLExpanderACTION_CB(Ihandle* ih)
       if (bar_size > img_height)
         y_offset = (bar_size - img_height) / 2;
 
-      iupGLDrawImage(ih, IEXPAND_BACK_MARGIN, y_offset, NULL, image, !active);
+      iupGLDrawIconImage(ih, IEXPAND_BACK_MARGIN, y_offset, NULL, image, !active);
 
       txt_offset = iupMAX(txt_offset, img_width);
     }
@@ -521,7 +521,7 @@ static int iGLExpanderACTION_CB(Ihandle* ih)
     {
       int height;
       iupGLFontGetMultiLineStringSize(ih, title, NULL, &height);
-      iupGLDrawText(ih, txt_offset, (bar_size - height) / 2 - 1, title, fgcolor, active);
+      iupGLDrawMultilineText(ih, txt_offset, (bar_size - height) / 2 - 1, title, fgcolor, active);
     }
 
     if (ih->data->extra_buttons != 0)

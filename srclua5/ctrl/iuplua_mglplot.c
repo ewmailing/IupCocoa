@@ -250,15 +250,15 @@ void iuplua_mglplotfuncs_open(lua_State *L)
   iuplua_register(L, PlotSet2D       ,"MglPlotSet2D");
   iuplua_register(L, PlotSet3D       ,"MglPlotSet3D");
   iuplua_register(L, PlotSetFormula  ,"MglPlotSetFormula");
+  iuplua_register(L, PlotSetData     ,"MglPlotSetData");
   iuplua_register(L, PlotLoadData    ,"MglPlotLoadData");
-  iuplua_register(L, PlotSetFromFormula  ,"MglPlotSetFromFormula");
-  iuplua_register(L, PlotSetData      ,"MglPlotSetData");
-  iuplua_register(L, PlotTransform    ,"MglPlotTransform");
+  iuplua_register(L, PlotSetFromFormula,"MglPlotSetFromFormula");
+  iuplua_register(L, PlotTransform   ,"MglPlotTransform");
   iuplua_register(L, PlotTransformTo ,"MglPlotTransformTo");
-  iuplua_register(L, PlotPaintTo      ,"MglPlotPaintTo");
-  iuplua_register(L, PlotDrawText     ,"MglPlotDrawText");
-  iuplua_register(L, PlotDrawLine     ,"MglPlotDrawLine");
-  iuplua_register(L, PlotDrawMark     ,"MglPlotDrawMark");
+  iuplua_register(L, PlotDrawMark    ,"MglPlotDrawMark");
+  iuplua_register(L, PlotDrawLine    ,"MglPlotDrawLine");
+  iuplua_register(L, PlotDrawText    ,"MglPlotDrawText");
+  iuplua_register(L, PlotPaintTo     ,"MglPlotPaintTo");
 }
 
 int iupmglplotlua_open(lua_State * L);

@@ -1585,6 +1585,7 @@ static int motListMapMethod(Ihandle* ih)
   {
     iupmotSetGlobalColorAttrib(ih->handle, XmNbackground, "TXTBGCOLOR");
     iupmotSetGlobalColorAttrib(ih->handle, XmNforeground, "TXTFGCOLOR");
+    iupmotSetGlobalColorAttrib(ih->handle, XmNhighlightColor, "TXTHLCOLOR");
     IupSetGlobal("_IUP_RESET_TXTCOLORS", NULL);
   }
 
@@ -1611,7 +1612,8 @@ void iupdrvListInitClass(Iclass* ic)
   /* IupList only */
   iupClassRegisterAttributeId(ic, "IDVALUE", motListGetIdValueAttrib, iupListSetIdValueAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "VALUE", motListGetValueAttrib, motListSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "VISIBLE_ITEMS", NULL, motListSetVisibleItemsAttrib, IUPAF_SAMEASSYSTEM, "5", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "VISIBLEITEMS", NULL, motListSetVisibleItemsAttrib, IUPAF_SAMEASSYSTEM, "5", IUPAF_DEFAULT);
+  /*OLD*/iupClassRegisterAttribute(ic, "VISIBLE_ITEMS", NULL, motListSetVisibleItemsAttrib, IUPAF_SAMEASSYSTEM, "5", IUPAF_DEFAULT);
   iupClassRegisterAttribute(ic, "TOPITEM", NULL, motListSetTopItemAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SHOWDROPDOWN", NULL, motListSetShowDropdownAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SPACING", iupListGetSpacingAttrib, motListSetSpacingAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);

@@ -70,7 +70,7 @@ void iupGLButtonDraw(Ihandle* ih)
 
   /* draw background */
   if (bgimage)
-    iupGLDrawImageZoom(ih, border_width, ih->currentwidth - 1 - border_width,
+    iupGLDrawIconImageZoom(ih, border_width, ih->currentwidth - 1 - border_width,
                            border_width, ih->currentheight - 1 - border_width, 
                            "BACKIMAGE", bgimage, active);
   else
@@ -83,7 +83,7 @@ void iupGLButtonDraw(Ihandle* ih)
                     "IMAGE", image, title, fgcolor, active);
 
   if (fgimage)
-    iupGLDrawImageZoom(ih, border_width, ih->currentwidth - 1 - border_width,
+    iupGLDrawIconImageZoom(ih, border_width, ih->currentwidth - 1 - border_width,
                            border_width, ih->currentheight - 1 - border_width,
                            "FRONTIMAGE", fgimage, active);
   else if (!image && !title)

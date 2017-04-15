@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 
 #include "iup.h"

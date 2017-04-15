@@ -1,6 +1,6 @@
 /***************************************************************************
  * evalc.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -30,6 +30,9 @@ EQ_NUM=0,	// a variable substitution
 EQ_RND,		// random number
 EQ_A,		// numeric constant
 // normal functions of 2 arguments
+EQ_LT,		// comparison x<y			!!! MUST BE FIRST 2-PLACE FUNCTION
+EQ_GT,		// comparison x>y
+EQ_EQ,		// comparison x=y
 EQ_ADD,		// addition x+y
 EQ_SUB,		// substraction x-y
 EQ_MUL,		// multiplication x*y
@@ -57,6 +60,10 @@ EQ_LN,		// logarithm of x, ln(x)
 EQ_LG,		// decimal logarithm of x, lg(x) = ln(x)/ln(10)
 EQ_ABS,		// absolute value
 EQ_ARG,		// argument (or phase) of complex number
+EQ_CONJ,	// complex conjugate
+EQ_REAL,	// real part
+EQ_IMAG,	// imaginary part
+EQ_NORM,	// square of absolute value |u|^2
 EQ_LAST		// id of last entry
 };
 //-----------------------------------------------------------------------------
@@ -90,6 +97,17 @@ mglFormulaC::mglFormulaC(const char *string)
 		len-=2;	str[len]=0;
 	}
 	len=strlen(str);
+	n=mglFindInText(str,"<>=");				// low priority -- conditions
+	if(n>=0)
+	{
+		if(str[n]=='<') Kod=EQ_LT;
+		else if(str[n]=='>') Kod=EQ_GT;
+		else Kod=EQ_EQ;
+		str[n]=0;
+		Left=new mglFormulaC(str);
+		Right=new mglFormulaC(str+n+1);
+		delete []str;	return;
+	}
 	n=mglFindInText(str,"+-");				// normal priority -- additions
 	if(n>=0 && (n<2 || str[n-1]!='e' || (str[n-2]!='.' && !isdigit(str[n-2]))))
 	{
@@ -157,6 +175,10 @@ mglFormulaC::mglFormulaC(const char *string)
 		else if(!strcmp(name,"ln")) Kod=EQ_LN;
 		else if(!strcmp(name,"abs")) Kod=EQ_ABS;
 		else if(!strcmp(name,"arg")) Kod=EQ_ARG;
+		else if(!strcmp(name,"conj")) Kod=EQ_CONJ;
+		else if(!strcmp(name,"real")) Kod=EQ_REAL;
+		else if(!strcmp(name,"imag")) Kod=EQ_IMAG;
+		else if(!strcmp(name,"norm")) Kod=EQ_NORM;
 		else {	delete []str;	return;	}	// unknown function
 		n=mglFindInText(str,",");
 		if(n>=0)
@@ -206,6 +228,9 @@ dual mglFormulaC::Calc(const dual var[MGL_VS]) const
 	return CalcIn(var);
 }
 //-----------------------------------------------------------------------------
+dual MGL_LOCAL_CONST ceqc(dual a,dual b)	{return a==b?1:0;}
+dual MGL_LOCAL_CONST cltc(dual a,dual b)	{return real(a-b)<0?1:0;}
+dual MGL_LOCAL_CONST cgtc(dual a,dual b)	{return real(a-b)>0?1:0;}
 dual MGL_LOCAL_CONST addc(dual a,dual b)	{return a+b;}
 dual MGL_LOCAL_CONST subc(dual a,dual b)	{return a-b;}
 dual MGL_LOCAL_CONST mulc(dual a,dual b)	{return a*b;}
@@ -220,6 +245,7 @@ dual MGL_NO_EXPORT ic = dual(0,1);
 dual MGL_LOCAL_CONST asinhc(dual x)	{	return log(x+sqrt(x*x+mreal(1)));	}
 dual MGL_LOCAL_CONST acoshc(dual x)	{	return log(x+sqrt(x*x-mreal(1)));	}
 dual MGL_LOCAL_CONST atanhc(dual x)	{	return log((mreal(1)+x)/(mreal(1)-x))/mreal(2);	}
+dual MGL_LOCAL_CONST conjc(dual x)	{	return dual(real(x),-imag(x));	}
 dual MGL_LOCAL_CONST sinc(dual x)	{	return sin(x);	}
 dual MGL_LOCAL_CONST cosc(dual x)	{	return cos(x);	}
 dual MGL_LOCAL_CONST tanc(dual x)	{	return tan(x);	}
@@ -235,15 +261,18 @@ dual MGL_LOCAL_CONST logc(dual x)	{	return log(x);	}
 dual MGL_LOCAL_CONST absc(dual x)	{	return abs(x);	}
 dual MGL_LOCAL_CONST argc(dual x)	{	return arg(x);	}
 dual MGL_LOCAL_CONST lgc(dual x)	{	return log10(x);}
+dual MGL_LOCAL_CONST realc(dual x)	{	return real(x);	}
+dual MGL_LOCAL_CONST imagc(dual x)	{	return imag(x);	}
+dual MGL_LOCAL_CONST normc(dual x)	{	return norm(x);	}
 //-----------------------------------------------------------------------------
 typedef dual (*func_1)(dual);
 typedef dual (*func_2)(dual, dual);
+static const func_2 f2[EQ_SIN-EQ_LT] = {cltc,cgtc,ceqc,addc,subc,mulc,divc,ipwc,powc,llgc};
+static const func_1 f1[EQ_LAST-EQ_SIN] = {sinc,cosc,tanc,asinc,acosc,atanc,sinhc,coshc,tanhc,
+					asinhc,acoshc,atanhc,sqrtc,expc,expi,logc,lgc,absc,argc,conjc,realc,imagc,normc};
 // evaluation of embedded (included) expressions
 dual mglFormulaC::CalcIn(const dual *a1) const
 {
-	func_2 f2[EQ_SIN-EQ_ADD] = {addc,subc,mulc,divc,ipwc,powc,llgc};
-	func_1 f1[EQ_LAST-EQ_SIN] = {sinc,cosc,tanc,asinc,acosc,atanc,sinhc,coshc,tanhc,
-					asinhc,acoshc,atanhc,sqrtc,expc,expi,logc,lgc,absc};
 //	if(Error)	return 0;
 	if(Kod==EQ_A)	return a1[(int)Res.real()];
 	if(Kod==EQ_RND)	return mgl_rnd();
@@ -255,7 +284,7 @@ dual mglFormulaC::CalcIn(const dual *a1) const
 		if(Kod<EQ_SIN)
 		{
 			dual b = Right->CalcIn(a1);
-			b = mgl_isfin(b)?f2[Kod-EQ_ADD](a,b):NAN;
+			b = mgl_isfin(b)?f2[Kod-EQ_LT](a,b):NAN;
 			return mgl_isfin(b)?b:NAN;
 		}
 		else
@@ -267,15 +296,18 @@ dual mglFormulaC::CalcIn(const dual *a1) const
 mdual MGL_EXPORT_CONST mgl_ipowc(dual x,int n)
 {
 	dual t;
-	if(n==2)	{	t = x*x;	return t.real()+t.imag()*_Complex_I;	}
-	if(n==1)	return x.real()+x.imag()*_Complex_I;
-	if(n<0)		{	t = mreal(1)/mgl_ipowc(x,-n);	return t.real()+t.imag()*_Complex_I;	}
-	if(n==0)	return mreal(1);
-	t = mgl_ipowc(x,n/2);	t = t*t;
-	if(n%2==1)	t *= x;
-	return t.real()+t.imag()*_Complex_I;
+	if(n==2)	t = x*x;
+	else if(n==1)	t = x;
+	else if(n<0)	t = mreal(1)/mgl_ipowc(x,-n);
+	else if(n==0)	t = mreal(1);
+	else
+	{
+		t = mgl_ipowc(x,n/2);	t = t*t;
+		if(n%2==1)	t *= x;
+	}
+	return t.real()+t.imag()*mgl_I;
 }
-mdual MGL_EXPORT_PURE mgl_ipowc_(dual *x,int *n)	{	return mgl_ipowc(*x,*n);	}
+mdual MGL_EXPORT mgl_ipowc_(dual *x,int *n)	{	return mgl_ipowc(*x,*n);	}
 //-----------------------------------------------------------------------------
 HAEX MGL_EXPORT mgl_create_cexpr(const char *expr)	{	return new mglFormulaC(expr);	}
 uintptr_t MGL_EXPORT mgl_create_cexpr_(const char *expr, int l)
@@ -284,10 +316,10 @@ uintptr_t MGL_EXPORT mgl_create_cexpr_(const char *expr, int l)
 	delete []s;	return res;	}
 void MGL_EXPORT mgl_delete_cexpr(HAEX ex)	{	if(ex)	delete ex;	}
 void MGL_EXPORT mgl_delete_cexpr_(uintptr_t *ex)	{	mgl_delete_cexpr((HAEX)ex);	}
-mdual MGL_EXPORT_PURE mgl_cexpr_eval(HAEX ex, dual x, dual y,dual z)
-{	dual r = ex->Calc(x,y,z);	return r.real()+r.imag()*_Complex_I;	}
+mdual MGL_EXPORT mgl_cexpr_eval(HAEX ex, dual x, dual y,dual z)
+{	dual r = ex->Calc(x,y,z);	return r.real()+r.imag()*mgl_I;	}
 mdual MGL_EXPORT mgl_cexpr_eval_(uintptr_t *ex, dual *x, dual *y, dual *z)
 {	return mgl_cexpr_eval((HAEX) ex, *x,*y,*z);		}
 mdual MGL_EXPORT mgl_cexpr_eval_v(HAEX ex, dual *var)
-{	dual r = ex->Calc(var);	return r.real()+r.imag()*_Complex_I;	}
+{	dual r = ex->Calc(var);	return r.real()+r.imag()*mgl_I;	}
 //-----------------------------------------------------------------------------

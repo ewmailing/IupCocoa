@@ -117,8 +117,12 @@ static void iGlobalSet(const char *name, const char *value, int store)
   }
   if (iupStrEqual(name, "LANGUAGE"))
   {
-    iupStrMessageUpdateLanguage(value);
-    iGlobalTableSet(name, value, store);
+    char* old_language = (char*)iupTableGet(iglobal_table, "LANGUAGE");
+    if (!iupStrEqualNoCase(old_language, value))  /* if different than the current */
+    {
+      iGlobalTableSet(name, value, store);
+      iupStrMessageUpdateLanguage(value);
+    }
     return;
   }
   if (iupStrEqual(name, "CURSORPOS"))
@@ -238,6 +242,7 @@ int iupGlobalIsPointer(const char* name)
 #ifndef GTK_MAC
   #ifdef WIN32
     {"HINSTANCE"},
+    {"DLL_HINSTANCE"},
   #else
     {"XDISPLAY"},
     {"XSCREEN"},

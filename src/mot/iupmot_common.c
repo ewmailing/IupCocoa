@@ -427,7 +427,7 @@ int iupdrvBaseSetCursorAttrib(Ihandle* ih, const char* value)
 #include <Xm/XmP.h>
 #include <Xm/DrawP.h>
 
-void iupdrvDrawFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
+void iupdrvPaintFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
 {
   Drawable wnd = (Drawable)IupGetAttribute(ih, "XWINDOW");  /* Use IupGetAttribute to consult the native implemetation */
   GC gc = (GC)_gc;

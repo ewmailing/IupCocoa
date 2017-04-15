@@ -21,7 +21,7 @@
 
 #define IUP_COLOR_RED        706
 
-static UINT_PTR winColorDlgHookProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
+static UINT_PTR CALLBACK winColorDlgHookProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 {
   (void)wParam;
   if (uiMsg == WM_INITDIALOG)
@@ -90,9 +90,10 @@ static int winColorDlgPopup(Ihandle* ih, int x, int y)
   iupAttribSetInt(ih, "_IUPDLG_X", x);   /* used in iupDialogUpdatePosition */
   iupAttribSetInt(ih, "_IUPDLG_Y", y);
 
+  /* if NOT set will NOT be Modal */
+  /* anyway it will be modal only relative to its parent */
   if (!parent)
-    parent = GetActiveWindow();  /* if NOT set will NOT be Modal */
-                                 /* anyway it will be modal only relative to its parent */
+    parent = GetActiveWindow();  
 
   iupStrToRGB(iupAttribGet(ih, "VALUE"), &r, &g, &b);
 

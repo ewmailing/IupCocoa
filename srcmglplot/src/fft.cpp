@@ -1,6 +1,6 @@
 /***************************************************************************
  * fft.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -24,6 +24,7 @@
 #include <gsl/gsl_fft_complex.h>
 #include <gsl/gsl_dht.h>
 #include <gsl/gsl_sf.h>
+#include <gsl/gsl_wavelet.h>
 #endif
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mglStartThreadT(void *(*func)(void *), long n, void *a, double *b, const void *v, void **w, const long *p, const void *re, const void *im)
@@ -1071,12 +1072,12 @@ void MGL_EXPORT mgl_data_hankel_(uintptr_t *d, const char *dir,int l)
 void MGL_EXPORT mgl_data_fill_sample(HMDT d, const char *how)
 {
 	if(!how || *how==0)	return;
-	bool kk = strchr(how,'k');
+	bool kk = mglchr(how,'k');
 	long n=d->nx,dn=1;
 	mreal *aa=d->a;
-	if(strchr(how,'y'))	{	n=d->ny;	dn=d->nx;	}
-	if(strchr(how,'z'))	{	n=d->nz;	dn=d->nx*d->ny;	}
-	if(strchr(how,'h'))	// Hankel
+	if(mglchr(how,'y'))	{	n=d->ny;	dn=d->nx;	}
+	if(mglchr(how,'z'))	{	n=d->nz;	dn=d->nx*d->ny;	}
+	if(mglchr(how,'h'))	// Hankel
 	{
 #if MGL_HAVE_GSL
 		gsl_dht *dht = gsl_dht_new(n,0,1);
@@ -1292,5 +1293,81 @@ uintptr_t MGL_EXPORT mgl_data_correl_(uintptr_t *d1, uintptr_t *d2, const char *
 	uintptr_t res = uintptr_t(mgl_datac_correl(_DA_(d1),_DA_(d2),s));
 	delete []s;		return res;	}
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
+void MGL_EXPORT mgl_data_wavelet(HMDT dat, const char *how, int k)
+{
+#if MGL_HAVE_GSL
+	gsl_wavelet *w=0;
+	if(mglchr(how,'d'))	w = gsl_wavelet_alloc(gsl_wavelet_daubechies, k);
+	else if(mglchr(how,'D'))	w = gsl_wavelet_alloc(gsl_wavelet_daubechies_centered, k);
+	else if(mglchr(how,'h'))	w = gsl_wavelet_alloc(gsl_wavelet_haar, k);
+	else if(mglchr(how,'H'))	w = gsl_wavelet_alloc(gsl_wavelet_haar_centered, k);
+	else if(mglchr(how,'b'))	w = gsl_wavelet_alloc(gsl_wavelet_bspline, k);
+	else if(mglchr(how,'B'))	w = gsl_wavelet_alloc(gsl_wavelet_bspline_centered, k);
+	if(!w)	return;
+
+	double *a;
+#if MGL_USE_DOUBLE
+	a = dat->a;
+#else
+	long nn = dat->GetNN();
+	a = new double[nn];
+#pragma omp parallel for
+	for(long i=0;i<nn;i++)	a[i] = dat->a[i];
+#endif
+	if(mglchr(how,'x'))
+#pragma omp parallel
+	{
+		long n = dat->nx;
+		gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc(n);
+		if(mglchr(how,'i'))
+#pragma omp for
+			for(long i=0;i<dat->ny*dat->nz;i++)
+				gsl_wavelet_transform_inverse(w, a+i*n, 1, n, work);
+		else
+#pragma omp for
+			for(long i=0;i<dat->ny*dat->nz;i++)
+				gsl_wavelet_transform_forward(w, a+i*n, 1, n, work);
+		gsl_wavelet_workspace_free(work);
+	}
+	if(mglchr(how,'y'))
+#pragma omp parallel
+	{
+		long n = dat->ny, s = dat->nx;
+		gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc(n);
+		if(mglchr(how,'i'))
+#pragma omp for collapse(2)
+			for(long i=0;i<dat->nx;i++)	for(long j=0;j<dat->nz;j++)
+				gsl_wavelet_transform_inverse(w, a+i+n*s*j, s, n, work);
+		else
+#pragma omp for collapse(2)
+			for(long i=0;i<dat->nx;i++)	for(long j=0;j<dat->nz;j++)
+				gsl_wavelet_transform_forward(w, a+i+n*s*j, s, n, work);
+		gsl_wavelet_workspace_free(work);
+	}
+	if(mglchr(how,'z'))
+#pragma omp parallel
+	{
+		long n = dat->nz, s = dat->nx*dat->ny;
+		gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc(n);
+		if(mglchr(how,'i'))
+#pragma omp for
+			for(long i=0;i<dat->nx*dat->ny;i++)
+				gsl_wavelet_transform_inverse(w, a+i, s, n, work);
+		else
+#pragma omp for
+			for(long i=0;i<dat->nx*dat->ny;i++)
+				gsl_wavelet_transform_forward(w, a+i, s, n, work);
+		gsl_wavelet_workspace_free(work);
+	}
+#if !MGL_USE_DOUBLE
+#pragma omp parallel for
+	for(long i=0;i<nn;i++)	dat->a[i] = a[i];
+	delete []a;
+#endif
+	gsl_wavelet_free (w);
+#endif
+}
+void MGL_EXPORT mgl_data_wavelet_(uintptr_t *d, const char *dir, int *k,int l)
+{	char *s=new char[l+1];	memcpy(s,dir,l);	s[l]=0;
+	mgl_data_wavelet(_DT_,s,*k);	delete []s;	}
 //-----------------------------------------------------------------------------

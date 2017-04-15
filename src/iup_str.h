@@ -294,6 +294,7 @@ char* iupStrFileGetTitle(const char *file_name);
 
 /** Returns the file path of a file name.
  * Supports UNIX and Windows directory separators.
+ * The returned value includes the last separator.
  * \ingroup str */
 char* iupStrFileGetPath(const char *file_name);
 
@@ -301,7 +302,7 @@ char* iupStrFileGetPath(const char *file_name);
  * \ingroup str */
 char* iupStrFileMakeFileName(const char* path, const char* title);
 
-/** Split the filename in path and title using pre-alocated strings.
+/** Split the filename in path and title using pre-allocated strings.
  * \ingroup str */
 void iupStrFileNameSplit(const char* filename, char* path, char* title);
 

@@ -1,6 +1,6 @@
 /***************************************************************************
- * window.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * canvas_wnd.h is part of Math Graphic Library
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,6 +29,9 @@ class MGL_EXPORT mglCanvasWnd : public mglCanvas
 public:
 	mglPoint LastMousePos;			///< Last mouse position
 	void (*ClickFunc)(void *par);	///< Callback function on click
+#if MGL_HAVE_PTHR_WIDGET
+	pthread_mutex_t *mutex;
+#endif
 
 	mglCanvasWnd();
 	virtual ~mglCanvasWnd();
