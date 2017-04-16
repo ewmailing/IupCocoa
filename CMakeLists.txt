@@ -210,9 +210,9 @@ SET(IUPEXE_LINK_FLAGS "")
 # We can then reuse them for other platforms too.
 IF(IUP_USE_EMSCRIPTEN)
 	# we always need to set this when building a libray with Emscripten
-	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY")
+	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
 	# we always need to set this when using an Emscripten built library, otherwise symbols get stripped.
-	SET(IUPEXE_C_FLAGS "${IUPEXE_C_FLAGS} -DIUP_BUILD_LIBRARY")
+	SET(IUPEXE_C_FLAGS "${IUPEXE_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
 
 	# Without this, all executables only generate .js files without the html wrapper.
 	SET(CMAKE_EXECUTABLE_SUFFIX ".html")
@@ -231,10 +231,16 @@ ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
 		SET(IUPIMGLIB_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 	ENDIF()
 	
-	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY")
+	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
+		
 	# Yes, IUP_BUILD_LIBRARY and not IUPIMG_BUILD_LIBRARY because the header is in iup.h
 	SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DIUP_BUILD_LIBRARY")
 
+ENDIF()
+
+IF(MSVC)
+	# Kind of a hack. Need to get Windows exe's to link and not show a console window. Not sure why it is defaulting to /SUBSYSTEM:CONSOLE even though WIN32 is specified in the ADD_EXECUTABLE
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\"")
 ENDIF()
 
 IF(IUPIMGLIB_OPTION_USE_IMGLIB_LARGE)
