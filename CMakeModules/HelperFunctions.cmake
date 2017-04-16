@@ -214,11 +214,11 @@ endfunction()
 function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags exclude_from_all_target)
 	
 	if(exclude_from_all_target)
-		ADD_EXECUTABLE(${exe_name} MACOSX_BUNDLE WIN32 EXCLUDE_FROM_ALL
+		ADD_EXECUTABLE(${exe_name} WIN32 MACOSX_BUNDLE EXCLUDE_FROM_ALL
 			${source_file_list}
 		)
 	else()
-		ADD_EXECUTABLE(${exe_name} MACOSX_BUNDLE WIN32
+		ADD_EXECUTABLE(${exe_name} WIN32 MACOSX_BUNDLE
 			${source_file_list}
 		)
 	endif()
