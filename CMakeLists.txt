@@ -190,6 +190,10 @@ ELSE()
 
 ENDIF()
 
+# Not sure what the default should be for this, and if it should be backend dependent
+OPTION(IUPIMGLIB_OPTION_USE_IMGLIB_LARGE "Include images larger than 48x48 (inclusive) for imglib" ON)
+
+
 # RPATH stuff. This MUST be set before any targets that use it are declared.
 # Only affects shared libraries.
 if(WANTS_BUILD_SHARED_LIBRARY)
@@ -198,6 +202,7 @@ endif()
 
 
 SET(IUP_C_FLAGS "")
+SET(IUPIMGLIB_C_FLAGS "")
 SET(IUPEXE_C_FLAGS "")
 SET(IUPEXE_LINK_FLAGS "")
 
@@ -220,12 +225,20 @@ IF(IUP_USE_EMSCRIPTEN)
 ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
 	IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
+		SET(IUPIMGLIB_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 	ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
+		SET(IUPIMGLIB_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 	ENDIF()
 	
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY")
+	# Yes, IUP_BUILD_LIBRARY and not IUPIMG_BUILD_LIBRARY because the header is in iup.h
+	SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DIUP_BUILD_LIBRARY")
 
+ENDIF()
+
+IF(IUPIMGLIB_OPTION_USE_IMGLIB_LARGE)
+	SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DIUP_IMAGELIB_LARGE")
 ENDIF()
 
 
@@ -236,6 +249,8 @@ SET(IUP_PUBLIC_HEADERS
 	${CMAKE_SOURCE_DIR}/include/iupdef.h
 	${CMAKE_SOURCE_DIR}/include/iupkey.h
 	${CMAKE_SOURCE_DIR}/include/iup_config.h
+)
+SET(IUPIMGLIB_PUBLIC_HEADERS
 )
 
 SET(IUP_COMMON_SOURCE_FILES 
@@ -368,11 +383,18 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_vbox.c
 	${CMAKE_SOURCE_DIR}/src/iup_zbox.c
 )
-
+SET(IUPIMGLIB_COMMON_SOURCE_FILES 
+	${CMAKE_SOURCE_DIR}/srcimglib/iup_image_library.c
+	${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_circleprogress.c
+)
 
 SET(IUP_LINK_LIBRARIES "")
 SET(IUP_SOURCE_FILES ${IUP_COMMON_SOURCE_FILES})
 SET(IUP_FOREIGN_SOURCE_FILES "")
+
+SET(IUPIMGLIB_LINK_LIBRARIES "")
+SET(IUPIMGLIB_SOURCE_FILES ${IUPIMGLIB_COMMON_SOURCE_FILES})
+SET(IUPIMGLIB_FOREIGN_SOURCE_FILES "")
 
 IF(IUP_USE_EMSCRIPTEN)
 
@@ -429,6 +451,27 @@ IF(IUP_USE_EMSCRIPTEN)
 	LIST(APPEND IUP_FOREIGN_SOURCE_FILES
 			${IUP_EMSCRIPTEN_FOREIGN_SOURCE_FILES}
 		)
+
+
+	SET(IUPIMGLIB_EMSCRIPTEN_SOURCE_FILES
+		# TODO:
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+	)
+	SET(IUPIMGLIB_EMSCRIPTEN_FOREIGN_SOURCE_FILES 
+	)
+
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_EMSCRIPTEN_SOURCE_FILES}
+	)
+	LIST(APPEND IUPIMGLIB_FOREIGN_SOURCE_FILES
+		${IUPIMGLIB_EMSCRIPTEN_FOREIGN_SOURCE_FILES}
+	)
+
+
+
+
 ELSEIF(IUP_USE_ANDROID)
 	
 ELSEIF(IUP_USE_COCOATOUCH)
@@ -495,6 +538,18 @@ ELSEIF(IUP_USE_COCOATOUCH)
 			${APPLE_FOUNDATION_LIBRARY}
 	)
 
+
+	SET(IUPIMGLIB_COCOATOUCH_SOURCE_FILES
+		# TODO:
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+	)
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_COCOATOUCH_SOURCE_FILES}
+	)
+
+
 ELSEIF(IUP_USE_COCOA)
 
 	SET(IUP_COCOA_SOURCE_FILES 
@@ -558,6 +613,17 @@ ELSEIF(IUP_USE_COCOA)
 		${APPLE_QUARTZCORE_LIBRARY}
 		${APPLE_SYSTEMCONFIGURATION_LIBRARY}
 	)
+
+	SET(IUPIMGLIB_COCOA_SOURCE_FILES
+		# TODO:
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
+#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+	)
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_COCOA_SOURCE_FILES}
+	)
+
 
 ELSEIF(IUP_USE_WIN32)
 
@@ -639,6 +705,18 @@ ELSEIF(IUP_USE_WIN32)
 		ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
 	ENDIF()
 
+	SET(IUPIMGLIB_WIN32_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basewin32x32.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_iconswin48x48.c
+	)
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_WIN32_SOURCE_FILES}
+	)
+
+
+
 ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 
 	SET(IUP_GTK_SOURCE_FILES
@@ -689,6 +767,19 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 	SET(IUP_GTK3_SOURCE_FILES
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw_cairo.c
 	)
+
+
+	SET(IUPIMGLIB_GTK_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basegtk16x16.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_iconsgtk48x48.c
+	)
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_GTK_SOURCE_FILES}
+	)
+
+
 
 	# These files are platform specific for the GTK backend
 	IF(APPLE)
@@ -784,16 +875,28 @@ ELSEIF(IUP_USE_MOTIF)
 		${MOTIF_LIBRARIES}
 	)
 
+	SET(IUPIMGLIB_MOTIF_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+	)
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_MOTIF_SOURCE_FILES}
+	)
+
 ELSE()
 	MESSAGE(FATAL_ERROR "Unhandled platform backend")
 
 ENDIF()
 
+# Would prefer TARGET_INCLUDE_DIRECTORIES or something, but supporting CMake 2.8.7
 INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_SOURCE_DIR}/src
 )
 HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUP_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUP_FOREIGN_SOURCE_FILES}" "${IUP_LINK_LIBRARIES}" "${IUP_C_FLAGS}" "br.pucrio.tecgraf.iup")
+
+HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMBLIG_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.pucrio.tecgraf.iup")
 
 
 # Decided to put everything in this CMakeLists.txt to make keeping in sync easier since this isn't official.
@@ -820,10 +923,38 @@ function(BUILD_IUP_TEST exe_name source_list)
 
 endfunction()
 
+function(BUILD_IUPIMGLIB_TEST exe_name source_list)
+	set(_should_exclude_from_all "")
+	if(NOT IUP_BUILD_TESTS)
+		set(_should_exclude_from_all 1)
+	endif()
+	
+	HELPER_CREATE_EXECUTABLE(${exe_name} 
+		"${source_list}"
+		"${WANTS_BUILD_SHARED_LIBRARY}"
+		"iupimglib;iup"
+		"${IUP_LINK_LIBRARIES}"
+		"${IUPEXE_C_FLAGS}"
+		"${IUPEXE_LINK_FLAGS}"
+		"${_should_exclude_from_all}"
+	)
 
-# button.c now has a dependency on IupImageLibOpen???
-#BUILD_IUP_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c")
-BUILD_IUP_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
+	# This adds the current test to the aggregate target for tests
+	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+
+endfunction()
+
+
+BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
+BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c")
+
+# Things with dependencies on iupimglib
+#BUILD_IUPIMGLIB_TEST(bigtest "${CMAKE_SOURCE_DIR}/html/examples/tests/bigtest.c")
+BUILD_IUPIMGLIB_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c")
+BUILD_IUPIMGLIB_TEST(flatbutton "${CMAKE_SOURCE_DIR}/html/examples/tests/flatbutton.c")
+BUILD_IUPIMGLIB_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
+# depends on cdlib
+#BUILD_IUPIMGLIB_TEST(matrix_cbs "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix_cbs.c")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 
