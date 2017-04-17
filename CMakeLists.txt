@@ -90,6 +90,17 @@ ELSEIF(APPLE)
 
 	ENDIF()
 
+ELSEIF(ANDROID)
+	OPTION(IUP_OPTION_ANDROID "Use Android backend" ON)
+	OPTION(IUP_OPTION_COCOA "Use Cocoa backend" OFF)
+	OPTION(IUP_OPTION_COCOATOUCH "Use CocoaTouch backend" OFF)
+	OPTION(IUP_OPTION_EMSCRIPTEN "Use Emscripten backend" OFF)		
+	OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" OFF)
+	OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" OFF)
+	OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
+	OPTION(IUP_OPTION_WIN32 "Use Win32 backend" OFF)
+
+
 ELSEIF(WIN32)
 	OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
 	OPTION(IUP_OPTION_COCOA "Use Cocoa backend" OFF)
@@ -461,9 +472,8 @@ IF(IUP_USE_EMSCRIPTEN)
 
 	SET(IUPIMGLIB_EMSCRIPTEN_SOURCE_FILES
 		# TODO:
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
 	)
 	SET(IUPIMGLIB_EMSCRIPTEN_FOREIGN_SOURCE_FILES 
 	)
@@ -479,7 +489,71 @@ IF(IUP_USE_EMSCRIPTEN)
 
 
 ELSEIF(IUP_USE_ANDROID)
-	
+
+		SET(IUP_ANDROID_SOURCE_FILES 
+		# TODO: Get clarification on iup_datepick.c
+		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
+
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_button.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_calendar.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_canvas.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_clipboard.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_colordlg.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_common.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_dialog.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_dragdrop.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_draw.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_drv.h
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_filedlg.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_focus.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_font.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_fontdlg.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_frame.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_globalattrib.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_help.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_image.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_info.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupApplication.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupActivity.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupCommon.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupLaunchActivity.c
+		#${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_key.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_label.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_list.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_loop.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_menu.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_messagedlg.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_open.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_progressbar.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_tabs.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_text.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_timer.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_tips.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_toggle.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_tree.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_val.c
+	)
+
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_ANDROID_SOURCE_FILES}
+	)
+
+	FIND_LIBRARY(ANDROID_LOG_LIBRARY log)
+
+	LIST(APPEND IUP_LINK_LIBRARIES 
+			${ANDROID_LOG_LIBRARY}
+	)
+
+
+	SET(IUPIMGLIB_ANDROID_SOURCE_FILES
+		# TODO:
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
+	)
+	LIST(APPEND IUPIMGLIB_SOURCE_FILES
+		${IUPIMGLIB_ANDROID_SOURCE_FILES}
+	)
+
 ELSEIF(IUP_USE_COCOATOUCH)
 
 	SET(IUP_COCOATOUCH_SOURCE_FILES 
@@ -547,9 +621,8 @@ ELSEIF(IUP_USE_COCOATOUCH)
 
 	SET(IUPIMGLIB_COCOATOUCH_SOURCE_FILES
 		# TODO:
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
 	)
 	LIST(APPEND IUPIMGLIB_SOURCE_FILES
 		${IUPIMGLIB_COCOATOUCH_SOURCE_FILES}
@@ -622,9 +695,8 @@ ELSEIF(IUP_USE_COCOA)
 
 	SET(IUPIMGLIB_COCOA_SOURCE_FILES
 		# TODO:
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basemot16x16_8bpp.c
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48_8bpp.c 
-#		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32_8bpp.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
 	)
 	LIST(APPEND IUPIMGLIB_SOURCE_FILES
 		${IUPIMGLIB_COCOA_SOURCE_FILES}
@@ -982,6 +1054,24 @@ elseif(IUP_USE_COCOATOUCH)
 	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/XcodeiOS/iup/TestApp/main.c")
 elseif(IUP_USE_COCOA)
 	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
+elseif(IUP_USE_ANDROID)
+
+	# This is a hack to get around Android Studio/Gradle deficiencies.
+	# Being able to build an AAR, and then using it in the same project is horribly broken.
+	# After some hackery, I got the testapp target to refer to the AAR, but it only looks at the Java side.
+	# The CMake/NDK side can't find the libraries.
+	# So the hack is to force the NDK side to rebuild all the libraries, plus the libMyIupProgram.so library.
+	# But we don't want the libMyIupProgram.so built when just building the AAR, otherwise it goes into the AAR.
+	# So the build.gradle is required to set -DIUP_ANDROID_BUILD_TEST_LIBRARY=1 when building the testapp.
+	IF(IUP_ANDROID_BUILD_TEST_LIBRARY)
+		add_library(MyIupProgram SHARED EXCLUDE_FROM_ALL
+			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
+		)
+		target_link_libraries(MyIupProgram iupimglib iup)
+
+	ENDIF()
+
+
 endif()
 
 
