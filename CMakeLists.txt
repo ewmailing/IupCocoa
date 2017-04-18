@@ -126,9 +126,12 @@ ELSEIF(UNIX)
 	# Not sure the best way of doing this.
 	# Find both GTK2 and GTK3 in case the user wants to change the config.
 	# Otherwise I might accidentally prevent detection.
-	find_package(GTK2 2.0 QUIET COMPONENTS gtk)
-	# Use the package PkgConfig to detect GTK+ headers/library files
 	find_package(PkgConfig REQUIRED)
+	# I originally tried find_package() for 2.0 but linking failed on Ubuntu 16.10 (but worked on 12.04)
+	# pkg_check_modules with 2.0 fixed the problem.
+	#find_package(GTK2 2.0 QUIET COMPONENTS gtk)
+	pkg_check_modules(GTK2 gtk+-2.0)
+	# Use the package PkgConfig to detect GTK+ headers/library files
 	pkg_check_modules(GTK3 gtk+-3.0)
 
 	find_package(Motif QUIET)
