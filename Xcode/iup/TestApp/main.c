@@ -867,21 +867,35 @@ Ihandle* ListTest(void)
 
 	printf("COUNT(list2)=%s\n", IupGetAttribute(list2, "COUNT"));
 
-	Ihandle* vb=IupVbox(list1, list2, NULL);
+	
+	
+	list4 = IupList(NULL);
+
+	IupSetAttributes(list4, "1=\"Number 3\", 2=\"Number 4\", 3=\"Number 2\", 4=\"Number 1\", 5=\"Number 6\", 6=\"Number 5\", 7=\"Number 7\","
+					 "MULTIPLE=YES, NAME=list4, TIP=List, XXX_SORT=YES, VALUE=+--++--, XXX_CANFOCUS=NO");
+	
+	set_callbacks(list4);
+
+	printf("COUNT(list4)=%s\n", IupGetAttribute(list4, "COUNT"));
+
+	
+	
+//	Ihandle* vb=IupVbox(list1, list2, list4, NULL);
+	Ihandle* vb=IupVbox(list4, NULL);
 	return vb;
 	
 	
 #if 0
+
 	list3 = IupList(NULL);
-	list4 = IupList(NULL);
-
-
 	IupSetAttributes(list3, "1=\"Char A\", 2=\"Char B\", 3=\"Char CCCCC\", 4=\"Char D\", 5=\"Char E\", 6=\"Char F\","
 					 "EDITBOX=YES, NAME=list3, TIP=Edit+List, VALUE=\"Edit Here\"");
+	set_callbacks(list3);
+	printf("COUNT(list3)=%s\n", IupGetAttribute(list3, "COUNT"));
+
 	//  IupSetAttributes(list4, "1=\"Number 1\", 2=\"Number 2\", 3=\"Number 3\", 4=\"Number 4\", 5=\"Number 5\", 6=\"Number 6\", 7=\"Number 7\","
 	//                          "MULTIPLE=YES, NAME=list4, TIP=List, VALUE=+--++--");
-	IupSetAttributes(list4, "1=\"Number 3\", 2=\"Number 4\", 3=\"Number 2\", 4=\"Number 1\", 5=\"Number 6\", 6=\"Number 5\", 7=\"Number 7\","
-					 "MULTIPLE=YES, NAME=list4, TIP=List, XXX_SORT=YES, VALUE=+--++--, XXX_CANFOCUS=NO");
+
 	
 	//IupSetAttributes(list1, "5=\"US$ 1000\", 6=\"US$ 2000\", 7=\"US$ 300.000.000\", 8=\"US$ 4000\"");
 	//IupSetAttributes(list1, "9=\"US$ 1000\", 10=\"US$ 2000\", 11=\"US$ 300.000.000\", 12=\"US$ 4000\"");
@@ -889,8 +903,6 @@ Ihandle* ListTest(void)
 	//IupSetAttributes(list1, "17=\"US$ 1000\", 18=\"US$ 2000\", 19=\"US$ 300.000.000\", 20=\"US$ 4000\"");
 	//IupSetAttributes(list1, "21=\"US$ 1000\", 22=\"US$ 2000\", 23=\"US$ 300.000.000\", 24=\"US$ 4000\"");
 	
-	set_callbacks(list3);
-	set_callbacks(list4);
 	
 	//IupSetAttributes(list2, "6=\"R$ 1000\", 7=\"R$ 2000\", 8=\"R$ 123456789\", 9=\"R$ 4000\", 10=\"R$ 5000\",");
 	//IupSetAttributes(list2, "11=\"R$ 1000\", 12=\"R$ 2000\", 13=\"R$ 123456789\", 14=\"R$ 4000\", 15=\"R$ 5000\",");
@@ -906,8 +918,6 @@ Ihandle* ListTest(void)
 	//  IupSetAttribute(list3, "SPACING", "10");
 	//  IupSetAttribute(list4, "SPACING", "10");
 	
-	printf("COUNT(list3)=%s\n", IupGetAttribute(list3, "COUNT"));
-	printf("COUNT(list4)=%s\n", IupGetAttribute(list4, "COUNT"));
 	
 	lists = IupHbox(
 					IupVbox(
