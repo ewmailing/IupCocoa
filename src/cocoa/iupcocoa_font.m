@@ -158,15 +158,58 @@ NSFont *iupmacGetHFont(const char* value)
 
 static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 {
-  ImacFont* macfont = macFindFont(value);
-  if (!macfont)
-  {
-    iupERROR1("Failed to create Font: %s", value); 
-    return NULL;
-  }
+	
+	if(NULL == value)
+	{
+		
+		NSFont* default_font = [NSFont systemFontOfSize:0];
+//		NSFont* default_font = [NSFont labelFontOfSize:0];
+//		NSFont* default_font = [NSFont userFontOfSize:0];
+		iupdrvGetSystemFont();
+		
+		// FIXME: LEAK (this is not freed anywhere)
+		
+		ImacFont* macfont = (ImacFont*)calloc(1, sizeof(ImacFont));
+		char* font_name = [[default_font familyName] UTF8String];
+		NSLog(@"font name: %@", [default_font familyName]);
+		NSLog(@"font size: %f", [default_font pointSize]);
 
-  iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
-  return macfont;
+		// max size is in ImacFont definition
+		strncpy(macfont->standardfont, font_name, 200);
+		macfont->hFont = [default_font retain];
+/*
+		NSFont* font_copy = [NSFont fontWithName:[default_font familyName] size:[default_font pointSize]];
+		NSLog(@"font_copy %@", font_copy);
+*/
+		NSDictionary* font_attributes = @{
+			NSFontAttributeName:default_font
+//			NSFontAttributeName:font_copy
+//			NSFontAttributeName:[NSNumber numberWithDouble:(double)[default_font pointSize]],
+		};
+		macfont->attributes = [font_attributes retain];
+
+		//		NSSize size = [str sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSFont systemFontOfSize:0], NSFontAttributeName, nil]];
+
+		
+		iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
+
+//		macfont->charheight
+//		pointSize
+		return macfont;
+		
+	}
+	else
+	{
+	  ImacFont* macfont = macFindFont(value);
+	  if (!macfont)
+	  {
+		iupERROR1("Failed to create Font: %s", value); 
+		return NULL;
+	  }
+
+	  iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
+	  return macfont;
+	}
 }
 
 
@@ -316,8 +359,8 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
     return 0;
 
   attributes = (NSDictionary*)iupmacGetHFontAttrib(ih);
-	NSLog(@"disabled iupdrvFontGetStringWidth due to crash");
-	return 0;
+//	NSLog(@"disabled iupdrvFontGetStringWidth due to crash");
+//	return 0;
 
 	
   if (!attributes || ([attributes count] == 0))
