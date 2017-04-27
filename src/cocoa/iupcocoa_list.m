@@ -36,6 +36,108 @@ static const void* IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_LIST
 static const void* IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY = "IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY";
 static const void* IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY = "IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY";
 
+typedef enum
+{
+	IUPCOCOALISTSUBTYPE_UNKNOWN = -1,
+	IUPCOCOALISTSUBTYPE_DROPDOWN,
+	IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN,
+	IUPCOCOALISTSUBTYPE_EDITBOX,
+	IUPCOCOALISTSUBTYPE_MULTIPLELIST,
+	IUPCOCOALISTSUBTYPE_SINGLELIST // not official, but could be the basis for mobile-style listviews
+} IupCocoaListSubType;
+
+
+static IupCocoaListSubType cocoaListGetSubType(Ihandle* ih)
+{
+	if(ih->data->is_dropdown)
+	{
+		if(ih->data->has_editbox)
+		{
+			return IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN;
+		}
+		else
+		{
+			return IUPCOCOALISTSUBTYPE_DROPDOWN;
+		}
+	}
+	else
+	{
+		if(ih->data->has_editbox)
+		{
+			return IUPCOCOALISTSUBTYPE_EDITBOX;
+		}
+		else if(ih->data->is_multiple)
+		{
+			return IUPCOCOALISTSUBTYPE_MULTIPLELIST;
+
+		}
+		else
+		{
+			return IUPCOCOALISTSUBTYPE_SINGLELIST;
+		}
+	}
+	return IUPCOCOALISTSUBTYPE_UNKNOWN;
+}
+
+static NSView* cocoaListGetBaseWidget(Ihandle* ih)
+{
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	NSView* root_widget = (NSView*)ih->handle;
+	
+	 
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSCAssert([root_widget isKindOfClass:[NSPopUpButton class]], @"Expecting an NSPopUpButton");
+			return root_widget;
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSCAssert([root_widget isKindOfClass:[NSComboBox class]], @"Expecting an NSComboBox");
+			return root_widget;
+			break;
+		}
+		// both these cases may have an NSScrollView at the root
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			if([root_widget isKindOfClass:[NSTableView class]])
+			{
+				return root_widget;
+			}
+			else if([root_widget isKindOfClass:[NSScrollView class]])
+			{
+				NSView* base_widget = [(NSScrollView*)root_widget documentView];
+				return base_widget;
+			}
+			else
+			{
+				NSCAssert(0, @"Unexpected subtype");
+				return root_widget;
+
+			}
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			return root_widget;
+			break;
+		}
+		default:
+		{
+			NSCAssert(0, @"Unexpected subtype");
+			return root_widget;
+			break;
+		}
+	}
+	
+
+}
+
+
 
 @interface IupCocoaListPopupButtonReceiver : NSObject
 - (IBAction) onSelectionChanged:(id)the_sender;
@@ -57,55 +159,53 @@ static const void* IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY = "IUP_COCOA_LIST_T
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
 
 
-	if(ih->data->has_editbox)
+	
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-
-	}
-
-	if(!ih->data->is_multiple)
-	{
-		IFnsii cb = (IFnsii)IupGetCallback(ih, "ACTION");
-		if(cb)
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			NSPopUpButton* popup_button = (NSPopUpButton*)ih->handle;
-			NSInteger index_of_selected_item = [popup_button indexOfSelectedItem];
-			int adjusted_index = (int)(index_of_selected_item+1); /* IUP starts at 1 */
-			iupListSingleCallActionCb(ih, cb, adjusted_index);
-
-		}
-	}
-	else
-	{
-		IFns multi_cb = (IFns)IupGetCallback(ih, "MULTISELECT_CB");
-		IFnsii cb = (IFnsii) IupGetCallback(ih, "ACTION");
-		if (multi_cb || cb)
-		{
-			/*
-			GList *il, *list = gtk_tree_selection_get_selected_rows(selection, NULL);
-			int i, sel_count = g_list_length(list);
-			int* pos = malloc(sizeof(int)*sel_count);
-			for (il=list, i=0; il; il=il->next, i++)
+			IFnsii cb = (IFnsii)IupGetCallback(ih, "ACTION");
+			if(cb)
 			{
-			GtkTreePath* path = (GtkTreePath*)il->data;
-			int* indices = gtk_tree_path_get_indices(path);
-			pos[i] = indices[0];
-			gtk_tree_path_free(path);
-			}
-			g_list_free(list);
+				NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+				NSInteger index_of_selected_item = [popup_button indexOfSelectedItem];
+				int adjusted_index = (int)(index_of_selected_item+1); /* IUP starts at 1 */
+				iupListSingleCallActionCb(ih, cb, adjusted_index);
+				
+				iupBaseCallValueChangedCb(ih);
 
-			iupListMultipleCallActionCb(ih, cb, multi_cb, pos, sel_count);
-			free(pos);
-			 */
+			}
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		{
+			iupBaseCallValueChangedCb(ih);
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			iupBaseCallValueChangedCb(ih);
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
+	
 
-	if (!ih->data->has_editbox)
-	{
-		iupBaseCallValueChangedCb(ih);
-	}
-	
-	
-	
 
 }
 
@@ -357,76 +457,90 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 
 int iupdrvListGetCount(Ihandle* ih)
 {
-	if(ih->data->is_dropdown)
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-		if(!ih->data->has_editbox)
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			NSPopUpButton* popup_button = (NSPopUpButton*)ih->handle;
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
 			NSInteger number_of_items = [[popup_button menu] numberOfItems];
 			return (int)number_of_items;
+			
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-			NSComboBox* combo_box = (NSComboBox*)ih->handle;
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
 			NSInteger number_of_items = [combo_box numberOfItems];
 			return (int)number_of_items;
+			
 		}
-	}
-	else
-	{
-		if(ih->data->is_multiple)
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		{
-			NSTableView* table_view = (NSTableView*)ih->handle;
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
 			NSInteger number_of_items = [table_view numberOfRows];
 			return (int)number_of_items;
+			
 		}
-		else
+
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
 		{
-			NSLog(@"iupdrvListGetCount widget subtype not implemented");
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
-	
 	return 0;
+
+	
 }
 
 void iupdrvListAppendItem(Ihandle* ih, const char* value)
 {
-	if(ih->data->is_dropdown)
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-		if(!ih->data->has_editbox)
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			NSPopUpButton* popup_button = (NSPopUpButton*)ih->handle;
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
 			NSString* ns_string = [NSString stringWithUTF8String:value];
-			
 			[[popup_button menu] addItemWithTitle:ns_string action:NULL keyEquivalent:@""];
+			
+			break;
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-			NSComboBox* combo_box = (NSComboBox*)ih->handle;
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
 			NSString* ns_string = [NSString stringWithUTF8String:value];
 			[combo_box addItemWithObjectValue:ns_string];
 			
+			break;
 		}
-	}
-	else
-	{
-		if(ih->data->is_multiple)
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		{
-			NSTableView* table_view = (NSTableView*)ih->handle;
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
 			IupCocoaListTableViewReceiver* list_receiver = objc_getAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
 			NSMutableArray* data_array = [list_receiver dataArray];
-
+			
 			NSString* ns_string = [NSString stringWithUTF8String:value];
 			[data_array addObject:ns_string];
 			
 			[table_view reloadData];
+			
+			break;
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
 		{
-			NSLog(@"iupdrvListAppendItem widget subtype not implemented");
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
-
 
 	
 }
@@ -468,15 +582,16 @@ int iupdrvListSetImageHandle(Ihandle* ih, int id, void* hImage)
 
 static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 {
-  int pos = iupListGetPosAttrib(ih, id_value);
-  if (pos >= 0)
-  {
-	  
-	  if(ih->data->is_dropdown)
-	  {
-		  if(!ih->data->has_editbox)
+	int pos = iupListGetPosAttrib(ih, id_value);
+	if (pos >= 0)
+	{
+
+		IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+		switch(sub_type)
+		{
+		  case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		  {
-			  NSPopUpButton* popup_button = (NSPopUpButton*)ih->handle;
+			  NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
 			  NSString* ns_string = [popup_button itemTitleAtIndex:pos];
 			  
 			  const char* c_str = [ns_string UTF8String];
@@ -486,13 +601,15 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  char* iup_str = iupStrGetMemory((int)str_len);
 			  strlcpy(iup_str, c_str, str_len+1);
 			  return iup_str;
+			  
+			  break;
 		  }
-		  else
+		  case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		  {
-			  NSComboBox* popup_button = (NSComboBox*)ih->handle;
+			  NSComboBox* popup_button = (NSComboBox*)cocoaListGetBaseWidget(ih);
 			  id object_value = [popup_button itemObjectValueAtIndex:pos];
 			  NSString* ns_string = nil;
-
+			  
 			  if([object_value isKindOfClass:[NSString class]])
 			  {
 				  ns_string = (NSString*)object_value;
@@ -500,7 +617,7 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  else
 			  {
 				  ns_string = [object_value stringValue];
-
+				  
 			  }
 			  
 			  const char* c_str = [ns_string UTF8String];
@@ -510,13 +627,13 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  char* iup_str = iupStrGetMemory((int)str_len);
 			  strlcpy(iup_str, c_str, str_len+1);
 			  return iup_str;
+			  
+			  break;
 		  }
-	  }
-	  else
-	  {
-		  if(ih->data->is_multiple)
+		  case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		  case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		  {
-			  NSTableView* table_view = (NSTableView*)ih->handle;
+			  NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
 			  IupCocoaListTableViewReceiver* list_receiver = objc_getAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
 			  NSMutableArray* data_array = [list_receiver dataArray];
 			  id object_value = [data_array objectAtIndex:pos];
@@ -540,77 +657,64 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  strlcpy(iup_str, c_str, str_len+1);
 			  return iup_str;
 			  
-			  
+			  break;
 		  }
-		  else
+		  case IUPCOCOALISTSUBTYPE_EDITBOX:
 		  {
-			  
+			  break;
 		  }
-	  }
-	  
+		  default:
+		  {
+			  break;
+		  }
+		}
 
-	  
-#if 0
-    GtkTreeIter iter;
-    GtkTreeModel* model = cocoaListGetModel(ih);
-    if (gtk_tree_model_iter_nth_child(model, &iter, NULL, pos))
-    {
-      gchar *text = NULL;
-      gtk_tree_model_get(model, &iter, IUPGTK_LIST_TEXT, &text, -1);
-      if (text)
-      {
-        char* ret_str = iupStrReturnStr(iupgtkStrConvertFromSystem(text));
-        g_free(text);
-        return ret_str;
-	  }
-    }
-#endif
-  }
-  return NULL;
+	}
+	return NULL;
 }
 
 
 static char* cocoaListGetValueAttrib(Ihandle* ih)
 {
 
-	if(ih->data->is_dropdown)
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-		
-		if(!ih->data->has_editbox)
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			NSPopUpButton* popup_button = (NSPopUpButton*)ih->handle;
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
 			NSInteger index_of_selected_item = [popup_button indexOfSelectedItem];
 			int adjusted_index = (int)(index_of_selected_item+1); /* IUP starts at 1 */
 			return iupStrReturnInt(adjusted_index);
-
 			
+			break;
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-			NSComboBox* combo_box = (NSComboBox*)ih->handle;
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
 			NSInteger index_of_selected_item = [combo_box indexOfSelectedItem];
 			int adjusted_index = (int)(index_of_selected_item+1); /* IUP starts at 1 */
 			return iupStrReturnInt(adjusted_index);
-
+			
+			break;
 		}
-	}
-	else
-	{
-		if(ih->data->is_multiple)
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		{
-			
-
-			
-			NSTableView* table_view = (NSTableView*)ih->handle;
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
 			NSInteger index_of_selected_item = [table_view selectedRow];
 			int adjusted_index = (int)(index_of_selected_item+1); /* IUP starts at 1 */
 			return iupStrReturnInt(adjusted_index);
 			
+			break;
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
 		{
-			
-			
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
 	
@@ -833,7 +937,7 @@ static int cocoaListMapMethod(Ihandle* ih)
 	
 	On Mac, these will need to be 4 completely different widgets.
 	
-	Dropdown:			NSPopupButton
+	Dropdown:			NSPopUpButton
 	Editbox+Dropdown:	NSComboBox
 	Multiple:			NSTableView
 	Editbox:			No obvious native widget
@@ -842,31 +946,11 @@ static int cocoaListMapMethod(Ihandle* ih)
 	
 	NSView* the_view = nil;
 	
-	if (ih->data->is_dropdown)
+	
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-		if (ih->data->has_editbox)
-		{
-			// NSComboBox height is very specific. This number (30) plus the stuff going on in iupdrvListAddBorders affects the final height.
-			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSMakeRect(0, 0, 122, 30)];
-			the_view = combo_box;
-			
-			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
-			objc_setAssociatedObject(combo_box, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
-			// I also need to track the memory of the buttion action receiver.
-			// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
-			// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
-			// This is generally not good Cocoa as Toggles don't retain their receivers, but this seems like the best option.
-			// Be careful of retain cycles.
-			IupCocoaListComboBoxReceiver* list_receiver = [[IupCocoaListComboBoxReceiver alloc] init];
-			[combo_box setDelegate:list_receiver];
-			
-			// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
-			// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
-			// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
-			objc_setAssociatedObject(combo_box, IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
-			
-		}
-		else
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
 			//	NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(30, 30, 190, 40) pullsDown:NO];
 			NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(110, 110, 333, 32) pullsDown:NO];
@@ -889,19 +973,38 @@ static int cocoaListMapMethod(Ihandle* ih)
 			objc_setAssociatedObject(popup_button, IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
 			
 #endif
-			
-			
+
+			break;
 		}
-	}
-	else
-	{
-		if(ih->data->is_multiple)
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			// NSComboBox height is very specific. This number (30) plus the stuff going on in iupdrvListAddBorders affects the final height.
+			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSMakeRect(0, 0, 122, 30)];
+			the_view = combo_box;
+			
+			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
+			objc_setAssociatedObject(combo_box, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+			// I also need to track the memory of the buttion action receiver.
+			// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
+			// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
+			// This is generally not good Cocoa as Toggles don't retain their receivers, but this seems like the best option.
+			// Be careful of retain cycles.
+			IupCocoaListComboBoxReceiver* list_receiver = [[IupCocoaListComboBoxReceiver alloc] init];
+			[combo_box setDelegate:list_receiver];
+			
+			// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
+			// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
+			// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
+			objc_setAssociatedObject(combo_box, IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
 		{
 			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
-			the_view = table_view;
 			NSTableColumn* first_column = [[NSTableColumn alloc] initWithIdentifier:@"IupList"];
 			[table_view addTableColumn:first_column];
-
+			
 			[table_view setHeaderView:nil];
 			
 			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
@@ -923,12 +1026,57 @@ static int cocoaListMapMethod(Ihandle* ih)
 			
 			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
 			[scroll_view setDocumentView:table_view];
+			[table_view release];
+			the_view = scroll_view;
 			[scroll_view setHasVerticalScroller:YES];
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+			NSTableColumn* first_column = [[NSTableColumn alloc] initWithIdentifier:@"IupList"];
+			[table_view addTableColumn:first_column];
 			
+			[table_view setHeaderView:nil];
+			
+			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
+			objc_setAssociatedObject(table_view, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+			// I also need to track the memory of the buttion action receiver.
+			// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
+			// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
+			// This is generally not good Cocoa as Toggles don't retain their receivers, but this seems like the best option.
+			// Be careful of retain cycles.
+			IupCocoaListTableViewReceiver* list_receiver = [[IupCocoaListTableViewReceiver alloc] init];
+			[table_view setDataSource:list_receiver];
+			[table_view setDelegate:list_receiver];
+			
+			// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
+			// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
+			// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
+			objc_setAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
+			
+			
+			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+			[scroll_view setDocumentView:table_view];
+			[table_view release];
+			the_view = scroll_view;
+			[scroll_view setHasVerticalScroller:YES];
+
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
 	
-
+	
 	
 	
 	/* Enable internal drag and drop support */
@@ -972,42 +1120,67 @@ static int cocoaListMapMethod(Ihandle* ih)
 
 static void cocoaListUnMapMethod(Ihandle* ih)
 {
-	id the_view = ih->handle;
+	// Some views may have an NSScrollView as the root and the real "base" widget is underneath.
+	// So by convention:
+	//	- Use cocoaListGetBaseWidget() to get the real "base" widget.
+	//	- Only the root_view should be released (we will not hold an extra retain on the base widget)
+	//	- Associated values are tied to the "base" widget
+	
+	NSView* root_view = ih->handle;
+	NSView* base_view = cocoaListGetBaseWidget(ih);
 	id list_receiver = nil;
 
-	if(ih->data->is_dropdown)
+	
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-		if(!ih->data->has_editbox)
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			list_receiver = objc_getAssociatedObject(the_view, IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY);
-			objc_setAssociatedObject(the_view, IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
+			list_receiver = objc_getAssociatedObject(base_view, IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY);
+			objc_setAssociatedObject(base_view, IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 
+			break;
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-			list_receiver = objc_getAssociatedObject(the_view, IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY);
-			objc_setAssociatedObject(the_view, IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
+			list_receiver = objc_getAssociatedObject(base_view, IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY);
+			objc_setAssociatedObject(base_view, IUP_COCOA_LIST_COMBOBOX_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		{
+			list_receiver = objc_getAssociatedObject(base_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
+			objc_setAssociatedObject(base_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			list_receiver = objc_getAssociatedObject(base_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
+			objc_setAssociatedObject(base_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
-	else
-	{
-		if(ih->data->is_multiple)
-		{
-			list_receiver = objc_getAssociatedObject(the_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
-			objc_setAssociatedObject(the_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
-
-		}
-		else
-		{
-			NSLog(@"Warning: List subtype not implemented");
-		}
-	}
+	
+	
+	
+	
 
 	[list_receiver release];
 
 	iupCocoaRemoveFromParent(ih);
-	[the_view release];
+	// Only release the root_view; don't release base_view
+	[root_view release];
 	ih->handle = NULL;
 	
 }
