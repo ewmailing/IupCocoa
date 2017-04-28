@@ -880,8 +880,8 @@ Ihandle* ListTest(void)
 
 	
 	
-//	Ihandle* vb=IupVbox(list1, list2, list4, NULL);
-	Ihandle* vb=IupVbox(list4, NULL);
+	Ihandle* vb=IupVbox(list1, list2, list4, NULL);
+//	Ihandle* vb=IupVbox(list4, NULL);
 	return vb;
 	
 	

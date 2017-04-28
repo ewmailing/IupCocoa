@@ -46,7 +46,10 @@ typedef enum
 	IUPCOCOALISTSUBTYPE_SINGLELIST // not official, but could be the basis for mobile-style listviews
 } IupCocoaListSubType;
 
-
+/*
+Each IUP list subtype requires a completely different Cocoa native widget.
+This function provides a consistent and centralized way to distinguish which subtype we need.
+*/
 static IupCocoaListSubType cocoaListGetSubType(Ihandle* ih)
 {
 	if(ih->data->is_dropdown)
@@ -79,6 +82,18 @@ static IupCocoaListSubType cocoaListGetSubType(Ihandle* ih)
 	return IUPCOCOALISTSUBTYPE_UNKNOWN;
 }
 
+/*
+The normal convention is to put the native widget in ih->handle,
+but because we have to embed NSTableView in NSScrollView for some cases,
+ih->handle is simply the root_view, but not necessarily the base "real" widget.
+So this helper function returns the base widget (e.g. NSTableView instead of NSScrollView)
+in which we can use to invoke all the important methods we need to call.
+IUPCOCOALISTSUBTYPE_DROPDOWN returns NSPopUpButton
+IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN returns NSComboBox
+IUPCOCOALISTSUBTYPE_MULTIPLELIST returns NSTableView
+IUPCOCOALISTSUBTYPE_SINGLELIST returns NSTableView
+
+*/
 static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 {
 	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
@@ -322,14 +337,7 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 	return [data_array count];
 	
 }
-/*
-- (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row
-{
-	NSTextField* the_result = [table_view makeViewWithIdentifier:@"IupCocoaListTableViewCell" owner:self];
-	return the_result;
-//	return nil;
-}
- */
+
 
 - (nullable NSView*) tableView:(NSTableView*)table_view viewForTableColumn:(NSTableColumn*)table_column row:(NSInteger)the_row
 {
@@ -340,16 +348,16 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 	
 	
 	
-	    // Get an existing cell with the MyView identifier if it exists
+	// Get an existing cell with the MyView identifier if it exists
     NSTextField* the_result = [table_view makeViewWithIdentifier:@"IupCocoaListTableViewCell" owner:self];
  
     // There is no existing cell to reuse so create a new one
     if(nil == the_result)
 	{
  
-         // Create the new NSTextField with a frame of the {0,0} with the width of the table.
-         // Note that the height of the frame is not really relevant, because the row height will modify the height.
-         the_result = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+		// Create the new NSTextField with a frame of the {0,0} with the width of the table.
+		// Note that the height of the frame is not really relevant, because the row height will modify the height.
+		the_result = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
 		[the_result setBezeled:NO];
 		[the_result setDrawsBackground:NO];
 		[the_result setEditable:NO];
@@ -357,9 +365,9 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 		// TODO: FEATURE: I think this is really convenient for users so it should be the default
 		[the_result setSelectable:YES];
 		
-         // The identifier of the NSTextField instance is set to MyView.
-         // This allows the cell to be reused.
-         the_result.identifier = @"IupCocoaListTableViewCell";
+		// The identifier of the NSTextField instance is set to MyView.
+		// This allows the cell to be reused.
+		the_result.identifier = @"IupCocoaListTableViewCell";
 	}
  
       // result is now guaranteed to be valid, either as a reused cell
@@ -506,7 +514,7 @@ void iupdrvListAppendItem(Ihandle* ih, const char* value)
 		{
 			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
 			NSString* ns_string = [NSString stringWithUTF8String:value];
-			[[popup_button menu] addItemWithTitle:ns_string action:NULL keyEquivalent:@""];
+			[[popup_button menu] addItemWithTitle:ns_string action:nil keyEquivalent:@""];
 			
 			break;
 		}
@@ -528,8 +536,15 @@ void iupdrvListAppendItem(Ihandle* ih, const char* value)
 			NSString* ns_string = [NSString stringWithUTF8String:value];
 			[data_array addObject:ns_string];
 			
+			// reloadData will do the job, but may lose user's currently selected items
+			// reloadDataForRowIndexes might be better and more optimized,
+			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
 			[table_view reloadData];
-			
+
+//			NSUInteger data_count = [data_array count];
+//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, data_count)] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+
 			break;
 		}
 		case IUPCOCOALISTSUBTYPE_EDITBOX:
@@ -547,17 +562,158 @@ void iupdrvListAppendItem(Ihandle* ih, const char* value)
 
 void iupdrvListInsertItem(Ihandle* ih, int pos, const char* value)
 {
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			[[popup_button menu] insertItemWithTitle:ns_string action:nil keyEquivalent:@"" atIndex:pos];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			[combo_box insertItemWithObjectValue:ns_string atIndex:pos];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			IupCocoaListTableViewReceiver* list_receiver = objc_getAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
+			NSMutableArray* data_array = [list_receiver dataArray];
+			
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			[data_array insertObject:ns_string atIndex:pos];
+			
+			// reloadData will do the job, but may lose user's currently selected items
+			// reloadDataForRowIndexes might be better and more optimized,
+			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
+			[table_view reloadData];
+			
+//			NSUInteger data_count = [data_array count];
+//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, data_count)] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 
 	
 }
 
 void iupdrvListRemoveItem(Ihandle* ih, int pos)
 {
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+			[[popup_button menu] removeItemAtIndex:pos];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			[combo_box removeItemAtIndex:pos];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			IupCocoaListTableViewReceiver* list_receiver = objc_getAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
+			NSMutableArray* data_array = [list_receiver dataArray];
+			
+			[data_array removeObjectAtIndex:pos];
+			
+			// reloadData will do the job, but may lose user's currently selected items
+			// reloadDataForRowIndexes might be better and more optimized,
+			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
+			[table_view reloadData];
+			
+//			NSUInteger data_count = [data_array count];
+//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, data_count)] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 
 }
 
 void iupdrvListRemoveAllItems(Ihandle* ih)
 {
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+			[[popup_button menu] removeAllItems];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			[combo_box removeAllItems];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			IupCocoaListTableViewReceiver* list_receiver = objc_getAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY);
+			NSMutableArray* data_array = [list_receiver dataArray];
+			
+			[data_array removeAllObjects];
+			
+			// reloadData will do the job, but may lose user's currently selected items
+			// reloadDataForRowIndexes might be better and more optimized,
+			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
+			[table_view reloadData];
+			
+			//			NSUInteger data_count = [data_array count];
+			//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+			//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, data_count)] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 
 	
 }
@@ -579,11 +735,11 @@ int iupdrvListSetImageHandle(Ihandle* ih, int id, void* hImage)
 }
 
 
-
+// FIXME: I don't know what this is actually supposed to do and don't know how to trigger it in the tests.
 static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 {
 	int pos = iupListGetPosAttrib(ih, id_value);
-	if (pos >= 0)
+	if(pos >= 0)
 	{
 
 		IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
@@ -676,7 +832,6 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 
 static char* cocoaListGetValueAttrib(Ihandle* ih)
 {
-
 	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
 	switch(sub_type)
 	{
@@ -692,13 +847,45 @@ static char* cocoaListGetValueAttrib(Ihandle* ih)
 		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
 			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
-			NSInteger index_of_selected_item = [combo_box indexOfSelectedItem];
-			int adjusted_index = (int)(index_of_selected_item+1); /* IUP starts at 1 */
-			return iupStrReturnInt(adjusted_index);
+			NSString* ns_string = [combo_box stringValue];
+			
+			const char* c_str = [ns_string UTF8String];
+			// don't use [ns_string length]...counts characters, not bytes
+			size_t str_len = strlen(c_str);
+			
+			char* iup_str = iupStrGetMemory((int)str_len);
+			strlcpy(iup_str, c_str, str_len+1);
+			return iup_str;
 			
 			break;
 		}
 		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			size_t count;
+			
+			NSCAssert([table_view numberOfRows] == iupdrvListGetCount(ih), @"count is inconsistent");
+			count = (size_t)[table_view numberOfRows];
+			
+			char* ret_str = iupStrGetMemory((int)(count+1));
+			memset(ret_str, '-', count);
+			ret_str[count]='\0';
+
+
+			NSIndexSet* selected_index = [table_view selectedRowIndexes];
+			NSUInteger selected_i = [selected_index firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				ret_str[selected_i] = '+';
+				// get the next index in the set
+				selected_i = [selected_index indexGreaterThanIndex:selected_i];
+			}
+		
+			return ret_str;
+			
+
+			break;
+		}
 		case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		{
 			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
@@ -723,97 +910,111 @@ static char* cocoaListGetValueAttrib(Ihandle* ih)
 
 static int cocoaListSetValueAttrib(Ihandle* ih, const char* value)
 {
-	if (ih->data->has_editbox)
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
 	{
-#if 0
-		GtkEntry* entry = (GtkEntry*)iupAttribGet(ih, "_IUPGTK_ENTRY");
-		if (!value) value = "";
-		iupAttribSet(ih, "_IUPGTK_DISABLE_TEXT_CB", "1");
-		gtk_entry_set_text(entry, iupgtkStrConvertToSystem(value));
-		iupAttribSet(ih, "_IUPGTK_DISABLE_TEXT_CB", NULL);
-#endif
-	}
-	else
-	{
-		if (ih->data->is_dropdown)
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-#if 0
-			int pos;
-			GtkTreeModel *model = cocoaListGetModel(ih);
-			g_signal_handlers_block_by_func(G_OBJECT(ih->handle), G_CALLBACK(cocoaListComboBoxChanged), ih);
-			if (iupStrToInt(value, &pos)==1 &&
-				(pos>0 && pos<=gtk_tree_model_iter_n_children(model, NULL)))
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+
+			int iup_pos;
+			if(iupStrToInt(value, &iup_pos)==1)
 			{
-				gtk_combo_box_set_active((GtkComboBox*)ih->handle, pos-1);    /* IUP starts at 1 */
-				iupAttribSetInt(ih, "_IUPLIST_OLDVALUE", pos);
+				NSInteger adjusted_index = (NSInteger)(iup_pos-1); /* IUP starts at 1 */
+				[popup_button selectItemAtIndex:adjusted_index];
 			}
 			else
 			{
-				gtk_combo_box_set_active((GtkComboBox*)ih->handle, -1);    /* none */
-				iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
+				[popup_button selectItemAtIndex:-1];
 			}
-			g_signal_handlers_unblock_by_func(G_OBJECT(ih->handle), G_CALLBACK(cocoaListComboBoxChanged), ih);
-#endif
+			
+			break;
 		}
-		else
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-#if 0
-			GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(ih->handle));
-			if (!ih->data->is_multiple)
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			NSString* ns_string = nil;
+			if(NULL == value)
 			{
-				int pos;
-				g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(cocoaListSelectionChanged), ih);
-				if (iupStrToInt(value, &pos)==1)
-				{
-					GtkTreePath* path = gtk_tree_path_new_from_indices(pos-1, -1);   /* IUP starts at 1 */
-					gtk_tree_selection_select_path(selection, path);
-					gtk_tree_path_free(path);
-					iupAttribSetInt(ih, "_IUPLIST_OLDVALUE", pos);
-				}
-				else
-				{
-					gtk_tree_selection_unselect_all(selection);
-					iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
-				}
-				g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(cocoaListSelectionChanged), ih);
+				ns_string = @"";
 			}
 			else
+			{
+				ns_string = [NSString stringWithUTF8String:value];
+			}
+
+			[combo_box setStringValue:ns_string];
+			[combo_box selectItemWithObjectValue:ns_string];
+			
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		{
+			
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			
+			/* Clear all selections */
+			[table_view deselectAll:nil];
+			
+			if(NULL != value)
 			{
 				/* User has changed a multiple selection on a simple list. */
-				int i, len, count;
+				size_t len;
+				size_t count;
 				
-				g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(cocoaListSelectionChanged), ih);
-				
-				/* Clear all selections */
-				gtk_tree_selection_unselect_all(selection);
-				
-				if (!value)
+				count = (size_t)[table_view numberOfRows];
+				len = strlen(value);
+				if(len < count)
 				{
-					iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
-					return 0;
+					count = (NSInteger)len;
 				}
 				
-				len = (int)strlen(value);
-				count = iupdrvListGetCount(ih);
-				if (len < count)
-					count = len;
-				
 				/* update selection list */
-				for (i = 0; i<count; i++)
+				for(size_t i = 0; i<count; i++)
 				{
 					if (value[i]=='+')
 					{
-						GtkTreePath* path = gtk_tree_path_new_from_indices(i, -1);
-						gtk_tree_selection_select_path(selection, path);
-						gtk_tree_path_free(path);
+						[table_view selectRowIndexes:[NSIndexSet indexSetWithIndex:i] byExtendingSelection:YES];
 					}
 				}
-				iupAttribSetStr(ih, "_IUPLIST_OLDVALUE", value);
-				g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(cocoaListSelectionChanged), ih);
 			}
-#endif
+			
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			
+			/* Clear all selections */
+			[table_view deselectAll:nil];
+			
+			int iup_pos;
+			if(iupStrToInt(value, &iup_pos)==1)
+			{
+				NSInteger adjusted_index = (NSInteger)(iup_pos-1); /* IUP starts at 1 */
+				[table_view selectRowIndexes:[NSIndexSet indexSetWithIndex:adjusted_index] byExtendingSelection:NO];
+			}
+			else
+			{
+				[table_view deselectAll:nil];
+			}
+			
+			
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
 		}
 	}
+	
 	
 	return 0;
 }
@@ -956,7 +1157,6 @@ static int cocoaListMapMethod(Ihandle* ih)
 			NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(110, 110, 333, 32) pullsDown:NO];
 			the_view = popup_button;
 			
-#if 1
 			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
 			objc_setAssociatedObject(popup_button, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 			// I also need to track the memory of the buttion action receiver.
@@ -972,7 +1172,6 @@ static int cocoaListMapMethod(Ihandle* ih)
 			// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
 			objc_setAssociatedObject(popup_button, IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
 			
-#endif
 
 			break;
 		}
@@ -1018,6 +1217,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 			[table_view setDataSource:list_receiver];
 			[table_view setDelegate:list_receiver];
 			
+			[table_view setAllowsMultipleSelection:YES];
+			
 			// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
 			// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
 			// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
@@ -1051,6 +1252,9 @@ static int cocoaListMapMethod(Ihandle* ih)
 			[table_view setDataSource:list_receiver];
 			[table_view setDelegate:list_receiver];
 			
+			[table_view setAllowsMultipleSelection:NO];
+
+			
 			// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
 			// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
 			// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
@@ -1068,6 +1272,7 @@ static int cocoaListMapMethod(Ihandle* ih)
 		}
 		case IUPCOCOALISTSUBTYPE_EDITBOX:
 		{
+			NSLog(@"IupList Editbox subtype not available");
 			break;
 		}
 		default:
