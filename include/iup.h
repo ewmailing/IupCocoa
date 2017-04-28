@@ -29,8 +29,9 @@ typedef struct Ihandle_ Ihandle;
 typedef int (*Icallback)(Ihandle*);
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
-        /** @cond DOXYGEN_SHOULD_IGNORE_THIS */
-#ifdef IUP_BUILD_LIBRARY
+/** @cond DOXYGEN_SHOULD_IGNORE_THIS */
+#ifndef IUP_EXPORT
+	#ifdef IUP_BUILD_LIBRARY
 		#ifdef __EMSCRIPTEN__
 				#include <emscripten.h>
                 #define IUP_EXPORT EMSCRIPTEN_KEEPALIVE
@@ -41,10 +42,10 @@ typedef int (*Icallback)(Ihandle*);
         #else
                 #define IUP_EXPORT
         #endif
-#else
+	#else
         #define IUP_EXPORT
-#endif /* IUP_BUILD_LIBRARY */
-
+	#endif /* IUP_BUILD_LIBRARY */
+#endif /* IUP_EXPORT */
 /** @endcond DOXYGEN_SHOULD_IGNORE_THIS */
 #endif /* DOXYGEN_SHOULD_IGNORE_THIS */
 
