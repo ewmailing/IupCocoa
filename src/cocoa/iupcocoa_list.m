@@ -104,13 +104,13 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 	{
 		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			NSCAssert([root_widget isKindOfClass:[NSPopUpButton class]], @"Expecting an NSPopUpButton");
+			NSCAssert([root_widget isKindOfClass:[NSPopUpButton class]], @"Expecting a NSPopUpButton");
 			return root_widget;
 			break;
 		}
 		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-			NSCAssert([root_widget isKindOfClass:[NSComboBox class]], @"Expecting an NSComboBox");
+			NSCAssert([root_widget isKindOfClass:[NSComboBox class]], @"Expecting a NSComboBox");
 			return root_widget;
 			break;
 		}
@@ -751,11 +751,7 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  NSString* ns_string = [popup_button itemTitleAtIndex:pos];
 			  
 			  const char* c_str = [ns_string UTF8String];
-			  // don't use [ns_string length]...counts characters, not bytes
-			  size_t str_len = strlen(c_str);
-			  
-			  char* iup_str = iupStrGetMemory((int)str_len);
-			  strlcpy(iup_str, c_str, str_len+1);
+			  char* iup_str = iupStrReturnStr(c_str);
 			  return iup_str;
 			  
 			  break;
@@ -777,11 +773,7 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  }
 			  
 			  const char* c_str = [ns_string UTF8String];
-			  // don't use [ns_string length]...counts characters, not bytes
-			  size_t str_len = strlen(c_str);
-			  
-			  char* iup_str = iupStrGetMemory((int)str_len);
-			  strlcpy(iup_str, c_str, str_len+1);
+			  char* iup_str = iupStrReturnStr(c_str);
 			  return iup_str;
 			  
 			  break;
@@ -806,11 +798,7 @@ static char* cocoaListGetIdValueAttrib(Ihandle* ih, int id_value)
 			  }
 			  
 			  const char* c_str = [ns_string UTF8String];
-			  // don't use [ns_string length]...counts characters, not bytes
-			  size_t str_len = strlen(c_str);
-			  
-			  char* iup_str = iupStrGetMemory((int)str_len);
-			  strlcpy(iup_str, c_str, str_len+1);
+			  char* iup_str = iupStrReturnStr(c_str);
 			  return iup_str;
 			  
 			  break;
@@ -850,11 +838,7 @@ static char* cocoaListGetValueAttrib(Ihandle* ih)
 			NSString* ns_string = [combo_box stringValue];
 			
 			const char* c_str = [ns_string UTF8String];
-			// don't use [ns_string length]...counts characters, not bytes
-			size_t str_len = strlen(c_str);
-			
-			char* iup_str = iupStrGetMemory((int)str_len);
-			strlcpy(iup_str, c_str, str_len+1);
+			char* iup_str = iupStrReturnStr(c_str);
 			return iup_str;
 			
 			break;
