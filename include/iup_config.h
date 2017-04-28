@@ -11,41 +11,62 @@
 extern "C" {
 #endif
 
-Ihandle* IupConfig(void);
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+/** @cond DOXYGEN_SHOULD_IGNORE_THIS */
+#ifndef IUP_EXPORT
+	#ifdef IUP_BUILD_LIBRARY
+		#ifdef __EMSCRIPTEN__
+				#include <emscripten.h>
+                #define IUP_EXPORT EMSCRIPTEN_KEEPALIVE
+        #elif WIN32
+                #define IUP_EXPORT __declspec(dllexport)
+        #elif defined(__GNUC__) && __GNUC__ >= 4
+                #define IUP_EXPORT __attribute__ ((visibility("default")))
+        #else
+                #define IUP_EXPORT
+        #endif
+	#else
+        #define IUP_EXPORT
+	#endif /* IUP_BUILD_LIBRARY */
+#endif /* IUP_EXPORT */
+/** @endcond DOXYGEN_SHOULD_IGNORE_THIS */
+#endif /* DOXYGEN_SHOULD_IGNORE_THIS */
 
-int IupConfigLoad(Ihandle* ih);
-int IupConfigSave(Ihandle* ih);
+IUP_EXPORT Ihandle* IupConfig(void);
 
-/****************************************************************/
-
-void IupConfigSetVariableStr(Ihandle* ih, const char* group, const char* key, const char* value);
-void IupConfigSetVariableStrId(Ihandle* ih, const char* group, const char* key, int id, const char* value);
-void IupConfigSetVariableInt(Ihandle* ih, const char* group, const char* key, int value);
-void IupConfigSetVariableIntId(Ihandle* ih, const char* group, const char* key, int id, int value);
-void IupConfigSetVariableDouble(Ihandle* ih, const char* group, const char* key, double value);
-void IupConfigSetVariableDoubleId(Ihandle* ih, const char* group, const char* key, int id, double value);
-
-const char* IupConfigGetVariableStr(Ihandle* ih, const char* group, const char* key);
-const char* IupConfigGetVariableStrId(Ihandle* ih, const char* group, const char* key, int id);
-int    IupConfigGetVariableInt(Ihandle* ih, const char* group, const char* key);
-int    IupConfigGetVariableIntId(Ihandle* ih, const char* group, const char* key, int id);
-double IupConfigGetVariableDouble(Ihandle* ih, const char* group, const char* key);
-double IupConfigGetVariableDoubleId(Ihandle* ih, const char* group, const char* key, int id);
-
-const char* IupConfigGetVariableStrDef(Ihandle* ih, const char* group, const char* key, const char* def);
-const char* IupConfigGetVariableStrIdDef(Ihandle* ih, const char* group, const char* key, int id, const char* def);
-int    IupConfigGetVariableIntDef(Ihandle* ih, const char* group, const char* key, int def);
-int    IupConfigGetVariableIntIdDef(Ihandle* ih, const char* group, const char* key, int id, int def);
-double IupConfigGetVariableDoubleDef(Ihandle* ih, const char* group, const char* key, double def);
-double IupConfigGetVariableDoubleIdDef(Ihandle* ih, const char* group, const char* key, int id, double def);
+IUP_EXPORT int IupConfigLoad(Ihandle* ih);
+IUP_EXPORT int IupConfigSave(Ihandle* ih);
 
 /****************************************************************/
 
-void IupConfigRecentInit(Ihandle* ih, Ihandle* menu, Icallback recent_cb, int max_recent);
-void IupConfigRecentUpdate(Ihandle* ih, const char* filename);
+IUP_EXPORT void IupConfigSetVariableStr(Ihandle* ih, const char* group, const char* key, const char* value);
+IUP_EXPORT void IupConfigSetVariableStrId(Ihandle* ih, const char* group, const char* key, int id, const char* value);
+IUP_EXPORT void IupConfigSetVariableInt(Ihandle* ih, const char* group, const char* key, int value);
+IUP_EXPORT void IupConfigSetVariableIntId(Ihandle* ih, const char* group, const char* key, int id, int value);
+IUP_EXPORT void IupConfigSetVariableDouble(Ihandle* ih, const char* group, const char* key, double value);
+IUP_EXPORT void IupConfigSetVariableDoubleId(Ihandle* ih, const char* group, const char* key, int id, double value);
 
-void IupConfigDialogShow(Ihandle* ih, Ihandle* dialog, const char* name);
-void IupConfigDialogClosed(Ihandle* ih, Ihandle* dialog, const char* name);
+IUP_EXPORT const char* IupConfigGetVariableStr(Ihandle* ih, const char* group, const char* key);
+IUP_EXPORT const char* IupConfigGetVariableStrId(Ihandle* ih, const char* group, const char* key, int id);
+IUP_EXPORT int    IupConfigGetVariableInt(Ihandle* ih, const char* group, const char* key);
+IUP_EXPORT int    IupConfigGetVariableIntId(Ihandle* ih, const char* group, const char* key, int id);
+IUP_EXPORT double IupConfigGetVariableDouble(Ihandle* ih, const char* group, const char* key);
+IUP_EXPORT double IupConfigGetVariableDoubleId(Ihandle* ih, const char* group, const char* key, int id);
+
+IUP_EXPORT const char* IupConfigGetVariableStrDef(Ihandle* ih, const char* group, const char* key, const char* def);
+IUP_EXPORT const char* IupConfigGetVariableStrIdDef(Ihandle* ih, const char* group, const char* key, int id, const char* def);
+IUP_EXPORT int    IupConfigGetVariableIntDef(Ihandle* ih, const char* group, const char* key, int def);
+IUP_EXPORT int    IupConfigGetVariableIntIdDef(Ihandle* ih, const char* group, const char* key, int id, int def);
+IUP_EXPORT double IupConfigGetVariableDoubleDef(Ihandle* ih, const char* group, const char* key, double def);
+IUP_EXPORT double IupConfigGetVariableDoubleIdDef(Ihandle* ih, const char* group, const char* key, int id, double def);
+
+/****************************************************************/
+
+IUP_EXPORT void IupConfigRecentInit(Ihandle* ih, Ihandle* menu, Icallback recent_cb, int max_recent);
+IUP_EXPORT void IupConfigRecentUpdate(Ihandle* ih, const char* filename);
+
+IUP_EXPORT void IupConfigDialogShow(Ihandle* ih, Ihandle* dialog, const char* name);
+IUP_EXPORT void IupConfigDialogClosed(Ihandle* ih, Ihandle* dialog, const char* name);
 
 
 #if defined(__cplusplus)
