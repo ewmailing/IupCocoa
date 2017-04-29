@@ -30,6 +30,11 @@
 
 #include "iupcocoa_drv.h"
 
+static const CGFloat kIupCocoaDefaultWidthNSPopUpButton = 1.0;
+static const CGFloat kIupCocoaDefaultHeightNSPopUpButton = 26.0;
+static const CGFloat kIupCocoaDefaultWidthNSComboBox = 1.0;
+static const CGFloat kIupCocoaDefaultHeightNSComboBox = 26.0;
+static const CGFloat kIupCocoaDefaultHeightNSTableViewCell = 17.0;
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_LIST_POPUPBUTTON_RECEIVER_OBJ_KEY";
@@ -254,6 +259,9 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 - (void) comboBoxSelectionDidChange:(NSNotification*)the_notification
 {
 	NSComboBox* combo_box = [the_notification object];
+	
+	NSLog(@"combo_box frame: %@", NSStringFromRect([combo_box frame]));
+	
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(combo_box, IHANDLE_ASSOCIATED_OBJ_KEY);
 	
 	IFnsii cb = (IFnsii)IupGetCallback(ih, "ACTION");
@@ -357,12 +365,13 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
  
 		// Create the new NSTextField with a frame of the {0,0} with the width of the table.
 		// Note that the height of the frame is not really relevant, because the row height will modify the height.
-		the_result = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+//		the_result = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSPopUpButton, kIupCocoaDefaultHeightNSPopUpButton)];
+		the_result = [[NSTextField alloc] initWithFrame:NSZeroRect];
 		[the_result setBezeled:NO];
 		[the_result setDrawsBackground:NO];
 		[the_result setEditable:NO];
 		//			[the_label setSelectable:NO];
-		// TODO: FEATURE: I think this is really convenient for users so it should be the default
+		// TODO: FEATURE: I think this is really convenient for users
 		[the_result setSelectable:YES];
 		
 		// The identifier of the NSTextField instance is set to MyView.
@@ -416,20 +425,48 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 @end
 
 
-void iupdrvListAddItemSpace(Ihandle* ih, int *h)
+void iupdrvListAddItemSpace(Ihandle* ih, int* h)
 {
-  (void)ih;
-  /* FROM:
-    gtk_tree_view_column_cell_get_size
-      height = text_height + 2*focus_line_width;
-    gtk_widget_style_get(ih->handle, "focus-line-width", &focus_line_width, NULL);
-      returns always 1
-  */
-  *h += 2;
+//	*h += 2;
+	
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			break;
+			
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			break;
+			
+		}
+			
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
 }
 
 void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 {
+	NSLog(@"iupdrvListAddBorders <%d, %d>", *x, *y);
+#if 0
   int border_size = 2*10;
   (*x) += border_size;
   (*y) += border_size;
@@ -461,6 +498,84 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 		(*y) = 200;
 	}
   }
+#else
+	
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+			// Heights are fixed in Interface Builder. You generally aren't supposed to mess with the widget heights or font sizes.
+			if(*y < (int)kIupCocoaDefaultHeightNSPopUpButton)
+			{
+				*y = (int)kIupCocoaDefaultHeightNSPopUpButton;
+			}
+			*x += 4; // a regular label seems to get 2 padding on each size
+			*x += 33; // the difference between a label and popup is 33 in Interface Builder
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			// Heights are fixed in Interface Builder. You generally aren't supposed to mess with the widget heights or font sizes.
+			if(*y < (int)kIupCocoaDefaultHeightNSComboBox)
+			{
+				*y = (int)kIupCocoaDefaultHeightNSComboBox;
+			}
+			*x += 4; // a regular label seems to get 2 padding on each size
+			*x += 24; // the difference between a label and combobox is 24 in Interface Builder
+			break;
+			
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			
+
+			// rectOfRow would tell us the height of a specific row
+			// The actual -rectOfRow: is equal to the -rowHeight plus the intercellSpacing.height. The default value is 17.0 for applications linked on 10.5 and higher (the height acceptable for [NSFont systemFontSize]). The default value is 16.0 for 10.4 and lower.
+			
+			// I don't know which row we're at, but we'll assume they are all the same height.
+			// rectOfRow is not helpful if the table is empty, so use intercellSpacing.height+rowHeight
+			CGFloat row_height = [table_view rowHeight] + [table_view intercellSpacing].height;
+			
+			
+			int visible_lines = 0; // 5 is the default according to the docs
+			if(iupAttribGet(ih, "VISIBLELINES"))
+			{
+				visible_lines = iupAttribGetInt(ih, "VISIBLELINES");
+			}
+			else
+			{
+				visible_lines = (int)[table_view numberOfRows];
+			}
+			
+			CGFloat view_height = row_height * (CGFloat)visible_lines;
+			
+			*y = (int)(view_height + 0.5);
+			
+			
+			*x += 4; // a regular label seems to get 2 padding on each size
+			*x += 17; // the difference between a label and table is 17 in Interface Builder
+			
+			break;
+			
+		}
+			
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+#endif
+	
 }
 
 int iupdrvListGetCount(Ihandle* ih)
@@ -1113,6 +1228,119 @@ int start, end;
 }
 
 
+/*
+// I might be able to avoid using this.
+static void cocoaListLayoutUpdateMethod(Ihandle *ih)
+{
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			
+			// rectOfRow would tell us the height of a specific row
+			// The actual -rectOfRow: is equal to the -rowHeight plus the intercellSpacing.height. The default value is 17.0 for applications linked on 10.5 and higher (the height acceptable for [NSFont systemFontSize]). The default value is 16.0 for 10.4 and lower.
+			
+			// I don't know which row we're at, but we'll assume they are all the same height.
+			// rectOfRow is not helpful if the table is empty, so use intercellSpacing.height+rowHeight
+			CGFloat row_height = [table_view rowHeight] + [table_view intercellSpacing].height;
+			
+			
+			int visible_lines = 0; // 5 is the default according to the docs
+			if(iupAttribGet(ih, "VISIBLELINES"))
+			{
+				visible_lines = iupAttribGetInt(ih, "VISIBLELINES");
+				
+
+				
+				
+			}
+			else
+			{
+				visible_lines = (int)[table_view numberOfRows];
+			}
+
+			CGFloat view_height = row_height * (CGFloat)visible_lines;
+
+			
+			{
+				NSRect new_frame = [table_view frame];
+				CGFloat old_height = new_frame.size.height;
+				CGFloat old_y = new_frame.origin.y;
+				
+				CGFloat diff_y = view_height - old_height;
+				
+				
+				
+				
+				//NSRect parent_rect = [parent_view frame];
+				
+
+								//			 parent_rect.size.height - ih->y - ih->currentheight,
+
+				
+				
+				
+				new_frame.origin.y = old_y - diff_y;
+
+				new_frame.size.height = view_height;
+				new_frame.size.width = ih->naturalwidth;
+
+				
+			[table_view setFrame:new_frame];
+			}
+			
+			if([(NSObject*)ih->handle isKindOfClass:[NSScrollView class]])
+			{
+				NSScrollView* scroll_view = (NSScrollView*)ih->handle;
+				NSRect new_frame = [table_view frame];
+				
+				
+				CGFloat old_height = new_frame.size.height;
+				CGFloat old_y = new_frame.origin.y;
+				
+				CGFloat diff_y = view_height - old_height;
+				
+				
+				new_frame.origin.y = old_y - diff_y;
+				new_frame.size.height = view_height;
+				new_frame.size.width = ih->naturalwidth;
+
+
+				[scroll_view setFrame:new_frame];
+				
+			}
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+//	iupdrvBaseLayoutUpdateMethod(ih);
+
+}
+*/
 
 static int cocoaListMapMethod(Ihandle* ih)
 {
@@ -1137,8 +1365,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 	{
 		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			//	NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(30, 30, 190, 40) pullsDown:NO];
-			NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(110, 110, 333, 32) pullsDown:NO];
+			//NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
+			NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSPopUpButton, kIupCocoaDefaultHeightNSPopUpButton) pullsDown:NO];
 			the_view = popup_button;
 			
 			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
@@ -1162,7 +1390,14 @@ static int cocoaListMapMethod(Ihandle* ih)
 		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
 			// NSComboBox height is very specific. This number (30) plus the stuff going on in iupdrvListAddBorders affects the final height.
-			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSMakeRect(0, 0, 122, 30)];
+			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSComboBox, kIupCocoaDefaultHeightNSComboBox)];
+//			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSZeroRect];
+			// WEIRD: I am getting a smaller font size (12 instead of 13) when creating programmatically instead of Interface Builder.
+			// Explicitly setting to 13.0 here fixes that. 0.0 is slightly off and causes the vertical alignment to be too low and if you select-drag, the text will scroll by 1 pixel.
+			[combo_box setFont:[NSFont systemFontOfSize:13.0]];
+
+			
+			
 			the_view = combo_box;
 			
 			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
@@ -1184,7 +1419,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 		}
 		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
 		{
-			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+//			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSZeroRect];
 			NSTableColumn* first_column = [[NSTableColumn alloc] initWithIdentifier:@"IupList"];
 			[table_view addTableColumn:first_column];
 			
@@ -1209,7 +1445,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 			objc_setAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
 			
 			
-			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+//			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 			[scroll_view setDocumentView:table_view];
 			[table_view release];
 			the_view = scroll_view;
@@ -1219,7 +1456,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 		}
 		case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		{
-			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+//			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+			NSTableView* table_view = [[NSTableView alloc] initWithFrame:NSZeroRect];
 			NSTableColumn* first_column = [[NSTableColumn alloc] initWithIdentifier:@"IupList"];
 			[table_view addTableColumn:first_column];
 			
@@ -1245,7 +1483,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 			objc_setAssociatedObject(table_view, IUP_COCOA_LIST_TABLEVIEW_RECEIVER_OBJ_KEY, (id)list_receiver, OBJC_ASSOCIATION_ASSIGN);
 			
 			
-			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+//			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 10, 100, 100)];
+			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 			[scroll_view setDocumentView:table_view];
 			[table_view release];
 			the_view = scroll_view;
@@ -1380,26 +1619,39 @@ void iupdrvListInitClass(Iclass* ic)
   /* Driver Dependent Class functions */
 	ic->Map = cocoaListMapMethod;
 	ic->UnMap = cocoaListUnMapMethod;
+//	ic->LayoutUpdate = cocoaListLayoutUpdateMethod;
+
 #if 0
 
   /* Driver Dependent Attribute functions */
 
   /* Overwrite Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, cocoaListSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+	
+	iupClassRegisterAttribute(ic, "FONT", NULL, winListSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
+	
+	/* Visual */
+	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, winListSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_NOT_MAPPED);
+	
+	/* Special */
+	iupClassRegisterAttribute(ic, "FGCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_NOT_MAPPED);
+	
 
-  /* Visual */
-  iupClassRegisterAttribute(ic, "BGCOLOR", NULL, cocoaListSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);
-
-  /* Special */
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaListSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
 #endif
   /* IupList only */
+
+	
   iupClassRegisterAttributeId(ic, "IDVALUE", cocoaListGetIdValueAttrib, iupListSetIdValueAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "VALUE", cocoaListGetValueAttrib, cocoaListSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SHOWDROPDOWN", NULL, cocoaListSetShowDropdownAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
-iupClassRegisterAttribute(ic, "TOPITEM", NULL, cocoaListSetTopItemAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SPACING", iupListGetSpacingAttrib, cocoaListSetSpacingAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
+
+	iupClassRegisterAttribute(ic, "VISIBLEITEMS", NULL, NULL, IUPAF_SAMEASSYSTEM, "5", IUPAF_DEFAULT);
+	/*OLD*/iupClassRegisterAttribute(ic, "VISIBLE_ITEMS", NULL, NULL, IUPAF_SAMEASSYSTEM, "5", IUPAF_DEFAULT);
+	iupClassRegisterAttribute(ic, "DROPEXPAND", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "SPACING", iupListGetSpacingAttrib, winListSetSpacingAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
+	
+	
+	iupClassRegisterAttribute(ic, "TOPITEM", NULL, cocoaListSetTopItemAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "PADDING", iupListGetPaddingAttrib, cocoaListSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "SELECTEDTEXT", cocoaListGetSelectedTextAttrib, cocoaListSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
@@ -1422,10 +1674,10 @@ iupClassRegisterAttribute(ic, "TOPITEM", NULL, cocoaListSetTopItemAttrib, NULL, 
   iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, cocoaListSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 
   iupClassRegisterAttributeId(ic, "IMAGE", NULL, cocoaListSetImageAttrib, IUPAF_IHANDLENAME|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-
+	iupClassRegisterAttribute(ic, "CUEBANNER", NULL, winListSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "FILTER", NULL, winListSetFilterAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+}
   /* Not Supported */
-  iupClassRegisterAttribute(ic, "VISIBLE_ITEMS", NULL, NULL, IUPAF_SAMEASSYSTEM, "5", IUPAF_NOT_SUPPORTED);
-  iupClassRegisterAttribute(ic, "DROPEXPAND", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "AUTOREDRAW", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
 }

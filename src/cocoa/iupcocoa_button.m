@@ -183,6 +183,7 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	}
 #else
 
+	/*
 	static int woffset = 0;
 	static int hoffset = 0;
 	
@@ -190,8 +191,9 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	hoffset += 30;
 //	ih->data->type = 0;
 	
-//	NSButton* the_button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	NSButton* the_button = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
+	 NSButton* the_button = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
+	*/
+	NSButton* the_button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	
 	
 

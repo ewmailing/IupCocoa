@@ -833,7 +833,7 @@ static void set_callbacks(Ihandle* list)
 	//  IupSetAttribute(list, "AUTOHIDE", "NO");
 	//  IupSetAttribute(list, "SCROLLBAR", "NO");
 	
-	IupSetAttribute(list, "VISIBLEITEMS", "20");
+//	IupSetAttribute(list, "VISIBLEITEMS", "20");
 	//  IupSetAttribute(list, "VISIBLECOLUMNS", "7");
 	IupSetAttribute(list, "VISIBLELINES", "4");
 }
@@ -848,7 +848,7 @@ Ihandle* ListTest(void)
 	list1 = IupList(NULL);
 	
 	
-	IupSetAttributes(list1, "1=\"US$ 1000\", 2=\"US$ 2000\", 3=\"US$ 300.000.000\", 4=\"US$ 4000\","
+	IupSetAttributes(list1, "1=\"US$ 1000\", 2=\"US$ 2000\", 3=\"US$ 300.000.000\", 4=\"Strawberry Shortcake vs. B. Pudding\","
 					 "EDITBOX=YES, DROPDOWN=YES, TIP=Edit+Drop, VALUE=\"Edit Here\", NAME=list1");
 //					 "EDITBOX=NO, DROPDOWN=YES, NAME=list1");
 	set_callbacks(list1);
@@ -861,7 +861,7 @@ Ihandle* ListTest(void)
 //	IupShow(dlg);
 
 	list2 = IupList(NULL);
-	IupSetAttributes(list2, "1=\"Banana\", 2=\"Apple\", 3=\"Orange\", 4=\"Strawberry\", 5=\"Grape\","
+	IupSetAttributes(list2, "1=\"Banana\", 2=\"Apple\", 3=\"Orange\", 4=\"Strawberry Shortcake vs. B. Pudding\", 5=\"Grape\","
 					 "DROPDOWN=YES, NAME=list2, TIP=Drop, XXX_VALUE=2, XXX_SORT=YES, XXX_BGCOLOR=\"192 64 192\"");
 	set_callbacks(list2);
 
@@ -871,7 +871,7 @@ Ihandle* ListTest(void)
 	
 	list4 = IupList(NULL);
 
-	IupSetAttributes(list4, "1=\"Number 3\", 2=\"Number 4\", 3=\"Number 2\", 4=\"Number 1\", 5=\"Number 6\", 6=\"Number 5\", 7=\"Number 7\","
+	IupSetAttributes(list4, "1=\"Number 3\", 2=\"Number 4\", 3=\"Number 2\", 4=\"Number 1\", 5=\"Strawberry Shortcake vs. B. Pudding\", 6=\"Number 5\", 7=\"Number 7\","
 					 "MULTIPLE=YES, NAME=list4, TIP=List, XXX_SORT=YES, VALUE=+--++--, XXX_CANFOCUS=NO");
 	
 	set_callbacks(list4);
@@ -879,10 +879,15 @@ Ihandle* ListTest(void)
 	printf("COUNT(list4)=%s\n", IupGetAttribute(list4, "COUNT"));
 
 	
+//	Ihandle* vb=IupVbox(list1, NULL);
+//	Ihandle* vb=IupVbox(list2, NULL);
+//	Ihandle* vb=IupVbox(list4, NULL);
 	
 	Ihandle* vb=IupVbox(list1, list2, list4, NULL);
-//	Ihandle* vb=IupVbox(list4, NULL);
 	return vb;
+//	return list2;
+//	return list2;
+//	return list4;
 	
 	
 #if 0
@@ -1004,8 +1009,9 @@ void IupEntryPoint()
 	IupSetAttribute(vb, "MARGIN", "10x10");
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
 	
-	Ihandle* dialog = IupDialog(vb);
-//	Ihandle* dialog = IupDialog(list);
+//	Ihandle* dialog = IupDialog(vb);
+//	Ihandle* dialog = IupDialog(button);
+	Ihandle* dialog = IupDialog(list);
 
 	//IupMap(dialog);
 	

@@ -164,6 +164,7 @@ static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 		
 		NSFont* default_font = [NSFont systemFontOfSize:0];
 //		NSFont* default_font = [NSFont labelFontOfSize:0];
+//		NSFont* default_font = [NSFont labelFontOfSize:13];
 //		NSFont* default_font = [NSFont userFontOfSize:0];
 		iupdrvGetSystemFont();
 		
@@ -381,7 +382,7 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 
   NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
 
-  return size.width;
+  return (int)(size.width+0.5);
 }
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
