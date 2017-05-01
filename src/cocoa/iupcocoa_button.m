@@ -29,6 +29,8 @@
 
 #include "iupcocoa_drv.h"
 
+static const CGFloat kIupCocoaDefaultWidthNSButton = 1.0;
+static const CGFloat kIupCocoaDefaultHeightNSButton = 32.0;
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY";
@@ -81,6 +83,30 @@ static const void* IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_BUTTON_RECEIVE
 
 
 
+void iupdrvButtonAddBorders(int *x, int *y)
+{
+	NSLog(@"iupdrvButtonAddBorders in <%d, %d>", *x, *y);
+	
+	
+	if(*y < (int)kIupCocoaDefaultHeightNSButton)
+	{
+		*y = (int)kIupCocoaDefaultHeightNSButton;
+	}
+//	*x += 4; // a regular label seems to get 2 padding on each size
+//	*x += 36; // the difference between a label and push button is 36 in Interface Builder
+
+	*x += 27;
+	
+	/*
+	NSView* the_view = (NSView*)ih->handle;
+	NSRect view_frame = [the_view frame];
+	*x = view_frame.size.width;
+	*y = view_frame.size.height;
+	
+	*/
+	NSLog(@"iupdrvButtonAddBorders frame <%d, %d>", *x, *y);
+
+}
 
 static int cocoaButtonMapMethod(Ihandle* ih)
 {
@@ -240,10 +266,15 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	{
 		[the_button setButtonType:NSMomentaryLightButton];
 		[the_button setBezelStyle:NSRoundedBezelStyle];
+		
 
 		
 
 	}
+	
+	// Interface builder defaults to 13pt, but programmatic is smaller (12?). Setting the font fixes that difference.
+	[the_button setFont:[NSFont systemFontOfSize:0]];
+
 #endif
 //	[the_button setButtonType:NSMomentaryLightButton];
 
@@ -324,11 +355,6 @@ static void cocoaButtonUnMapMethod(Ihandle* ih)
 	
 }
 
-void iupdrvButtonAddBorders(int *x, int *y)
-{
-
-	
-}
 
 void iupdrvButtonInitClass(Iclass* ic)
 {

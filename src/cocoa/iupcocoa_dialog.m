@@ -129,6 +129,81 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 
 @end
 
+
+/* 
+ This is a quick and dirty NSToolbar implementation. This was used to help me figure out the "menu" height metrics.
+ But we eventually will need to implement toolbar support so this may be useful.
+*/
+/*
+#define FIXME_TOOLBAR_IDENT @"FIXME:Need unique identifier"
+
+@interface IupCocoaToolbarDelegate : NSObject<NSToolbarDelegate>
+
+- (NSArray*) toolbarAllowedItemIdentifiers:(NSToolbar*)tool_bar;
+- (NSArray*) toolbarDefaultItemIdentifiers:(NSToolbar*)tool_bar;
+- (NSToolbarItem*) toolbar:(NSToolbar*)tool_bar itemForItemIdentifier:(NSString*)the_identifier willBeInsertedIntoToolbar:(BOOL)will_insert;
+
+@end
+
+@implementation IupCocoaToolbarDelegate
+
+
+- (NSArray*) toolbarSelectableItemIdentifiers:(NSToolbar *)tool_bar
+{
+	NSLog(@"%s",__func__);
+	return [self toolbarDefaultItemIdentifiers:tool_bar];
+}
+
+- (void) toolbarWillAddItem:(NSNotification *)tool_bar
+{
+	NSLog(@"%s",__func__);
+}
+
+- (void) toolbarDidRemoveItem:(NSNotification*)the_notification
+{
+	NSLog(@"%s",__func__);
+}
+
+
+- (NSArray*) toolbarAllowedItemIdentifiers:(NSToolbar*)tool_bar
+{
+	return @[@"One", @"Two"];
+}
+
+- (NSArray*) toolbarDefaultItemIdentifiers:(NSToolbar*)tool_bar
+{
+	return @[@"One", @"Two"];
+}
+
+- (NSToolbarItem*) toolbar:(NSToolbar*)tool_bar itemForItemIdentifier:(NSString*)item_identifier willBeInsertedIntoToolbar:(BOOL)will_insert
+{
+	NSToolbarItem* return_val = nil;
+	NSString* the_label = @"default";
+	NSString* toolbar_identifier = [tool_bar identifier];
+	
+	if([toolbar_identifier isEqualToString:FIXME_TOOLBAR_IDENT])
+	{
+		if([item_identifier isEqualToString:@"One"])
+		{
+			return_val = [[NSToolbarItem alloc] initWithItemIdentifier:@"One"];
+			the_label = @"Toolbar One";
+		}
+		else if([item_identifier isEqualToString:@"Two"])
+		{
+			return_val = [[NSToolbarItem alloc] initWithItemIdentifier:@"Two"];
+			the_label = @"Toolbar Two";
+		}
+	}
+	
+	[return_val setLabel:the_label];
+	[return_val setPaletteLabel:the_label];
+	return return_val;
+}
+
+@end
+*/
+
+
 /****************************************************************
  Utilities
  ****************************************************************/
@@ -238,6 +313,83 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
+	NSLog(@"border=%d, caption%d, menu=%d", *border, *caption, *menu);
+	NSWindow* the_window = (NSWindow*)ih->handle;
+
+	
+	
+	CGFloat title_bar_height = 0.0;
+	// What is "menu"? Is this supposed to encompass things like toolbars?
+	CGFloat menu_bar_height = 0.0;
+	CGFloat window_border_thickness = 0.0;
+	
+	NSRect window_frame = [the_window frame];
+
+	// Now get the window contents. Assuming this includes the toolbar if any
+	NSRect content_frame = [the_window contentRectForFrameRect:window_frame];
+	
+	
+	// TODO: Test borderless windows, fullscreen windows
+	if([the_window styleMask] & NSTitledWindowMask)
+	{
+
+		// Use the class method to avoid getting a window with a toolbar?
+		NSRect plain_window_frame = [NSWindow frameRectForContentRect:content_frame styleMask:NSTitledWindowMask];
+		CGFloat content_diff_height = plain_window_frame.size.height - content_frame.size.height;
+		title_bar_height = content_diff_height;
+
+		
+	}
+	else
+	{
+		title_bar_height = 0;
+	}
+	
+
+
+	NSToolbar* the_toolbar = [the_window toolbar];
+	if((nil != the_toolbar) && [the_toolbar isVisible])
+	{
+		CGFloat content_diff_height = window_frame.size.height - content_frame.size.height;
+		menu_bar_height = content_diff_height - title_bar_height;
+	}
+	else
+	{
+		menu_bar_height = 0.0;
+	}
+	
+	
+
+	if([the_window styleMask] == NSWindowStyleMaskBorderless)
+	{
+		// assume window_frame - content_frame is the border thickness? Do width because height has title bars and toolbars.
+		window_border_thickness = window_frame.size.width - content_frame.size.width;
+		NSCAssert(window_border_thickness == 0.0, @"Expected border width to be 0");
+		
+	}
+	else if(([the_window styleMask] & NSWindowStyleMaskFullSizeContentView) || ([the_window styleMask] & NSWindowStyleMaskFullScreen))
+	{
+		// assume window_frame - content_frame is the border thickness? Do width because height has title bars and toolbars.
+		window_border_thickness = window_frame.size.width - content_frame.size.width;
+		NSCAssert(window_border_thickness == 0.0, @"Expected border width to be 0");
+		
+	}
+	else
+	{
+		// assume window_frame - content_frame is the border thickness? Do width because height has title bars and toolbars.
+		window_border_thickness = window_frame.size.width - content_frame.size.width;
+		
+		CGFloat left_edge = [the_window contentBorderThicknessForEdge:NSRectEdgeMinX];
+		CGFloat right_edge = [the_window contentBorderThicknessForEdge:NSRectEdgeMaxX];
+
+		NSCAssert((left_edge+right_edge) == window_border_thickness, @"border width not what I expected");
+	}
+ 
+	
+	*border = window_border_thickness;
+	*menu = menu_bar_height;
+	*caption = title_bar_height;
+
 }
 
 int iupdrvDialogSetPlacement(Ihandle* ih)
@@ -356,14 +508,27 @@ static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
-	iupAttribSet(ih, "RASTERSIZE", "500x400");
+//	iupAttribSet(ih, "RASTERSIZE", "500x400");
 	
 
 	
-	
-	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 500, 400)
+	// Warning: Don't make the initial window too big. There is code in the IUP core that does a MAX(current_size, needed_size)
+	// which is intended to make the window grow to fit.
+	// I made the mistake of making the initial window too big and didn't understand why I could never get a window that perfectly fit the contents.
+	// I think the other implementations start with 100x100.
+	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 100, 100)
 													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
 
+/*
+	NSToolbar* the_toolbar = [[NSToolbar alloc] initWithIdentifier:FIXME_TOOLBAR_IDENT];
+	IupCocoaToolbarDelegate* toolbar_delegate = [[IupCocoaToolbarDelegate alloc] init];
+	[the_toolbar setDelegate:toolbar_delegate];
+	[the_toolbar setDisplayMode:NSToolbarDisplayModeIconAndLabel];
+	[the_toolbar setAllowsUserCustomization:YES];
+	[the_toolbar setAutosavesConfiguration:YES];
+	[the_window setToolbar:the_toolbar];
+*/
+	
 	// We are manually managing the memory, so don't let the window release itself
 	[the_window setReleasedWhenClosed:NO];
 
@@ -447,20 +612,28 @@ static void cocoaDialogUnMapMethod(Ihandle* ih)
 
 static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 {
-#if 0
-	if (ih->data->ignore_resize)
+#if 1
+	if(ih->data->ignore_resize)
+	{
 		return;
+	}
 	
 	ih->data->ignore_resize = 1;
 	
 	/* for dialogs the position is not updated here */
-	SetWindowPos(ih->handle, 0, 0, 0, ih->currentwidth, ih->currentheight,
-				 SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOSENDCHANGING);
+	
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSRect the_frame = [the_window frame];
+	the_frame.size.width = ih->currentwidth;
+	the_frame.size.height = ih->currentheight;
+	
+	[the_window setFrame:the_frame display:YES animate:YES];
 	
 	ih->data->ignore_resize = 0;
 #endif
 	
-	NSWindow* the_window = (NSWindow*)ih->handle;
+
+	
 //	NSRect the_rect = [the_window frame];
 
 

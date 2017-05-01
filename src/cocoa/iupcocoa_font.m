@@ -273,7 +273,7 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	id native_object = ih->handle;
 	if([native_object respondsToSelector:@selector(sizeToFit)])
    {
-	   [native_object sizeToFit];
+//	   [native_object sizeToFit];
 	   NSRect the_rect = [native_object frame];
 	   
 	   if (w) *w = the_rect.size.width;
