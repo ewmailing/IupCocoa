@@ -44,13 +44,8 @@ int iupdrvMenuPopup(Ihandle* ih, int x, int y)
 
 int iupdrvMenuGetMenuBarSize(Ihandle* ih)
 {
-  int ch;
-  iupdrvFontGetCharSize(ih, NULL, &ch);
-#ifdef WIN32
-  return 3 + ch + 3;
-#else
-  return 4 + ch + 4;
-#endif
+	CGFloat menu_bar_height = [[[NSApplication sharedApplication] mainMenu] menuBarHeight];
+	return (int)(menu_bar_height + 0.5);
 }
 
 
@@ -64,18 +59,66 @@ static void cocoaReleaseMenuClass(Iclass* ic)
 
 void iupdrvMenuInitClass(Iclass* ic)
 {
-	id menubar = [[NSMenu new] autorelease];
-	id appMenuItem = [[NSMenuItem new] autorelease];
-	[menubar addItem:appMenuItem];
-	[NSApp setMainMenu:menubar];
-	id appMenu = [[NSMenu new] autorelease];
-	id appName = [[NSProcessInfo processInfo] processName];
-	id quitTitle = [@"Quit " stringByAppendingString:appName];
-	id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle
-												  action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
-	[appMenu addItem:quitMenuItem];
-	[appMenuItem setSubmenu:appMenu];
 
+	
+	id app_menu = [[[NSMenu alloc] init] autorelease];
+	id app_name = [[NSProcessInfo processInfo] processName];
+	id quit_title = [[NSLocalizedString(@"Quit", @"Quit") stringByAppendingString:@" "] stringByAppendingString:app_name];
+	id quit_menu_item = [[[NSMenuItem alloc] initWithTitle:quit_title action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+	[app_menu addItem:quit_menu_item];
+
+	id app_menu_category = [[[NSMenuItem alloc] init] autorelease];
+	[app_menu_category setSubmenu:app_menu];
+	
+	
+	
+	
+	id print_title = [NSLocalizedString(@"Print", @"Print") stringByAppendingString:@"…"];
+	id print_menu_item = [[[NSMenuItem alloc] initWithTitle:print_title action:@selector(print:) keyEquivalent:@"p"] autorelease];
+	
+	id file_menu = [[[NSMenu alloc] init] autorelease];
+	[file_menu setTitle:NSLocalizedString(@"File", @"File")];
+	
+	[file_menu addItem:print_menu_item];
+
+	
+	
+	id file_menu_category = [[[NSMenuItem alloc] init] autorelease];
+	[file_menu_category setSubmenu:file_menu];
+
+	
+	
+	
+	id cut_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Cut", @"Cut") action:@selector(cut:) keyEquivalent:@"x"] autorelease];
+	id copy_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy", @"Copy") action:@selector(copy:) keyEquivalent:@"c"] autorelease];
+	id paste_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Paste", @"Paste") action:@selector(paste:) keyEquivalent:@"v"] autorelease];
+	
+	id edit_menu = [[[NSMenu alloc] init] autorelease];
+	[edit_menu setTitle:NSLocalizedString(@"Edit", @"Edit")];
+
+	[edit_menu addItem:cut_menu_item];
+	[edit_menu addItem:copy_menu_item];
+	[edit_menu addItem:paste_menu_item];
+
+
+	id edit_menu_category = [[[NSMenuItem alloc] init] autorelease];
+	[edit_menu_category setSubmenu:edit_menu];
+	
+	
+
+
+	
+	
+	id menu_bar = [[[NSMenu alloc] init] autorelease];
+	[NSApp setMainMenu:menu_bar];
+	
+	[menu_bar addItem:app_menu_category];
+	[menu_bar addItem:file_menu_category];
+	[menu_bar addItem:edit_menu_category];
+
+
+	
+	
 	ic->Release = cocoaReleaseMenuClass;
 #if 0
   /* Driver Dependent Class functions */
