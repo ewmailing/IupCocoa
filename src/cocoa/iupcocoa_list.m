@@ -562,7 +562,7 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 			// Note: Don't add any extra padding here or the table will get clipped.
 			CGFloat view_height = row_height * (CGFloat)visible_lines;
 			
-			*y = (int)(view_height + 0.5);
+			*y = iupROUND(view_height);
 			
 			
 			*x += 4; // a regular label seems to get 2 padding on each size

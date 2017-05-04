@@ -261,8 +261,8 @@ void iupdrvDialogGetSize(Ihandle* ih, InativeHandle* handle, int *w, int *h)
 	NSWindow* the_window = (NSWindow*)ih->handle;
 	NSRect the_rect = [the_window frame];
 	
-	if (w) *w = (the_rect.size.width + 0.5);
-	if (h) *h = (the_rect.size.height + 0.5);
+	if (w) *w = iupROUND(the_rect.size.width);
+	if (h) *h = iupROUND(the_rect.size.height);
 }
 
 void iupdrvDialogSetVisible(Ihandle* ih, int visible)

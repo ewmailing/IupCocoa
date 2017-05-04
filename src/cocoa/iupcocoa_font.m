@@ -107,12 +107,12 @@ static ImacFont* macFindFont(const char *standardfont)
 	//	fonts[i].charheight = (int)([hFont capHeight] + 0.5);
 //	fonts[i].charheight = (int)([hFont defaultLineHeightForFont] + 0.5);
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
-	fonts[i].charheight = [lm defaultLineHeightForFont:hFont] + 0.5;
+	fonts[i].charheight = iupROUND([lm defaultLineHeightForFont:hFont]);
 	[lm release];
 
 	
   NSRect rect = [hFont boundingRectForFont];
-  fonts[i].charwidth = (int)(rect.size.width+0.5);
+  fonts[i].charwidth = iupROUND(rect.size.width);
 
 	[attributes release];
 	
@@ -341,8 +341,8 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	  
 	  NSSize size = [joined_string sizeWithAttributes: macfont->attributes];
 
-	  max_w = size.width + 0.5;
-	  max_h = size.height + 0.5;
+	  max_w = iupROUND(size.width);
+	  max_h = iupROUND(size.height);
 
 	  [array_of_nsstring_lines release];
   }
@@ -398,7 +398,7 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 
   NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
 
-  return (int)(size.width+0.5);
+  return iupROUND(size.width);
 }
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)

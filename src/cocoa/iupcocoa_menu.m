@@ -45,7 +45,7 @@ int iupdrvMenuPopup(Ihandle* ih, int x, int y)
 int iupdrvMenuGetMenuBarSize(Ihandle* ih)
 {
 	CGFloat menu_bar_height = [[[NSApplication sharedApplication] mainMenu] menuBarHeight];
-	return (int)(menu_bar_height + 0.5);
+	return iupROUND(menu_bar_height);
 }
 
 

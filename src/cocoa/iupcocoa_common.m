@@ -118,7 +118,7 @@ int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height)
 	NSRect screen_rect = [[NSScreen mainScreen] frame];
 //	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
 	CGFloat inverted_height = screen_rect.size.height - iup_height;
-	return (int)(inverted_height+0.5);
+	return iupROUND(inverted_height);
 }
 
 int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height)
@@ -127,7 +127,7 @@ int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height)
 	NSRect screen_rect = [[NSScreen mainScreen] frame];
 //	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
 	CGFloat inverted_height = screen_rect.size.height - cartesian_height;
-	return (int)(inverted_height+0.5);
+	return iupROUND(inverted_height);
 }
 
 
