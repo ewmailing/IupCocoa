@@ -104,6 +104,11 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
 	NSView* root_widget = (NSView*)ih->handle;
 	
+	if(nil == root_widget)
+	{
+		NSLog(@"Warning: cocoaListGetBaseWidget is nil");
+		return nil;
+	}
 	 
 	switch(sub_type)
 	{
@@ -376,16 +381,17 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 		
 		// The identifier of the NSTextField instance is set to MyView.
 		// This allows the cell to be reused.
-		the_result.identifier = @"IupCocoaListTableViewCell";
+		[the_result setIdentifier:@"IupCocoaListTableViewCell"];
+		[the_result setFont:[NSFont systemFontOfSize:0.0]];
 	}
  
-      // result is now guaranteed to be valid, either as a reused cell
-      // or as a new cell, so set the stringValue of the cell to the
-      // nameArray value at row
-      the_result.stringValue = string_item;
+	// result is now guaranteed to be valid, either as a reused cell
+	// or as a new cell, so set the stringValue of the cell to the
+	// nameArray value at row
+	[the_result setStringValue:string_item];
  
-      // Return the result
-      return the_result;
+	// Return the result
+	return the_result;
  
 
 	
@@ -553,6 +559,7 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 				visible_lines = (int)[table_view numberOfRows];
 			}
 			
+			// Note: Don't add any extra padding here or the table will get clipped.
 			CGFloat view_height = row_height * (CGFloat)visible_lines;
 			
 			*y = (int)(view_height + 0.5);

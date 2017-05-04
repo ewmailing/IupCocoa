@@ -28,6 +28,54 @@
 
 
 
+void iupdrvFrameGetDecorOffset(int *x, int *y)
+{
+	// Drat: The padding will differ depending if there is a title or not (and where the title goes).
+	*x = 0;
+	*y = 0;
+}
+
+int iupdrvFrameHasClientOffset(void)
+{
+	// If I don't set this to true, the y-padding in iupdrvFrameGetDecorOffset does nothing.
+	// And without the padding, the first widget gets placed too high in the box and gets clipped.
+	// Unless...I set the GetInnerNativeContainerHandle callback. Then it seems I can avoid needing iupdrvFrameGetDecorOffset
+	return 0;
+}
+
+static void* cocoaFrameGetInnerNativeContainerHandleMethod(Ihandle* ih, Ihandle* child)
+{
+	(void)child;
+	
+	NSBox* the_frame = ih->handle;
+	
+	return [the_frame contentView];
+//	return (void*)gtk_bin_get_child((GtkBin*)ih->handle);
+}
+
+static int cocoaFrameSetTitleAttrib(Ihandle* ih, const char* title)
+{
+	NSBox* the_frame = (NSBox*)ih->handle;
+
+	if(title && *title!=0)
+	{
+		NSString* ns_string = [NSString stringWithUTF8String:title];
+		[the_frame setTitle:ns_string];
+		[the_frame setTitlePosition:NSAtTop];
+
+	}
+	else
+	{
+		[the_frame setTitle:@""];
+		[the_frame setTitlePosition:NSNoTitle];
+		
+	}
+	
+	
+	iupdrvPostRedraw(ih);
+	return 1;
+}
+
 static int cocoaFrameMapMethod(Ihandle* ih)
 {
 
@@ -41,6 +89,12 @@ static int cocoaFrameMapMethod(Ihandle* ih)
 		{
 			NSString* ns_string = [NSString stringWithUTF8String:title];
 			[the_frame setTitle:ns_string];
+		}
+		else
+		{
+			[the_frame setTitle:@""];
+			[the_frame setTitlePosition:NSNoTitle];
+
 		}
 	}
 	
@@ -67,19 +121,56 @@ static void cocoaFrameUnMapMethod(Ihandle* ih)
 	ih->handle = nil;
 }
 
-
-
-void iupdrvFrameGetDecorOffset(int *x, int *y)
+#if 0
+/*
+static void cocoaFrameComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
 {
-	*x = 2;
-	*y = 2;
+	(void)children_expand;
+	
+	*children_expand = 1;
+	
+	NSLog(@"cocoaFrameComputeNaturalSizeMethod: %d, %d, %d, %d", ih->currentwidth, ih->currentheight, *w, *h);
+	
+	NSBox* box_view = (NSBox*)ih->handle;
+	NSView* box_content_view = [box_view contentView];
+	
+	CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([box_content_view frame]);
+	CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([box_content_view frame]);
+	
+//	*w = *w - diff_width;
+//	*h = *h - diff_height;
+
+	*w = NSWidth([box_content_view frame]);
+	*h = NSHeight([box_content_view frame]);
+
+	
+	//NSBox* the_box = ih->handle;
+	//NSRect content_rect = [[the_box contentView] frame];
 }
 
-int iupdrvFrameHasClientOffset(void)
-{
-	return 0;
-}
 
+static void cocoaFrameLayoutUpdate(Ihandle* ih)
+{
+
+	NSLog(@"cocoaFrameLayoutUpdate: %d, %d", ih->currentwidth, ih->currentheight);
+	
+	NSBox* box_view = (NSBox*)ih->handle;
+	NSView* box_content_view = [box_view contentView];
+	
+	CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([box_content_view frame]);
+	CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([box_content_view frame]);
+	
+	//	*w = *w - diff_width;
+	//	*h = *h - diff_height;
+
+	
+//	ih->currentwidth = ih->currentwidth - diff_width;
+//	ih->currentheight = ih->currentheight - diff_height;
+	iupdrvBaseLayoutUpdateMethod(ih);
+
+}
+*/
+#endif
 
 
 void iupdrvFrameInitClass(Iclass* ic)
@@ -87,8 +178,13 @@ void iupdrvFrameInitClass(Iclass* ic)
 	/* Driver Dependent Class functions */
 	ic->Map = cocoaFrameMapMethod;
 	ic->UnMap = cocoaFrameUnMapMethod;
+	
+	ic->GetInnerNativeContainerHandle = cocoaFrameGetInnerNativeContainerHandleMethod;
+
+//	ic->ComputeNaturalSize = cocoaFrameComputeNaturalSizeMethod;
+//	ic->LayoutUpdate = cocoaFrameLayoutUpdate;
+
 #if 0
-	ic->GetInnerNativeContainerHandle = gtkFrameGetInnerNativeContainerHandleMethod;
 	
 	/* Driver Dependent Attribute functions */
 	
@@ -101,6 +197,7 @@ void iupdrvFrameInitClass(Iclass* ic)
 	
 	/* Special */
 	iupClassRegisterAttribute(ic, "FGCOLOR", NULL, gtkFrameSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
-	iupClassRegisterAttribute(ic, "TITLE", NULL, gtkFrameSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 #endif
+	iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaFrameSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	
 }

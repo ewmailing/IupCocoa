@@ -166,9 +166,10 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			// TODO: FEATURE: I think this is really convenient for users so it should be the default
 			[the_label setSelectable:YES];
 			
-			NSFont* the_font = [the_label font];
-			NSLog(@"font %@", the_font);
-		
+//			NSFont* the_font = [the_label font];
+//			NSLog(@"font %@", the_font);
+			[the_label setFont:[NSFont systemFontOfSize:0.0]];
+
 		
 		}
 	}

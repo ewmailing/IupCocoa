@@ -58,6 +58,14 @@ void iupCocoaAddToParent(Ihandle* ih)
 			NSView* window_view = [parent_window contentView];
 			[window_view addSubview:the_view];
 		}
+		/*
+		else if([parent_native_handle isKindOfClass:[NSBox class]])
+		{
+			NSBox* parent_view = (NSBox*)parent_native_handle;
+			[[parent_view contentView] addSubview:the_view];
+
+		}
+		 */
 		else if([parent_native_handle isKindOfClass:[NSView class]])
 		{
 			NSView* parent_view = (NSView*)parent_native_handle;
@@ -141,11 +149,28 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	NSView* parent_view = nil;
+	
+	int current_width = ih->currentwidth;
+	int current_height = ih->currentheight;
+	
 	if([parent_native_handle isKindOfClass:[NSWindow class]])
 	{
 		NSWindow* parent_window = (NSWindow*)parent_native_handle;
 		parent_view = [parent_window contentView];
 	}
+/* // Part of NSBox experiment
+	else if([parent_native_handle isKindOfClass:[NSBox class]])
+	{
+		NSBox* box_view = (NSBox*)parent_native_handle;
+		parent_view = [box_view contentView];
+		
+		CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([parent_view frame]);
+		CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([parent_view frame]);
+
+		current_width = current_width - diff_width;
+		current_height = current_height - diff_height;
+	}
+*/
 	else if([parent_native_handle isKindOfClass:[NSView class]])
 	{
 		parent_view = (NSView*)parent_native_handle;
@@ -188,6 +213,31 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	
 	NSRect parent_rect = [parent_view frame];
 
+#if 0 // experiment to try to handle NSBox directly instead of using cocoaFrameGetInnerNativeContainerHandleMethod. I think cocoaFrameGetInnerNativeContainerHandleMethod is better, but I haven't vetted everything.
+	if([parent_native_handle isKindOfClass:[NSBox class]])
+	{
+		NSBox* box_view = (NSBox*)parent_native_handle;
+		NSView* box_content_view = [box_view contentView];
+		
+		CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([box_content_view frame]);
+		CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([box_content_view frame]);
+
+		current_width = current_width - diff_width;
+		current_height = current_height - diff_height;
+		
+		NSRect the_rect = NSMakeRect(
+		ih->x,
+		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
+		parent_rect.size.height - ih->y - ih->currentheight,
+		current_width,
+		ih->currentheight
+	);
+	[the_view setFrame:the_rect];
+//	[the_view setBounds:the_rect];
+	}
+	else
+	{
+		
 	NSRect the_rect = NSMakeRect(
 		ih->x,
 		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
@@ -197,6 +247,19 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	);
 	[the_view setFrame:the_rect];
 //	[the_view setBounds:the_rect];
+	}
+#else
+	
+			
+	NSRect the_rect = NSMakeRect(
+		ih->x,
+		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
+		parent_rect.size.height - ih->y - ih->currentheight,
+		ih->currentwidth,
+		ih->currentheight
+	);
+	[the_view setFrame:the_rect];
+#endif
 	
 	
 }

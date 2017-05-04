@@ -270,6 +270,7 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
   int num_lin, max_w;
 	int max_h;
 	
+	/* This won't work because other callbacks assume the string size and then add padding on top of it.
 	id native_object = ih->handle;
 	if([native_object respondsToSelector:@selector(sizeToFit)])
    {
@@ -281,7 +282,7 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	   
 	   return;
    }
-	
+*/
 
 	
 	
@@ -331,7 +332,9 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 
       curstr = nextstr;
       if (*nextstr)
+	  {
         num_lin++;
+	  }
     } while(*nextstr);
 
 	  NSString* joined_string = [array_of_nsstring_lines componentsJoinedByString:@"\n"];
@@ -340,11 +343,24 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 
 	  max_w = size.width + 0.5;
 	  max_h = size.height + 0.5;
-  }
 
-  if (w) *w = max_w;
+	  [array_of_nsstring_lines release];
+  }
+	
+
+	
+  if (w)
+  {
+	  
+  *w = max_w;
+	  
+	  
+  }
 //	if (h) *h = (macfont->charheight*num_lin)+0.5;
-	if (h) *h = max_h;
+	if (h)
+	{
+		*h = max_h;
+	}
 }
 
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)

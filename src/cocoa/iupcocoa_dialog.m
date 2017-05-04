@@ -117,12 +117,37 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 	}
 #endif
 	
+	NSLog(@"resize current_ih:<%d,%d>, target:<%f,%f>", ih->currentwidth, ih->currentheight, frame_size.width, frame_size.height);
+	NSLog(@"resize current_win:<%f,%f>", [the_sender frame].size.width, [the_sender frame].size.height);
+
 //	iupdrvDialogGetSize(ih, NULL, &(ih->currentwidth), &(ih->currentheight));
 
-	ih->currentwidth = frame_size.width;
-	ih->currentheight = frame_size.height;
 	
-	return frame_size;
+	
+//	ih->currentwidth = frame_size.width;
+//	ih->currentheight = frame_size.height;
+	
+	
+	IFnii cb;
+	
+	
+	cb = (IFnii)IupGetCallback(ih, "RESIZE_CB");
+	if(!cb || cb(ih, frame_size.width, frame_size.height)!=IUP_IGNORE)  /* width and height here are for the client area */
+	{
+		iupdrvDialogGetSize(ih, NULL, &(ih->currentwidth), &(ih->currentheight));
+
+//		ih->data->ignore_resize = 1;
+		IupRefresh(ih);
+//		ih->data->ignore_resize = 0;
+		return frame_size;
+	}
+	else
+	{
+		// don't allow resize
+		return [the_sender frame].size;
+	}
+	
+	
 	
 }
 
@@ -236,8 +261,8 @@ void iupdrvDialogGetSize(Ihandle* ih, InativeHandle* handle, int *w, int *h)
 	NSWindow* the_window = (NSWindow*)ih->handle;
 	NSRect the_rect = [the_window frame];
 	
-	if (w) *w = the_rect.size.width;
-	if (h) *h = the_rect.size.height;
+	if (w) *w = (the_rect.size.width + 0.5);
+	if (h) *h = (the_rect.size.height + 0.5);
 }
 
 void iupdrvDialogSetVisible(Ihandle* ih, int visible)
@@ -627,7 +652,8 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 	the_frame.size.width = ih->currentwidth;
 	the_frame.size.height = ih->currentheight;
 	
-	[the_window setFrame:the_frame display:YES animate:YES];
+//	[the_window setFrame:the_frame display:YES animate:YES];
+	[the_window setFrame:the_frame display:YES animate:NO];
 	
 	ih->data->ignore_resize = 0;
 #endif
