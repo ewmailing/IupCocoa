@@ -50,12 +50,72 @@ AppleIcon File Edit Window
  Notice that Submenu is an NSMenuItem. And the naming must be done on the NSMenu attached below it, not on the NSMenuItem itself.
  
 */
-
-typedef struct _ImenuPos
+@interface IupCocoaMenuItemRepresentedObject : NSObject
 {
-  int x, y;
-} ImenuPos;
+	Ihandle* _ih;
+}
+- (instancetype) initWithIhandle:(Ihandle*)ih;
+- (Ihandle*) ih;
+@end
 
+@implementation IupCocoaMenuItemRepresentedObject
+
+- (instancetype) initWithIhandle:(Ihandle*)ih
+{
+	self = [super init];
+	if(nil == self)
+	{
+		return nil;
+	}
+	_ih = ih;
+	return self;
+}
+
+- (Ihandle*) ih
+{
+	return _ih;
+}
+
+- (IBAction) onMenuItemAction:(id)the_sender
+{
+	Ihandle* ih = [self ih];
+	Icallback call_back;
+	
+	call_back = IupGetCallback(ih, "ACTION");
+	if(call_back)
+	{
+		int ret_val = call_back(ih);
+		if(IUP_CLOSE == ret_val)
+		{
+			IupExitLoop();
+			
+		}
+	}
+	
+}
+
+@end
+
+@interface IupCocoaMenuDelegate : NSObject<NSMenuDelegate>
+
+// Use for HIGHLIGHT_CB?
+//- (void) menu:(NSMenu*)the_menu willHighlightItem:(NSMenuItem*)menu_item;
+@end
+
+
+@implementation IupCocoaMenuDelegate
+
+
+
+// Use for HIGHLIGHT_CB?
+/*
+- (void) menu:(NSMenu*)the_menu willHighlightItem:(NSMenuItem*)menu_item
+{
+}
+*/
+
+
+@end
 
 
 int iupdrvMenuPopup(Ihandle* ih, int x, int y)
@@ -216,6 +276,9 @@ void iupdrvMenuInitClass(Iclass* ic)
 	id cut_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Cut", @"Cut") action:@selector(cut:) keyEquivalent:@"x"] autorelease];
 	id copy_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy", @"Copy") action:@selector(copy:) keyEquivalent:@"c"] autorelease];
 	id paste_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Paste", @"Paste") action:@selector(paste:) keyEquivalent:@"v"] autorelease];
+	id selectall_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Select All", @"Select All") action:@selector(selectAll:) keyEquivalent:@"a"] autorelease];
+	id findroot_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find", @"Find") action:nil keyEquivalent:@""] autorelease];
+
 	
 	id edit_menu = [[[NSMenu alloc] init] autorelease];
 	[edit_menu setTitle:NSLocalizedString(@"Edit", @"Edit")];
@@ -223,6 +286,32 @@ void iupdrvMenuInitClass(Iclass* ic)
 	[edit_menu addItem:cut_menu_item];
 	[edit_menu addItem:copy_menu_item];
 	[edit_menu addItem:paste_menu_item];
+	[edit_menu addItem:selectall_menu_item];
+	[edit_menu addItem:[NSMenuItem separatorItem]];
+	[edit_menu addItem:findroot_menu_item];
+
+	
+
+	id find_sub_menu = [[[NSMenu alloc] init] autorelease];
+	[find_sub_menu setTitle:NSLocalizedString(@"Find", @"Find")];
+	[findroot_menu_item setSubmenu:find_sub_menu];
+	
+	id find_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find", @"Find") action:@selector(performFindPanelAction:) keyEquivalent:@"f"] autorelease];
+	id findreplace_menu_item = [[[NSMenuItem alloc] initWithTitle:[NSLocalizedString(@"Find and Replace", @"Find and Replace") stringByAppendingString:@"…"] action:@selector(performFindPanelAction:) keyEquivalent:@"f"] autorelease];
+	[findreplace_menu_item setKeyEquivalentModifierMask:NSAlternateKeyMask];
+	id findnext_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find Next", @"Find Next") action:@selector(performFindPanelAction:) keyEquivalent:@"g"] autorelease];
+	id findprevious_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find Previous", @"Find Previous") action:@selector(performFindPanelAction:) keyEquivalent:@"G"] autorelease];
+	id useselection_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use Selection for Find", @"Use Selection for Find") action:@selector(performFindPanelAction:) keyEquivalent:@"e"] autorelease];
+	id jumpselection_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Jump to Selection", @"Jump to Selection") action:@selector(centerSelectionInVisibleArea:) keyEquivalent:@"j"] autorelease];
+
+	
+	
+	[find_sub_menu addItem:find_menu_item];
+	[find_sub_menu addItem:findreplace_menu_item];
+	[find_sub_menu addItem:findnext_menu_item];
+	[find_sub_menu addItem:findprevious_menu_item];
+	[find_sub_menu addItem:useselection_menu_item];
+	[find_sub_menu addItem:jumpselection_menu_item];
 
 
 	id edit_menu_category = [[[NSMenuItem alloc] init] autorelease];
@@ -285,8 +374,34 @@ static int cocoaItemSetTitleAttrib(Ihandle* ih, const char* value)
 
 	}
 	
-	// Mnemonic is not actually supported on Mac
+	// Mnemonic is not actually supported on Mac. Maybe it does something on GNUStep?
+	// However it does seem to strip the & from being displayed in the menu, so it is useful.
 	[menu_item setTitleWithMnemonic:ns_string];
+	//[menu_item setTitle:ns_string];
+
+	
+	// Try to extract the Mnemonic
+	
+	
+	NSRange search_result_range = [ns_string rangeOfString:@"&"];
+	if(NSNotFound != search_result_range.location)
+	{
+		NSRange character_range = NSMakeRange(search_result_range.location+1, 1);
+		
+		// Make sure the & isn't at the end of the string
+		if(character_range.location + character_range.length <= [ns_string length])
+		{
+			NSString* mnemonic_char = [ns_string substringWithRange:character_range];
+			// Drat. If the user is doing something like "&Print", uppercase P makes you press CMD-SHIFT-p. Most likely they just wanted CMD-p
+			// Make lowercase to avoid this, but we need a better system to allow specifying command characters in case they did want SHIFT
+			mnemonic_char = [mnemonic_char lowercaseString];
+			[menu_item setKeyEquivalent:mnemonic_char];
+		}
+
+
+	}
+	
+	
 	
 	
 	return 1;
@@ -336,6 +451,14 @@ static int cocoaItemMapMethod(Ihandle* ih)
 	ih->handle = menu_item;
 	NSMenu* parent_menu = (NSMenu*)(ih->parent->handle);
 	[parent_menu addItem:menu_item];
+	
+	// RepresentedObject is to handle the callbacks
+	IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
+	[menu_item setRepresentedObject:represented_object];
+	[represented_object release];
+	[menu_item setTarget:represented_object];
+	[menu_item setAction:@selector(onMenuItemAction:)];
+	
 	
 	
 
@@ -536,12 +659,24 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 		else
 		{
 			//		NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] initWithTitle:[parent_menu title] action:nil keyEquivalent:@""];
-			NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
+//			NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] initWithTitle:@"" action:@selector(onMenuItemAction:) keyEquivalent:@""];
+			NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] init];
 			[parent_menu addItem:menu_item_for_submenu];
 	
 			ih->handle = menu_item_for_submenu;
-			[menu_item_for_submenu setTitle:ns_string];
+//			[menu_item_for_submenu setTitle:ns_string];
+			[menu_item_for_submenu setTitleWithMnemonic:ns_string];
 
+			/*
+			// RepresentedObject is to handle the callbacks
+			IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
+			[menu_item_for_submenu setRepresentedObject:represented_object];
+			[represented_object release];
+			[menu_item_for_submenu setTarget:represented_object];
+			[menu_item setAction:@selector(onMenuItemAction:)];
+*/
+
+			
 			NSLog(@"cocoaSubmenuMapMethod parent_menu %@", parent_menu);
 			NSLog(@"cocoaSubmenuMapMethod replacement_parent_menu_item %@", menu_item_for_submenu);
 			NSLog(@"[parent_menu setSubmenu:the_menu]");
