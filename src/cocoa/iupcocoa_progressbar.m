@@ -58,6 +58,8 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 	//	[progress_bar setFrameCenterRotation:ih->data->value];
 //	[progress_bar setFrameCenterRotation:M_PI/180.0 * ih->data->value];
 
+	// Hack to test rotation
+#if 0
 	CALayer* bar_layer = [progress_bar layer];
 	
 //	[[progress_bar superview] setWantsLayer:YES];
@@ -67,6 +69,7 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 	transform = CGAffineTransformRotate(transform, M_PI/180.0 * ih->data->value);
 //	transform = CGAffineTransformRotate(transform, ih->data->value);
 	progress_bar.layer.affineTransform = transform;
+#endif
 	
 	// Not sure if I really need this, but
 	// https://developer.apple.com/library/mac/qa/qa1473/_index.html
