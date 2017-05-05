@@ -994,27 +994,55 @@ void IupEntryPoint()
 {
 	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
 
-	Ihandle* button = IupButton("Iup Button", "");
+	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
 	
+	IupSetAttribute(button, "EXPAND", "YES");
 
 	
 	//ProgressbarTest();
 	Ihandle* list = ListTest();
 	
 	
+//	Ihandle* vb=IupHbox(button, NULL);
+//IupSetAttribute(vb, "EXPAND", "YES");
+	
 //	Ihandle* vb=IupVbox(button, NULL);
 //	Ihandle* vb=IupVbox(list, NULL);
 	Ihandle* vb=IupVbox(button, list, NULL);
-	IupSetAttribute(vb, "GAP", "10");
-	IupSetAttribute(vb, "MARGIN", "10x10");
+//	IupSetAttribute(vb, "GAP", "10");
+//	IupSetAttribute(vb, "MARGIN", "10x10");
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
 	
-//	Ihandle* dialog = IupDialog(vb);
+	
+	/*
+	Ihandle* frame1 = IupFrame(vb);
+	IupSetAttribute(frame1, "TITLE", "Frame Title");
+	IupSetAttribute(frame1, "CLIENTOFFSET", "10x10");
+	IupSetAttribute(frame1, "CLIENTSIZE", "10x10");
+*/
+	
+	Ihandle* dialog = IupDialog(vb);
+//	Ihandle* dialog = IupDialog(frame1);
 //	Ihandle* dialog = IupDialog(button);
-	Ihandle* dialog = IupDialog(list);
+//	Ihandle* dialog = IupDialog(list);
 
 	//IupMap(dialog);
 	
+	
+	Ihandle* about_menu_item = IupItem("About",
+		NULL
+	);
+	Ihandle* menu_file = IupMenu(
+		about_menu_item,
+		NULL
+	);
+	Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
+	Ihandle* menu_bar = IupMenu(
+		sub_menu_file,
+	NULL
+	);
+	IupSetAttributeHandle(dialog, "MENU", menu_bar);
+
 	IupShow(dialog);
 
 }

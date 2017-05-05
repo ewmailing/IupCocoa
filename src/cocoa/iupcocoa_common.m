@@ -268,6 +268,7 @@ void iupdrvBaseUnMapMethod(Ihandle* ih)
 {
 	// Why do I need this when everything else has its own UnMap method?
 	NSLog(@"iupdrvBaseUnMapMethod not implemented. Might be leaking");
+	[ih->handle release];
 }
 
 void iupdrvDisplayUpdate(Ihandle *ih)
