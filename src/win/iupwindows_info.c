@@ -210,7 +210,7 @@ int iupdrvGetPreferencePath(char *filename, int str_len)
   }
   else
   {
-    filename[0] = "\0";
+    filename[0] = '\0';
     return 0;
   }
 }
