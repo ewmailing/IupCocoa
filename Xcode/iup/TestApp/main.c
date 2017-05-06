@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "iup.h"
 #include "iupkey.h"
+#include "iup_config.h"
 
 static void text2multiline (Ihandle* ih, char* attribute)
 {
@@ -1052,6 +1053,11 @@ void IupEntryPoint()
 int main(int argc, char* argv[])
 {
 	IupOpen(0, NULL);
+	
+	Ihandle* g_configFileData = IupConfig();
+	IupSetStrAttribute(g_configFileData, "APP_NAME", "TestApp");
+	IupConfigLoad(g_configFileData);
+
 	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
 	IupMainLoop();
 
