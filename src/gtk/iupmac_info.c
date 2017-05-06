@@ -257,20 +257,20 @@ int iupdrvGetPreferencePath(char *filename, int str_len)
     size_t num = strlcpy(filename, home, str_len);
     if (num >= str_len)
     {
-      filename[0] = "\0";
+      filename[0] = '\0';
       return 0;
 	}
     num = strlcat(filename, "/", str_len);
     if (num >= str_len)
     {
-      filename[0] = "\0";
+      filename[0] = '\0';
       return 0;
 	}
     return 1;
   }
   else
   {
-    filename[0] = "\0";
+    filename[0] = '\0';
     return 0;
   }
 }

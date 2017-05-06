@@ -15,7 +15,7 @@
 #include "iup_config.h"
 #include "iup_linefile.h"
 #include "iup_str.h"
-
+#include "iup_drvinfo.h"
 
 #define GROUPKEYSIZE 100
 #define MAX_LINES 500
@@ -66,11 +66,11 @@ static char* iConfigSetFilename(Ihandle* ih)
     return NULL;
 
 #if defined(__ANDROID__)
-  iupdrvGetPreferenceDirectory(filename, 10240);
+  iupdrvGetPreferencePath(filename, 10240);
   strlcat(filename, app_name, 10240);
   strlcat(filename, ".cfg", 10240);
 #elif defined(__APPLE__)
-  iupdrvGetPreferenceDirectory(filename, 10240);
+  iupdrvGetPreferencePath(filename, 10240);
   strlcat(filename, app_name, 10240);
   strlcat(filename, ".cfg", 10240);
 #else
