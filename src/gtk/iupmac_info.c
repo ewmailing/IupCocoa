@@ -242,3 +242,36 @@ char* iupdrvLocaleInfo(void)
 {
   return iupStrReturnStr(nl_langinfo(CODESET));
 }
+
+int iupdrvGetPreferencePath(char *filename, int str_len)
+{
+  /* This implementation is wrong. The correct one is found in cocoa.
+  The Cocoa version requires a .m file but this is a .c file.
+  This implementation is copied from the original iConfigSetFilename
+  which is not the correct location for Mac.
+  */
+  home = getenv("HOME");
+  if (home)
+  {
+    /* UNIX format */
+    size_t num = strlcpy(filename, home, str_len);
+    if (num >= str_len)
+    {
+      filename[0] = "\0";
+      return 0;
+	}
+    num = strlcat(filename, "/", str_len);
+    if (num >= str_len)
+    {
+      filename[0] = "\0";
+      return 0;
+	}
+    return 1;
+  }
+  else
+  {
+    filename[0] = "\0";
+    return 0;
+  }
+}
+

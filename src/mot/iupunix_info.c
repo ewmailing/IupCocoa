@@ -251,6 +251,33 @@ char *iupdrvGetUserName(void)
   return (char*)getlogin();
 }
 
+int iupdrvGetPreferencePath(char *filename, int str_len)
+{
+  /* This implementation is copied from the original iConfigSetFilename */
+  home = getenv("HOME");
+  if (home)
+  {
+    /* UNIX format */
+    size_t num = strlcpy(filename, home, str_len);
+    if (num >= str_len)
+    {
+      filename[0] = "\0";
+      return 0;
+	}
+    num = strlcat(filename, "/", str_len);
+    if (num >= str_len)
+    {
+      filename[0] = "\0";
+      return 0;
+	}
+    return 1;
+  }
+  else
+  {
+    filename[0] = "\0";
+    return 0;
+  }
+}
 
 /**************************************************************************/
 

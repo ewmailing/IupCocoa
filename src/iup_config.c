@@ -65,6 +65,15 @@ static char* iConfigSetFilename(Ihandle* ih)
   if (!app_name)
     return NULL;
 
+#if defined(__ANDROID__)
+  iupdrvGetPreferenceDirectory(filename, 10240);
+  strlcat(filename, app_name, 10240);
+  strlcat(filename, ".cfg", 10240);
+#elif defined(__APPLE__)
+  iupdrvGetPreferenceDirectory(filename, 10240);
+  strlcat(filename, app_name, 10240);
+  strlcat(filename, ".cfg", 10240);
+#else
   home = getenv("HOME");
   if (home && !app_config)
   {
@@ -101,6 +110,7 @@ static char* iConfigSetFilename(Ihandle* ih)
 #endif
     }
   }
+#endif
 
   IupSetStrAttribute(ih, "FILENAME", filename);
 

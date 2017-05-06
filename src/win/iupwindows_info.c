@@ -194,3 +194,24 @@ char *iupdrvGetUserName(void)
   GetUserNameA((LPSTR)str, &size);
   return (char*)str;
 }
+
+int iupdrvGetPreferencePath(char *filename, int str_len)
+{
+  /* This implementation is copied from the original iConfigSetFilename */
+  char* homedrive = getenv("HOMEDRIVE");
+  char* homepath = getenv("HOMEPATH");
+  if (homedrive && homepath)
+  {
+    /* bounds checks are skipped because Visual Studio has a bad track record of supporting safe versions. */
+    strcpy(filename, homedrive);
+    strcat(filename, homepath);
+    strcat(filename, "\\");
+    return 1;
+  }
+  else
+  {
+    filename[0] = "\0";
+    return 0;
+  }
+}
+
