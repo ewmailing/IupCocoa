@@ -17,6 +17,7 @@
 		002CC4D51EA241E90007C8E7 /* iupdraw.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4D31EA241E90007C8E7 /* iupdraw.h */; };
 		002CC4D71EA24A850007C8E7 /* iupcocoa_calendar.m in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */; };
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
+		005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */; };
 		0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0070FB981E0E0B79009A8631 /* IupAppDelegate.h */; };
 		0070FB9B1E0E0B79009A8631 /* IupAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB991E0E0B79009A8631 /* IupAppDelegate.m */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
@@ -142,11 +143,6 @@
 		00E3A7E21B60583600BEC175 /* iup_val.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6CB1B60583600BEC175 /* iup_val.h */; };
 		00E3A7E31B60583600BEC175 /* iup_vbox.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6CC1B60583600BEC175 /* iup_vbox.c */; };
 		00E3A7E41B60583600BEC175 /* iup_zbox.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6CD1B60583600BEC175 /* iup_zbox.c */; };
-		00E3A7E51B60583600BEC175 /* iupgtk.def in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6CE1B60583600BEC175 /* iupgtk.def */; };
-		00E3A7E61B60583600BEC175 /* iupstub.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6CF1B60583600BEC175 /* iupstub.mak */; };
-		00E3A7E71B60583600BEC175 /* make_uname in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6D01B60583600BEC175 /* make_uname */; };
-		00E3A7E81B60583600BEC175 /* make_uname.bat in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6D11B60583600BEC175 /* make_uname.bat */; };
-		00E3A7E91B60583600BEC175 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6D21B60583600BEC175 /* Makefile */; };
 		00E3A8691B60595300BEC175 /* iup.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83B1B60595300BEC175 /* iup.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A86A1B60595300BEC175 /* iup_class_cbs.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83C1B60595300BEC175 /* iup_class_cbs.hpp */; };
 		00E3A86B1B60595300BEC175 /* iup_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83D1B60595300BEC175 /* iup_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -242,6 +238,7 @@
 		002CC4D31EA241E90007C8E7 /* iupdraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupdraw.h; sourceTree = "<group>"; };
 		002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_calendar.m; sourceTree = "<group>"; };
 		00346C3F1B6880140045148B /* iupcocoa_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_info.m; sourceTree = "<group>"; };
+		005DCBA31EBD659500A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalMainMenu.xib; sourceTree = "<group>"; };
 		0070FB981E0E0B79009A8631 /* IupAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegate.h; sourceTree = "<group>"; };
 		0070FB991E0E0B79009A8631 /* IupAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupAppDelegate.m; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -485,6 +482,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		005DCB9F1EBD659500A66253 /* xib */ = {
+			isa = PBXGroup;
+			children = (
+				005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */,
+			);
+			path = xib;
+			sourceTree = "<group>";
+		};
 		00E3A5E31B60578200BEC175 = {
 			isa = PBXGroup;
 			children = (
@@ -737,6 +742,7 @@
 		00E3A8971B605A7500BEC175 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				005DCB9F1EBD659500A66253 /* xib */,
 				002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */,
 				00346C3F1B6880140045148B /* iupcocoa_info.m */,
 				00E3A8EC1B609AE000BEC175 /* iupcocoa_clipboard.m */,
@@ -1026,9 +1032,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00E3A76C1B60583600BEC175 /* iup.def in Resources */,
-				00E3A7E71B60583600BEC175 /* make_uname in Resources */,
-				00E3A7E81B60583600BEC175 /* make_uname.bat in Resources */,
-				00E3A7E51B60583600BEC175 /* iupgtk.def in Resources */,
+				005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1097,7 +1101,6 @@
 				00E3A8C01B605FB300BEC175 /* iupcocoa_open.m in Sources */,
 				00E3A7E11B60583600BEC175 /* iup_val.c in Sources */,
 				00E3A8D31B608ED900BEC175 /* iupcocoa_colordlg.m in Sources */,
-				00E3A7E61B60583600BEC175 /* iupstub.mak in Sources */,
 				00E3A7C21B60583600BEC175 /* iup_progressbar.c in Sources */,
 				00E3A7841B60583600BEC175 /* iup_config.c in Sources */,
 				00E3A7B41B60583600BEC175 /* iup_maskparse.c in Sources */,
@@ -1148,7 +1151,6 @@
 				00E3A79A1B60583600BEC175 /* iup_getparam.c in Sources */,
 				00E3A7731B60583600BEC175 /* iup_backgroundbox.c in Sources */,
 				00E3A7D01B60583600BEC175 /* iup_str.c in Sources */,
-				00E3A7E91B60583600BEC175 /* Makefile in Sources */,
 				00E3A7C01B60583600BEC175 /* iup_predialogs.c in Sources */,
 				00E3A7A11B60583600BEC175 /* iup_key.c in Sources */,
 				00E3A7E01B60583600BEC175 /* iup_user.c in Sources */,
@@ -1218,6 +1220,17 @@
 			targetProxy = 00E3A9051B609B8700BEC175 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				005DCBA31EBD659500A66253 /* Base */,
+			);
+			name = CanonicalMainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		00E3A6011B60578300BEC175 /* Debug */ = {

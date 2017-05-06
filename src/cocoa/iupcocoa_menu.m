@@ -239,12 +239,36 @@ static void cocoaMenuUnMapMethod(Ihandle* ih)
 void iupdrvMenuInitClass(Iclass* ic)
 {
 
-	
-	id app_menu = [[[NSMenu alloc] init] autorelease];
 	id app_name = [[NSProcessInfo processInfo] processName];
+#if 0
+	id app_menu = [[[NSMenu alloc] init] autorelease];
+	
+	id about_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"About", @"About") action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""] autorelease];
+	id preferences_menu_item = [[[NSMenuItem alloc] initWithTitle:[NSLocalizedString(@"Preferences", @"Preferences") stringByAppendingString:@"…"] action:nil keyEquivalent:@","] autorelease];
+	id services_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Services", @"Services") action:nil keyEquivalent:@""] autorelease];
+	id hide_menu_item = [[[NSMenuItem alloc] initWithTitle:[[NSLocalizedString(@"Hide", @"Hide") stringByAppendingString:@" "] stringByAppendingString:app_name] action:@selector(hide:) keyEquivalent:@"h"] autorelease];
+	id hideothers_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Hide Others", @"Hide Others") action:@selector(hideOtherApplications:) keyEquivalent:@"h"] autorelease];
+	[hideothers_menu_item setKeyEquivalentModifierMask:NSEventModifierFlagOption|NSEventModifierFlagCommand];
+	id showall_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Show All", @"Show All") action:@selector(unhideAllApplications:) keyEquivalent:@""] autorelease];
 	id quit_title = [[NSLocalizedString(@"Quit", @"Quit") stringByAppendingString:@" "] stringByAppendingString:app_name];
 	id quit_menu_item = [[[NSMenuItem alloc] initWithTitle:quit_title action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+
+
+	[app_menu addItem:about_menu_item];
+	[app_menu addItem:[NSMenuItem separatorItem]];
+	[app_menu addItem:preferences_menu_item];
+	[app_menu addItem:[NSMenuItem separatorItem]];
+	[app_menu addItem:services_menu_item];
+	[app_menu addItem:[NSMenuItem separatorItem]];
+	[app_menu addItem:hide_menu_item];
+	[app_menu addItem:hideothers_menu_item];
+	[app_menu addItem:showall_menu_item];
+	[app_menu addItem:[NSMenuItem separatorItem]];
 	[app_menu addItem:quit_menu_item];
+	
+	id services_sub_menu = [[[NSMenu alloc] init] autorelease];
+	[services_menu_item setSubmenu:services_sub_menu];
+
 
 	id app_menu_category = [[[NSMenuItem alloc] init] autorelease];
 	[app_menu_category setSubmenu:app_menu];
@@ -298,7 +322,7 @@ void iupdrvMenuInitClass(Iclass* ic)
 	
 	id find_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find", @"Find") action:@selector(performFindPanelAction:) keyEquivalent:@"f"] autorelease];
 	id findreplace_menu_item = [[[NSMenuItem alloc] initWithTitle:[NSLocalizedString(@"Find and Replace", @"Find and Replace") stringByAppendingString:@"…"] action:@selector(performFindPanelAction:) keyEquivalent:@"f"] autorelease];
-	[findreplace_menu_item setKeyEquivalentModifierMask:NSAlternateKeyMask];
+	[findreplace_menu_item setKeyEquivalentModifierMask:NSEventModifierFlagOption|NSEventModifierFlagCommand];
 	id findnext_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find Next", @"Find Next") action:@selector(performFindPanelAction:) keyEquivalent:@"g"] autorelease];
 	id findprevious_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Find Previous", @"Find Previous") action:@selector(performFindPanelAction:) keyEquivalent:@"G"] autorelease];
 	id useselection_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use Selection for Find", @"Use Selection for Find") action:@selector(performFindPanelAction:) keyEquivalent:@"e"] autorelease];
@@ -321,18 +345,82 @@ void iupdrvMenuInitClass(Iclass* ic)
 
 	
 
+	id minimize_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Minimize", @"Minimize") action:@selector(performMiniaturize:) keyEquivalent:@"m"] autorelease];
+	id zoom_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Zoom", @"Zoom") action:@selector(performZoom:) keyEquivalent:@""] autorelease];
+	id bringallfront_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Bring All to Front", @"Bring All to Front") action:@selector(arrangeInFront:) keyEquivalent:@""] autorelease];
+
+
+	id window_menu = [[[NSMenu alloc] init] autorelease];
+	[window_menu setTitle:NSLocalizedString(@"Window", @"Window")];
+	
+	[window_menu addItem:minimize_menu_item];
+	[window_menu addItem:zoom_menu_item];
+	[window_menu addItem:[NSMenuItem separatorItem]];
+	[window_menu addItem:bringallfront_menu_item];
+
+	id window_menu_category = [[[NSMenuItem alloc] init] autorelease];
+	[window_menu_category setSubmenu:window_menu];
+	// This is supposed to do nothing. This is a cheat so I can look up this menu item later and try to reuse it.
+	[window_menu_category setTitle:NSLocalizedString(@"Window", @"Window")];
 
 	
 	
+	id help_menu_item = [[[NSMenuItem alloc] initWithTitle:[[app_name stringByAppendingString:@" "] stringByAppendingString:NSLocalizedString(@"Help", @"Help")] action:@selector(showHelp:) keyEquivalent:@"?"] autorelease];
+	id help_menu = [[[NSMenu alloc] init] autorelease];
+	[help_menu setTitle:NSLocalizedString(@"Help", @"Help")];
+	
+	[help_menu addItem:help_menu_item];
+
+	id help_menu_category = [[[NSMenuItem alloc] init] autorelease];
+	[help_menu_category setSubmenu:help_menu];
+	// This is supposed to do nothing. This is a cheat so I can look up this menu item later and try to reuse it.
+	[help_menu_category setTitle:NSLocalizedString(@"Window", @"Window")];
+	
+	
 	id menu_bar = [[[NSMenu alloc] init] autorelease];
-	[NSApp setMainMenu:menu_bar];
+//	[NSApp setMainMenu:menu_bar];
 	
 	[menu_bar addItem:app_menu_category];
 	[menu_bar addItem:file_menu_category];
 	[menu_bar addItem:edit_menu_category];
+	[menu_bar addItem:window_menu_category];
+	[menu_bar addItem:help_menu_category];
+#else
+	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
+	NSNib* main_menu_nib = [[[NSNib alloc] initWithNibNamed:@"CanonicalMainMenu" bundle:framework_bundle] autorelease];
 
+	NSMenu* menu_bar = nil;
 
-	
+	NSArray* top_level_objects = nil;
+	if([main_menu_nib instantiateWithOwner:nil topLevelObjects:&top_level_objects])
+	{
+		for(id current_object in top_level_objects)
+		{
+			if([current_object isKindOfClass:[NSMenu class]])
+			{
+				menu_bar = current_object;
+				[NSApp setMainMenu:current_object];
+				break;
+			}
+		}
+	}
+	// Go through the items and replace the hardcoded MacCocoaAppTemplate with the real app name.
+	for(NSMenuItem* current_top_item in [menu_bar itemArray])
+	{
+		NSMenu* current_menu = [current_top_item submenu];
+		// Note: This does not recurse down submenus of the primary submenu
+		for(NSMenuItem* current_menu_item in [current_menu itemArray])
+		{
+			NSString* title_string = [current_menu_item title];
+			NSString* fixed_string = [title_string stringByReplacingOccurrencesOfString:@"MacCocoaAppTemplate" withString:app_name];
+			if(![title_string isEqualToString:fixed_string])
+			{
+				[current_menu_item setTitle:fixed_string];
+			}
+		}
+	}
+
+#endif
 	
 //	ic->Release = cocoaReleaseMenuClass;
 
