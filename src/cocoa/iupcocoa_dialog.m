@@ -606,7 +606,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	ih->data->first_show = 1;
 
 
-//	[window setTitle:appName];
+//	[the_window setTitle:@"First Window"];
 	
 	ih->handle = (__unsafe_unretained void*)the_window;
 	

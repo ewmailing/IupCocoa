@@ -241,11 +241,37 @@ void iupdrvMenuInitClass(Iclass* ic)
 
 	id app_name = [[NSProcessInfo processInfo] processName];
 #if 0
+	
+	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
+
+	/* Note: I discovered that some menus use private/magic capabilites which are not accessible through public API.
+	 The Services menu and Window are two major examples. They have a extra field in the XIB data as systemMenu="services" and systemMenu="window"
+	 The Help and App menu also have systemMenu entries.
+	 So the only solution is to use Interface Builder files to provide these.
+	 The debate is whether to just target the individual pieces or provide a single monolithic XIB with everything.
+	 */
+	
 	id app_menu = [[[NSMenu alloc] init] autorelease];
 	
-	id about_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"About", @"About") action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""] autorelease];
+	id about_menu_item = [[[NSMenuItem alloc] initWithTitle:[[NSLocalizedString(@"About", @"About") stringByAppendingString:@" "] stringByAppendingString:app_name] action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""] autorelease];
 	id preferences_menu_item = [[[NSMenuItem alloc] initWithTitle:[NSLocalizedString(@"Preferences", @"Preferences") stringByAppendingString:@"…"] action:nil keyEquivalent:@","] autorelease];
-	id services_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Services", @"Services") action:nil keyEquivalent:@""] autorelease];
+//	id services_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Services", @"Services") action:nil keyEquivalent:@""] autorelease];
+	//	id services_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Services", @"Services") action:nil keyEquivalent:@""] autorelease];
+	NSNib* services_menu_item_nib = [[[NSNib alloc] initWithNibNamed:@"CanonicalServiceMenu" bundle:framework_bundle] autorelease];
+	NSArray* top_level_objects = nil;
+	id services_menu_item = nil;
+	if([services_menu_item_nib instantiateWithOwner:nil topLevelObjects:&top_level_objects])
+	{
+		for(id current_object in top_level_objects)
+		{
+			if([current_object isKindOfClass:[NSMenuItem class]])
+			{
+				services_menu_item = current_object;
+				break;
+			}
+		}
+	}
+	
 	id hide_menu_item = [[[NSMenuItem alloc] initWithTitle:[[NSLocalizedString(@"Hide", @"Hide") stringByAppendingString:@" "] stringByAppendingString:app_name] action:@selector(hide:) keyEquivalent:@"h"] autorelease];
 	id hideothers_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Hide Others", @"Hide Others") action:@selector(hideOtherApplications:) keyEquivalent:@"h"] autorelease];
 	[hideothers_menu_item setKeyEquivalentModifierMask:NSEventModifierFlagOption|NSEventModifierFlagCommand];
@@ -266,8 +292,8 @@ void iupdrvMenuInitClass(Iclass* ic)
 	[app_menu addItem:[NSMenuItem separatorItem]];
 	[app_menu addItem:quit_menu_item];
 	
-	id services_sub_menu = [[[NSMenu alloc] init] autorelease];
-	[services_menu_item setSubmenu:services_sub_menu];
+//	id services_sub_menu = [[[NSMenu alloc] init] autorelease];
+//	[services_menu_item setSubmenu:services_sub_menu];
 
 
 	id app_menu_category = [[[NSMenuItem alloc] init] autorelease];
@@ -344,7 +370,7 @@ void iupdrvMenuInitClass(Iclass* ic)
 	[edit_menu_category setTitle:NSLocalizedString(@"Edit", @"Edit")];
 
 	
-
+/*
 	id minimize_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Minimize", @"Minimize") action:@selector(performMiniaturize:) keyEquivalent:@"m"] autorelease];
 	id zoom_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Zoom", @"Zoom") action:@selector(performZoom:) keyEquivalent:@""] autorelease];
 	id bringallfront_menu_item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Bring All to Front", @"Bring All to Front") action:@selector(arrangeInFront:) keyEquivalent:@""] autorelease];
@@ -362,7 +388,23 @@ void iupdrvMenuInitClass(Iclass* ic)
 	[window_menu_category setSubmenu:window_menu];
 	// This is supposed to do nothing. This is a cheat so I can look up this menu item later and try to reuse it.
 	[window_menu_category setTitle:NSLocalizedString(@"Window", @"Window")];
-
+*/
+	NSNib* window_menu_category_nib = [[[NSNib alloc] initWithNibNamed:@"CanonicalWindowMenu" bundle:framework_bundle] autorelease];
+	top_level_objects = nil;
+	id window_menu_category = nil;
+	if([window_menu_category_nib instantiateWithOwner:nil topLevelObjects:&top_level_objects])
+	{
+		for(id current_object in top_level_objects)
+		{
+			if([current_object isKindOfClass:[NSMenuItem class]])
+			{
+				window_menu_category = current_object;
+				break;
+			}
+		}
+	}
+	// This is supposed to do nothing. This is a cheat so I can look up this menu item later and try to reuse it.
+	[window_menu_category setTitle:NSLocalizedString(@"Window", @"Window")];
 	
 	
 	id help_menu_item = [[[NSMenuItem alloc] initWithTitle:[[app_name stringByAppendingString:@" "] stringByAppendingString:NSLocalizedString(@"Help", @"Help")] action:@selector(showHelp:) keyEquivalent:@"?"] autorelease];
@@ -378,7 +420,7 @@ void iupdrvMenuInitClass(Iclass* ic)
 	
 	
 	id menu_bar = [[[NSMenu alloc] init] autorelease];
-//	[NSApp setMainMenu:menu_bar];
+	[NSApp setMainMenu:menu_bar];
 	
 	[menu_bar addItem:app_menu_category];
 	[menu_bar addItem:file_menu_category];
