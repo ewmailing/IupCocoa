@@ -30,15 +30,34 @@
 
 
 extern "C" {
-void iupdrvFrameGetDecorOffset(int *x, int *y)
+void iupdrvFrameGetDecorOffset(Ihandle* ih, int *x, int *y)
 {
   *x = 3;
   *y = 1;
 }
 
-int iupdrvFrameHasClientOffset(void)
+int iupdrvFrameHasClientOffset(Ihandle* ih)
 {
   return 1;
+}
+void iupdrvFrameGetTitleHeight(Ihandle* ih, int *h)
+{
+  int charheight;
+  iupdrvFontGetCharSize(ih, NULL, &charheight);
+  *h = charheight;
+}
+
+void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h)
+{
+  *w = 5;
+  *h = 5;
+
+  if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
+  {
+    int title_height;
+    iupdrvFrameGetTitleHeight(ih, &title_height);
+    (*h) += title_height;
+  }
 }
 }
 

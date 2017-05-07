@@ -29,7 +29,7 @@
 #include "iupwin_str.h"
 
 
-void iupdrvFrameGetDecorOffset(int *x, int *y)
+void iupdrvFrameGetDecorOffset(Ihandle* ih, int *x, int *y)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   if (iupwin_comctl32ver6)
@@ -44,9 +44,29 @@ void iupdrvFrameGetDecorOffset(int *x, int *y)
   }
 }
 
-int iupdrvFrameHasClientOffset(void)
+int iupdrvFrameHasClientOffset(Ihandle* ih)
 {
   return 1;
+}
+
+void iupdrvFrameGetTitleHeight(Ihandle* ih, int *h)
+{
+  int charheight;
+  iupdrvFontGetCharSize(ih, NULL, &charheight);
+  *h = charheight;
+}
+
+void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h)
+{
+  *w = 5;
+  *h = 5;
+
+  if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
+  {
+    int title_height;
+    iupdrvFrameGetTitleHeight(ih, &title_height);
+    (*h) += title_height;
+  }
 }
 
 static int winFrameSetBgColorAttrib(Ihandle* ih, const char* value)
