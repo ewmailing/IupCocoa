@@ -250,6 +250,8 @@ int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
   This implementation is copied from the original iConfigSetFilename
   which is not the correct location for Mac.
   */
+#warning "iupdrvGetPreferencePath in gtk/iupmac_info.c is an obsolete and incorrect"
+  char* home;
   home = getenv("HOME");
   if (home)
   {
