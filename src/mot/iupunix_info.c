@@ -254,18 +254,19 @@ char *iupdrvGetUserName(void)
 int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
 {
   /* This implementation is copied from the original iConfigSetFilename */
+  /* Not using strlcpy, strlcat for compatibility reasons. */
   char* home;
   home = getenv("HOME");
   if (home)
   {
     /* UNIX format */
-    size_t num = strlcpy(filename, home, str_len);
+    size_t num = strcpy(filename, home);
     if (num >= str_len)
     {
       filename[0] = '\0';
       return 0;
 	}
-    num = strlcat(filename, "/", str_len);
+    num = strcat(filename, "/");
     if (num >= str_len)
     {
       filename[0] = '\0';
