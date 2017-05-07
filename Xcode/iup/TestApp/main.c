@@ -1015,15 +1015,15 @@ void IupEntryPoint()
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
 	
 	
-	/*
+	
 	Ihandle* frame1 = IupFrame(vb);
 	IupSetAttribute(frame1, "TITLE", "Frame Title");
 	IupSetAttribute(frame1, "CLIENTOFFSET", "10x10");
 	IupSetAttribute(frame1, "CLIENTSIZE", "10x10");
-*/
+
 	
-	Ihandle* dialog = IupDialog(vb);
-//	Ihandle* dialog = IupDialog(frame1);
+//	Ihandle* dialog = IupDialog(vb);
+	Ihandle* dialog = IupDialog(frame1);
 //	Ihandle* dialog = IupDialog(button);
 //	Ihandle* dialog = IupDialog(list);
 
