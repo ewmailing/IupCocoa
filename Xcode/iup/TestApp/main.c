@@ -1052,12 +1052,27 @@ void IupEntryPoint()
 
 int main(int argc, char* argv[])
 {
+	int ret_val;
 	IupOpen(0, NULL);
 	
-	Ihandle* g_configFileData = IupConfig();
-	IupSetStrAttribute(g_configFileData, "APP_NAME", "TestApp");
-	IupConfigLoad(g_configFileData);
+	Ihandle* config_file = IupConfig();
+	IupSetStrAttribute(config_file, "APP_NAME", "TestApp");
+	ret_val = IupConfigLoad(config_file);
 
+	if(ret_val == 0)
+	{
+		const char* config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
+		printf("config value is %s\n", config_value);
+	}
+	else
+	{
+		printf("config file not found\n");
+	}
+	IupConfigSetVariableStr(config_file, "Group1", "Key1", "Value1");
+	IupConfigSave(config_file);
+	IupDestroy(config_file);
+	config_file = NULL;
+	
 	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
 	IupMainLoop();
 
