@@ -11,12 +11,14 @@
 extern "C" {
 #endif
 
-int iupdrvFrameHasClientOffset(void);
+int iupdrvFrameHasClientOffset(Ihandle* ih);
 void iupdrvFrameInitClass(Iclass* ic);
-void iupdrvFrameGetDecorOffset(int *x, int *y);
+void iupdrvFrameGetDecorOffset(Ihandle* ih, int *x, int *y);
 int iupFrameGetTitleHeight(Ihandle* ih);
 char* iupFrameGetBgColorAttrib(Ihandle* ih);
-
+void iupdrvFrameGetTitleHeight(Ihandle* ih, int *h);
+void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h);
+	
 #ifdef __cplusplus
 }
 #endif
