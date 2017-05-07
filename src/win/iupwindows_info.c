@@ -11,6 +11,7 @@
    and Windows system headers. */
 
 #include <windows.h>
+#include <ShlObj.h> /* for SHGetFolderPath */
 
 #include "iup_str.h"
 #include "iup_drvinfo.h"
