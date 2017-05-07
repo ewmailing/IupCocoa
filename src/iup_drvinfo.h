@@ -95,7 +95,7 @@ char* iupdrvLocaleInfo(void);
  * Do not pass in an NULL or a string of length 0.
  * strlen probably should be size_t instead of int, but this header includes no headers.
  * \ingroup drvinfo */
-int iupdrvGetPreferencePath(char *filename, int str_len);
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name);
 
 #ifdef __cplusplus
 }
