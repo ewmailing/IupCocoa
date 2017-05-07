@@ -51,7 +51,6 @@ static char* iConfigSetFilename(Ihandle* ih)
   char* app_name;
   char* app_path;
   int app_config;
-  char* home;
   int did_succeed;
   
   char filename[10240] = "";
@@ -90,14 +89,14 @@ static char* iConfigSetFilename(Ihandle* ih)
       return NULL;
 
       strcat(filename, app_path);
-#ifdef defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
       /* these platforms shouldn't use a .dot file */
 #else
       /* Unix generic hidden dot prefix */
       strcat(filename, ".");
 #endif
       strcat(filename, app_name);
-#ifdef defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
       strcat(filename, ".cfg");
 #endif
   }
