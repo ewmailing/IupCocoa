@@ -196,18 +196,8 @@ int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
   if (home)
   {
     /* UNIX format */
-    size_t num = strcpy(filename, home);
-    if (num >= str_len)
-    {
-      filename[0] = '\0';
-      return 0;
-	}
-    num = strcat(filename, "/");
-    if (num >= str_len)
-    {
-      filename[0] = '\0';
-      return 0;
-	}
+    strcpy(filename, home);
+    strcat(filename, "/");
     return 1;
   }
   else
