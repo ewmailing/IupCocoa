@@ -97,6 +97,13 @@ int iupdrvOpen(int *argc, char ***argv)
 	[NSApp setDelegate:[[IupAppDelegate alloc] init]];
 
 	
+	// TODO: Is it possible to support 10.12 automatic window tabbing?
+	if([NSWindow respondsToSelector:@selector(setAllowsAutomaticWindowTabbing:)])
+	{
+		[NSWindow setAllowsAutomaticWindowTabbing:NO];
+	}
+	
+	
   IupSetGlobal("DRIVER", "MAC");
 
 //  IupSetGlobal("SYSTEMLANGUAGE", iupmacGetSystemLanguage());
