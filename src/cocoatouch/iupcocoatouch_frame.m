@@ -72,15 +72,58 @@ static int cocoaFrameMapMethod(Ihandle* ih)
 }
 
 
-void iupdrvFrameGetDecorOffset(int *x, int *y)
+void iupdrvFrameGetDecorOffset(Ihandle* ih, int *x, int *y)
 {
-	*x = 2;
-	*y = 2;
+	// Drat: The padding will differ depending if there is a title or not (and where the title goes).
+	*x = 0;
+	*y = 0;
 }
 
-int iupdrvFrameHasClientOffset(void)
+int iupdrvFrameHasClientOffset(Ihandle* ih)
 {
+	// If I don't set this to true, the y-padding in iupdrvFrameGetDecorOffset does nothing.
+	// And without the padding, the first widget gets placed too high in the box and gets clipped.
+	// Unless...I set the GetInnerNativeContainerHandle callback. Then it seems I can avoid needing iupdrvFrameGetDecorOffset
 	return 0;
+}
+
+void iupdrvFrameGetTitleHeight(Ihandle* ih, int *h)
+{
+	// The title height uses a smaller font size than the normal system font,
+	// so don't use iupdrvFontGetCharSize() since I don't think that font is stored in the ih. (Maybe that should be fixed.)
+	// Also, it is offset differently depending on mode.
+	// Also, the NSBox size gets bigger if there is no text. This is different than what IUP expects.
+	// FIXME: Need to figure out different sizes. I'm pretty sure 0 is not correct.
+
+/*
+	if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
+	{
+	
+	}
+	else
+	{
+		
+	}
+*/
+	*h = 0;
+}
+
+void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h)
+{
+	// HACK: Need to make customizable based on whether title is shown or not.
+/*
+	if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
+	{
+	
+	}
+	else
+	{
+		
+	}
+*/
+	// FIXME: I put 14 as a first guess without measuring. It looked pretty good, but should be measured.
+	*w = 14;
+	*h = 14;
 }
 
 
