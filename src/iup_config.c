@@ -52,6 +52,7 @@ static char* iConfigSetFilename(Ihandle* ih)
   char* app_path;
   int app_config;
   char* home;
+  int did_succeed;
   
   char filename[10240] = "";
   char* app_filename = IupGetAttribute(ih, "APP_FILENAME");
@@ -65,52 +66,41 @@ static char* iConfigSetFilename(Ihandle* ih)
   if (!app_name)
     return NULL;
 
-#if defined(__ANDROID__)
-  iupdrvGetPreferencePath(filename, 10240);
-  strlcat(filename, app_name, 10240);
-  strlcat(filename, ".cfg", 10240);
-#elif defined(__APPLE__)
-  iupdrvGetPreferencePath(filename, 10240);
-  strlcat(filename, app_name, 10240);
-  strlcat(filename, ".cfg", 10240);
-#else
-  home = getenv("HOME");
-  if (home && !app_config)
+  did_succeed = iupdrvGetPreferencePath(filename, 10240, app_name);
+  if (did_succeed && !app_config)
   {
-    /* UNIX format */
-    strcat(filename, home);
-    strcat(filename, "/.");
+#if defined(__ANDROID__)
+    strlcat(filename, app_name, 10240);
+    strlcat(filename, ".cfg", 10240);
+#elif defined(__APPLE__)
+    strlcat(filename, app_name, 10240);
+    strlcat(filename, ".cfg", 10240);
+#elif defined(WIN32)
     strcat(filename, app_name);
+    strcat(filename, ".cfg");
+#else
+    /* UNIX format */
+    strcat(filename, ".");
+    strcat(filename, app_name);
+#endif
   }
   else
   {
-    /* Windows format */
-    char* homedrive = getenv("HOMEDRIVE");
-    char* homepath = getenv("HOMEPATH");
-    if (homedrive && homepath && !app_config)
-    {
-      strcat(filename, homedrive);
-      strcat(filename, homepath);
-      strcat(filename, "\\");
-      strcat(filename, app_name);
-      strcat(filename, ".cfg");
-    }
-    else
-    {
-      if (!app_path)
-        return NULL;
+    if (!app_path)
+      return NULL;
 
       strcat(filename, app_path);
-#ifndef WIN32
+#ifdef defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
+      /* these platforms shouldn't use a .dot file */
+#else
+      /* Unix generic hidden dot prefix */
       strcat(filename, ".");
 #endif
       strcat(filename, app_name);
-#ifdef WIN32
+#ifdef defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
       strcat(filename, ".cfg");
 #endif
-    }
   }
-#endif
 
   IupSetStrAttribute(ih, "FILENAME", filename);
 

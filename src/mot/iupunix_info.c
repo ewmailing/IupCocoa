@@ -251,7 +251,7 @@ char *iupdrvGetUserName(void)
   return (char*)getlogin();
 }
 
-int iupdrvGetPreferencePath(char *filename, int str_len)
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
 {
   /* This implementation is copied from the original iConfigSetFilename */
   home = getenv("HOME");

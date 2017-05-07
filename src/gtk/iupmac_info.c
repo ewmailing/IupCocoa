@@ -243,7 +243,7 @@ char* iupdrvLocaleInfo(void)
   return iupStrReturnStr(nl_langinfo(CODESET));
 }
 
-int iupdrvGetPreferencePath(char *filename, int str_len)
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
 {
   /* This implementation is wrong. The correct one is found in cocoa.
   The Cocoa version requires a .m file but this is a .c file.
