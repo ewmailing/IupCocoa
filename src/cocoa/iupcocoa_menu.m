@@ -791,8 +791,40 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 			//		NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] initWithTitle:[parent_menu title] action:nil keyEquivalent:@""];
 //			NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] initWithTitle:@"" action:@selector(onMenuItemAction:) keyEquivalent:@""];
 			NSMenuItem* menu_item_for_submenu = [[NSMenuItem alloc] init];
-			[parent_menu addItem:menu_item_for_submenu];
-	
+			
+			
+			/* 
+			Okay, now we're going to get tricky.
+			Cocoa has strong conventions about what should be in the menu and where.
+			Currently I'm operating on the assumption that we are going to pre-populate a default menu for IUP and the user is going to add (and maybe remove) items.
+			So we need to search through the existing menu and determine where things go.
+			Current assumption: All normal menu categories are already in the menu. So if the user adds a new one, we must put it in the right place.
+			The Apple Human User Interface Guidelines (HIG) state that new menu entries appear between the View and Window items.
+			View is also sometimes optional, so for robustness, we should scan for Window and insert right before Window. 
+			(This also handles the case where user entries have already been added since we will add after those entries which is expected behavior.)
+			*/
+			NSInteger index_to_insert_at = -1; // start at -1 because we are 1 slot before our stopping marker
+			BOOL found_window_slot = NO;
+			for(NSMenuItem* current_menu_item in [parent_menu itemArray])
+			{
+				index_to_insert_at = index_to_insert_at + 1;
+				if(([[current_menu_item title] isEqualToString:NSLocalizedString(@"Window", @"Window")]) || ([[current_menu_item title] isEqualToString:@"Window"]))
+				{
+					found_window_slot = YES;
+					break;
+				}
+			}
+			
+			if(found_window_slot)
+			{
+				[parent_menu insertItem:menu_item_for_submenu atIndex:index_to_insert_at];
+			}
+			else
+			{
+				NSLog(@"Warning: Did not find Window menu to insert category in");
+				[parent_menu addItem:menu_item_for_submenu];
+			}
+			
 			ih->handle = menu_item_for_submenu;
 //			[menu_item_for_submenu setTitle:ns_string];
 			[menu_item_for_submenu setTitleWithMnemonic:ns_string];
