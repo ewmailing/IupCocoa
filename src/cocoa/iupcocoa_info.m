@@ -371,7 +371,7 @@ char *iupdrvGetUserName(void)
 	
 }
 
-int iupdrvGetPreferencePath(char *filename, int str_len)
+int iupdrvGetPreferencePath(char *filename, int str_len, const char* app_name)
 {
 	NSArray* support_paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
 	if([support_paths count] > 0)
