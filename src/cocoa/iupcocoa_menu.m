@@ -449,6 +449,16 @@ void iupdrvMenuInitClass(Iclass* ic)
 	// Go through the items and replace the hardcoded MacCocoaAppTemplate with the real app name.
 	for(NSMenuItem* current_top_item in [menu_bar itemArray])
 	{
+
+		{
+			NSString* title_string = [current_top_item title];
+			NSString* fixed_string = [title_string stringByReplacingOccurrencesOfString:@"MacCocoaAppTemplate" withString:app_name];
+			if(![title_string isEqualToString:fixed_string])
+			{
+				[current_top_item setTitle:fixed_string];
+			}
+		}
+		
 		NSMenu* current_menu = [current_top_item submenu];
 		// Note: This does not recurse down submenus of the primary submenu
 		for(NSMenuItem* current_menu_item in [current_menu itemArray])
@@ -542,9 +552,6 @@ static int cocoaItemSetTitleAttrib(Ihandle* ih, const char* value)
 static int cocoaItemMapMethod(Ihandle* ih)
 {
 
-	NSLog(@"cocoaItemMapMethod");
-
-	
 	if(!ih->parent)
 	{
 		NSLog(@"IUP_ERROR cocoaItemMapMethod !ih->parent");
@@ -576,19 +583,62 @@ static int cocoaItemMapMethod(Ihandle* ih)
 		}
 	}
 	
-
-	NSMenuItem* menu_item = [[NSMenuItem alloc] init];
-	ih->handle = menu_item;
+	
+	
 	NSMenu* parent_menu = (NSMenu*)(ih->parent->handle);
-	[parent_menu addItem:menu_item];
+	const char* c_title = IupGetAttribute(ih, "TITLE");
+	NSString* ns_string = nil;
+	NSMenuItem* menu_item = nil;
+	if(!c_title)
+	{
+		ns_string = @"";
+	}
+	else
+	{
+		ns_string = [NSString stringWithUTF8String:c_title];
+		
+	}
+	// search through parent to see if this item already exists
+	for(NSMenuItem* current_menu_item in [parent_menu itemArray])
+	{
+		if([[current_menu_item title] isEqualToString:ns_string])
+		{
+			menu_item = current_menu_item;
+			break;
+		}
+	}
 	
-	// RepresentedObject is to handle the callbacks
-	IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
-	[menu_item setRepresentedObject:represented_object];
-	[represented_object release];
-	[menu_item setTarget:represented_object];
-	[menu_item setAction:@selector(onMenuItemAction:)];
-	
+	if(nil == menu_item)
+	{
+		// create new item
+		menu_item = [[NSMenuItem alloc] init];
+		ih->handle = menu_item;
+		[parent_menu addItem:menu_item];
+		
+		// RepresentedObject is to handle the callbacks
+		IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
+		[menu_item setRepresentedObject:represented_object];
+		[represented_object release];
+		[menu_item setTarget:represented_object];
+		[menu_item setAction:@selector(onMenuItemAction:)];
+	}
+	else
+	{
+		ih->handle = menu_item;
+		[menu_item retain];
+		
+		// For built-in XIB menu items, we may not have setup the represented object stuff, so do that now.
+		if([menu_item representedObject] == nil)
+		{
+			// RepresentedObject is to handle the callbacks
+			IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
+			[menu_item setRepresentedObject:represented_object];
+			[represented_object release];
+			[menu_item setTarget:represented_object];
+			[menu_item setAction:@selector(onMenuItemAction:)];
+		}
+		
+	}
 	
 	
 
@@ -754,7 +804,7 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 		
 		NSMenu* parent_menu = (NSMenu*)(ih->parent->handle);
 		NSArray* list_of_menu_items = [parent_menu itemArray];
-		NSInteger number_of_items = [parent_menu numberOfItems];
+//		NSInteger number_of_items = [parent_menu numberOfItems];
 		NSMenuItem* found_menu_item = nil;
 		
 		const char* c_title = IupGetAttribute(ih, "TITLE");
@@ -807,6 +857,7 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 			BOOL found_window_slot = NO;
 			for(NSMenuItem* current_menu_item in [parent_menu itemArray])
 			{
+//				NSLog(@"current_menu_item.title %@", [current_menu_item title]);
 				index_to_insert_at = index_to_insert_at + 1;
 				if(([[current_menu_item title] isEqualToString:NSLocalizedString(@"Window", @"Window")]) || ([[current_menu_item title] isEqualToString:@"Window"]))
 				{
