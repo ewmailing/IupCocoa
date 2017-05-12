@@ -4,6 +4,54 @@
 #include "iupkey.h"
 #include "iup_config.h"
 
+
+
+
+static int OnOpenFileSelect(Ihandle* button_object)
+{
+	int ret_status;
+	const char* selected_path = NULL;
+	Ihandle* file_dialog = IupFileDlg();
+	
+	
+	
+	//		printf("OnOpenFileSelect\n");
+	IupSetAttribute(file_dialog, "DIALOGTYPE", "DIR");
+	IupSetStrAttribute(file_dialog, "TITLE", "Select Project Directory");
+	
+//	IupSetStrAttribute(file_dialog, "DIRECTORY",ApplicationState_GetLastOpenFileDialogPath());
+	
+	
+	IupPopup(file_dialog, IUP_CURRENT, IUP_CURRENT);
+	
+	ret_status = IupGetInt(file_dialog, "STATUS");
+	
+	if(-1 != ret_status)
+	{
+#define MY_MAX_PATH_LEN 2048
+
+		
+		selected_path = IupGetAttribute(file_dialog, "VALUE");
+		//		SDL_Log("Selected path: %s", selected_path);
+		fprintf(stderr, "Selected path: %s\n", selected_path);
+		
+	}
+	else
+	{
+		/* user cancelled */
+		fprintf(stderr, "cancelled\n");
+
+	}
+	
+	//  printf("OnNewProjectCallback(button=%d, press=%d)\n", button, press);
+	
+	
+	
+	return IUP_DEFAULT;
+}
+
+
+
 static void text2multiline (Ihandle* ih, char* attribute)
 {
 	Ihandle *mltline = IupGetDialogChild(ih, "mltline");
@@ -1005,6 +1053,7 @@ static int OnDialogClose(Ihandle* the_dialog)
 
 static int CreateModalWindow(Ihandle* button_object)
 {
+#if 0
 	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
 	Ihandle* dialog2 = IupDialog(button);
 
@@ -1013,6 +1062,16 @@ static int CreateModalWindow(Ihandle* button_object)
 	IupSetCallback(button, "ACTION", (Icallback)OnButton);
 	
 	IupPopup(dialog2,  IUP_CENTER, IUP_CENTER);
+#else
+ 
+	Ihandle* button_makepopup = IupButton("Create Modal Window", "");
+	IupSetAttribute(button_makepopup, "EXPAND", "YES");
+	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
+	Ihandle* dialog2 = IupDialog(button_makepopup);
+
+	IupPopup(dialog2,  IUP_CENTER, IUP_CENTER);
+
+#endif
 	return IUP_DEFAULT;
 
 }
@@ -1021,15 +1080,48 @@ void IupEntryPoint()
 {
 	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
 
+
 	Ihandle* button_makepopup = IupButton("Create Modal Window", "");
+//	IupSetAttribute(button_makepopup, "EXPAND", "YES");
+	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
 
 	
 	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
-	
-	IupSetAttribute(button, "EXPAND", "YES");
-	IupSetAttribute(button_makepopup, "EXPAND", "YES");
+	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
+
+//	Ihandle* long_label = IupLabel("The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack. The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack.");
+//	IupSetAttribute(long_label, "SIZE", "260x60");
 
 	
+//	IupSetAttribute(long_label, "EXPAND", "YES");
+//	IupSetAttribute(button, "EXPAND", "YES");
+	Ihandle* simple_vb=IupVbox(button, button_makepopup, NULL);
+
+	//	Ihandle* simple_vb=IupVbox(long_label, NULL);
+//	Ihandle* simple_vb=IupVbox(button, long_label, NULL);
+
+	Ihandle* dialog_simple = IupDialog(simple_vb);
+	IupShow(dialog_simple);
+	
+	/*
+	Ihandle* about_menu_item = IupItem("About",
+									   NULL
+									   );
+	Ihandle* menu_file = IupMenu(
+								 about_menu_item,
+								 NULL
+								 );
+	Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
+	Ihandle* menu_bar = IupMenu(
+								sub_menu_file,
+								NULL
+								);
+	IupSetAttributeHandle(dialog_simple, "MENU", menu_bar);
+	 */
+	return;
+	
+	
+
 	//ProgressbarTest();
 	Ihandle* list = ListTest();
 	
@@ -1060,7 +1152,7 @@ void IupEntryPoint()
 
 	//IupMap(dialog);
 	
-	
+	/*
 	Ihandle* about_menu_item = IupItem("About",
 		NULL
 	);
@@ -1074,7 +1166,7 @@ void IupEntryPoint()
 	NULL
 	);
 	IupSetAttributeHandle(dialog, "MENU", menu_bar);
-
+*/
 	IupShow(dialog);
 
 	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
@@ -1122,7 +1214,7 @@ int main(int argc, char* argv[])
 	IupMainLoop();
 
 	// legacy: New way should assume IupMainLoop may return immediately or this code is never reached.
-	// IupClose();
+	IupClose();
 	
 	return 0;
 }
