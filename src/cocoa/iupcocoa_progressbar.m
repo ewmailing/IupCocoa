@@ -59,6 +59,8 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 //	[progress_bar setFrameCenterRotation:M_PI/180.0 * ih->data->value];
 
 	// Hack to test rotation
+	// The problem with this technique is that the widget "snaps back" on window resize.
+	// This is the typical problem of the layer going behind the view's back and the view eventually re-asserting itself.
 #if 0
 	CALayer* bar_layer = [progress_bar layer];
 	
@@ -66,7 +68,8 @@ static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
 	[bar_layer setAnchorPoint:CGPointMake(0.5, 0.5)];
 //	CGAffineTransform transform = progress_bar.layer.affineTransform;
 	CGAffineTransform transform = CGAffineTransformIdentity;
-	transform = CGAffineTransformRotate(transform, M_PI/180.0 * ih->data->value);
+//	transform = CGAffineTransformRotate(transform, M_PI/180.0 * ih->data->value);
+	transform = CGAffineTransformRotate(transform, M_PI/180.0 * 90.0);
 //	transform = CGAffineTransformRotate(transform, ih->data->value);
 	progress_bar.layer.affineTransform = transform;
 #endif
@@ -121,15 +124,18 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	
 //	NSProgressIndicator* progress_indicator = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
 	
-	[progress_indicator setUsesThreadedAnimation:YES];
 	
 	// FIXME: Iup doesn't seem to have explicit start/stop commands.
 	// Cocoa Indeterminate is for progresses you don't know the range for, but are still animated when in progress.
 	[progress_indicator startAnimation:nil];
 
 	
+	// Vertical mode is completely broken. This appears to be a Mac bug.
 	if (iupStrEqualNoCase(iupAttribGetStr(ih, "ORIENTATION"), "VERTICAL"))
 	{
+		// Saw a claim that threaded animation breaks vertical
+		[progress_indicator setUsesThreadedAnimation:NO];
+
 		// This might require layer-backed views to be active
 //		[progress_indicator setWantsLayer:YES];
 //		[progress_indicator setFrameCenterRotation:M_PI/180.0 * 90.0];
@@ -147,6 +153,7 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	else
 	{
 //		[progress_indicator setWantsLayer:NO];
+		[progress_indicator setUsesThreadedAnimation:YES];
 
 		
 	}
