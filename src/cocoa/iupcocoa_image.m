@@ -124,6 +124,7 @@ else
 }
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
   [image addRepresentation:theRep];
+	[image autorelease];
   return (void*)CFBridgingRetain(image);
 }
 
@@ -464,8 +465,9 @@ void* iupdrvImageCreateCursor(Ihandle *ih)
   NSPoint point = {hx,hy};
 
   NSCursor *cursor = [[NSCursor alloc] initWithImage:source hotSpot:point];
-
+	
   free(sbits);
+	[cursor autorelease];
   return (void*)CFBridgingRetain(cursor);
 }
 
@@ -526,6 +528,7 @@ void* iupdrvImageLoad(const char* name, int type)
   NSSize size = NSMakeSize ([rep pixelsWide], [rep pixelsHigh]);
   [image setSize: size];
   
+	[image autorelease];
   return (void*)CFBridgingRetain(image);
 }
 

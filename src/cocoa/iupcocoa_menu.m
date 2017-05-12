@@ -978,12 +978,17 @@ static int cocoaSeparatorMapMethod(Ihandle* ih)
 	return IUP_NOERROR;
 }
 
+static void cocoaSeparatorUnMapMethod(Ihandle* ih)
+{
+
+}
+
 void iupdrvSeparatorInitClass(Iclass* ic)
 {
 #if 1
   /* Driver Dependent Class functions */
   ic->Map = cocoaSeparatorMapMethod;
-  ic->UnMap = iupdrvBaseUnMapMethod;
+  ic->UnMap = cocoaSeparatorUnMapMethod;
 #endif
 	
 }

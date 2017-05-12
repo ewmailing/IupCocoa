@@ -101,7 +101,7 @@ static ImacFont* macFindFont(const char *standardfont)
   fonts = (ImacFont*)iupArrayInc(mac_fonts);
 
   strcpy(fonts[i].standardfont, standardfont);
-  fonts[i].hFont = hFont;          
+  fonts[i].hFont = [hFont retain];
   fonts[i].attributes = [attributes copy];
 //	fonts[i].charheight = (int)([hFont ascender] + fabs([hFont descender]) + 0.5);
 	//	fonts[i].charheight = (int)([hFont capHeight] + 0.5);
@@ -397,7 +397,8 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 	ImacFont* macfont = macFontGet(ih);
 
   NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
-
+	[ns_str release];
+	
   return iupROUND(size.width);
 }
 
@@ -426,8 +427,13 @@ void iupdrvFontFinish(void)
   ImacFont* fonts = (ImacFont*)iupArrayGetData(mac_fonts);
   for (i = 0; i < count; i++)
   {
+	  
+	  [fonts[i].hFont release];
+	  [fonts[i].attributes release];
     fonts[i].hFont = nil;
 	fonts[i].attributes = nil;
+//	  free(fonts[i]);
+//	  fonts[i] = NULL;
   }
   iupArrayDestroy(mac_fonts);
 }

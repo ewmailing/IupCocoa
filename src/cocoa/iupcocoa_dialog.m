@@ -90,8 +90,9 @@ static void cocoaDialogRunModalLoop(Ihandle* ih, NSWindow* the_window)
 	//	[NSApp endModalSession:the_session];
 	// UPDATE: I now believe the ghost/stuck windows are because of not using the [NSApp run] (real runloop). I now have a special case to handle this.
 
-	iupAttribSet(ih, "_COCOA_MODAL", "NO");
-	iupAttribSet(ih, "_COCOA_MODAL_SESSION", NULL);
+	// Drat: ih may be destroyed by now.
+//	iupAttribSet(ih, "_COCOA_MODAL", "NO");
+//	iupAttribSet(ih, "_COCOA_MODAL_SESSION", NULL);
 }
 
 
