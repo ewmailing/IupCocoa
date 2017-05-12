@@ -23,6 +23,7 @@
 
 
 static NSAutoreleasePool* s_autoreleasePool = nil;
+static IupAppDelegate* s_appDelegate = nil;
 
 #if 0
 char* iupmacGetNativeWindowHandle(Ihandle* ih)
@@ -93,8 +94,11 @@ int iupdrvOpen(int *argc, char ***argv)
 	[window makeKeyAndOrderFront:nil];
 	 */
 //	[NSApp activateIgnoringOtherApps:YES];
-	
-	[NSApp setDelegate:[[IupAppDelegate alloc] init]];
+	if(nil == s_appDelegate)
+	{
+		s_appDelegate = [[IupAppDelegate alloc] init];
+	}
+	[NSApp setDelegate:s_appDelegate];
 
 	
 	// TODO: Is it possible to support 10.12 automatic window tabbing?
@@ -117,7 +121,9 @@ int iupdrvOpen(int *argc, char ***argv)
 
 void iupdrvClose(void)
 {
-
+	[s_appDelegate release];
+	s_appDelegate = nil;
+	
 	// Hmmm...there could a problem. Objects might get called to be Destroyed after the close.
 	// They shouldn't do this.
 	// But if it happens, maybe we either never drain and do a dispatch_once.
