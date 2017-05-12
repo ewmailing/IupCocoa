@@ -338,7 +338,10 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
     } while(*nextstr);
 
 	  NSString* joined_string = [array_of_nsstring_lines componentsJoinedByString:@"\n"];
-	  
+	  // 10.11+
+	  // boundingRectWithSize:options:attributes:context:
+	  //
+	  // sizeWithFont:constrainedToSize:lineBreakMode: on iOS, but deprecated in iOS7
 	  NSSize size = [joined_string sizeWithAttributes: macfont->attributes];
 
 	  max_w = iupROUND(size.width);
@@ -396,6 +399,11 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 	
 	ImacFont* macfont = macFontGet(ih);
 
+
+	// 10.11+
+	// boundingRectWithSize:options:attributes:context:
+	//
+	// sizeWithFont:constrainedToSize:lineBreakMode: on iOS, but deprecated in iOS7
   NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
 	[ns_str release];
 	
@@ -412,7 +420,7 @@ void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
     return;
   }
 
-  if (charwidth)  *charwidth = macfont->charwidth; 
+  if (charwidth)  *charwidth = macfont->charwidth;
   if (charheight) *charheight = macfont->charheight;
 }
 

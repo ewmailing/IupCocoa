@@ -170,7 +170,17 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 //			NSLog(@"font %@", the_font);
 			[the_label setFont:[NSFont systemFontOfSize:0.0]];
 
-		
+			
+			
+			[the_label setUsesSingleLineMode:NO];
+			[[the_label cell] setWraps:YES];
+			[[the_label cell] setScrollable:NO];
+			
+//			[[the_label cell] setTruncatesLastVisibleLine:YES];
+
+			// setLineBreakMode Requires 10.10+. Allows for both word wrapping and different ellipsis behaviors.
+//			[the_label setLineBreakMode:NSLineBreakByWordWrapping];
+
 		}
 	}
 	
