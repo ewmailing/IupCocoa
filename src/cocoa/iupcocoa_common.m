@@ -359,11 +359,23 @@ int iupdrvIsVisible(Ihandle* ih)
 
 int iupdrvIsActive(Ihandle *ih)
 {
-  return 1;
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSControl class]])
+	{
+		NSControl* the_control = (NSControl*)the_object;
+		return [the_control isEnabled];
+	}
+	return 1;
 }
 
 void iupdrvSetActive(Ihandle* ih, int enable)
 {
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSControl class]])
+	{
+		NSControl* the_control = (NSControl*)the_object;
+		[the_control setEnabled:enable];
+	}
 }
 
 char* iupdrvBaseGetXAttrib(Ihandle *ih)
