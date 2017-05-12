@@ -52,8 +52,10 @@
 
 static void cocoaCleanUpWindow(Ihandle* ih)
 {
+//	NSLog(@"cocoaCleanUpWindow");
 	NSWindow* the_window = (__bridge NSWindow*)ih->handle;
 	[the_window close];
+	// Expecting windowWillClose to run immediately here
 	
 	IupCocoaWindowDelegate* window_delegate = [the_window delegate];
 	[the_window setDelegate:nil];
@@ -62,12 +64,172 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 	[the_window release];
 }
 
+static void cocoaDialogRunModalLoop(Ihandle* ih, NSWindow* the_window)
+{
+	// Gotcha: beginModalSessionForWindow sets [NSApp isRunning] to 1
+	NSModalSession the_session = [[NSApplication sharedApplication] beginModalSessionForWindow:the_window];
+	
+	iupAttribSet(ih, "_COCOA_MODAL", "YES");
+	iupAttribSet(ih, "_COCOA_MODAL_SESSION", (const char*)the_session);
+	
+	
+	for(;;)
+	{
+		if([NSApp runModalSession:the_session] != NSModalResponseContinue)
+		{
+			break;
+		}
+	}
+	
+	// Normally, we would call endModalSession here, but this doesn't seem to quite work for us.
+	// But there seems to be an ordering problem.
+	// Calling IupDestroy to close the modal window goes through the entire teardown process before this loop can return in the next pump.
+	// This seems to be causing bugs where the window doesn't fully get destroyed and a ghost window is stuck on the screen sometimes.
+	// The workaround seems to be to call endModalSession directly next to where we call stopModal.
+	// I think the teardown then will work because the window is no longer modal.
+	//	[NSApp endModalSession:the_session];
+	// UPDATE: I now believe the ghost/stuck windows are because of not using the [NSApp run] (real runloop). I now have a special case to handle this.
+
+	iupAttribSet(ih, "_COCOA_MODAL", "NO");
+	iupAttribSet(ih, "_COCOA_MODAL_SESSION", NULL);
+}
+
+
+
+@interface IupNonRunLoopModalAppDelegate : NSObject <NSApplicationDelegate>
+{
+	Ihandle* _ih;
+}
+- (instancetype) initWithIhandle:(Ihandle*)ih;
+- (Ihandle*) ih;
+@end
+
+
+
+@implementation IupNonRunLoopModalAppDelegate
+
+- (instancetype) initWithIhandle:(Ihandle*)ih
+{
+	self = [super init];
+	if(nil == self)
+	{
+		return nil;
+	}
+	_ih = ih;
+	return self;
+}
+
+- (Ihandle*) ih
+{
+	return _ih;
+}
+
+- (void) applicationDidFinishLaunching:(NSNotification*)a_notification
+{
+	Ihandle* ih = _ih;
+	
+	NSWindow* the_window = (NSWindow*)ih->handle;
+
+	// This blocks until done.
+	cocoaDialogRunModalLoop(ih, the_window);
+
+	// Now stop this special case run loop.
+	// Ugh. [NSApp stop:nil]; throws a NSApp with wrong _running count exception.
+	// I think we need to let this callback finish before we can stop it.
+	// Fortunately, now that we have a working runloop, we can try to schedule the stop to happen later.
+//	[NSApp stop:nil];
+	[NSApp performSelectorOnMainThread:@selector(stop:) withObject:NSApp waitUntilDone:NO];
+
+	
+}
+
+- (void) applicationWillTerminate:(NSNotification*)a_notification
+{
+	// Invoke the IupEntry callback function to start the user code.
+	IFentry exit_callback = (IFentry)IupGetFunction("EXIT_CB");
+	
+	if(NULL != exit_callback)
+	{
+		exit_callback();
+	}
+}
+
+
+@end
+
+static void cocoaDialogStartModal(Ihandle* ih)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	
+	
+	
+	// HACK:
+	// This seems to be another one of those *must use [NSApp run] bugs*.
+	// If I create a modal IupPopup as the first dialog, it prevents IupMainLoop() from getting called and thus [NSApp run].
+	// The problem seems to come in dismissing the dialog. It sometimes does not go away and becomes a stuck ghost window.
+	// Additionally, if I swap spaces, and then click the Dock icon, sometimes the window actually resurrects and becomes a stuck ghost window.
+	// The solution seems to be to always run with [NSApp run].
+	// So to make this happen in this IupPopup as first dialog (special) case, I need to check if isRunning.
+	// If not running, I need to invoke [NSApp run].
+	// However, this will transfer control flow to the AppDelegate and not return until that run is stopped.
+	// Since this is a special case, I want to make a special AppDelegate for just this case.
+	// So we want to save the real app delegate, swap in our new one, let it run the modal stuff until end, stop the run (which returns the control flow), and swap back in the original app delegate.
+	
+	// WARNING: There is a potential bug in that if the rest of this implementation is depending on something the real AppDelegate provides and we didn't implement it (correctly),
+	// functionality will not behave correctly.
+	
+	if(NO == [[NSApplication sharedApplication] isRunning])
+	{
+		// Save the original delegate. It is weak ownership so retain counts are not changed.
+		id original_delegate = [NSApp delegate];
+		// Create our own special case app delegate for just this case.
+		IupNonRunLoopModalAppDelegate* temp_delegate = [[IupNonRunLoopModalAppDelegate alloc] initWithIhandle:ih];
+		[NSApp setDelegate:temp_delegate];
+		
+		// Remember this blocks until the run is stopped (presumably when the modal dialog is done)
+		[NSApp run];
+
+		// Now swap back the original app delegate
+		[NSApp setDelegate:original_delegate];
+		// free our temp delegate
+		[temp_delegate release];
+		return;
+	}
+	else
+	{
+		cocoaDialogRunModalLoop(ih, the_window);
+	}
+	
+
+	
+}
+
+static void cocoaDialogEndModal(Ihandle* ih)
+{
+	
+	void* the_session = iupAttribGet(ih, "_COCOA_MODAL_SESSION");
+	[NSApp stopModal];
+	// We need to call endModalSession now instead of after the return to the infinite-poll-loop because IupDestroy() wasn't fully working and a ghost window was sometimes being left behind/stuck.
+	// I was a little worried this entire block needed to be called in Unmap, before cocoaCleanUpWindow(),
+	// but this seems to work so far. I like here better because I don't have to handle two separate cases of whether it was called via IupDestroy or the user hit the close button.
+	// Note that endModalSession can only be called once per session, or it throws an exception.
+	[NSApp endModalSession:(NSModalSession)the_session];
+	
+	// IupHide seemed like the right thing to call based on all the times I saw it in the source.
+	// However, it seems to get called already in the window close so this is redundant.
+//	IupHide(ih); /* default: close the window */
+	
+	iupAttribSet(ih, "_COCOA_MODAL", "NO");
+	iupAttribSet(ih, "_COCOA_MODAL_SESSION", NULL);
+	
+}
 
 
 @implementation IupCocoaWindowDelegate
 
 - (BOOL) windowShouldClose:(id)the_sender
 {
+//	NSLog(@"windowShouldClose");
 	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
 	
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
@@ -93,14 +255,34 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 			IupExitLoop();
 		}
 	}
-
-	// I think??? we need to hide and not destroy because the user is supposed to call IupDestroy explicitly
-	IupHide(ih); /* default: close the window */
-
-//	IupDestroy(ih);
 	
 	return YES; /* do not propagate */
 	
+}
+
+
+- (void) windowWillClose:(NSNotification*)the_notification
+{
+	NSWindow* the_window = [the_notification object];
+//	NSLog(@"windowWillClose:");
+	
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_window, IHANDLE_ASSOCIATED_OBJ_KEY);
+
+	// I think??? we need to hide and not destroy because the user is supposed to call IupDestroy explicitly
+	
+	//	IupDestroy(ih);
+	
+	if(iupAttribGetBoolean(ih, "_COCOA_MODAL"))
+	{
+		cocoaDialogEndModal(ih);
+	}
+	else
+	{
+		// This contains a bunch of stuff for modal handling which doesn't work for us.
+		IupHide(ih); /* default: close the window */
+		
+	}
+
 }
 
 - (NSSize) windowWillResize:(NSWindow*)the_sender toSize:(NSSize)frame_size
@@ -530,12 +712,23 @@ static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+
+
+
+
+static int cocoaDialogModalPopupMethod(Ihandle* ih, int x, int y)
+{
+	cocoaDialogStartModal(ih);
+	return IUP_NOERROR;
+	
+}
+
+
 static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
 //	iupAttribSet(ih, "RASTERSIZE", "500x400");
 	
-
 	
 	// Warning: Don't make the initial window too big. There is code in the IUP core that does a MAX(current_size, needed_size)
 	// which is intended to make the window grow to fit.
@@ -630,9 +823,20 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 
 static void cocoaDialogUnMapMethod(Ihandle* ih)
 {
-
+	// I am having problems with stuck ghost windows. I don't know what's causing it, but one theory I have is that tearing down a window while modal is bad.
+	// So this is my attempt to stop the modal stuff before we tear down the window.
+	// This means I need this code here and possilby if the user just closes the window first instead of triggered by IupDestroy.
+	// Unfortunately, this doesn't seem to actually fix the problem. I still see it sometimes, especially with breakpoints on.
+	// However, it seems to help a little. It seems like a race condiition.
+	// My test creates the popup before [NSApp run] is started. So I hope maybe this is just another one of those bugs, and one that is rare.
+	// Another theory is I need to wait for the loop control to return to the infinite-loop. But I don't know if it is possible to wait.
+	// The problem is that IUP wants to destroy the IH now. If I try to defer the Cocoa teardown somehow, the ih handle may be gone which contains data I need.
+	// UPDATE: I now believe the ghost/stuck windows are because of not using the [NSApp run] (real runloop). I now have a special case to handle this.
+	if(iupAttribGetBoolean(ih, "_COCOA_MODAL"))
+	{
+		cocoaDialogEndModal(ih);
+	}
 	cocoaCleanUpWindow(ih);
-	
 }
 
 static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
@@ -667,13 +871,20 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 }
 
 
-
 void iupdrvDialogInitClass(Iclass* ic)
 {
 	/* Driver Dependent Class methods */
 	ic->Map = cocoaDialogMapMethod;
 	ic->UnMap = cocoaDialogUnMapMethod;
 	ic->LayoutUpdate = cocoaDialogLayoutUpdateMethod;
+	
+
+	// Setting DlgPopup is not typical, but IUP's modal dialog system for IupPopup doesn't work the way Cocoa does.
+	// IUP wants to control the modality and the event loop pumping with IupMainLoop(). This doesn't work so well for us.
+	// So we set this callback to notify IUP that we are using the native platform's modal stuff.
+	// IUP seemed to intend it to be for specific dialogs like the FileDialog, but Antonio Scuri thinks we can use it here too.
+	ic->DlgPopup = cocoaDialogModalPopupMethod;
+
 
 #if 0
 	ic->LayoutUpdate = gtkDialogLayoutUpdateMethod;
@@ -740,5 +951,6 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "MDIMENU", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "MDICHILD", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
-	
+
 }
+

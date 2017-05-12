@@ -991,13 +991,43 @@ Ihandle* ListTest(void)
 }
 
 
+static int OnButton(Ihandle* button_object)
+{
+	Ihandle* override_sdk_dialog = (Ihandle*)IupGetAttribute(button_object, "overrideSDKDialog");
+	IupDestroy(override_sdk_dialog);
+		return IUP_DEFAULT;
+}
+static int OnDialogClose(Ihandle* the_dialog)
+{
+	return IUP_DEFAULT;
+
+}
+
+static int CreateModalWindow(Ihandle* button_object)
+{
+	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
+	Ihandle* dialog2 = IupDialog(button);
+
+	IupSetAttribute(button, "overrideSDKDialog", (const char*)dialog2);
+	IupSetCallback(dialog2, "CLOSE_CB", (Icallback)OnDialogClose);
+	IupSetCallback(button, "ACTION", (Icallback)OnButton);
+	
+	IupPopup(dialog2,  IUP_CENTER, IUP_CENTER);
+	return IUP_DEFAULT;
+
+}
+
 void IupEntryPoint()
 {
 	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
 
+	Ihandle* button_makepopup = IupButton("Create Modal Window", "");
+
+	
 	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
 	
 	IupSetAttribute(button, "EXPAND", "YES");
+	IupSetAttribute(button_makepopup, "EXPAND", "YES");
 
 	
 	//ProgressbarTest();
@@ -1009,7 +1039,8 @@ void IupEntryPoint()
 	
 //	Ihandle* vb=IupVbox(button, NULL);
 //	Ihandle* vb=IupVbox(list, NULL);
-	Ihandle* vb=IupVbox(button, list, NULL);
+//	Ihandle* vb=IupVbox(button, list, NULL);
+	Ihandle* vb=IupVbox(button_makepopup, list, NULL);
 //	IupSetAttribute(vb, "GAP", "10");
 //	IupSetAttribute(vb, "MARGIN", "10x10");
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
@@ -1046,6 +1077,18 @@ void IupEntryPoint()
 
 	IupShow(dialog);
 
+	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
+#if 1
+	Ihandle* dialog2 = IupDialog(button);
+
+	
+	IupSetAttribute(button, "overrideSDKDialog", (const char*)dialog2);
+	IupSetCallback(dialog2, "CLOSE_CB", (Icallback)OnDialogClose);
+	IupSetCallback(button, "ACTION", (Icallback)OnButton);
+
+	IupPopup(dialog2,  IUP_CENTER, IUP_CENTER);
+
+#endif
 }
 
 
@@ -1073,7 +1116,9 @@ int main(int argc, char* argv[])
 	IupDestroy(config_file);
 	config_file = NULL;
 	
-	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+//	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+	IupEntryPoint();
+	
 	IupMainLoop();
 
 	// legacy: New way should assume IupMainLoop may return immediately or this code is never reached.

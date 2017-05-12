@@ -24,8 +24,24 @@ void iupdrvSetIdleFunction(Icallback f)
 
 void IupExitLoop(void)
 {
-//  [NSApp terminate:nil];
-	[NSApp stop:nil];
+	if([NSApp isRunning])
+	{
+		if(mac_main_loop == 0)
+		{
+			//  [NSApp terminate:nil];
+			[NSApp stop:nil];
+		}
+		else
+		{
+			mac_main_loop--;
+
+		}
+	}
+	else
+	{
+		mac_main_loop--;
+
+	}
 }
 
 static int macLoopProcessMessage(NSEvent *event)
@@ -42,7 +58,15 @@ int IupMainLoopLevel(void)
 #if 1
 int IupMainLoop(void)
 {
-	[NSApp run];
+	if(![NSApp isRunning])
+	{
+		[NSApp run];
+	}
+	else
+	{
+		NSLog(@"IupMainLoop called again");
+		mac_main_loop++;
+	}
 	return IUP_NOERROR;
 
 }
