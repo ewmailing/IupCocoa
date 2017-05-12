@@ -28,6 +28,12 @@
 
 #include "iupcocoa_drv.h"
 
+
+#if __has_feature(objc_arc)
+#error "Cocoa backend for IUP does not use ARC. Compile with -fno-objc-arc"
+#endif
+
+
 const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
 
 
