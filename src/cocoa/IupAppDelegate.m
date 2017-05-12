@@ -20,10 +20,13 @@
 	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
 	
 	// If no entry point has been defined, we can try to fallback and use dsym to look up a hardcoded function name.
+	// Oops: There is a bug here. Testing legacy behavior where I have the function defined, but don't set the ENTRY_POINT still causes this to be invoked.
+	/*
 	if(NULL == entry_callback)
 	{
 		entry_callback = (IFentry)dlsym(RTLD_DEFAULT, "IupEntryPoint");
 	}
+	*/
 	
 	if(NULL != entry_callback)
 	{
