@@ -79,7 +79,9 @@ void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h)
 */
 	// FIXME: I put 14 as a first guess without measuring. It looked pretty good, but should be measured.
 	*w = 14;
-	*h = 14;
+	// 22 seems to be okay. Testing with a multilist on the bottom of frame...19 clips the scrollbar at the bottom.
+	// 20 doesn't have enough padding pixels under the scrollbar compared to other scrollbars I look at.
+	*h = 22;
 }
 
 
