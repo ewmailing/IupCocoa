@@ -124,11 +124,11 @@ char* iupdrvGetSystemFont(void)
   static char systemfont[200] = "";
   NSFont *font = [NSFont systemFontOfSize:0];
 	NSLog(@"systemfont: %@", font);
-  char *name = [[font familyName] UTF8String];
+  const char *name = [[font familyName] UTF8String];
   if(*name)
-    strcpy(systemfont,name);
+    strlcpy(systemfont,name, 200);
   else
-    strcpy(systemfont, "Tahoma, 10");
+    strlcpy(systemfont, "Tahoma, 10", 200);
   return systemfont;
 }
 
@@ -171,12 +171,12 @@ static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 		// FIXME: LEAK (this is not freed anywhere)
 		
 		ImacFont* macfont = (ImacFont*)calloc(1, sizeof(ImacFont));
-		char* font_name = [[default_font familyName] UTF8String];
+		const char* font_name = [[default_font familyName] UTF8String];
 		NSLog(@"font name: %@", [default_font familyName]);
 		NSLog(@"font size: %f", [default_font pointSize]);
 
 		// max size is in ImacFont definition
-		strncpy(macfont->standardfont, font_name, 200);
+		strlcpy(macfont->standardfont, font_name, 200);
 		macfont->hFont = [default_font retain];
 /*
 		NSFont* font_copy = [NSFont fontWithName:[default_font familyName] size:[default_font pointSize]];
@@ -322,10 +322,16 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 
 //		NSSize size = [str sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSFont systemFontOfSize:0], NSFontAttributeName, nil]];
 */
-		
-		[array_of_nsstring_lines addObject:str];
-		
-		[str release];
+		if(nil != str)
+		{
+			[array_of_nsstring_lines addObject:str];
+			[str release];
+		}
+		else
+		{
+			[array_of_nsstring_lines addObject:@""];
+
+		}
 		
 		
 //		max_w = iupMAX(max_w, size.width + 0.5);
@@ -372,7 +378,7 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 //	return 40;
 	
   NSDictionary *attributes;
-  int len;
+  size_t len;
   char* line_end;
 
   if (!str || str[0]==0)

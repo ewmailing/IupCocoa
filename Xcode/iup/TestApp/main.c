@@ -4,8 +4,18 @@
 #include "iupkey.h"
 #include "iup_config.h"
 
+Ihandle* g_someLabel1 = NULL;
 
+static int DoSomething(Ihandle* button_object)
+{
+	IupSetAttribute(g_someLabel1, "ALIGNMENT", "ALEFT:ACENTER");
 
+	IupSetAttribute(g_someLabel1, "WORDWRAP", "YES");
+	IupSetAttribute(g_someLabel1, "ELLIPSIS", "YES");
+
+	return IUP_NOERROR;
+	
+}
 
 static int OnOpenFileSelect(Ihandle* button_object)
 {
@@ -1087,15 +1097,21 @@ void IupEntryPoint()
 
 	
 	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
-	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
+//	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
+	IupSetCallback(button, "ACTION", (Icallback)DoSomething);
 
+//	Ihandle* long_label = IupLabel("Hello:");
+	Ihandle* long_label = IupLabel("The quick brown fox jumped over the lazy dog.");
 //	Ihandle* long_label = IupLabel("The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack. The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack.");
 //	IupSetAttribute(long_label, "SIZE", "260x60");
+	IupSetAttribute(long_label, "ALIGNMENT", "ACENTER:ACENTER");
 
+	g_someLabel1 = long_label;
 	
-//	IupSetAttribute(long_label, "EXPAND", "YES");
+	
+	IupSetAttribute(long_label, "EXPAND", "YES");
 //	IupSetAttribute(button, "EXPAND", "YES");
-	Ihandle* simple_vb=IupVbox(button, button_makepopup, NULL);
+	Ihandle* simple_vb=IupVbox(long_label, button, button_makepopup, NULL);
 
 	//	Ihandle* simple_vb=IupVbox(long_label, NULL);
 //	Ihandle* simple_vb=IupVbox(button, long_label, NULL);
@@ -1103,7 +1119,7 @@ void IupEntryPoint()
 	Ihandle* dialog_simple = IupDialog(simple_vb);
 	IupShow(dialog_simple);
 	
-	/*
+/*
 	Ihandle* about_menu_item = IupItem("About",
 									   NULL
 									   );
@@ -1207,14 +1223,18 @@ int main(int argc, char* argv[])
 	IupConfigSave(config_file);
 	IupDestroy(config_file);
 	config_file = NULL;
-	
-//	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
-	IupEntryPoint();
+
+#if 0 // new ENTRY_POINT callback
+	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
 	
 	IupMainLoop();
 
+#else // legacy
+	IupEntryPoint();
+	IupMainLoop();
 	// legacy: New way should assume IupMainLoop may return immediately or this code is never reached.
 	IupClose();
+#endif
 	
 	return 0;
 }
