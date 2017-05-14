@@ -79,6 +79,88 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 }
 
 
+static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
+{
+	if(NULL == value)
+	{
+		value = "";
+	}
+	
+	NSString* ns_string = [NSString stringWithUTF8String:value];
+	
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = (NSTextView*)ih->handle;
+		NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+		
+		NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string];
+		[[text_view textStorage] setAttributedString:attributed_string];
+		[attributed_string release];
+	}
+	else
+	{
+		NSTextField* text_field = (NSTextField*)ih->handle;
+		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+		[text_field setStringValue:ns_string];
+	}
+
+	return 0;
+}
+
+static char* cocoaTextGetValueAttrib(Ihandle* ih)
+{
+	char* value;
+	
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = (NSTextView*)ih->handle;
+		NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+
+		NSString* ns_string = [[text_view textStorage] string];
+		value = iupStrReturnStr([ns_string UTF8String]);
+
+		
+
+	}
+	else
+	{
+		NSTextField* text_field = (NSTextField*)ih->handle;
+		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+		
+		NSString* ns_string = [text_field stringValue];
+		value = iupStrReturnStr([ns_string UTF8String]);
+	
+	}
+	
+	if(NULL == value)
+	{
+		value = "";
+	}
+	
+	return value;
+}
+
+
+static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
+{
+	if(NULL == value)
+	{
+		value = "";
+	}
+	
+	NSString* ns_string = [NSString stringWithUTF8String:value];
+	
+	if(!ih->data->is_multiline)
+	{
+		NSTextField* text_field = (NSTextField*)ih->handle;
+		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+		[text_field setPlaceholderString:ns_string];
+		return  1;
+	}
+
+	return 0;
+}
+
 
 
 static int cocoaTextMapMethod(Ihandle* ih)
@@ -132,22 +214,21 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		if(iupAttribGetBoolean(ih, "PASSWORD"))
 		{
 
-			//text_field = [[NSSecureTextField alloc] initWithFrame:NSZeroRect];
-			text_field = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 140, 40)];
+			text_field = [[NSSecureTextField alloc] initWithFrame:NSZeroRect];
+			//text_field = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 140, 40)];
 			
 		}
 		else
 		{
 			
-			//text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
-			text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(50, 50, 140, 40)];
+			text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
+			//text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(50, 50, 140, 40)];
 			
 			
 		}
 		the_view = text_field;
 
 
-		[text_field setPlaceholderString:@"Placeholder Text"];
 		
 		if(iupAttribGetBoolean(ih, "SPIN"))
 		{
@@ -264,7 +345,9 @@ void iupdrvTextInitClass(Iclass* ic)
 
   /* IupText only */
   iupClassRegisterAttribute(ic, "PADDING", iupTextGetPaddingAttrib, gtkTextSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
-  iupClassRegisterAttribute(ic, "VALUE", gtkTextGetValueAttrib, gtkTextSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#endif
+  iupClassRegisterAttribute(ic, "VALUE", cocoaTextGetValueAttrib, cocoaTextSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#if 0
   iupClassRegisterAttribute(ic, "LINEVALUE", gtkTextGetLineValueAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTEDTEXT", gtkTextGetSelectedTextAttrib, gtkTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTION", gtkTextGetSelectionAttrib, gtkTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);
@@ -293,10 +376,12 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, gtkTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TABSIZE", NULL, gtkTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
+#endif
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CUEBANNER", NULL, cocoaTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
+#if 0
   /* Not Supported */
-  iupClassRegisterAttribute(ic, "CUEBANNER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
 	
