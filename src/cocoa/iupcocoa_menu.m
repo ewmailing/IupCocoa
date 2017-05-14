@@ -959,28 +959,23 @@ void iupdrvSubmenuInitClass(Iclass* ic)
 
 static int cocoaSeparatorMapMethod(Ihandle* ih)
 {
-#if 0
-	int pos;
+	NSMenu* parent_menu = (NSMenu*)(ih->parent->handle);
+
+	// create new item
+	NSMenuItem* menu_item = [NSMenuItem separatorItem];
+	[menu_item retain];
+	ih->handle = menu_item;
+	[parent_menu addItem:menu_item];
 	
-	if (!ih->parent)
-		return IUP_ERROR;
-	
-	ih->handle = gtk_separator_menu_item_new();
-	if (!ih->handle)
-		return IUP_ERROR;
-	
-	ih->serial = iupMenuGetChildId(ih);
-	
-	pos = IupGetChildPos(ih->parent, ih);
-	gtk_menu_shell_insert((GtkMenuShell*)ih->parent->handle, ih->handle, pos);
-	gtk_widget_show(ih->handle);
-#endif
 	return IUP_NOERROR;
 }
 
 static void cocoaSeparatorUnMapMethod(Ihandle* ih)
 {
-
+	NSMenuItem* menu_item = (NSMenuItem*)ih->handle;
+	// do I need to remove it from the parent???
+	ih->handle = NULL;
+	[menu_item release];
 }
 
 void iupdrvSeparatorInitClass(Iclass* ic)
