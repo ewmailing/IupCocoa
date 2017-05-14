@@ -149,7 +149,6 @@ void iupdrvReparent(Ihandle* ih)
 	
 }
 
-
 void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 {
 
@@ -264,6 +263,32 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 		ih->currentwidth,
 		ih->currentheight
 	);
+	
+
+	// for padding
+	// drat, data is private and requires a per-widget header
+	{
+
+		char* padding_str = iupAttribGet(ih, "PADDING");
+		if((NULL != padding_str) && (padding_str[0] != '\0'))
+		{
+			int horiz_padding = 0;
+			int vert_padding = 0;
+			iupStrToIntInt(padding_str, &horiz_padding, &vert_padding, 'x');
+			
+			NSRect old_frame = the_rect;
+			NSRect new_frame;
+			new_frame.origin.x = old_frame.origin.x + (CGFloat)horiz_padding*0.5;
+			new_frame.origin.y = old_frame.origin.y + (CGFloat)vert_padding*0.5;
+			new_frame.size.width = old_frame.size.width - (CGFloat)horiz_padding;
+			new_frame.size.height = old_frame.size.height - (CGFloat)vert_padding;
+			
+			the_rect = new_frame;
+		}
+		
+	}
+
+	
 	[the_view setFrame:the_rect];
 #endif
 	
@@ -274,7 +299,8 @@ void iupdrvBaseUnMapMethod(Ihandle* ih)
 {
 	// Why do I need this when everything else has its own UnMap method?
 	NSLog(@"iupdrvBaseUnMapMethod not implemented. Might be leaking");
-	[ih->handle release];
+	id the_handle = ih->handle;
+	[the_handle release];
 }
 
 void iupdrvDisplayUpdate(Ihandle *ih)
@@ -293,8 +319,8 @@ void iupdrvDisplayUpdate(Ihandle *ih)
 	}
 	else if([the_handle isKindOfClass:[CALayer class]])
 	{
-		NSCAssert(1, @"CALayer not implemented");
-		@throw @"CALayer not implemented";
+		CALayer* the_layer = (CALayer*)the_handle;
+		[the_layer setNeedsDisplay];
 	}
 	else
 	{
@@ -448,12 +474,12 @@ void iupdrvClientToScreen(Ihandle* ih, int *x, int *y)
 
 void iupdrvPostRedraw(Ihandle *ih)
 {
-
+	iupdrvDisplayUpdate(ih);
 }
 
 void iupdrvRedrawNow(Ihandle *ih)
 {
-
+	iupdrvDisplayUpdate(ih);
 }
 void iupdrvSendKey(int key, int press)
 {
