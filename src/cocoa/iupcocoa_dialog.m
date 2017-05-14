@@ -836,14 +836,49 @@ static int cocoaDialogSetFullScreenAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+// FIXME: Not sure what this is supposed to do. This implementation is a total guess.
 void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
 {
+	NSWindow* parent_window = (NSWindow*)parent;
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSCAssert([parent_window isKindOfClass:[NSWindow class]], @"Expected NSWindow for parent");
 	
+	[parent_window addChildWindow:the_window ordered:NSWindowAbove];
+
 }
 
 /****************************************************************
  Callbacks and Events
  ****************************************************************/
+
+
+static int cocoaDialogSetMinSizeAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	
+	int min_w = 1, min_h = 1;          /* MINSIZE default value */
+	iupStrToIntInt(value, &min_w, &min_h, 'x');
+
+	
+	[the_window setMinSize:NSMakeSize(min_w, min_h)];
+
+	
+	return iupBaseSetMinSizeAttrib(ih, value);
+}
+
+static int cocoaDialogSetMaxSizeAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+
+	int max_w = 65535, max_h = 65535;  /* MAXSIZE default value */
+	iupStrToIntInt(value, &max_w, &max_h, 'x');
+
+	[the_window setMaxSize:NSMakeSize(max_w, max_h)];
+	
+	return iupBaseSetMaxSizeAttrib(ih, value);
+}
+
+
 
 static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 {
@@ -1076,9 +1111,9 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "ICON", NULL, gtkDialogSetIconAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
 #endif
 	iupClassRegisterAttribute(ic, "FULLSCREEN", NULL, cocoaDialogSetFullScreenAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "MINSIZE", NULL, cocoaDialogSetMinSizeAttrib, IUPAF_SAMEASSYSTEM, "1x1", IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "MAXSIZE", NULL, cocoaDialogSetMaxSizeAttrib, IUPAF_SAMEASSYSTEM, "65535x65535", IUPAF_NO_INHERIT);
 #if 0
-	iupClassRegisterAttribute(ic, "MINSIZE", NULL, gtkDialogSetMinSizeAttrib, IUPAF_SAMEASSYSTEM, "1x1", IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "MAXSIZE", NULL, gtkDialogSetMaxSizeAttrib, IUPAF_SAMEASSYSTEM, "65535x65535", IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "SAVEUNDER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);  /* saveunder not supported in GTK */
 	
 	/* IupDialog Windows and GTK Only */
