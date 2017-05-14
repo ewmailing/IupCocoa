@@ -48,6 +48,11 @@
 @interface IupCocoaWindowDelegate : NSObject <NSWindowDelegate>
 - (BOOL) windowShouldClose:(id)the_sender;
 - (NSSize) windowWillResize:(NSWindow*)the_sender toSize:(NSSize)frame_size;
+
+
+- (void) windowDidEnterFullScreen:(NSNotification*)the_notification; // 10.7+
+- (void) windowDidExitFullScreen:(NSNotification*)the_notification;   // 10.7+
+
 @end
 
 static void cocoaCleanUpWindow(Ihandle* ih)
@@ -312,16 +317,16 @@ static void cocoaDialogEndModal(Ihandle* ih)
 	
 	
 	IFnii cb;
-	
-	
 	cb = (IFnii)IupGetCallback(ih, "RESIZE_CB");
-	if(!cb || cb(ih, frame_size.width, frame_size.height)!=IUP_IGNORE)  /* width and height here are for the client area */
+	// FIXME: Are the parameters supposed to be the contentView or the entire window. The Windows code comments make me think contentView, but the actual code makes me think entire window. The latter is way easier to do.
+	if(!cb || cb(ih, frame_size.width, frame_size.height)!=IUP_IGNORE)
 	{
-		iupdrvDialogGetSize(ih, NULL, &(ih->currentwidth), &(ih->currentheight));
-
-//		ih->data->ignore_resize = 1;
+		ih->currentwidth = iupROUND(frame_size.width);
+		ih->currentheight = iupROUND(frame_size.height);
+		
+		ih->data->ignore_resize = 1;
 		IupRefresh(ih);
-//		ih->data->ignore_resize = 0;
+		ih->data->ignore_resize = 0;
 		return frame_size;
 	}
 	else
@@ -335,10 +340,129 @@ static void cocoaDialogEndModal(Ihandle* ih)
 }
 
 
+
+static int cocoaDialogSetInternalIUPFullScreenAttrib(Ihandle* ih, const char* value)
+{
+// I don't think I need any of this. Cocoa handles everything.
+#if 0
+	if (iupStrBoolean(value))
+	{
+		if (!iupAttribGet(ih, "_IUPCOCOA_FS_STYLE"))
+		{
+			int width, height;
+			
+			/* save the previous decoration attributes */
+//			iupAttribSetStr(ih, "_IUPCOCOA_FS_MAXBOX", iupAttribGet(ih, "MAXBOX"));
+//			iupAttribSetStr(ih, "_IUPCOCOA_FS_MINBOX", iupAttribGet(ih, "MINBOX"));
+			//			iupAttribSetStr(ih, "_IUPCOCOA_FS_MENUBOX",iupAttribGet(ih, "MENUBOX"));
+			//			iupAttribSetStr(ih, "_IUPCOCOA_FS_RESIZE", iupAttribGet(ih, "RESIZE"));
+//			iupAttribSetStr(ih, "_IUPCOCOA_FS_BORDER", iupAttribGet(ih, "BORDER"));
+			//			iupAttribSetStr(ih, "_IUPCOCOA_FS_TITLE",  iupAttribGet(ih, "TITLE"));
+			
+			/* save the previous position and size */
+			iupAttribSetStr(ih, "_IUPCOCOA_FS_X", IupGetAttribute(ih, "X"));  /* must use IupGetAttribute to check from the native implementation */
+			iupAttribSetStr(ih, "_IUPCOCOA_FS_Y", IupGetAttribute(ih, "Y"));
+			iupAttribSetStr(ih, "_IUPCOCOA_FS_SIZE", IupGetAttribute(ih, "RASTERSIZE"));
+			
+			/* remove the decorations attributes */
+//			iupAttribSet(ih, "MAXBOX", "NO");
+//			iupAttribSet(ih, "MINBOX", "NO");
+			//			iupAttribSet(ih, "MENUBOX", "NO");
+			//			IupSetAttribute(ih, "TITLE", NULL);  /* must use IupSetAttribute to update the native implementation */
+			//			iupAttribSet(ih, "RESIZE", "NO");
+//			iupAttribSet(ih, "BORDER", "NO");
+			
+			/* full screen size */
+			//			iupdrvGetFullSize(&width, &height);
+			
+			//			SetWindowPos(ih->handle, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED);
+			
+			
+			
+		}
+	}
+	else
+	{
+		char* style = iupAttribGet(ih, "_IUPCOCOA_FS_STYLE");
+		if (style)
+		{
+			
+			/* restore the decorations attributes */
+//			iupAttribSetStr(ih, "MAXBOX", iupAttribGet(ih, "_IUPCOCOA_FS_MAXBOX"));
+//			iupAttribSetStr(ih, "MINBOX", iupAttribGet(ih, "_IUPCOCOA_FS_MINBOX"));
+			//			iupAttribSetStr(ih, "MENUBOX",iupAttribGet(ih, "_IUPCOCOA_FS_MENUBOX"));
+			//			IupSetAttribute(ih, "TITLE",  iupAttribGet(ih, "_IUPCOCOA_FS_TITLE"));  /* must use IupSetAttribute to update the native implementation */
+			//			iupAttribSetStr(ih, "RESIZE", iupAttribGet(ih, "_IUPCOCOA_FS_RESIZE"));
+//			iupAttribSetStr(ih, "BORDER", iupAttribGet(ih, "_IUPCOCOA_FS_BORDER"));
+			
+			
+			
+			/* remove auxiliary attributes */
+//			iupAttribSet(ih, "_IUPCOCOA_FS_MAXBOX", NULL);
+//			iupAttribSet(ih, "_IUPCOCOA_FS_MINBOX", NULL);
+			//			iupAttribSet(ih, "_IUPCOCOA_FS_MENUBOX",NULL);
+			//			iupAttribSet(ih, "_IUPCOCOA_FS_TITLE",  NULL);
+			//			iupAttribSet(ih, "_IUPCOCOA_FS_RESIZE", NULL);
+//			iupAttribSet(ih, "_IUPCOCOA_FS_BORDER", NULL);
+			
+			iupAttribSet(ih, "_IUPCOCOA_FS_X", NULL);
+			iupAttribSet(ih, "_IUPCOCOA_FS_Y", NULL);
+			iupAttribSet(ih, "_IUPCOCOA_FS_SIZE", NULL);
+			
+			iupAttribSet(ih, "_IUPCOCOA_FS_STYLE", NULL);
+		}
+	}
+#endif
+	return 1;
+}
+
+// 10.7+ fullscreen
+
+- (void) windowWillEnterFullScreen:(NSNotification*)the_notification
+{
+	NSLog(@"windowWillEnterFullScreen");
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject([the_notification object], IHANDLE_ASSOCIATED_OBJ_KEY);
+	iupAttribSet(ih, "FULLSCREEN", "YES");
+	cocoaDialogSetInternalIUPFullScreenAttrib(ih, "YES");
+}
+
+- (void) windowDidEnterFullScreen:(NSNotification*)the_notification
+{
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject([the_notification object], IHANDLE_ASSOCIATED_OBJ_KEY);
+	NSLog(@"windowDidEnterFullScreen");
+
+
+	
+	ih->data->ignore_resize = 1;
+	IupRefresh(ih);
+	ih->data->ignore_resize = 0;
+
+}
+
+/*
+- (void) windowWillExitFullScreen:(NSNotification*)the_notification
+{
+}
+*/
+
+- (void) windowDidExitFullScreen:(NSNotification*)the_notification
+{
+	NSLog(@"windowDidExitFullScreen");
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject([the_notification object], IHANDLE_ASSOCIATED_OBJ_KEY);
+	iupAttribSet(ih, "FULLSCREEN", "NO");
+	cocoaDialogSetInternalIUPFullScreenAttrib(ih, "NO");
+	
+	ih->data->ignore_resize = 1;
+	IupRefresh(ih);
+	ih->data->ignore_resize = 0;
+	
+}
+
+
 @end
 
 
-/* 
+/*
  This is a quick and dirty NSToolbar implementation. This was used to help me figure out the "menu" height metrics.
  But we eventually will need to implement toolbar support so this may be useful.
 */
@@ -683,6 +807,35 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
 	return 1;
 }
 
+
+
+static int cocoaDialogSetFullScreenAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	cocoaDialogSetInternalIUPFullScreenAttrib(ih, value);
+	if (iupStrBoolean(value))
+	{
+		if(([the_window styleMask] & NSWindowStyleMaskFullSizeContentView) || ([the_window styleMask] & NSWindowStyleMaskFullScreen))
+		{
+		}
+		else
+		{
+			[the_window toggleFullScreen:the_window];
+		}
+	}
+	else
+	{
+		if(([the_window styleMask] & NSWindowStyleMaskFullSizeContentView) || ([the_window styleMask] & NSWindowStyleMaskFullScreen))
+		{
+			[the_window toggleFullScreen:the_window];
+		}
+		else
+		{
+		}
+	}
+	return 1;
+}
+
 void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
 {
 	
@@ -921,7 +1074,9 @@ void iupdrvDialogInitClass(Iclass* ic)
 	/* IupDialog only */
 	iupClassRegisterAttribute(ic, "BACKGROUND", NULL, gtkDialogSetBackgroundAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "ICON", NULL, gtkDialogSetIconAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "FULLSCREEN", NULL, gtkDialogSetFullScreenAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#endif
+	iupClassRegisterAttribute(ic, "FULLSCREEN", NULL, cocoaDialogSetFullScreenAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttribute(ic, "MINSIZE", NULL, gtkDialogSetMinSizeAttrib, IUPAF_SAMEASSYSTEM, "1x1", IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "MAXSIZE", NULL, gtkDialogSetMaxSizeAttrib, IUPAF_SAMEASSYSTEM, "65535x65535", IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "SAVEUNDER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);  /* saveunder not supported in GTK */
