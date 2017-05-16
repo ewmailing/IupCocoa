@@ -116,6 +116,11 @@ int iupdrvOpen(int *argc, char ***argv)
 
   IupSetGlobal("_IUP_RESET_GLOBALCOLORS", "YES");  /* will update the global colors when the first dialog is mapped */
 
+
+	// Not sure if this is the correct thing to do, but the IupTests have a check to for UTF8MODE. All the NSStrings in this implementation use UTF8String and the non-UTF8MODE tests crash.
+	
+	IupSetInt(NULL, "UTF8MODE", 1);
+
   return IUP_NOERROR;
 }
 
