@@ -29,6 +29,9 @@
 
 #include "iupcocoa_drv.h"
 
+#import "IUPCocoaVerticalAlignmentTextFieldCell.h"
+
+
 static int cocoaLabelSetPaddingAttrib(Ihandle* ih, const char* value)
 {
 	// Our Cocoa iupdrvbaseUpdateLayout contains a special case to handle padding. We just need to make sure the padding values get set here.
@@ -140,22 +143,27 @@ static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 			
 			
 			// Vertical alignment is not built into NSTextField.
-			// TODO: Here is a technique to modify the NSTextFieldCell
-			// https://red-sweater.com/blog/148/what-a-difference-a-cell-makes
-			// This might want to be shared with the iupcocoa_text implemenation if we do this.
+			// We implemented our own custom NSTextFieldCell subclass to handle this case.
 			
 			if (iupStrEqualNoCase(value2, "ABOTTOM"))
 			{
-				NSLog(@"iupcocoa_label vertical alignment not implemented");
+				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
+				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentBottom];
 				return 0;
 			}
 			else if (iupStrEqualNoCase(value2, "ATOP"))
 			{
-				NSLog(@"iupcocoa_label vertical alignment not implemented");
+				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
+				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentTop];
 				return 0;
 			}
 			else  /* ACENTER (default) */
 			{
+				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
+				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentCenter];
 			}
 			return 1;
 		}
@@ -499,9 +507,16 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			the_label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 //			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
 
+			
+			IUPCocoaVerticalAlignmentTextFieldCell* textfield_cell = [[IUPCocoaVerticalAlignmentTextFieldCell alloc] initTextCell:@"textfield"];
+			[the_label setCell:textfield_cell];
+			[textfield_cell release];
+			
+			
+			
 			[the_label setBezeled:NO];
-			[the_label setDrawsBackground:NO];
-//			[the_label setDrawsBackground:YES];
+//			[the_label setDrawsBackground:NO];
+			[the_label setDrawsBackground:YES];
 			[the_label setEditable:NO];
 //			[the_label setSelectable:NO];
 			// TODO: FEATURE: I think this is really convenient for users so it should be the default

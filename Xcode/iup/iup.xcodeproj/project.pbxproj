@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00006F111ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */; };
+		00006F121ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */; };
 		002CC4CC1EA2416B0007C8E7 /* iup_animatedlabel.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4C61EA2416B0007C8E7 /* iup_animatedlabel.c */; };
 		002CC4CD1EA2416B0007C8E7 /* iup_datepick.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4C71EA2416B0007C8E7 /* iup_datepick.c */; };
 		002CC4CE1EA2416B0007C8E7 /* iup_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4C81EA2416B0007C8E7 /* iup_draw.c */; };
@@ -230,6 +232,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUPCocoaVerticalAlignmentTextFieldCell.h; sourceTree = "<group>"; };
+		00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IUPCocoaVerticalAlignmentTextFieldCell.m; sourceTree = "<group>"; };
 		002CC4C61EA2416B0007C8E7 /* iup_animatedlabel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_animatedlabel.c; sourceTree = "<group>"; };
 		002CC4C71EA2416B0007C8E7 /* iup_datepick.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_datepick.c; sourceTree = "<group>"; };
 		002CC4C81EA2416B0007C8E7 /* iup_draw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_draw.c; sourceTree = "<group>"; };
@@ -444,7 +448,7 @@
 		00E3A8EC1B609AE000BEC175 /* iupcocoa_clipboard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_clipboard.m; sourceTree = "<group>"; };
 		00E3A8F21B609B8700BEC175 /* TestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A8F51B609B8700BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E3A8F91B609B8700BEC175 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		00E3A8F91B609B8700BEC175 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		00E3A8FB1B609B8700BEC175 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		00E3A9041B609B8700BEC175 /* TestAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A9091B609B8800BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -748,6 +752,8 @@
 		00E3A8971B605A7500BEC175 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */,
+				00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */,
 				005DCB9F1EBD659500A66253 /* xib */,
 				002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */,
 				00346C3F1B6880140045148B /* iupcocoa_info.m */,
@@ -844,6 +850,7 @@
 				00E3A7C31B60583600BEC175 /* iup_progressbar.h in Headers */,
 				00E3A7D51B60583600BEC175 /* iup_table.h in Headers */,
 				00E3A7B11B60583600BEC175 /* iup_mask.h in Headers */,
+				00006F111ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h in Headers */,
 				00E3A8801B60595300BEC175 /* iuplua_mglplot.h in Headers */,
 				00E3A8851B60595300BEC175 /* iupluagl.h in Headers */,
 				00E3A8751B60595300BEC175 /* iupcontrols.h in Headers */,
@@ -1102,6 +1109,7 @@
 				002CC4D11EA2416B0007C8E7 /* iup_flattabs.c in Sources */,
 				00E3A7C91B60583600BEC175 /* iup_sbox.c in Sources */,
 				00E3A7CA1B60583600BEC175 /* iup_scanf.c in Sources */,
+				00006F121ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m in Sources */,
 				00E3A7CB1B60583600BEC175 /* iup_scrollbox.c in Sources */,
 				00E3A79E1B60583600BEC175 /* iup_hbox.c in Sources */,
 				00E3A7B91B60583600BEC175 /* iup_names.c in Sources */,
