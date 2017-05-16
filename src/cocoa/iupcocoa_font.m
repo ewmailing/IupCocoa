@@ -123,12 +123,14 @@ char* iupdrvGetSystemFont(void)
 {
   static char systemfont[200] = "";
   NSFont *font = [NSFont systemFontOfSize:0];
+	// systemfont: ".AppleSystemUIFont 13.00 pt. P [] (0x60800004b400) fobj=0x10040a600, spc=3.59"
 	NSLog(@"systemfont: %@", font);
+	// ".AppleSystemUIFont"
   const char *name = [[font familyName] UTF8String];
   if(*name)
     strlcpy(systemfont,name, 200);
   else
-    strlcpy(systemfont, "Tahoma, 10", 200);
+    strlcpy(systemfont, "Helvetica Neue, 13", 200);
   return systemfont;
 }
 
@@ -194,6 +196,22 @@ static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 		
 		iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
 
+		// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/StringHeight.html#//apple_ref/doc/uid/20001809-CJBGBIBB
+		// defaultLineHeightForFont: 16
+		// boundingRectForFont: (width = 21.099609375, height = 17.6337890625)
+		NSLayoutManager *lm = [[NSLayoutManager alloc] init];
+		macfont->charheight = iupROUND([lm defaultLineHeightForFont:default_font]);
+		[lm release];
+
+		// We're going to have problems with NSTextField height
+		// http://stackoverflow.com/questions/13010264/change-nstextfields-height-according-to-font-size
+		// https://lists.apple.com/archives/cocoa-dev/2006/Jan/msg01874.html
+		
+		
+  NSRect font_rect = [default_font boundingRectForFont];
+  macfont->charwidth = iupROUND(font_rect.size.width);
+		
+		
 //		macfont->charheight
 //		pointSize
 		return macfont;
