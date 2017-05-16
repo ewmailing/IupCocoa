@@ -91,6 +91,8 @@ void iupdrvButtonAddBorders(int *x, int *y)
 	if(*y < (int)kIupCocoaDefaultHeightNSButton)
 	{
 		*y = (int)kIupCocoaDefaultHeightNSButton;
+//		*y = (int)22;
+
 	}
 //	*x += 4; // a regular label seems to get 2 padding on each size
 //	*x += 36; // the difference between a label and push button is 36 in Interface Builder
@@ -283,7 +285,17 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	if(value && *value!=0)
 	{
 		ih->data->type |= IUP_BUTTON_TEXT;
-		NSString* ns_string = [NSString stringWithUTF8String:value];
+		
+		char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
+		
+		// This will return nil if the string can't be converted.
+		NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
+		
+		if(stripped_str && stripped_str != value)
+		{
+			free(stripped_str);
+		}
+		
 		[the_button setTitle:ns_string];
 		if(ih->data->type & IUP_BUTTON_IMAGE)
 		{
