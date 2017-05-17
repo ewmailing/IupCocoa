@@ -508,7 +508,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 //			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
 
 			
-			IUPCocoaVerticalAlignmentTextFieldCell* textfield_cell = [[IUPCocoaVerticalAlignmentTextFieldCell alloc] initTextCell:@"textfield"];
+			IUPCocoaVerticalAlignmentTextFieldCell* textfield_cell = [[IUPCocoaVerticalAlignmentTextFieldCell alloc] initTextCell:@""];
 			[the_label setCell:textfield_cell];
 			[textfield_cell release];
 			
