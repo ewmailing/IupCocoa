@@ -50,196 +50,15 @@ AppleIcon File Edit Window
  Notice that Submenu is an NSMenuItem. And the naming must be done on the NSMenu attached below it, not on the NSMenuItem itself.
  
 */
-@interface IupCocoaMenuItemRepresentedObject : NSObject
+
+
+// This is for keeping a pointer to the Ihandle to the current set IupMenu for the application menu.
+static Ihandle* s_currentIupMainMenu = NULL;
+
+
+static void cocoaCreateDefaultApplicationMenu()
 {
-	Ihandle* _ih;
-}
-- (instancetype) initWithIhandle:(Ihandle*)ih;
-- (Ihandle*) ih;
-@end
-
-@implementation IupCocoaMenuItemRepresentedObject
-
-- (instancetype) initWithIhandle:(Ihandle*)ih
-{
-	self = [super init];
-	if(nil == self)
-	{
-		return nil;
-	}
-	_ih = ih;
-	return self;
-}
-
-- (Ihandle*) ih
-{
-	return _ih;
-}
-
-- (IBAction) onMenuItemAction:(id)the_sender
-{
-	Ihandle* ih = [self ih];
-	Icallback call_back;
-	
-	call_back = IupGetCallback(ih, "ACTION");
-	if(call_back)
-	{
-		int ret_val = call_back(ih);
-		if(IUP_CLOSE == ret_val)
-		{
-			IupExitLoop();
-			
-		}
-	}
-	
-}
-
-@end
-
-@interface IupCocoaMenuDelegate : NSObject<NSMenuDelegate>
-
-// Use for HIGHLIGHT_CB?
-//- (void) menu:(NSMenu*)the_menu willHighlightItem:(NSMenuItem*)menu_item;
-@end
-
-
-@implementation IupCocoaMenuDelegate
-
-
-
-// Use for HIGHLIGHT_CB?
-/*
-- (void) menu:(NSMenu*)the_menu willHighlightItem:(NSMenuItem*)menu_item
-{
-}
-*/
-
-
-@end
-
-
-int iupdrvMenuPopup(Ihandle* ih, int x, int y)
-{
- 
-	return IUP_NOERROR;
-}
-
-int iupdrvMenuGetMenuBarSize(Ihandle* ih)
-{
-	CGFloat menu_bar_height = [[[NSApplication sharedApplication] mainMenu] menuBarHeight];
-	return iupROUND(menu_bar_height);
-}
-
-/*
-static void cocoaReleaseMenuClass(Iclass* ic)
-{
-	// Not sure if I should tear this down. Typically apps just quit and leave all this stuff.
-	[NSApp setMainMenu:nil];
-
-}
-*/
-
-
-
-static int cocoaMenuMapMethod(Ihandle* ih)
-{
-	if(iupMenuIsMenuBar(ih))
-	{
-		/* top level menu used for MENU attribute in IupDialog (a menu bar) */
-		NSLog(@"cocoaMenuMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
-#if 0
-		NSMenu* the_menu = [[NSMenu alloc] init];
-		ih->handle = the_menu;
-		
-		[NSApp setMainMenu:the_menu];
-		NSLog(@"cocoaMenuMapMethod created NSMenu %@", the_menu);
-		NSLog(@"cocoaMenuMapMethod setMainMenu");
-#else
-		NSMenu* main_menu = [NSApp mainMenu];
-		
-		ih->handle = main_menu;
-
-		// not sure if I should retain it because I don't know if this is going to ever get released, but probably should to obey normal patterns.
-		[main_menu retain];
-#endif
-		
-
-
-	}
-	else
-	{
-		if(ih->parent)
-		{
-
-			NSLog(@"cocoaMenuMapMethod ih->parent %@", ih->parent->handle);
-		/* parent is a submenu, it is created here */
-
-
-			NSMenuItem* parent_menu = (NSMenuItem*)(ih->parent->handle);
-			NSString* parent_menu_title = [parent_menu title];
-			
-			NSMenu* the_menu = [parent_menu submenu];
-
-			// Try searching for an existing menu by this name and only create is not there.
-			if(nil == [parent_menu submenu])
-			{
-				the_menu = [[NSMenu alloc] init];
-				ih->handle = the_menu;
-				
-				[parent_menu setSubmenu:the_menu];
-				// In Cocoa, the name (e.g. "Edit") goes on the NSMenu, not the above NSMenuItem.
-				// I earlier set the name on the parent (which isn't visible), and now set it on the correct widget.
-				// Not sure if I should unset the title on the NSMenuItem afterwards.
-				[the_menu setTitle:parent_menu_title];
-				NSLog(@"cocoaMenuMapMethod created NSMenu %@", the_menu);
-			}
-			else
-			{
-				// Already exists. Let's try reusing the existing one.
-				[the_menu retain];
-				ih->handle = the_menu;
-				
-				NSLog(@"cocoaMenuMapMethod reused NSMenu %@", the_menu);
-
-			}
-			
-			
-
-			NSLog(@"cocoaMenuMapMethod [parent_menu setSubmenu:the_menu]");
-		}
-		else
-		{
-			/* top level menu used for IupPopup */
-
-			NSMenu* the_menu = [[NSMenu alloc] init];
-			ih->handle = the_menu;
-
-			NSLog(@"else cocoaMenuMapMethod created NSMenu %@", the_menu);
-
-			
-			//iupAttribSet(ih, "_IUPWIN_POPUP_MENU", "1");
-		}
-	}
-
-	
-	
-
-	
-	return IUP_NOERROR;
-}
-
-static void cocoaMenuUnMapMethod(Ihandle* ih)
-{
-	NSMenu* the_menu = (NSMenu*)ih->handle;
-	// do I need to remove it from the parent???
-	ih->handle = NULL;
-	[the_menu release];
-}
-
-void iupdrvMenuInitClass(Iclass* ic)
-{
-
-	id app_name = [[NSProcessInfo processInfo] processName];
+		id app_name = [[NSProcessInfo processInfo] processName];
 #if 0
 	
 	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
@@ -473,6 +292,355 @@ void iupdrvMenuInitClass(Iclass* ic)
 	}
 
 #endif
+}
+@interface IupCocoaMenuItemRepresentedObject : NSObject
+{
+	Ihandle* _ih;
+}
+- (instancetype) initWithIhandle:(Ihandle*)ih;
+- (Ihandle*) ih;
+@end
+
+@implementation IupCocoaMenuItemRepresentedObject
+
+- (instancetype) initWithIhandle:(Ihandle*)ih
+{
+	self = [super init];
+	if(nil == self)
+	{
+		return nil;
+	}
+	_ih = ih;
+	return self;
+}
+
+- (Ihandle*) ih
+{
+	return _ih;
+}
+
+- (IBAction) onMenuItemAction:(id)the_sender
+{
+	Ihandle* ih = [self ih];
+	Icallback call_back;
+	
+	call_back = IupGetCallback(ih, "ACTION");
+	if(call_back)
+	{
+		int ret_val = call_back(ih);
+		if(IUP_CLOSE == ret_val)
+		{
+			IupExitLoop();
+			
+		}
+	}
+	
+}
+
+@end
+
+@interface IupCocoaMenuDelegate : NSObject<NSMenuDelegate>
+
+// Use for HIGHLIGHT_CB?
+//- (void) menu:(NSMenu*)the_menu willHighlightItem:(NSMenuItem*)menu_item;
+@end
+
+
+@implementation IupCocoaMenuDelegate
+
+
+
+// Use for HIGHLIGHT_CB?
+/*
+- (void) menu:(NSMenu*)the_menu willHighlightItem:(NSMenuItem*)menu_item
+{
+}
+*/
+
+
+@end
+
+
+int iupdrvMenuPopup(Ihandle* ih, int x, int y)
+{
+ 
+	return IUP_NOERROR;
+}
+
+int iupdrvMenuGetMenuBarSize(Ihandle* ih)
+{
+	CGFloat menu_bar_height = [[[NSApplication sharedApplication] mainMenu] menuBarHeight];
+	return iupROUND(menu_bar_height);
+}
+
+/*
+static void cocoaReleaseMenuClass(Iclass* ic)
+{
+	// Not sure if I should tear this down. Typically apps just quit and leave all this stuff.
+	[NSApp setMainMenu:nil];
+
+}
+*/
+
+
+int iupCocoaMenuIsApplicationBar(Ihandle* ih)
+{
+	
+	
+	if (ih->iclass->nativetype == IUP_TYPEMENU)
+	{
+		// hack
+		if(ih->serial == 3)
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+// Note: This only gets the user's Ihandle to the application menu. If the user doesn't set it, the default application will not be returned in its place. NULL will be returned instead.
+Ihandle* iupCocoaMenuGetApplicationMenu()
+{
+	return s_currentIupMainMenu;
+}
+
+// This is a little bit of a hack, but is used to reset the private internal global variable pointing to the user's Ihandle* for the application menu. The problem is on IupClose, IUP knows to clean up the actual IupMenu, but doesn't know about our pointer to it. This will let us set it to NULL, so if the IUP is reinitialized (IupOpen) without relaunching the program, then we avoid a dangling pointer.
+void iupCocoaMenuResetApplicationMenuPointer()
+{
+	s_currentIupMainMenu = NULL;
+}
+
+
+// Helper to set the menu.
+void iupCocoaMenuSetApplicationMenu(Ihandle* ih)
+{
+	
+
+	
+	if(NULL == ih)
+	{
+		// remove the existing menu?
+
+		// We need a way to know if there was a previous MainMenu set. If so, we need to UnMap that object.
+		if(NULL != s_currentIupMainMenu)
+		{
+			IupUnmap(s_currentIupMainMenu);
+			s_currentIupMainMenu = NULL;
+		}
+		
+		[NSApp setMainMenu:nil];
+		
+		// We just removed everything in the menu. We want to restore the default menu.
+		cocoaCreateDefaultApplicationMenu();
+
+	}
+	else
+	{
+		// add the menu
+		
+		// hack to identify this is a app menu
+		ih->serial = 3;
+		
+		
+		// User error?
+		if(ih->iclass->nativetype != IUP_TYPEMENU)
+		{
+			// call IUPASSERT?
+			return;
+		}
+		
+		// We need a way to know if there was a previous MainMenu set. If so, we need to UnMap that object.
+		if(NULL != s_currentIupMainMenu)
+		{
+			// check if the user has already set this menu before and is the current menu
+			if(ih->handle == s_currentIupMainMenu)
+			{
+				// we don't need to do anything since this is the same menu
+				return;
+			}
+			else
+			{
+				// this is a different menu so we want to remove the old one
+				IupUnmap(s_currentIupMainMenu);
+				s_currentIupMainMenu = NULL;
+			}
+		}
+		
+		
+		// I don't think it is possible to have an already Mapped menu, but just in case, I'll check. (Maybe this should be an assert)
+		if(ih->handle)
+		{
+			// don't call Map since it already is created
+		}
+		else
+		{
+			IupMap(ih);
+		}
+		[NSApp setMainMenu:(NSMenu*)ih->handle];
+		s_currentIupMainMenu = ih;
+	}
+	
+	
+
+	
+#if 0
+	if (!ih->handle)
+	{
+		Ihandle* menu = IupGetHandle(value);
+		ih->data->menu = menu;
+		return 1;
+	}
+	
+	if (!value)
+	{
+		if (ih->data->menu && ih->data->menu->handle)
+		{
+			ih->data->ignore_resize = 1;
+			IupUnmap(ih->data->menu);  /* this will remove the menu from the dialog */
+			ih->data->ignore_resize = 0;
+			
+			ih->data->menu = NULL;
+		}
+	}
+	else
+	{
+		Ihandle* menu = IupGetHandle(value);
+		if (!menu || menu->iclass->nativetype != IUP_TYPEMENU || menu->parent)
+			return 0;
+		
+		/* already the current menu and it is mapped */
+		if (ih->data->menu && ih->data->menu==menu && menu->handle)
+			return 1;
+		
+		/* the current menu is mapped, so unmap it */
+		if (ih->data->menu && ih->data->menu->handle && ih->data->menu!=menu)
+		{
+			ih->data->ignore_resize = 1;
+			IupUnmap(ih->data->menu);   /* this will remove the menu from the dialog */
+			ih->data->ignore_resize = 0;
+		}
+		
+		ih->data->menu = menu;
+		
+		menu->parent = ih;    /* use this to create a menu bar instead of a popup menu */
+		
+		ih->data->ignore_resize = 1;
+		IupMap(menu);     /* this will automatically add the menu to the dialog */
+		ih->data->ignore_resize = 0;
+	}
+	return 1;
+	
+#endif
+	
+}
+
+
+
+static int cocoaMenuMapMethod(Ihandle* ih)
+{
+	if(iupMenuIsMenuBar(ih))
+	{
+		return IUP_ERROR;
+#if 0
+		/* top level menu used for MENU attribute in IupDialog (a menu bar) */
+		NSLog(@"cocoaMenuMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
+
+		NSMenu* main_menu = [NSApp mainMenu];
+		
+		ih->handle = main_menu;
+		
+		// not sure if I should retain it because I don't know if this is going to ever get released, but probably should to obey normal patterns.
+		[main_menu retain];
+#endif
+	}
+	else if(iupCocoaMenuIsApplicationBar(ih))
+	{
+		/* top level menu used for MENU attribute in IupDialog (a menu bar) */
+
+		NSMenu* main_menu = [NSApp mainMenu];
+		
+		ih->handle = main_menu;
+
+		// not sure if I should retain it because I don't know if this is going to ever get released, but probably should to obey normal patterns.
+		[main_menu retain];
+		
+
+
+	}
+	else
+	{
+		if(ih->parent)
+		{
+
+			NSLog(@"cocoaMenuMapMethod ih->parent %@", ih->parent->handle);
+		/* parent is a submenu, it is created here */
+
+
+			NSMenuItem* parent_menu = (NSMenuItem*)(ih->parent->handle);
+			NSString* parent_menu_title = [parent_menu title];
+			
+			NSMenu* the_menu = [parent_menu submenu];
+
+			// Try searching for an existing menu by this name and only create is not there.
+			if(nil == [parent_menu submenu])
+			{
+				the_menu = [[NSMenu alloc] init];
+				ih->handle = the_menu;
+				
+				[parent_menu setSubmenu:the_menu];
+				// In Cocoa, the name (e.g. "Edit") goes on the NSMenu, not the above NSMenuItem.
+				// I earlier set the name on the parent (which isn't visible), and now set it on the correct widget.
+				// Not sure if I should unset the title on the NSMenuItem afterwards.
+				[the_menu setTitle:parent_menu_title];
+				NSLog(@"cocoaMenuMapMethod created NSMenu %@", the_menu);
+			}
+			else
+			{
+				// Already exists. Let's try reusing the existing one.
+				[the_menu retain];
+				ih->handle = the_menu;
+				
+				NSLog(@"cocoaMenuMapMethod reused NSMenu %@", the_menu);
+
+			}
+			
+			
+
+			NSLog(@"cocoaMenuMapMethod [parent_menu setSubmenu:the_menu]");
+		}
+		else
+		{
+			/* top level menu used for IupPopup */
+
+			NSMenu* the_menu = [[NSMenu alloc] init];
+			ih->handle = the_menu;
+
+			NSLog(@"else cocoaMenuMapMethod created NSMenu %@", the_menu);
+
+			
+			//iupAttribSet(ih, "_IUPWIN_POPUP_MENU", "1");
+		}
+	}
+
+	
+	
+
+	
+	return IUP_NOERROR;
+}
+
+static void cocoaMenuUnMapMethod(Ihandle* ih)
+{
+	NSMenu* the_menu = (NSMenu*)ih->handle;
+	// do I need to remove it from the parent???
+	ih->handle = NULL;
+	[the_menu release];
+}
+
+void iupdrvMenuInitClass(Iclass* ic)
+{
+	cocoaCreateDefaultApplicationMenu();
 	
 //	ic->Release = cocoaReleaseMenuClass;
 

@@ -1440,12 +1440,119 @@ void ListTextButtonLabelTest()
 	
 }
 
+static int OnPreferencesCallback(Ihandle* the_object)
+{
+	Ihandle* label1 = IupLabel("Prefernences placeholder");
+	Ihandle* dialog = IupDialog(label1);
+	IupShow(dialog);
+	
+	return IUP_DEFAULT;
+
+}
+
+static int OnQuitMenuCallback(Ihandle* the_object)
+{
+	return IUP_CLOSE;
+}
+
+
+void AppMenuTest()
+{
+	Ihandle* label1 = IupLabel("Main menu test");
+	Ihandle* dialog = IupDialog(label1);
+
+	
+
+#if __APPLE__
+	// NOTE: Apple uses the single ellipsis character, not 3 dots.
+	Ihandle* preferences_menu_item = IupItem(
+		"Preferences…",
+		NULL
+	);
+
+#else
+	// I have no idea...Windows is Preferences, Settings, Options.
+	// On Ubuntu 12.04, the File manager and Firefox use Preferences with n as the shortcut under the Edit menu
+	Ihandle* preferences_menu_item = IupItem(
+		 "Prefere&nces",
+		NULL
+	);
+	
+	
+	Ihandle* quit_menu_item = IupItem(
+		"Quit",
+		NULL
+	); 
+
+	IupSetCallback(quit_menu_item, "ACTION", (Icallback)OnQuitMenuCallback);
+#endif
+	
+	IupSetCallback(preferences_menu_item, "ACTION", (Icallback)OnPreferencesCallback);
+
+	Ihandle* dosomething_menu_item = IupItem(
+		"Do Something",
+		NULL
+	);
+
+	
+
+	
+#if __APPLE__
+	Ihandle* menu_application = IupMenu(
+		preferences_menu_item,
+		NULL
+	);
+	Ihandle* menu_file = IupMenu(
+		NULL
+	);
+	Ihandle* menu_edit = IupMenu(
+		dosomething_menu_item,
+		NULL
+	);
+#else
+	Ihandle* menu_file = IupMenu(
+		dosomething_menu_item,
+		quit_menu_item,
+		NULL
+	);
+	// Preferences is last on Ubuntu 12.04
+	Ihandle* menu_edit = IupMenu(
+		dosomething_menu_item,
+		preferences_menu_item,
+		NULL
+	);
+#endif
+
+	
+
+#if __APPLE__
+	Ihandle* menu_bar = IupMenu(
+		IupSubmenu("TestApp", menu_application),
+		IupSubmenu("File", menu_file),
+		IupSubmenu("Edit", menu_edit),
+		NULL
+	);
+#else
+	Ihandle* menu_bar = IupMenu(
+		IupSubmenu("File", menu_file),
+		IupSubmenu("Edit", menu_edit),
+		NULL
+	);
+#endif
+	
+//	IupSetAttributeHandle(dialog, "MENU", menu_bar);
+	IupSetGlobal("MENU", menu_bar);
+
+	IupShow(dialog);
+
+}
 
 void IupEntryPoint()
 {
 //	GridTest();
 //	ListAndModalWindowTest();
-	ListTextButtonLabelTest();
+//	ListTextButtonLabelTest();
+	AppMenuTest();
 }
 
 int main(int argc, char* argv[])

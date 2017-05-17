@@ -21,7 +21,16 @@ void iupCocoaRemoveFromParent(Ihandle* ih);
 	// Cocoa is in Cartesian (a.k.a. math book, aka OpenGL coordinates, aka y increases upwards), but Iup is y increases downwards.
 int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height);
 int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height);
-	
+
+
+int iupCocoaMenuIsApplicationBar(Ihandle* ih);
+void iupCocoaMenuSetApplicationMenu(Ihandle* ih);
+// Note: This only gets the user's Ihandle to the application menu. If the user doesn't set it, the default application will not be returned in its place. NULL will be returned instead.
+Ihandle* iupCocoaMenuGetApplicationMenu(void);
+// This is a little bit of a hack, but is used to reset the private internal global variable pointing to the user's Ihandle* for the application menu. The problem is on IupClose, IUP knows to clean up the actual IupMenu, but doesn't know about our pointer to it. This will let us set it to NULL, so if the IUP is reinitialized (IupOpen) without relaunching the program, then we avoid a dangling pointer.
+void iupCocoaMenuResetApplicationMenuPointer();
+
+
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
