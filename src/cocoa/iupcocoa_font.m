@@ -200,7 +200,7 @@ static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 		// defaultLineHeightForFont: 16
 		// boundingRectForFont: (width = 21.099609375, height = 17.6337890625)
 		NSLayoutManager *lm = [[NSLayoutManager alloc] init];
-		macfont->charheight = iupROUND([lm defaultLineHeightForFont:default_font]);
+		macfont->charheight = (int)ceil([lm defaultLineHeightForFont:default_font]);
 		[lm release];
 
 		// We're going to have problems with NSTextField height
@@ -209,7 +209,7 @@ static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 		
 		
   NSRect font_rect = [default_font boundingRectForFont];
-  macfont->charwidth = iupROUND(font_rect.size.width);
+  macfont->charwidth = (int)ceil(font_rect.size.width);
 		
 		
 //		macfont->charheight
@@ -368,8 +368,8 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	  // sizeWithFont:constrainedToSize:lineBreakMode: on iOS, but deprecated in iOS7
 	  NSSize size = [joined_string sizeWithAttributes: macfont->attributes];
 
-	  max_w = iupROUND(size.width);
-	  max_h = iupROUND(size.height);
+	  max_w = (int)ceil(size.width);
+	  max_h = (int)ceil(size.height);
 
 	  [array_of_nsstring_lines release];
   }
@@ -431,7 +431,7 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
   NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
 	[ns_str release];
 	
-  return iupROUND(size.width);
+  return (int)ceil(size.width);
 }
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
