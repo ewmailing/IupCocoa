@@ -515,8 +515,8 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			
 			
 			[the_label setBezeled:NO];
-//			[the_label setDrawsBackground:NO];
-			[the_label setDrawsBackground:YES];
+			[the_label setDrawsBackground:NO];
+//			[the_label setDrawsBackground:YES]; // sometimes helpful for debugging layout issues
 			[the_label setEditable:NO];
 //			[the_label setSelectable:NO];
 			// TODO: FEATURE: I think this is really convenient for users so it should be the default

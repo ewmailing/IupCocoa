@@ -201,8 +201,8 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	}
 	else
 	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-		@throw @"Unexpected type for parent widget";
+		NSCAssert(1, @"Unexpected type for child widget");
+		@throw @"Unexpected type for child widget";
 	}
 	
 	
@@ -263,7 +263,8 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 		ih->currentwidth,
 		ih->currentheight
 	);
-	
+//	the_rect.origin.y = the_rect.origin.y - 16.0*0.5; // I don't realy understand the logic of this offset, particularly the -1
+
 
 	// for padding
 	// drat, data is private and requires a per-widget header
@@ -288,7 +289,7 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 		
 	}
 
-	
+//	NSLog(@"view %@, rect:%@", the_view, NSStringFromRect(the_rect));
 	[the_view setFrame:the_rect];
 #endif
 	
@@ -324,8 +325,8 @@ void iupdrvDisplayUpdate(Ihandle *ih)
 	}
 	else
 	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-		@throw @"Unexpected type for parent widget";
+		NSCAssert(1, @"Unexpected type for widget");
+		@throw @"Unexpected type for widget";
 	}
 
 }

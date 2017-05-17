@@ -8,11 +8,15 @@ Ihandle* g_someLabel1 = NULL;
 
 static int DoSomething(Ihandle* button_object)
 {
-	IupSetAttribute(g_someLabel1, "ALIGNMENT", "ALEFT:ACENTER");
-
-	IupSetAttribute(g_someLabel1, "WORDWRAP", "YES");
-	IupSetAttribute(g_someLabel1, "ELLIPSIS", "YES");
-
+	fprintf(stderr, "DoSomething\n");
+	
+	//	IupSetAttribute(g_someLabel1, "ALIGNMENT", "ALEFT:ACENTER");
+	
+	//	IupSetAttribute(g_someLabel1, "WORDWRAP", "YES");
+	
+	//	IupSetAttribute(g_someLabel1, "ELLIPSIS", "YES");
+	IupSetAttribute(g_someLabel1, "PADDING", "40x40");
+	
 	return IUP_NOERROR;
 	
 }
@@ -29,7 +33,7 @@ static int OnOpenFileSelect(Ihandle* button_object)
 	IupSetAttribute(file_dialog, "DIALOGTYPE", "DIR");
 	IupSetStrAttribute(file_dialog, "TITLE", "Select Project Directory");
 	
-//	IupSetStrAttribute(file_dialog, "DIRECTORY",ApplicationState_GetLastOpenFileDialogPath());
+	//	IupSetStrAttribute(file_dialog, "DIRECTORY",ApplicationState_GetLastOpenFileDialogPath());
 	
 	
 	IupPopup(file_dialog, IUP_CURRENT, IUP_CURRENT);
@@ -39,7 +43,7 @@ static int OnOpenFileSelect(Ihandle* button_object)
 	if(-1 != ret_status)
 	{
 #define MY_MAX_PATH_LEN 2048
-
+		
 		
 		selected_path = IupGetAttribute(file_dialog, "VALUE");
 		//		SDL_Log("Selected path: %s", selected_path);
@@ -50,7 +54,7 @@ static int OnOpenFileSelect(Ihandle* button_object)
 	{
 		/* user cancelled */
 		fprintf(stderr, "cancelled\n");
-
+		
 	}
 	
 	//  printf("OnNewProjectCallback(button=%d, press=%d)\n", button, press);
@@ -219,25 +223,25 @@ static int file_open(void)
 }
 
 /*
-char *iupKeyCodeToName(int code);
-
-static int k_any(Ihandle *ih, int c)
-{
+ char *iupKeyCodeToName(int code);
+ 
+ static int k_any(Ihandle *ih, int c)
+ {
 	if (iup_isprint(c))
-		printf("K_ANY(%d = %s \'%c\')\n", c, iupKeyCodeToName(c), (char)c);
+ printf("K_ANY(%d = %s \'%c\')\n", c, iupKeyCodeToName(c), (char)c);
 	else
-		printf("K_ANY(%d = %s)\n", c, iupKeyCodeToName(c));
+ printf("K_ANY(%d = %s)\n", c, iupKeyCodeToName(c));
 	printf("  CARET(%s)\n", IupGetAttribute(ih, "CARET"));
 	if (c == K_cA)
-		return IUP_IGNORE;   // Sound a beep in Windows
+ return IUP_IGNORE;   // Sound a beep in Windows
 	if (c == K_cP)
 	{
-		file_open();
-		return IUP_IGNORE;   // Sound a beep in Windows
+ file_open();
+ return IUP_IGNORE;   // Sound a beep in Windows
 	}
 	return IUP_CONTINUE;
-}
-*/
+ }
+ */
 static int valuechanged_cb(Ihandle *ih)
 {
 	printf("VALUECHANGED_CB()=%s\n", IupGetAttribute(ih, "VALUE"));
@@ -245,21 +249,21 @@ static int valuechanged_cb(Ihandle *ih)
 }
 
 /*
-static int action(Ihandle *ih, int c, char* after)
-{
+ static int action(Ihandle *ih, int c, char* after)
+ {
 	if (iup_isprint(c))
-		printf("ACTION(%d = %s \'%c\', %s)\n", c, iupKeyCodeToName(c), (char)c, after);
+ printf("ACTION(%d = %s \'%c\', %s)\n", c, iupKeyCodeToName(c), (char)c, after);
 	else
-		printf("ACTION(%d = %s, %s)\n", c, iupKeyCodeToName(c), after);
+ printf("ACTION(%d = %s, %s)\n", c, iupKeyCodeToName(c), after);
 	if (c == K_i)
-		return IUP_IGNORE;   // OK
+ return IUP_IGNORE;   // OK
 	if (c == K_cD)
-		return IUP_IGNORE;   // Sound a beep in Windows
+ return IUP_IGNORE;   // Sound a beep in Windows
 	if (c == K_h)
-		return K_j;
+ return K_j;
 	return IUP_DEFAULT;
-}
-*/
+ }
+ */
 
 static int caret_cb(Ihandle *ih, int lin, int col, int pos)
 {
@@ -370,7 +374,7 @@ void TextTest(void)
 	IupSetCallback(mltline, "KILLFOCUS_CB", (Icallback)killfocus_cb);
 	IupSetCallback(mltline, "ENTERWINDOW_CB", (Icallback)enterwindow_cb);
 	IupSetCallback(mltline, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
-//	IupSetCallback(mltline, "ACTION", (Icallback)action);
+	//	IupSetCallback(mltline, "ACTION", (Icallback)action);
 	//  IupSetCallback(mltline, "VALUECHANGED_CB", (Icallback)valuechanged_cb);
 	//  IupSetCallback(mltline, "K_ANY", (Icallback)k_any);
 	IupSetCallback(mltline, "K_F2", (Icallback)k_f2);
@@ -511,9 +515,9 @@ void TextTest(void)
 	IupSetFocus(mltline);
 }
 /*
-#ifndef BIG_TEST
-int main(int argc, char* argv[])
-{
+ #ifndef BIG_TEST
+ int main(int argc, char* argv[])
+ {
 	IupOpen(&argc, &argv);
 	
 	TextTest();
@@ -523,9 +527,9 @@ int main(int argc, char* argv[])
 	IupClose();
 	
 	return EXIT_SUCCESS;
-}
-#endif
-*/
+ }
+ #endif
+ */
 
 void IupExitCallback()
 {
@@ -546,7 +550,7 @@ static Ihandle *timer = NULL;
 static int time_cb(void)
 {
 	float value = IupGetFloat(progressbar2, "VALUE");
-//	value += increment*MAX_BAR;
+	//	value += increment*MAX_BAR;
 	value += increment_amt;
 	if (value > MAX_BAR) value = 0; /* start over */
 	IupSetfAttribute(progressbar2, "VALUE", "%g", (double)value);
@@ -574,11 +578,11 @@ void ProgressbarTest(void)
 	IupSetAttribute(progressbar1, "MARQUEE", "YES");
 	IupSetAttribute(progressbar2, "ORIENTATION", "VERTICAL");
 	/*
-	IupSetAttribute(progressbar2, "BGCOLOR", "255 0 128");
-	IupSetAttribute(progressbar2, "FGCOLOR", "0 128 0");
-	IupSetAttribute(progressbar2, "RASTERSIZE", "30x100");
+	 IupSetAttribute(progressbar2, "BGCOLOR", "255 0 128");
+	 IupSetAttribute(progressbar2, "FGCOLOR", "0 128 0");
+	 IupSetAttribute(progressbar2, "RASTERSIZE", "30x100");
 	 */
-//	IupSetAttribute(progressbar2, "MAX", "360");
+	//	IupSetAttribute(progressbar2, "MAX", "360");
 	IupSetFloat(progressbar2, "MAX", MAX_BAR);
 	IupSetAttribute(progressbar2, "VALUE", "25");
 	//IupSetAttribute(progressbar2, "DASHED", "YES");
@@ -615,23 +619,23 @@ void ProgressbarTest(void)
 	 NULL
 	 );
 	
-//	vbox = IupHbox(IupVbox(progressbar1, hbox, NULL), progressbar2, NULL);
+	//	vbox = IupHbox(IupVbox(progressbar1, hbox, NULL), progressbar2, NULL);
 	vbox = IupHbox(IupVbox(progressbar2, hbox, NULL), progressbar1, NULL);
 	IupSetAttribute(vbox, "MARGIN", "10x10");
 	IupSetAttribute(vbox, "GAP", "5");
 	
 	dlg = IupDialog(vbox);
-/*
-	IupSetAttribute(dlg, "TITLE", "IupProgressBar Test");
-	IupSetCallback(dlg, "UNMAP_CB", (Icallback) unmap_cb);
-	
-	IupSetCallback(btn_pause, "ACTION", (Icallback) btn_pause_cb);
-	IupSetCallback(btn_restart, "ACTION", (Icallback) btn_restart_cb);
-	IupSetCallback(btn_accelerate, "ACTION", (Icallback) btn_accelerate_cb);
-	IupSetCallback(btn_decelerate, "ACTION", (Icallback) btn_decelerate_cb);
-	IupSetCallback(btn_show1, "ACTION", (Icallback) btn_show1_cb);
-	IupSetCallback(btn_show2, "ACTION", (Icallback) btn_show2_cb);
-*/
+	/*
+	 IupSetAttribute(dlg, "TITLE", "IupProgressBar Test");
+	 IupSetCallback(dlg, "UNMAP_CB", (Icallback) unmap_cb);
+	 
+	 IupSetCallback(btn_pause, "ACTION", (Icallback) btn_pause_cb);
+	 IupSetCallback(btn_restart, "ACTION", (Icallback) btn_restart_cb);
+	 IupSetCallback(btn_accelerate, "ACTION", (Icallback) btn_accelerate_cb);
+	 IupSetCallback(btn_decelerate, "ACTION", (Icallback) btn_decelerate_cb);
+	 IupSetCallback(btn_show1, "ACTION", (Icallback) btn_show1_cb);
+	 IupSetCallback(btn_show2, "ACTION", (Icallback) btn_show2_cb);
+	 */
 	IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
 	
 	IupSetAttribute(timer, "RUN", "YES");
@@ -892,7 +896,7 @@ static void set_callbacks(Ihandle* list)
 	//  IupSetAttribute(list, "AUTOHIDE", "NO");
 	//  IupSetAttribute(list, "SCROLLBAR", "NO");
 	
-//	IupSetAttribute(list, "VISIBLEITEMS", "20");
+	//	IupSetAttribute(list, "VISIBLEITEMS", "20");
 	//  IupSetAttribute(list, "VISIBLECOLUMNS", "7");
 	IupSetAttribute(list, "VISIBLELINES", "4");
 }
@@ -909,57 +913,57 @@ Ihandle* ListTest(void)
 	
 	IupSetAttributes(list1, "1=\"US$ 1000\", 2=\"US$ 2000\", 3=\"US$ 300.000.000\", 4=\"Strawberry Shortcake vs. B. Pudding\","
 					 "EDITBOX=YES, DROPDOWN=YES, TIP=Edit+Drop, VALUE=\"Edit Here\", NAME=list1");
-//					 "EDITBOX=NO, DROPDOWN=YES, NAME=list1");
+	//					 "EDITBOX=NO, DROPDOWN=YES, NAME=list1");
 	set_callbacks(list1);
 	printf("COUNT(list1)=%s\n", IupGetAttribute(list1, "COUNT"));
-
-//	return list1;
 	
-//	dlg = IupDialog(list1);
-//	IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
-//	IupShow(dlg);
-
+	//	return list1;
+	
+	//	dlg = IupDialog(list1);
+	//	IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
+	//	IupShow(dlg);
+	
 	list2 = IupList(NULL);
 	IupSetAttributes(list2, "1=\"Banana\", 2=\"Apple\", 3=\"Orange\", 4=\"Strawberry Shortcake vs. B. Pudding\", 5=\"Grape\","
 					 "DROPDOWN=YES, NAME=list2, TIP=Drop, XXX_VALUE=2, XXX_SORT=YES, XXX_BGCOLOR=\"192 64 192\"");
 	set_callbacks(list2);
-
+	
 	printf("COUNT(list2)=%s\n", IupGetAttribute(list2, "COUNT"));
-
+	
 	
 	
 	list4 = IupList(NULL);
-
+	
 	IupSetAttributes(list4, "1=\"Number 3\", 2=\"Number 4\", 3=\"Number 2\", 4=\"Number 1\", 5=\"Strawberry Shortcake vs. B. Pudding\", 6=\"Number 5\", 7=\"Number 7\","
 					 "MULTIPLE=YES, NAME=list4, TIP=List, XXX_SORT=YES, VALUE=+--++--, XXX_CANFOCUS=NO");
 	
 	set_callbacks(list4);
-
-	printf("COUNT(list4)=%s\n", IupGetAttribute(list4, "COUNT"));
-
 	
-//	Ihandle* vb=IupVbox(list1, NULL);
-//	Ihandle* vb=IupVbox(list2, NULL);
-//	Ihandle* vb=IupVbox(list4, NULL);
+	printf("COUNT(list4)=%s\n", IupGetAttribute(list4, "COUNT"));
+	
+	
+	//	Ihandle* vb=IupVbox(list1, NULL);
+	//	Ihandle* vb=IupVbox(list2, NULL);
+	//	Ihandle* vb=IupVbox(list4, NULL);
 	
 	Ihandle* vb=IupVbox(list1, list2, list4, NULL);
 	return vb;
-//	return list2;
-//	return list2;
-//	return list4;
+	//	return list2;
+	//	return list2;
+	//	return list4;
 	
 	
 #if 0
-
+	
 	list3 = IupList(NULL);
 	IupSetAttributes(list3, "1=\"Char A\", 2=\"Char B\", 3=\"Char CCCCC\", 4=\"Char D\", 5=\"Char E\", 6=\"Char F\","
 					 "EDITBOX=YES, NAME=list3, TIP=Edit+List, VALUE=\"Edit Here\"");
 	set_callbacks(list3);
 	printf("COUNT(list3)=%s\n", IupGetAttribute(list3, "COUNT"));
-
+	
 	//  IupSetAttributes(list4, "1=\"Number 1\", 2=\"Number 2\", 3=\"Number 3\", 4=\"Number 4\", 5=\"Number 5\", 6=\"Number 6\", 7=\"Number 7\","
 	//                          "MULTIPLE=YES, NAME=list4, TIP=List, VALUE=+--++--");
-
+	
 	
 	//IupSetAttributes(list1, "5=\"US$ 1000\", 6=\"US$ 2000\", 7=\"US$ 300.000.000\", 8=\"US$ 4000\"");
 	//IupSetAttributes(list1, "9=\"US$ 1000\", 10=\"US$ 2000\", 11=\"US$ 300.000.000\", 12=\"US$ 4000\"");
@@ -1053,12 +1057,12 @@ static int OnButton(Ihandle* button_object)
 {
 	Ihandle* override_sdk_dialog = (Ihandle*)IupGetAttribute(button_object, "overrideSDKDialog");
 	IupDestroy(override_sdk_dialog);
-		return IUP_DEFAULT;
+	return IUP_DEFAULT;
 }
 static int OnDialogClose(Ihandle* the_dialog)
 {
 	return IUP_DEFAULT;
-
+	
 }
 
 static int CreateModalWindow(Ihandle* button_object)
@@ -1066,7 +1070,7 @@ static int CreateModalWindow(Ihandle* button_object)
 #if 0
 	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
 	Ihandle* dialog2 = IupDialog(button);
-
+	
 	IupSetAttribute(button, "overrideSDKDialog", (const char*)dialog2);
 	IupSetCallback(dialog2, "CLOSE_CB", (Icallback)OnDialogClose);
 	IupSetCallback(button, "ACTION", (Icallback)OnButton);
@@ -1078,79 +1082,206 @@ static int CreateModalWindow(Ihandle* button_object)
 	IupSetAttribute(button_makepopup, "EXPAND", "YES");
 	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
 	Ihandle* dialog2 = IupDialog(button_makepopup);
-
+	
 	IupPopup(dialog2,  IUP_CENTER, IUP_CENTER);
-
+	
 #endif
 	return IUP_DEFAULT;
+	
+}
+
+void GridTest()
+{
+	Ihandle* main_grid = IupGridBox(NULL);
+	
+	IupSetAttribute(main_grid, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(main_grid, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(main_grid, "NUMDIV", 2);
+	IupSetInt(main_grid, "SIZECOL", 1);
+	//	IupSetInt(main_grid, "GAPCOL", 8);
+	//	IupSetInt(main_grid, "GAPLIN", 8);
+	IupSetAttribute(main_grid, "HOMOGENEOUSLIN", "YES");
+	
+	
+	
+	Ihandle* label1 = IupLabel("Hello World:");
+	Ihandle* text_field1 = IupText(NULL);
+
+	IupSetAttribute(label1, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(text_field1, "EXPAND", "HORIZONTAL");
+	IupSetStrAttribute(text_field1, "CUEBANNER", "Enter here");
+	
+	IupAppend(main_grid, label1);
+	IupAppend(main_grid, text_field1);
+
+	
+	
+	Ihandle* label2 = IupLabel("Hello World:");
+	Ihandle* button1 = IupButton("Some Button", "");
+
+	IupSetAttribute(label2, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(button1, "EXPAND", "HORIZONTAL");
+	IupAppend(main_grid, label2);
+	IupAppend(main_grid, button1);
+	
+	
+#if 0
+	
+	// make all the right-side fields the same width
+	{
+		Ihandle* field_normalizer = IupNormalizer(
+												  IupGetChild(main_grid, 1),
+												  IupGetChild(main_grid, 3),
+//												  IupGetChild(main_grid, 0),
+//												  IupGetChild(main_grid, 2),
+												  NULL
+												  );
+		IupSetAttributes(field_normalizer, "NORMALIZE=VERTICAL");
+		
+		IupDestroy(field_normalizer);
+		field_normalizer = NULL;
+	}
+	
+#endif
+	
+	
+	
+	Ihandle* dialog_simple = IupDialog(main_grid);
+	IupShow(dialog_simple);
+	
+	
+	
 
 }
 
-void IupEntryPoint()
+void TextFieldBasicLayoutTest()
 {
 	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
-
-
+	
+	
 	Ihandle* button_makepopup = IupButton("Create Modal Window", "");
-//	IupSetAttribute(button_makepopup, "EXPAND", "YES");
+	//	IupSetAttribute(button_makepopup, "EXPAND", "YES");
 	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
-
+	
 	
 	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
-//	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
+	//	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
 	IupSetCallback(button, "ACTION", (Icallback)DoSomething);
-
-//	Ihandle* long_label = IupLabel("Hello:");
+	
+	//	Ihandle* long_label = IupLabel("Hello:");
 	Ihandle* long_label = IupLabel("The quick brown fox jumped over the lazy dog.");
-//	Ihandle* long_label = IupLabel("The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack. The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack.");
-//	IupSetAttribute(long_label, "SIZE", "260x60");
+	Ihandle* label2 = IupLabel("Hello World.");
+	
+	//	Ihandle* long_label = IupLabel("The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack. The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack.");
+	//	IupSetAttribute(long_label, "SIZE", "260x60");
 	IupSetAttribute(long_label, "ALIGNMENT", "ACENTER:ACENTER");
-
+	IupSetAttribute(label2, "ALIGNMENT", "ACENTER:ACENTER");
+	
+	//	IupSetAttribute(long_label, "PADDING", "20x20");
+	
 	g_someLabel1 = long_label;
+	
+	Ihandle* text_field = IupText(NULL);
+	Ihandle* text_field2 = IupText(NULL);
+	
+	IupSetStrAttribute(text_field, "VALUE", "Strawberry Shortcake vs. B. Pudding");
+	IupSetStrAttribute(text_field, "CUEBANNER", "Enter here");
+	IupSetStrAttribute(text_field2, "CUEBANNER", "Enter here");
+	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(text_field2, "EXPAND", "HORIZONTAL");
+	
+	//	IupSetAttribute(text_field, "EXPAND", "YES");
+	//	IupSetAttribute(text_field2, "EXPAND", "YES");
+	
+	Ihandle* label3 = IupLabel("Hello World.");
+	IupSetAttribute(label3, "ALIGNMENT", "ACENTER:ACENTER");
+	
+	Ihandle* text_field3 = IupText(NULL);
+	IupSetStrAttribute(text_field, "CUEBANNER", "Enter here");
+	
+	Ihandle* simple_hb=IupHbox(label3, text_field3, NULL);
 	
 	
 	IupSetAttribute(long_label, "EXPAND", "YES");
-//	IupSetAttribute(button, "EXPAND", "YES");
-	Ihandle* simple_vb=IupVbox(long_label, button, button_makepopup, NULL);
-
+	//	IupSetAttribute(button, "EXPAND", "YES");
+	//	Ihandle* simple_vb=IupVbox(long_label, button, button_makepopup, NULL);
+	//	Ihandle* simple_vb=IupVbox(button, button_makepopup, NULL);
+	//	Ihandle* simple_vb=IupVbox(button, text_field, button_makepopup, NULL);
+	//	Ihandle* simple_vb=IupVbox(text_field, button, button_makepopup, NULL);
+	//	Ihandle* simple_vb=IupVbox(text_field, text_field2, button, button_makepopup, NULL);
+	//	Ihandle* simple_vb=IupVbox(button, button_makepopup, text_field, text_field2, NULL);
+	//	Ihandle* simple_vb=IupVbox(long_label, label2, button, button_makepopup, text_field, text_field2, simple_hb, NULL);
+	Ihandle* simple_vb=IupVbox(long_label, text_field, label2, text_field2, simple_hb, NULL);
+	
 	//	Ihandle* simple_vb=IupVbox(long_label, NULL);
-//	Ihandle* simple_vb=IupVbox(button, long_label, NULL);
-
+	//	Ihandle* simple_vb=IupVbox(button, long_label, NULL);
+	
 	Ihandle* dialog_simple = IupDialog(simple_vb);
 	IupShow(dialog_simple);
-	
-/*
-	Ihandle* about_menu_item = IupItem("About",
-									   NULL
-									   );
-	Ihandle* menu_file = IupMenu(
-								 about_menu_item,
-								 NULL
-								 );
-	Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
-	Ihandle* menu_bar = IupMenu(
-								sub_menu_file,
-								NULL
-								);
-	IupSetAttributeHandle(dialog_simple, "MENU", menu_bar);
-	 */
-	return;
-	
-	
+	//	IupSetAttribute(dialog_simple, "FULLSCREEN", "YES");
 
+	
+}
+
+void ListAndModalWindowTest()
+{
+	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
+	
+	
+	Ihandle* button_makepopup = IupButton("Create Modal Window", "");
+	//	IupSetAttribute(button_makepopup, "EXPAND", "YES");
+	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
+	
+	
+	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
+	//	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
+	IupSetCallback(button, "ACTION", (Icallback)DoSomething);
+	
+	//	Ihandle* long_label = IupLabel("Hello:");
+	Ihandle* long_label = IupLabel("The quick brown fox jumped over the lazy dog.");
+	Ihandle* label2 = IupLabel("Hello World.");
+
+	//	Ihandle* long_label = IupLabel("The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack. The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack.");
+	//	IupSetAttribute(long_label, "SIZE", "260x60");
+	IupSetAttribute(long_label, "ALIGNMENT", "ACENTER:ACENTER");
+	IupSetAttribute(label2, "ALIGNMENT", "ACENTER:ACENTER");
+
+	//	IupSetAttribute(long_label, "PADDING", "20x20");
+	
+	g_someLabel1 = long_label;
+	
+	
+	/*
+	 Ihandle* about_menu_item = IupItem("About",
+	 NULL
+	 );
+	 Ihandle* menu_file = IupMenu(
+	 about_menu_item,
+	 NULL
+	 );
+	 Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
+	 Ihandle* menu_bar = IupMenu(
+	 sub_menu_file,
+	 NULL
+	 );
+	 IupSetAttributeHandle(dialog_simple, "MENU", menu_bar);
+	 */
+	
+	
+	
 	//ProgressbarTest();
 	Ihandle* list = ListTest();
 	
 	
-//	Ihandle* vb=IupHbox(button, NULL);
-//IupSetAttribute(vb, "EXPAND", "YES");
+	//	Ihandle* vb=IupHbox(button, NULL);
+	//IupSetAttribute(vb, "EXPAND", "YES");
 	
-//	Ihandle* vb=IupVbox(button, NULL);
-//	Ihandle* vb=IupVbox(list, NULL);
-//	Ihandle* vb=IupVbox(button, list, NULL);
+	//	Ihandle* vb=IupVbox(button, NULL);
+	//	Ihandle* vb=IupVbox(list, NULL);
+	//	Ihandle* vb=IupVbox(button, list, NULL);
 	Ihandle* vb=IupVbox(button_makepopup, list, NULL);
-//	IupSetAttribute(vb, "GAP", "10");
-//	IupSetAttribute(vb, "MARGIN", "10x10");
+	//	IupSetAttribute(vb, "GAP", "10");
+	//	IupSetAttribute(vb, "MARGIN", "10x10");
 	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
 	
 	
@@ -1159,47 +1290,163 @@ void IupEntryPoint()
 	IupSetAttribute(frame1, "TITLE", "Frame Title");
 	IupSetAttribute(frame1, "CLIENTOFFSET", "10x10");
 	IupSetAttribute(frame1, "CLIENTSIZE", "10x10");
-
 	
-//	Ihandle* dialog = IupDialog(vb);
+	
+	//	Ihandle* dialog = IupDialog(vb);
 	Ihandle* dialog = IupDialog(frame1);
-//	Ihandle* dialog = IupDialog(button);
-//	Ihandle* dialog = IupDialog(list);
-
+	//	Ihandle* dialog = IupDialog(button);
+	//	Ihandle* dialog = IupDialog(list);
+	
 	//IupMap(dialog);
 	
-	/*
-	Ihandle* about_menu_item = IupItem("About",
+	
+	 Ihandle* about_menu_item = IupItem("About",
 		NULL
-	);
-	Ihandle* menu_file = IupMenu(
+	 );
+	 Ihandle* menu_file = IupMenu(
 		about_menu_item,
 		NULL
-	);
-	Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
-	Ihandle* menu_bar = IupMenu(
+	 );
+	 Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
+	 Ihandle* menu_bar = IupMenu(
 		sub_menu_file,
-	NULL
-	);
-	IupSetAttributeHandle(dialog, "MENU", menu_bar);
-*/
+	 NULL
+	 );
+	 IupSetAttributeHandle(dialog, "MENU", menu_bar);
+	 
 	IupShow(dialog);
-
+	
 	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
 #if 1
 	Ihandle* dialog2 = IupDialog(button);
-
+	
 	
 	IupSetAttribute(button, "overrideSDKDialog", (const char*)dialog2);
 	IupSetCallback(dialog2, "CLOSE_CB", (Icallback)OnDialogClose);
 	IupSetCallback(button, "ACTION", (Icallback)OnButton);
-
+	
 	IupPopup(dialog2,  IUP_CENTER, IUP_CENTER);
-
+	
 #endif
 }
 
 
+void ListTextButtonLabelTest()
+{
+	IupSetFunction("EXIT_CB", (Icallback)IupExitCallback);
+	
+	
+	Ihandle* button_makepopup = IupButton("Create Modal Window", "");
+	//	IupSetAttribute(button_makepopup, "EXPAND", "YES");
+	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
+	
+	
+	Ihandle* button = IupButton("Strawberry Shortcake vs. B. Pudding", "");
+	//	IupSetCallback(button, "ACTION", (Icallback)OnOpenFileSelect);
+	IupSetCallback(button, "ACTION", (Icallback)DoSomething);
+	
+	//	Ihandle* long_label = IupLabel("Hello:");
+	Ihandle* long_label = IupLabel("The quick brown fox jumped over the lazy dog.");
+	Ihandle* label2 = IupLabel("Hello World.");
+	
+	//	Ihandle* long_label = IupLabel("The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack. The Blurrr SDK could not be found. Please do not move this application from its original location in the SDK. (This is how Blurrr can remain installer-free. If you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack.");
+	//	IupSetAttribute(long_label, "SIZE", "260x60");
+	IupSetAttribute(long_label, "ALIGNMENT", "ACENTER:ACENTER");
+	IupSetAttribute(label2, "ALIGNMENT", "ACENTER:ACENTER");
+	
+	//	IupSetAttribute(long_label, "PADDING", "20x20");
+	
+	g_someLabel1 = long_label;
+	
+	
+	
+	Ihandle* text_field1 = IupText(NULL);
+	Ihandle* text_field2 = IupText(NULL);
+	
+	IupSetStrAttribute(text_field1, "VALUE", "Strawberry Shortcake vs. B. Pudding");
+	IupSetStrAttribute(text_field1, "CUEBANNER", "Enter here");
+	IupSetStrAttribute(text_field2, "CUEBANNER", "Enter here");
+	IupSetAttribute(text_field1, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(text_field2, "EXPAND", "HORIZONTAL");
+	
+	
+	/*
+	 Ihandle* about_menu_item = IupItem("About",
+	 NULL
+	 );
+	 Ihandle* menu_file = IupMenu(
+	 about_menu_item,
+	 NULL
+	 );
+	 Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
+	 Ihandle* menu_bar = IupMenu(
+	 sub_menu_file,
+	 NULL
+	 );
+	 IupSetAttributeHandle(dialog_simple, "MENU", menu_bar);
+	 */
+	
+	
+	
+	//ProgressbarTest();
+	Ihandle* list = ListTest();
+	
+	
+	//	Ihandle* vb=IupHbox(button, NULL);
+	//IupSetAttribute(vb, "EXPAND", "YES");
+	
+	//	Ihandle* vb=IupVbox(button, NULL);
+	//	Ihandle* vb=IupVbox(list, NULL);
+	//	Ihandle* vb=IupVbox(button, list, NULL);
+	Ihandle* vb=IupVbox(button_makepopup, list, text_field1, text_field2, NULL);
+	//	IupSetAttribute(vb, "GAP", "10");
+	//	IupSetAttribute(vb, "MARGIN", "10x10");
+	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
+	
+	
+	
+	Ihandle* frame1 = IupFrame(vb);
+	IupSetAttribute(frame1, "TITLE", "Frame Title");
+	IupSetAttribute(frame1, "CLIENTOFFSET", "10x10");
+	IupSetAttribute(frame1, "CLIENTSIZE", "10x10");
+	
+	
+	//	Ihandle* dialog = IupDialog(vb);
+	Ihandle* dialog = IupDialog(frame1);
+	//	Ihandle* dialog = IupDialog(button);
+	//	Ihandle* dialog = IupDialog(list);
+	
+	//IupMap(dialog);
+	
+	/*
+	 Ihandle* about_menu_item = IupItem("About",
+		NULL
+	 );
+	 Ihandle* menu_file = IupMenu(
+		about_menu_item,
+		NULL
+	 );
+	 Ihandle* sub_menu_file = IupSubmenu("File", menu_file);
+	 Ihandle* menu_bar = IupMenu(
+		sub_menu_file,
+	 NULL
+	 );
+	 IupSetAttributeHandle(dialog, "MENU", menu_bar);
+	 */
+	IupShow(dialog);
+	
+	IupSetCallback(button_makepopup, "ACTION", (Icallback)CreateModalWindow);
+
+	
+}
+
+
+void IupEntryPoint()
+{
+//	GridTest();
+//	ListAndModalWindowTest();
+	ListTextButtonLabelTest();
+}
 
 int main(int argc, char* argv[])
 {
@@ -1209,7 +1456,7 @@ int main(int argc, char* argv[])
 	Ihandle* config_file = IupConfig();
 	IupSetStrAttribute(config_file, "APP_NAME", "TestApp");
 	ret_val = IupConfigLoad(config_file);
-
+	
 	if(ret_val == 0)
 	{
 		const char* config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
@@ -1223,12 +1470,12 @@ int main(int argc, char* argv[])
 	IupConfigSave(config_file);
 	IupDestroy(config_file);
 	config_file = NULL;
-
+	
 #if 0 // new ENTRY_POINT callback
 	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
 	
 	IupMainLoop();
-
+	
 #else // legacy
 	IupEntryPoint();
 	IupMainLoop();
