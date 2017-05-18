@@ -638,6 +638,8 @@ ELSEIF(IUP_USE_COCOA)
 		# TODO: Get clarification on iup_datepick.c
 		${CMAKE_SOURCE_DIR}/src/iup_datepick.c
 
+		${CMAKE_SOURCE_DIR}/src/cocoa/IUPCocoaVerticalAlignmentTextFieldCell.h
+		${CMAKE_SOURCE_DIR}/src/cocoa/IUPCocoaVerticalAlignmentTextFieldCell.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_button.m
