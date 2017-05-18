@@ -124,8 +124,8 @@ else
 }
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
   [image addRepresentation:theRep];
-	[image autorelease];
-  return (void*)CFBridgingRetain(image);
+
+	return (void*)image;
 }
 
 int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colors, int *colors_count)
@@ -137,7 +137,6 @@ int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colo
 }
 
 
-// NOTE: Returns an autoreleased NSImage.
 void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive)
 {
   int y, x, bpp, bgcolor_depend = 0,
@@ -148,8 +147,8 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
   bpp = iupAttribGetInt(ih, "BPP");
   iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
 
-  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  if (!image)
+  NSImage* ns_image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
+  if (!ns_image)
   {
     return NULL;
   }
@@ -198,7 +197,7 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 	}
 	else
 	{
-		[image release];
+		[ns_image release];
 		return NULL;
 	}
 	
@@ -397,16 +396,15 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 
 	
 	
-  [image addRepresentation:bitmap_image];
+  [ns_image addRepresentation:bitmap_image];
+	[bitmap_image release];
   if (bgcolor_depend || make_inactive)
     iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
 
-//  return (void*)CFBridgingRetain(image);
 
-	// Doing an autorelease because the typical pattern is to call image = iupImageGetImage(),
-	// and then call [foo setImage:image];
-	// It is easy to forget to release the image for Cocoa because the API doesn't use new/create/alloc in the name.
-	return [image autorelease];
+	// I originally thought I needed to return an autoreleased image, but IUP is putting this into a handle with a destroy hook.
+	// And I was crashing in NSAutoreleasePool drain when autoreleasing this.
+	return ns_image;
 }
 
 void* iupdrvImageCreateIcon(Ihandle *ih)
@@ -465,10 +463,10 @@ void* iupdrvImageCreateCursor(Ihandle *ih)
   NSPoint point = {hx,hy};
 
   NSCursor *cursor = [[NSCursor alloc] initWithImage:source hotSpot:point];
-	
+	[source release];
   free(sbits);
-	[cursor autorelease];
-  return (void*)CFBridgingRetain(cursor);
+
+	return cursor;
 }
 
 void* iupdrvImageCreateMask(Ihandle *ih)
@@ -512,7 +510,8 @@ void* iupdrvImageCreateMask(Ihandle *ih)
   NSSize size = {width,height};
   [mask setSize:size]; 
   free(bits);
-  return (void*)CFBridgingRetain(mask);
+
+	return (void*)mask;
 }
 
 void* iupdrvImageLoad(const char* name, int type)
@@ -521,15 +520,17 @@ void* iupdrvImageLoad(const char* name, int type)
   NSImage *image;
   NSString *path = [[NSString alloc] initWithUTF8String:name];
   image = [[NSImage alloc] initWithContentsOfFile: path];
+	[path release];
+	
   NSBitmapImageRep *rep = [[image representations] objectAtIndex: 0];
   // If you think you might get something other than a bitmap image representation,
   // check for it here.
 
   NSSize size = NSMakeSize ([rep pixelsWide], [rep pixelsHigh]);
   [image setSize: size];
-  
-	[image autorelease];
-  return (void*)CFBridgingRetain(image);
+
+	return (void*)image;
+	
 }
 
 int iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp)
@@ -548,10 +549,6 @@ int iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp)
 
 void iupdrvImageDestroy(void* handle, int type)
 {
-#if __has_feature(objc_arc)
-	NSImage* image = CFBridgingRelease(handle);
-	
-#else
   switch (type)
   {
   case IUPIMAGE_IMAGE:
@@ -563,8 +560,12 @@ void iupdrvImageDestroy(void* handle, int type)
   case IUPIMAGE_CURSOR:
     [handle release];
     break;
+	  default:
+	  {
+		  NSLog(@"Warning: unexpected type in in iupdrvImageDestroy");
+		  [handle release];
+	  }
   }
-#endif
 }
 
 void iupdrvImageGetData(void* handle, unsigned char* imgdata)
