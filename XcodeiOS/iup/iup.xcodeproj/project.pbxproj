@@ -125,6 +125,7 @@
 		0070FB911E02921A009A8631 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
 		0070FB931E029221009A8631 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
 		0070FB961E0BEDCB009A8631 /* IupLaunchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */; };
+		48E77EB01ECFF6FE009AE934 /* SSYMoreProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 48E77EAF1ECFF6FE009AE934 /* SSYMoreProgressView.m */; };
 		6320A6F51E123DC600273302 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7A1E02913A009A8631 /* main.m */; };
 		6320A6F81E1247FD00273302 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB801E02913A009A8631 /* ViewController.m */; };
 		6320A6FA1E1247FD00273302 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7D1E02913A009A8631 /* AppDelegate.m */; };
@@ -410,6 +411,8 @@
 		0070FB941E0BEDCB009A8631 /* IupLaunchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupLaunchViewController.h; sourceTree = "<group>"; };
 		0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupLaunchViewController.m; sourceTree = "<group>"; };
 		0070FB971E0BF4B6009A8631 /* IupAppDelegateProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegateProtocol.h; sourceTree = "<group>"; };
+		48E77EAE1ECFF6FE009AE934 /* SSYMoreProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSYMoreProgressView.h; sourceTree = "<group>"; };
+		48E77EAF1ECFF6FE009AE934 /* SSYMoreProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSYMoreProgressView.m; sourceTree = "<group>"; };
 		6320A6F11E12114800273302 /* hbox.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hbox.c; sourceTree = "<group>"; };
 		6320A7061E1247FD00273302 /* HBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6320A70A1E12487C00273302 /* button.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = button.c; sourceTree = "<group>"; };
@@ -761,6 +764,8 @@
 				0070FB711E027A1F009A8631 /* IupAppDelegate.m */,
 				0070FB941E0BEDCB009A8631 /* IupLaunchViewController.h */,
 				0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */,
+				48E77EAE1ECFF6FE009AE934 /* SSYMoreProgressView.h */,
+				48E77EAF1ECFF6FE009AE934 /* SSYMoreProgressView.m */,
 			);
 			path = cocoatouch;
 			sourceTree = "<group>";
@@ -950,6 +955,7 @@
 					};
 					0070FB761E029139009A8631 = {
 						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = 4MAMECY9VS;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -1052,6 +1058,7 @@
 				0070FB1F1E025CEE009A8631 /* iup_timer.c in Sources */,
 				0070FAF11E025CEE009A8631 /* iup_flatbutton.c in Sources */,
 				0070FAF71E025CEE009A8631 /* iup_getparam.c in Sources */,
+				48E77EB01ECFF6FE009AE934 /* SSYMoreProgressView.m in Sources */,
 				0070FADB1E025CEE009A8631 /* iup.c in Sources */,
 				0070FA781E025CEE009A8631 /* iupcocoatouch_clipboard.m in Sources */,
 				0070FA891E025CEE009A8631 /* iupcocoatouch_messagedlg.m in Sources */,
@@ -1343,7 +1350,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4MAMECY9VS;
 				INFOPLIST_FILE = TestApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "br.puc-rio.tecgraf.TestApp";
@@ -1360,7 +1367,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4MAMECY9VS;
 				INFOPLIST_FILE = TestApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "br.puc-rio.tecgraf.TestApp";

@@ -24,74 +24,11 @@
 
 #include "iupcocoatouch_drv.h"
 
-// TODO: API: I think we're going to need a separate start/stop key.
-// Cocoa Indeterminate is for progresses you don't know the range for, but are still animated when in progress.
+#include "SSYMoreProgressView.h"
 
-// TODO: FEATURE: Cocoa provides spinner style
-
-#if 0
-static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
-{
-	NSProgressIndicator* progress_bar = (NSProgressIndicator*)ih->handle;
-
-	if (ih->data->marquee)
-	{
-		return 0;
-	}
-	
-	if(!value)
-	{
-		ih->data->value = 0;
-	}
-	else
-	{
-		iupStrToDouble(value, &(ih->data->value));
-	}
-	
-	iProgressBarCropValue(ih);
-	
-	[progress_bar setMinValue:ih->data->vmin];
-	[progress_bar setMinValue:ih->data->vmax];
-	[progress_bar setDoubleValue:ih->data->value];
-	// Not sure if I really need this, but
-	// https://developer.apple.com/library/mac/qa/qa1473/_index.html
-	[progress_bar displayIfNeeded];
-	
-	
-
-//	gtk_progress_bar_set_fraction(pbar, (ih->data->value - ih->data->vmin) / (ih->data->vmax - ih->data->vmin));
-	
-	return 0;
-}
-
-static int cocoaProgressBarSetMarqueeAttrib(Ihandle* ih, const char* value)
-{
-	if (!ih->data->marquee)
-	{
-		return 0;
-	}
-	NSProgressIndicator* progress_bar = (NSProgressIndicator*)ih->handle;
-
-	if (iupStrBoolean(value))
-	{
-		// FIXME: This feels like a hack
-		[progress_bar startAnimation:nil];
-		IupSetAttribute(ih->data->timer, "RUN", "YES");
-	}
-	else
-	{
-		// FIXME: This feels like a hack
-		[progress_bar stopAnimation:nil];
-	}
-	return 1;
-}
-
-
+/* Like awakeFromNib */
 static int cocoaProgressBarMapMethod(Ihandle* ih)
 {
-//	char* value;
-
-
 	static int woffset = 0;
 	static int hoffset = 0;
 	
@@ -99,29 +36,21 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	hoffset += 10;
 	//	ih->data->type = 0;
 
-	NSProgressIndicator* progress_indicator = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(woffset, hoffset, 200, 40)];
-	
-//	NSProgressIndicator* progress_indicator = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
-	
-	[progress_indicator setUsesThreadedAnimation:YES];
-	
-	// FIXME: Iup doesn't seem to have explicit start/stop commands.
-	// Cocoa Indeterminate is for progresses you don't know the range for, but are still animated when in progress.
-	[progress_indicator startAnimation:nil];
-
+    CGRect frame = CGRectMake(woffset, hoffset, 200, 40);
+	SSYMoreProgressView* progress_indicator = [[SSYMoreProgressView alloc] initWithFrame:frame];
 	
 	if (iupStrEqualNoCase(iupAttribGetStr(ih, "ORIENTATION"), "VERTICAL"))
 	{
-		// This might require layer-backed views to be active
-		[progress_indicator setFrameCenterRotation:M_PI/180.0 * 90.0];
+		[progress_indicator setIsVertical:YES];
 
-		
-		if (ih->userheight < ih->userwidth)
-		{
-			int tmp = ih->userheight;
-			ih->userheight = ih->userwidth;
-			ih->userwidth = tmp;
-		}
+        NSLog(@"user size:  %f  x  %f", ih->userwidth, ih->userheight) ;
+        /* This is IUP's internal layout system */
+//		if (ih->userheight < ih->userwidth)
+//		{
+//			int tmp = ih->userheight;
+//			ih->userheight = ih->userwidth;
+//			ih->userwidth = tmp;
+//		}
 	}
 	else
 	{
@@ -131,43 +60,19 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	
 	if (iupAttribGetBoolean(ih, "MARQUEE"))
 	{
-
 		ih->data->marquee = 1;
 		[progress_indicator setIndeterminate:YES];
-		
-		
 	}
 	else
 	{
 		ih->data->marquee = 0;
 		[progress_indicator setIndeterminate:NO];
-
 	}
 	
-
-	
-
-	
-
-	
-
-	
-	[progress_indicator sizeToFit];
-	
-	
-	
 	ih->handle = progress_indicator;
-
-	
 	
 	// All Cocoa views shoud call this to add the new view to the parent view.
-	iupCocoaAddToParent(ih);
-	
-
-	
-	
-	
-	
+	iupCocoaTouchAddToParent(ih);
 	
 	return IUP_NOERROR;
 }
@@ -177,33 +82,133 @@ static void cocoaProgressBarUnMapMethod(Ihandle* ih)
 	id progress_bar = ih->handle;
 	[progress_bar release];
 	ih->handle = NULL;
-	
 }
-#endif
+
+//  ?????  These getters are not called.  IupGetAttribute() invokes iupTableGet()
+//  ?????  Also, there are "i" prefix getters, for example iProgressBarGetValueAttrib()
+static char* cocoaProgressBarGetValueAttrib(Ihandle* ih)
+{
+    SSYMoreProgressView* the_bar = ih->handle;
+    float progress = [the_bar progress];
+    char string[255];
+    snprintf(string, 255, "VALUE FROM COCOA: %g", progress);
+    return string;
+}
+
+static int cocoaProgressBarSetValueAttrib(Ihandle* ih, const char* value)
+{
+    SSYMoreProgressView* progress_bar = (SSYMoreProgressView*)ih->handle;
+    
+    if (ih->data->marquee)
+    {
+        return 0;
+    }
+    
+    if(!value)
+    {
+        ih->data->value = 0;
+    }
+    else
+    {
+        iupStrToDouble(value, &(ih->data->value));
+    }
+    
+    iProgressBarCropValue(ih);
+    
+    float range = (ih->data->vmax - ih->data->vmin);
+    if (range > 0.0)
+    {
+        float progress = (ih->data->value - ih->data->vmin) / range;
+        [progress_bar setProgress:progress];
+    }
+    
+    return 0;
+}
+
+static char* cocoaProgressBarGetFgColorAttrib(Ihandle* ih)
+{
+    SSYMoreProgressView* the_bar = ih->handle;
+    UIColor *textColor = [the_bar progressTintColor];
+    return iupCocoaTouchColorFromNative(textColor);
+}
+
+static int cocoaProgressBarSetFgColorAttrib(Ihandle* ih, char *iColor)
+{
+    UIColor *color = iupCocoaTouchToNativeColor(iColor);
+    if (color)
+    {
+        SSYMoreProgressView* the_bar = ih->handle;
+        [the_bar setProgressTintColor:color];
+        return IUP_NOERROR;
+    }
+    return IUP_ERROR;
+}
+
+
+static char* cocoaProgressBarGetBgColorAttrib(Ihandle* ih)
+{
+    SSYMoreProgressView* the_bar = ih->handle;
+    UIColor *textColor = [the_bar trackTintColor];
+    return iupCocoaTouchColorFromNative(textColor);
+}
+
+
+static int cocoaProgressBarSetBgColorAttrib(Ihandle* ih, char *iColor)
+{
+    UIColor *color = iupCocoaTouchToNativeColor(iColor);
+    if (color)
+    {
+        SSYMoreProgressView* the_bar = ih->handle;
+        [the_bar setTrackTintColor:color];
+        return IUP_NOERROR;
+    }
+    return IUP_ERROR;
+}
+
+static char* cocoaProgressBarGetMarqueeAttrib(Ihandle* ih)
+{
+    SSYMoreProgressView* the_bar = (SSYMoreProgressView*)ih->handle;
+    // Seems like there should be a iup function to convert bool --> "YES" : "NO" ??????
+    return [the_bar indeterminate] ? "YES" : "NO";
+}
+
+static int cocoaProgressBarSetMarqueeAttrib(Ihandle* ih, const char* value)
+{
+    if (!ih->data->marquee)
+    {
+        return 0;
+    }
+    
+    SSYMoreProgressView* progress_bar = (SSYMoreProgressView*)ih->handle;
+    [progress_bar setIndeterminate:iupStrBoolean(value)];
+    
+    return 1;
+}
+
+static char* cocoaProgressBarGetOrientationAttrib(Ihandle* ih)
+{
+    SSYMoreProgressView* the_bar = ih->handle;
+    return [the_bar isVertical] ? "VERTICAL" : "HORIZONTAL";
+}
+
+static int cocoaProgressBarSetOrientationAttrib(Ihandle* ih, char *orientation)
+{
+    SSYMoreProgressView* the_bar = ih->handle;
+    [the_bar setIsVertical:(strcmp(orientation, "VERTICAL") == 0)];
+
+    return IUP_NOERROR;
+}
 
 void iupdrvProgressBarInitClass(Iclass* ic)
 {
-#if 0
   /* Driver Dependent Class functions */
 	ic->Map = cocoaProgressBarMapMethod;
 	ic->UnMap = cocoaProgressBarUnMapMethod;
 
-  /* Driver Dependent Attribute functions */
-  
-  /* Visual */
-  iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
-  
-  /* Special */
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);
-#if 1
-
-  /* IupProgressBar only */
-  iupClassRegisterAttribute(ic, "VALUE",  iProgressBarGetValueAttrib,  cocoaProgressBarSetValueAttrib,  NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-
-	
-  iupClassRegisterAttribute(ic, "ORIENTATION", NULL, NULL, IUPAF_SAMEASSYSTEM, "HORIZONTAL", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "MARQUEE",     NULL, cocoaProgressBarSetMarqueeAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BGCOLOR", cocoaProgressBarGetBgColorAttrib, cocoaProgressBarSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "FGCOLOR", cocoaProgressBarGetFgColorAttrib, cocoaProgressBarSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "VALUE",  cocoaProgressBarGetValueAttrib,  cocoaProgressBarSetValueAttrib,  NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ORIENTATION", cocoaProgressBarGetOrientationAttrib, cocoaProgressBarSetOrientationAttrib, IUPAF_SAMEASSYSTEM, "HORIZONTAL", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "MARQUEE",     cocoaProgressBarGetMarqueeAttrib, cocoaProgressBarSetMarqueeAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "DASHED",      NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-#endif
-#endif
 }
