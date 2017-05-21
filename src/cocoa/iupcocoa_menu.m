@@ -385,12 +385,10 @@ static void cocoaReleaseMenuClass(Iclass* ic)
 
 int iupCocoaMenuIsApplicationBar(Ihandle* ih)
 {
-	
-	
 	if (ih->iclass->nativetype == IUP_TYPEMENU)
 	{
-		// hack
-		if(ih->serial == 3)
+		int is_app_menu = IupGetInt(ih, "_IUPMAC_APPMENU");
+		if(is_app_menu)
 		{
 			return 1;
 		}
@@ -405,10 +403,20 @@ Ihandle* iupCocoaMenuGetApplicationMenu()
 	return s_currentIupMainMenu;
 }
 
-// This is a little bit of a hack, but is used to reset the private internal global variable pointing to the user's Ihandle* for the application menu. The problem is on IupClose, IUP knows to clean up the actual IupMenu, but doesn't know about our pointer to it. This will let us set it to NULL, so if the IUP is reinitialized (IupOpen) without relaunching the program, then we avoid a dangling pointer.
-void iupCocoaMenuResetApplicationMenuPointer()
+// My current understanding is that IUP will not clean up our application menu Ihandles. So we need to do it ourselves.
+void iupCocoaMenuCleanupApplicationMenu()
 {
+	// I believe (hope) this goes through all submenus and items and cleans up everything the user may have created for the main menu.
+	// (Remember, the app menu merges default items. So this only cleans up things users explicitly create.
+	IupDestroy(s_currentIupMainMenu);
+
+	// remember to reset the pointer in case the user keeps going and calls IupOpen again.
 	s_currentIupMainMenu = NULL;
+	
+
+	// Let's try not to leave anything behind to avoid accidental leaks in the NSAutoreleasePool drain.
+	[NSApp setMainMenu:nil];
+
 }
 
 
@@ -439,9 +447,8 @@ void iupCocoaMenuSetApplicationMenu(Ihandle* ih)
 	{
 		// add the menu
 		
-		// hack to identify this is a app menu
-		ih->serial = 3;
-		
+		// identify this is a app menu
+		IupSetInt(ih, "_IUPMAC_APPMENU", 1);
 		
 		// User error?
 		if(ih->iclass->nativetype != IUP_TYPEMENU)

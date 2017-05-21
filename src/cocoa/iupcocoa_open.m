@@ -126,9 +126,9 @@ int iupdrvOpen(int *argc, char ***argv)
 
 void iupdrvClose(void)
 {
-	// This is a little bit of a hack, but is used to reset the private internal global variable pointing to the user's Ihandle* for the application menu. The problem is on IupClose, IUP knows to clean up the actual IupMenu, but doesn't know about our pointer to it. This will let us set it to NULL, so if the IUP is reinitialized (IupOpen) without relaunching the program, then we avoid a dangling pointer.
+	// My current understanding is that IUP will not clean up our application menu Ihandles. So we need to do it ourselves.
 	// By this point, IUP has already cleanup up all its pointers and our code is finally running.
-	iupCocoaMenuResetApplicationMenuPointer();
+	iupCocoaMenuCleanupApplicationMenu();
 	
 	[s_appDelegate release];
 	s_appDelegate = nil;
