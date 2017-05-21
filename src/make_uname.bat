@@ -16,6 +16,8 @@ if "%1"=="dll11" goto stub_dll11
 if "%1"=="dll11_64" goto stub_dll11_64
 if "%1"=="dll12" goto stub_dll12
 if "%1"=="dll12_64" goto stub_dll12_64
+if "%1"=="dll14" goto stub_dll14
+if "%1"=="dll14_64" goto stub_dll14_64
 if "%1"=="dllg4" goto stub_dllg4
 if "%1"=="dllw4" goto stub_dllw4
 if "%1"=="dllw4_64" goto stub_dllw4_64
@@ -86,6 +88,16 @@ call tecmake vc12_64 "MF=iupstub" %2 %3 %4 %5 %6 %7
 move /y ..\lib\vc12_64\iupstub.lib ..\lib\dll12_64
 goto fim
 
+:stub_dll14
+call tecmake vc14 "MF=iupstub" %2 %3 %4 %5 %6 %7
+move /y ..\lib\vc14\iupstub.lib ..\lib\dll14
+goto fim
+
+:stub_dll14_64
+call tecmake vc14_64 "MF=iupstub" %2 %3 %4 %5 %6 %7
+move /y ..\lib\vc14_64\iupstub.lib ..\lib\dll14_64
+goto fim
+
 :stub_dllw4
 call tecmake mingw4 "MF=iupstub" %2 %3 %4 %5 %6 %7
 move /y ..\lib\mingw4\libiupstub.a ..\lib\dllw4
@@ -102,34 +114,32 @@ move /y ..\lib\gcc4\libiupstub.a ..\lib\dllg4
 goto fim
 
 :all_dll
-call make_uname dll9 %2 %3 %4 %5 %6
-call make_uname dll9_64 %2 %3 %4 %5 %6
 call make_uname dll10 %2 %3 %4 %5 %6
 call make_uname dll10_64 %2 %3 %4 %5 %6
 call make_uname dll11 %2 %3 %4 %5 %6
 call make_uname dll11_64 %2 %3 %4 %5 %6
 call make_uname dll12 %2 %3 %4 %5 %6
 call make_uname dll12_64 %2 %3 %4 %5 %6
+call make_uname dll14 %2 %3 %4 %5 %6
+call make_uname dll14_64 %2 %3 %4 %5 %6
 call make_uname dllw4 %2 %3 %4 %5 %6
 call make_uname dllw4_64 %2 %3 %4 %5 %6
 goto fim
 
 :all_beta
-call make_uname dll9 %2 %3 %4 %5 %6
-call make_uname dll9_64 %2 %3 %4 %5 %6
 call make_uname dll10 %2 %3 %4 %5 %6
 call make_uname dll10_64 %2 %3 %4 %5 %6
 goto fim
 
 :all_vc_dll
-call make_uname dll9 %2 %3 %4 %5 %6
-call make_uname dll9_64 %2 %3 %4 %5 %6
 call make_uname dll10 %2 %3 %4 %5 %6
 call make_uname dll10_64 %2 %3 %4 %5 %6
 call make_uname dll11 %2 %3 %4 %5 %6
 call make_uname dll11_64 %2 %3 %4 %5 %6
 call make_uname dll12 %2 %3 %4 %5 %6
 call make_uname dll12_64 %2 %3 %4 %5 %6
+call make_uname dll14 %2 %3 %4 %5 %6
+call make_uname dll14_64 %2 %3 %4 %5 %6
 goto fim
 
 :all_gcc_dll

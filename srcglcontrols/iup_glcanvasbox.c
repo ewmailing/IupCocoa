@@ -522,6 +522,9 @@ Iclass* iupGLCanvasBoxNewClass(void)
     iupClassRegisterAttribute(ic, "CLIENTSIZE", drawsize_get, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   }
 
+  /* Native Container */
+  iupClassRegisterAttribute(ic, "CHILDOFFSET", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
   iupClassRegisterAttribute(ic, "REDRAW", NULL, iGLCanvasBoxSetRedrawAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MARGIN", NULL, NULL, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NO_INHERIT);
 

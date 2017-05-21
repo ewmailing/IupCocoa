@@ -1,0 +1,38 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>gSearch</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<style type="text/css">
+td {
+	border: none;
+}
+.style1 {
+	margin-left: 0px;
+}
+.style2 {
+	text-align: left;
+}
+</style>
+
+</head>
+<body>
+<h3>WB_GSEARCH_TITLE</h3>
+<p>WB_GSEARCH_TIP</p>
+
+  <FORM method=GET action="http://www.google.com/search" style="margin-bottom: 0; margin: 0; text-align: center; " target="_blank">
+  	<div class="style2">
+  <input type=hidden name=ie value=UTF-8>
+  <input type=hidden name=oe value=UTF-8>
+  <INPUT TYPE=text name=q size=21 maxlength=255 value="" class="style1" style="width: 526px"><br>
+  <A HREF="http://www.google.com/"><IMG SRC="wb_img/google.gif" border="0" ALT="Google"></A>
+  <INPUT type=submit name=btnG VALUE="Search" style="height: 21px; vertical-align: top; font-size: x-small;">
+  <input type=hidden name=domains value="WB_SEARCH_LINK">
+  <input type=hidden name=sitesearch value="WB_SEARCH_LINK" checked>
+  <input type=hidden name=sitesearch value="">
+  	</div>
+  </FORM>
+  
+</body>
+</html>

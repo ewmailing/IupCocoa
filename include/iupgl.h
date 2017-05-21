@@ -81,6 +81,7 @@ extern "C" {
 void IupGLCanvasOpen(void);
 
 Ihandle *IupGLCanvas(const char *action);
+Ihandle* IupGLBackgroundBox(Ihandle* child);
 
 void IupGLMakeCurrent(Ihandle* ih);
 int IupGLIsCurrent(Ihandle* ih);

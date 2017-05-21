@@ -31,8 +31,8 @@
 #define IGAUGE_DEFAULTCOLOR "64 96 192"
 #define IGAUGE_DEFAULTSIZE  "120x14"
 
-#define IGAUGE_GAP     3
-#define IGAUGE_BLOCKS 20
+#define IGAUGE_DASHED_GAP     3
+#define IGAUGE_DASHED_BLOCKS 20
 
 #define gaugeround(_) ((int)((_)+.5))
 
@@ -44,6 +44,7 @@ struct _IcontrolData
   int w;
   int h;
 
+  int flat;
   int show_text;
   int dashed;
   int horiz_padding, vert_padding;  /* internal margin */
@@ -53,6 +54,7 @@ struct _IcontrolData
   long light_shadow;
   long mid_shadow;
   long dark_shadow; 
+  long flatcolor;
 
   double value;  /* min<=value<max */
   double vmin;
@@ -110,24 +112,30 @@ static void iGaugeDrawText(Ihandle* ih, int xmid)
 
 static void iGaugeDrawGauge(Ihandle* ih)
 {
-  int border = 3;  /* includes the pixel used to draw the 3D border */
-  int xstart = ih->data->horiz_padding+border;
-  int ystart = ih->data->vert_padding+border;
-  int xend   = ih->data->w-1 - (ih->data->horiz_padding+border);
-  int yend   = ih->data->h-1 - (ih->data->vert_padding+border);
+  int border = ih->data->flat? 1: 3;
+  int xstart = ih->data->horiz_padding + border;
+  int ystart = ih->data->vert_padding + border;
+  int xend = ih->data->w - 1 - (ih->data->horiz_padding + border);
+  int yend = ih->data->h - 1 - (ih->data->vert_padding + border);
 
   cdCanvasBackground(ih->data->cd_canvas, ih->data->bgcolor);
   cdCanvasClear(ih->data->cd_canvas);
 
-  cdIupDrawSunkenRect(ih->data->cd_canvas, 0, 0, ih->data->w-1, ih->data->h-1,
+  if (ih->data->flat)
+  {
+    cdCanvasForeground(ih->data->cd_canvas, ih->data->flatcolor);
+    cdCanvasRect(ih->data->cd_canvas, 0, ih->data->w - 1, 0, ih->data->h - 1);
+  }
+  else
+    cdIupDrawSunkenRect(ih->data->cd_canvas, 0, 0, ih->data->w-1, ih->data->h-1,
                         ih->data->light_shadow, ih->data->mid_shadow, ih->data->dark_shadow);
 
   cdCanvasForeground(ih->data->cd_canvas, ih->data->fgcolor);
 
   if (ih->data->dashed)
   {
-    float step = (xend - xstart + 1) / (float)IGAUGE_BLOCKS;
-    float boxw = step - IGAUGE_GAP;
+    float step = (xend - xstart + 1) / (float)IGAUGE_DASHED_BLOCKS;
+    float boxw = step - IGAUGE_DASHED_GAP;
     float vx   = (float)((xend-xstart + 1) * (ih->data->value - ih->data->vmin) / (ih->data->vmax - ih->data->vmin));
     int intvx  = (int)(100 * vx);
     float i = 0;
@@ -138,7 +146,7 @@ static void iGaugeDrawGauge(Ihandle* ih)
     while(gaugeround(100*(i + boxw)) <= intvx)
     {
       cdCanvasBox(ih->data->cd_canvas, xstart + gaugeround(i),
-             xstart + gaugeround(i + boxw) - 1, ystart, yend);
+                                       xstart + gaugeround(i + boxw) - 1, ystart, yend);
       i += step;
     }
   }
@@ -170,6 +178,8 @@ static void iGaugeRepaint(Ihandle* ih)
 {
   if (!ih->data->cd_canvas)
     return;
+
+  cdCanvasActivate(ih->data->cd_canvas);
 
   /* update render */
   iGaugeDrawGauge(ih);
@@ -278,6 +288,22 @@ static char* iGaugeGetShowTextAttrib(Ihandle* ih)
   return iupStrReturnBoolean(ih->data->show_text);
 }
 
+static int iGaugeSetFlatAttrib(Ihandle* ih, const char* value)
+{
+  if (iupStrBoolean(value))
+    ih->data->flat = 1;
+  else
+    ih->data->flat = 0;
+
+  iGaugeRepaint(ih);
+  return 0; /* do not store value in hash table */
+}
+
+static char* iGaugeGetFlatAttrib(Ihandle* ih)
+{
+  return iupStrReturnBoolean(ih->data->flat);
+}
+
 static int iGaugeSetPaddingAttrib(Ihandle* ih, const char* value)
 {
   iupStrToIntInt(value, &ih->data->horiz_padding, &ih->data->vert_padding, 'x');
@@ -288,6 +314,22 @@ static int iGaugeSetPaddingAttrib(Ihandle* ih, const char* value)
 static char* iGaugeGetPaddingAttrib(Ihandle* ih)
 {
   return iupStrReturnIntInt(ih->data->horiz_padding, ih->data->vert_padding, 'x');
+}
+
+static int iGaugeSetFlatColorAttrib(Ihandle* ih, const char* value)
+{
+  unsigned char r, g, b;
+  if (iupStrToRGB(value, &r, &g, &b))
+  {
+    ih->data->flatcolor = cdEncodeColor(r, g, b);
+    iGaugeRepaint(ih);
+  }
+  return 0;
+}
+
+static char* iGaugeGetFlatColorAttrib(Ihandle* ih)
+{
+  return iupStrReturnRGB(cdRed(ih->data->flatcolor), cdGreen(ih->data->flatcolor), cdBlue(ih->data->flatcolor));
 }
 
 static int iGaugeSetDashedAttrib(Ihandle* ih, const char* value)
@@ -361,6 +403,7 @@ static int iGaugeCreateMethod(Ihandle* ih, void **params)
   ih->data->light_shadow = CD_WHITE;
   ih->data->mid_shadow   = CD_GRAY;
   ih->data->dark_shadow  = CD_DARK_GRAY;
+  ih->data->flatcolor = cdEncodeColor(164, 164, 164);
   ih->data->show_text = 1;
 
   /* IupCanvas callbacks */
@@ -395,8 +438,11 @@ Iclass* iupGaugeNewClass(void)
   iupClassRegisterAttribute(ic, "DASHED", iGaugeGetDashedAttrib, iGaugeSetDashedAttrib, NULL, NULL, IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "PADDING", iGaugeGetPaddingAttrib, iGaugeSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "TEXT", iGaugeGetTextAttrib, iGaugeSetTextAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SHOW_TEXT", iGaugeGetShowTextAttrib, iGaugeSetShowTextAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED);
+  /*OLD*/iupClassRegisterAttribute(ic, "SHOW_TEXT", iGaugeGetShowTextAttrib, iGaugeSetShowTextAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "SHOWTEXT", iGaugeGetShowTextAttrib, iGaugeSetShowTextAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iGaugeSetFgColorAttrib, IGAUGE_DEFAULTCOLOR, NULL, IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "FLAT", iGaugeGetFlatAttrib, iGaugeSetFlatAttrib, NULL, NULL, IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "FLATCOLOR", iGaugeGetFlatColorAttrib, iGaugeSetFlatColorAttrib, IUPAF_SAMEASSYSTEM, "164 164 164", IUPAF_NOT_MAPPED);
 
   /* Overwrite IupCanvas Attributes */
   iupClassRegisterAttribute(ic, "BGCOLOR", iupControlBaseGetBgColorAttrib, iGaugeSetBgColorAttrib, NULL, "255 255 255", IUPAF_NO_INHERIT);    /* overwrite canvas implementation, set a system default to force a new default */

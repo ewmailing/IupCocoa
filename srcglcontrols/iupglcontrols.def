@@ -14,9 +14,14 @@ EXPORTS
   IupGLExpander
   IupGLScrollBox
   IupGLSizeBox
+  IupGLText
+  IupGLDrawImage
+  IupGLDrawText
+  IupGLDrawGetTextSize
+  IupGLDrawGetImageInfo
 
-  iupGLDrawText
-  iupGLDrawImage
+  iupGLDrawMultilineText
+  iupGLDrawIconImage
   iupGLDrawLine
   iupGLDrawPolygon
   iupGLDrawPolyline
@@ -26,7 +31,7 @@ EXPORTS
   iupGLDrawArrow
   iupGLDrawSmallCircle
   iupGLDrawSmallDisc
-  iupGLDrawImageZoom
+  iupGLDrawIconImageZoom
 
   iupGLFontGetStringWidth
   iupGLFontGetMultiLineStringSize

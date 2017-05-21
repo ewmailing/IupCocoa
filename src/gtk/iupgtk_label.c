@@ -130,6 +130,7 @@ static int gtkLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
       yalign = 0.5f;
 
     gtk_misc_set_alignment(misc, xalign, yalign);
+/* TODO:   g_object_set(widget, "xalign", xalign, "yalign", yalign, NULL); */
 
     if (ih->data->type == IUP_LABEL_TEXT)
       pango_layout_set_alignment(gtk_label_get_layout((GtkLabel*)ih->handle), alignment);
@@ -146,8 +147,15 @@ static int gtkLabelSetPaddingAttrib(Ihandle* ih, const char* value)
 
   if (ih->handle && ih->data->type != IUP_LABEL_SEP_HORIZ && ih->data->type != IUP_LABEL_SEP_VERT)
   {
+#if GTK_CHECK_VERSION(3, 14, 0)
+    g_object_set(G_OBJECT(ih->handle), "margin-bottom", ih->data->vert_padding, NULL);
+    g_object_set(G_OBJECT(ih->handle), "margin-top", ih->data->vert_padding, NULL);
+    g_object_set(G_OBJECT(ih->handle), "margin-left", ih->data->horiz_padding, NULL);
+    g_object_set(G_OBJECT(ih->handle), "margin-right", ih->data->horiz_padding, NULL);
+#else
     GtkMisc* misc = (GtkMisc*)ih->handle;
     gtk_misc_set_padding(misc, ih->data->horiz_padding, ih->data->vert_padding);
+#endif
     return 0;
   }
   else
@@ -184,7 +192,7 @@ static int gtkLabelSetImageAttrib(Ihandle* ih, const char* value)
       if (!iupAttribGet(ih, "IMINACTIVE"))
       {
         /* if not active and IMINACTIVE is not defined 
-           then automaticaly create one based on IMAGE */
+           then automatically create one based on IMAGE */
         gtkLabelSetPixbuf(ih, value, 1); /* make_inactive */
       }
     }
@@ -204,7 +212,7 @@ static int gtkLabelSetImInactiveAttrib(Ihandle* ih, const char* value)
         gtkLabelSetPixbuf(ih, value, 0);
       else
       {
-        /* if not defined then automaticaly create one based on IMAGE */
+        /* if not defined then automatically create one based on IMAGE */
         char* name = iupAttribGet(ih, "IMAGE");
         gtkLabelSetPixbuf(ih, name, 1); /* make_inactive */
       }
@@ -227,7 +235,7 @@ static int gtkLabelSetActiveAttrib(Ihandle* ih, const char* value)
         gtkLabelSetPixbuf(ih, name, 0);
       else
       {
-        /* if not defined then automaticaly create one based on IMAGE */
+        /* if not defined then automatically create one based on IMAGE */
         name = iupAttribGet(ih, "IMAGE");
         gtkLabelSetPixbuf(ih, name, 1); /* make_inactive */
       }
@@ -303,6 +311,7 @@ static int gtkLabelMapMethod(Ihandle* ih)
 
     g_signal_connect(G_OBJECT(box), "button-press-event", G_CALLBACK(iupgtkButtonEvent), ih);
     g_signal_connect(G_OBJECT(box), "button-release-event",G_CALLBACK(iupgtkButtonEvent), ih);
+    g_signal_connect(G_OBJECT(box), "motion-notify-event", G_CALLBACK(iupgtkMotionNotifyEvent), ih);
     g_signal_connect(G_OBJECT(box), "enter-notify-event", G_CALLBACK(iupgtkEnterLeaveEvent), ih);
     g_signal_connect(G_OBJECT(box), "leave-notify-event", G_CALLBACK(iupgtkEnterLeaveEvent), ih);
   }

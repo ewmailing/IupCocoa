@@ -84,6 +84,8 @@ typedef struct _ImatLinColData
   int total_visible_size;   /* Sum of the widths/heights of the columns/lines, not including the non scrollable cells */
   int current_visible_size; /* Width/height of the visible window, not including the non scrollable cells */
 
+  int total_size;   /* Sum of the widths/heights of all columns/lines */
+
   int focus_cell;   /* index of the current cell */
 } ImatLinColData;
 
@@ -119,7 +121,7 @@ struct _IcontrolData
   int need_calcsize;
   int need_redraw;
   int inside_markedit_cb;   /* avoid recursion */
-  int last_sort_index;
+  int last_sort_col;
 
   /* attributes */
   int mark_continuous, mark_mode, mark_multiple;
@@ -129,8 +131,7 @@ struct _IcontrolData
   int undo_redo, show_fill_value;
 
   /* Mouse and Keyboard AUX */
-  int leftpressed;  /* left mouse button is pressed */
-  int dclick;       /* left mouse button was double clicked */
+  int button1edit;
   int homekeycount, endkeycount;  /* numbers of times that key was pressed */
 
   /* ColRes AUX */
@@ -144,6 +145,7 @@ struct _IcontrolData
       mark_lin2, mark_col2,  /* used to store the end cell when a block was marked */
       mark_full1,            /* indicate if full lines or columns is being selected */
       mark_full2;
+  int mark_block;            /* inside MarkBlockBegin/MarkBlockEnd */
 
   /* Draw AUX, valid only after iupMatrixPrepareDrawData */
   sIFnii font_cb, type_cb;

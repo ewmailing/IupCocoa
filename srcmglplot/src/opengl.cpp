@@ -21,6 +21,23 @@ mglCanvasGL::mglCanvasGL() : mglCanvas(1,1)	{	Clf();	Zoom(0,0,1,1);	}
 //-----------------------------------------------------------------------------
 mglCanvasGL::~mglCanvasGL(){}
 //-----------------------------------------------------------------------------
+void set_pen(unsigned style, mreal width, mreal pos)
+{
+	if(style==0)	return;
+	unsigned long pdef = style*0x100010001;
+	pdef >>= long(32*pos)%32;	// NOTE try to bypass OpenGL limitations
+	style = pdef & 0xffff;
+	width *= 20;
+	if(style!=0xffff)
+	{
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(int(width+0.5),style);
+	}
+	else	glDisable(GL_LINE_STIPPLE);
+	if(width>1)	glLineWidth(width);	// NOTE bypass bug on some drivers, where width>1 must be
+	else		glLineWidth(1);
+}
+//-----------------------------------------------------------------------------
 void mglCanvasGL::Finish()
 {
 #if MGL_USE_DOUBLE
@@ -62,7 +79,6 @@ void mglCanvasGL::Finish()
 		PDef=pdef;	pPos=ss;	PenWidth=ww;
 	}
 	glFinish();
-//	glBegin(GL_LINES);	glColor3f(0,0,1);	glVertex2f(0.1,0.1);	glVertex2f(0.9,0.9);	glEnd();
 }
 //-----------------------------------------------------------------------------
 bool mglCanvasGL::Alpha(bool enable)
@@ -87,48 +103,48 @@ bool mglCanvasGL::Alpha(bool enable)
 	return mglCanvas::Alpha(enable);
 }
 //-----------------------------------------------------------------------------
-void mglCanvasGL::AddLight(int n,mglPoint r,mglPoint d,char cc, mreal br,mreal /*ap*/)
+void mglCanvasGL::AddLight(int n,mglPoint r,mglPoint d,char cc, mreal br,mreal ap)
 {
 	mglColor c(cc);
-	mglColor AmbLight = mglColor(AmbBr,AmbBr,AmbBr);
-	mglColor DifLight = mglColor(br,br,br);
-	GLenum lght[8] = {GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4,
-			GL_LIGHT5,GL_LIGHT6,GL_LIGHT7};
-	float amb[4], pos[4],dif[4],dir[4];
+	float amb[4],dif[4],spc[4], pos[4],dir[4];
 	bool inf = mgl_isnan(r.x);
 	if(n<0 || n>7)	{	SetWarn(mglWarnLId,"AddLight");	return;	}
 	if(c.Valid())
 	{
-		DifLight = c*br;
-		AmbLight = c*AmbBr;
+		spc[0] = br*c.r;	spc[1] = br*c.g;	spc[2] = br*c.b;
+		amb[0] = AmbBr*c.r;	amb[1] = AmbBr*c.g;	amb[2] = AmbBr*c.b;
 	}
-	dif[0] = DifLight.r;	dif[1] = DifLight.g;
-	dif[2] = DifLight.b;	dif[3] = 1.;
-	amb[0] = AmbLight.r;	amb[1] = AmbLight.g;
-	amb[2] = AmbLight.b;	amb[3] = 1.;
+	else
+	{
+		spc[0] = spc[1] = spc[2] = br;
+		amb[0] = amb[1] = amb[2] = AmbBr;
+	}
+	ap = 90-180*atan(fabs(ap))/M_PI;
+	dif[0] = dif[1] = dif[2] = DifBr;
+	dif[3] = amb[3] = spc[3] = 1.;
 	if(inf)
 	{	pos[0] = d.x;	pos[1] = d.y;	pos[2] = d.z;	pos[3] = 0;	}
 	else
 	{	pos[0] = r.x;	pos[1] = r.y;	pos[2] = r.z;	pos[3] = 1;	}
-	dir[0] = d.x;	dir[1] = d.y;	dir[2] = d.z;
-	glShadeModel(GL_SMOOTH);
-	//glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 5.0);
-	//glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, pos);
+	dir[0] = d.x;	dir[1] = d.y;	dir[2] = d.z;	dir[3] = 0;
 
-	glLightfv(lght[n], GL_AMBIENT, amb);
-	glLightfv(lght[n], GL_DIFFUSE, dif);
-	//glLightfv(lght[n], GL_SPECULAR, spc);
-	glLightfv(lght[n], GL_POSITION, pos);
-	if(!inf)	glLightfv(lght[n], GL_SPOT_DIRECTION, dir);
-	glEnable(lght[n]);
+	glShadeModel(GL_SMOOTH);
+	glLightfv(GL_LIGHT0+n, GL_AMBIENT, amb);
+	glLightfv(GL_LIGHT0+n, GL_DIFFUSE, dif);
+	glLightfv(GL_LIGHT0+n, GL_SPECULAR, spc);
+	glLightfv(GL_LIGHT0+n, GL_POSITION, pos);
+	if(!inf)
+	{
+		glLightfv(GL_LIGHT0+n, GL_SPOT_DIRECTION, dir);
+		glLightf(GL_LIGHT0+n, GL_SPOT_CUTOFF, ap);
+	}
+	glEnable(GL_LIGHT0+n);
 }
 //-----------------------------------------------------------------------------
 void mglCanvasGL::Light(int n, bool enable)
 {
-	GLenum lght[8] = {GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4,
-			GL_LIGHT5,GL_LIGHT6,GL_LIGHT7};
-	if(enable)	glEnable(lght[n]);
-	else		glDisable(lght[n]);
+	if(enable)	glEnable(GL_LIGHT0+n);
+	else		glDisable(GL_LIGHT0+n);
 }
 //-----------------------------------------------------------------------------
 bool mglCanvasGL::Light(bool enable)
@@ -144,7 +160,7 @@ void mglCanvasGL::LightScale(const mglMatrix *M)
 	GLenum ll[8] = {GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4,
 			GL_LIGHT5,GL_LIGHT6,GL_LIGHT7};
 	float pos[4]={0,0,0,0};
-	for(int i=0;i<8;i++)
+	for(int i=0;i<8;i++)	// NOTE only global light is used in OpenGL mode
 	{
 		pos[0] = light[i].p.x;
 		pos[1] = light[i].p.y;
@@ -185,7 +201,7 @@ void mglCanvasGL::Fog(mreal d, mreal)
 void mglCanvasGL::Clf(mglColor Back)
 {
 	mglCanvas::Clf(Back);
-	if(Back==NC)	Back = mglColor(BDef[0]/255.,BDef[1]/255.,BDef[2]/255.);
+	if(Back==NC)	Back.Set(BDef[0]/255.,BDef[1]/255.,BDef[2]/255.);
 	gl_clf(Back);
 }
 //-----------------------------------------------------------------------------
@@ -212,19 +228,10 @@ void mglCanvasGL::gl_clf(mglColor Back)
 // 	glTranslated(-0.5,-0.5,-0.5);
 	glScaled(2,2,2);
 	glTranslated(-0.5,-0.5,-0.5);
-}
-//-----------------------------------------------------------------------------
-void mglCanvasGL::set_pen(unsigned style,mreal width)
-{
-	if(style==0)	return;
-	if(style!=0xffff)
-	{
-		glEnable(GL_LINE_STIPPLE);
-		glLineStipple(int(width+0.5),style);
-	}
-	else	glDisable(GL_LINE_STIPPLE);
-	if(width>0)		glLineWidth(width);
-	else			glLineWidth(1);
+	
+// 	float dif[4]={DifBr,DifBr,DifBr,1}, spc[4]={1,1,1,1};
+// 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dif);
+// 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spc);
 }
 //-----------------------------------------------------------------------------
 /*void mglCanvasGL::EndFrame()
@@ -276,10 +283,7 @@ void mglCanvasGL::trig_draw(long k1, long k2, long k3)
 void mglCanvasGL::line_draw(long k1, long k2)
 {
 	if(PDef==0)	return;
-/*	unsigned pdef = PDef*0x10001;
-	pdef = pdef << (int(100*pPos+0.5)%16);
-	set_pen(pdef&0xffff,PenWidth);*/
-	set_pen(PDef,PenWidth);
+	set_pen(PDef,PenWidth, pPos);
 	glBegin(GL_LINES);
 	glArrayElement(k1);	glArrayElement(k2);
 	glEnd();
@@ -307,7 +311,7 @@ void mglCanvasGL::trig_draw(const mglPnt &p1, const mglPnt &p2, const mglPnt &p3
 void mglCanvasGL::line_draw(const mglPnt &p1, const mglPnt &p2, const mglDrawReg *)
 {
 	if(PDef==0)	return;
-	set_pen(PDef,PenWidth);
+	set_pen(PDef,PenWidth, pPos);
 	glBegin(GL_LINES);
 	glColor4f(p1.r,p1.g,p1.b,p1.a);	glVertex3f(p1.x,p1.y,p1.z);
 	glColor4f(p2.r,p2.g,p2.b,p2.a);	glVertex3f(p2.x,p2.y,p2.z);

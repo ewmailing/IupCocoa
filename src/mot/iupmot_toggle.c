@@ -32,9 +32,11 @@
 
 void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
 {
+  int check_box = 15;  /* See XmNindicatorSize */
+
   /* has margins too */
-  (*x) += 3+15+3;
-  if ((*y) < 3+15+3) (*y) = 3+15+3; /* minimum height */
+  (*x) += 3 + check_box + 3;
+  if ((*y) < 3 + check_box + 3) (*y) = 3 + check_box + 3; /* minimum height */
   else (*y) += 3+3;
 
   if (str && str[0]) /* add spacing between check box and text */
@@ -59,7 +61,7 @@ static int motToggleSetBgColorAttrib(Ihandle* ih, const char* value)
         parent_value = IupGetGlobal("DLGBGCOLOR");
         XtVaSetValues(ih->handle, XmNbackground, iupmotColorGetPixelStr(parent_value), NULL);  /* reset just the background */
 
-        if (ih->data->radio)
+        if (ih->data->is_radio)
           XtVaSetValues(ih->handle, XmNselectColor, iupmotColorGetPixel(0, 0, 0), NULL);
         XtVaSetValues(ih->handle, XmNunselectColor, iupmotColorGetPixelStr(value), NULL);
         return 1;
@@ -70,7 +72,7 @@ static int motToggleSetBgColorAttrib(Ihandle* ih, const char* value)
       /* ignore given value, must use only from parent */
       if (iupdrvBaseSetBgColorAttrib(ih, parent_value))
       {
-        if (ih->data->radio)
+        if (ih->data->is_radio)
           XtVaSetValues(ih->handle, XmNselectColor, iupmotColorGetPixel(0, 0, 0), NULL);
         XtVaSetValues(ih->handle, XmNunselectColor, iupmotColorGetPixelStr(parent_value), NULL);
         return 1;
@@ -182,7 +184,7 @@ static int motToggleSetImageAttrib(Ihandle* ih, const char* value)
     if (!iupAttribGet(ih, "IMINACTIVE"))
     {
       /* if not active and IMINACTIVE is not defined 
-         then automaticaly create one based on IMAGE */
+         then automatically create one based on IMAGE */
       iupmotSetPixmap(ih, value, XmNlabelInsensitivePixmap, 1); /* make_inactive */
     }
     return 1;
@@ -403,7 +405,7 @@ static int motToggleMapMethod(Ihandle* ih)
   Arg args[40];
 
   if (radio)
-    ih->data->radio = 1;
+    ih->data->is_radio = 1;
 
   value = iupAttribGet(ih, "IMAGE");
   if (value)
@@ -439,7 +441,7 @@ static int motToggleMapMethod(Ihandle* ih)
   iupMOT_SETARG(args, num_args, XmNmarginBottom, 0);
   iupMOT_SETARG(args, num_args, XmNmarginRight, 0);
 
-  if (radio)
+  if (ih->data->is_radio)
   {
     iupMOT_SETARG(args, num_args, XmNtoggleMode, XmTOGGLE_BOOLEAN);
     iupMOT_SETARG(args, num_args, XmNindicatorType, XmONE_OF_MANY_ROUND);
@@ -449,6 +451,10 @@ static int motToggleMapMethod(Ihandle* ih)
       /* this is the first toggle in the radio, and the last toggle with VALUE=ON */
       iupAttribSet(ih, "VALUE","ON");
     }
+
+    /* make sure it has at least one name */
+    if (!iupAttribGetHandleName(ih))
+      iupAttribSetHandleName(ih);
   }
   else
   {
@@ -470,7 +476,8 @@ static int motToggleMapMethod(Ihandle* ih)
     iupMOT_SETARG(args, num_args, XmNspacing, 3);
     iupMOT_SETARG(args, num_args, XmNindicatorOn, XmINDICATOR_CHECK_BOX);
     iupMOT_SETARG(args, num_args, XmNalignment, XmALIGNMENT_BEGINNING);
-    if (radio)
+
+    if (ih->data->is_radio)
     {
       iupMOT_SETARG(args, num_args, XmNindicatorSize, 13);
       iupMOT_SETARG(args, num_args, XmNselectColor, iupmotColorGetPixel(0, 0, 0));

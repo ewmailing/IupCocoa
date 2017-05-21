@@ -18,6 +18,10 @@
 #include "iup_object.h"
 
 
+/* #define STOCK_TEST "24" */
+/* #define STOCK_TEST "48" */
+
+
 #define MAX_NAMES 5000
 
 #ifdef USE_IM
@@ -75,7 +79,7 @@ static int is_image(const char* type)
     return 0;
 }
 
-static int showallimages_cb(void)
+static int showallimages_cb(Ihandle* ih)
 {
   Ihandle *dialog, *box, *files, *tabs, *toggle, *label;
   Ihandle* params[500];
@@ -102,7 +106,12 @@ static int showallimages_cb(void)
         tbox = IupVbox(NULL);
         IupSetAttribute(files, file_title, (char*)tbox);
         IupSetAttribute(tbox, "TABTITLE", file_title);
+#ifdef STOCK_TEST
+        params[n] = IupBackgroundBox(tbox);
+        IupSetStrAttribute(params[n], "BGCOLOR", IupGetAttribute(IupGetDialog(ih), "BGCOLOR"));
+#else
         params[n] = tbox;
+#endif
         n++;
       }
 
@@ -116,6 +125,9 @@ static int showallimages_cb(void)
       }
 
       button = IupButton("", NULL);
+#ifdef STOCK_TEST
+      IupSetAttribute(button, "FLAT", "Yes");
+#endif
       IupSetAttribute(button, "IMAGE", names[i]);
       IupSetfAttribute(button, "_INFO", "%s [%d,%d]", names[i], IupGetInt(elem, "WIDTH"), IupGetInt(elem, "HEIGHT"));
       IupSetCallback(button, "ACTION", (Icallback)imagebutton_cb);
@@ -159,34 +171,26 @@ static int showallimages_cb(void)
 
 static char* getfileformat(int all)
 {
-#define NUM_FORMATS 8
+#define NUM_FORMATS 7
   int ret, count = NUM_FORMATS; 	
   static char *options[NUM_FORMATS] = {
-    "led",
-    "lua",
-    "c",
-    "h",
-    "ico",
-    "bmp",
-    "gif",
-    "png"
+    "LED",
+    "LUA",
+    "C",
+    "ICO",
+    "BMP",
+    "GIF",
+    "PNG"
   };
 
   if (!all)
-    count = 4;
+    count = 3;
 
-  ret = IupListDialog(1,"File Format",count,options,1,10,count+1,NULL);
+  ret = IupListDialog(1,"File Format",count,options,1,9,count+1,NULL);
   if (ret == -1)
     return NULL;
   else
     return options[ret];
-}
-
-static char* StrUpper(const char* sstr)
-{
-  static char buf[10];
-  iupStrUpper(buf, sstr);
-  return buf;
 }
 
 static char* getfolder(void)
@@ -208,6 +212,13 @@ static char* getfolder(void)
 
   IupDestroy(filedlg);
   return NULL;
+}
+
+static char* StrLower(const char* sstr)
+{
+  static char buf[10];
+  iupStrLower(buf, sstr);
+  return buf;
 }
 
 static int saveallimages_cb(void)
@@ -244,12 +255,12 @@ static int saveallimages_cb(void)
       strcat(file_name, "_");
       strcat(file_name, names[i]);
       strcat(file_name, ".");
-      strcat(file_name, imgtype);
+      strcat(file_name, StrLower(imgtype));
 
       if (!IupSaveImageAsText(elem, file_name, imgtype, names[i]))
       {
 #ifdef USE_IM
-        if (!IupSaveImage(elem, file_name, StrUpper(imgtype)))
+        if (!IupSaveImage(elem, file_name, imgtype))
         {
           char* err_msg = IupGetGlobal("IUPIM_LASTERROR");
           if (err_msg)
@@ -284,7 +295,7 @@ static int GetSaveAsFile(char* file, const char* imgtype)
   gf = IupFileDlg();
   IupSetAttribute(gf, "DIALOGTYPE", "SAVE");
   IupSetfAttribute(gf, "TITLE", "Save %s File", imgtype);
-  IupSetfAttribute(gf, "FILTER", "*.%s", imgtype);
+  IupSetfAttribute(gf, "FILTER", "*.%s", StrLower(imgtype));
   IupSetAttribute(gf, "FILE", file);
   IupPopup(gf, IUP_CENTER, IUP_CENTER);
 
@@ -314,7 +325,7 @@ static void replaceDot(char* file_name)
 
 static char* strdup_free(const char* str, char* str_ptr)
 {
-  int len = strlen(str);
+  int len = (int)strlen(str);
   char* tmp = malloc(len+1);
   memcpy(tmp, str, len+1);
   free(str_ptr);
@@ -323,7 +334,7 @@ static char* strdup_free(const char* str, char* str_ptr)
 
 static char* mainGetFileTitle(const char* file_name)
 {
-  int i, last = 1, len = strlen(file_name);
+  int i, last = 1, len = (int)strlen(file_name);
   char* file_title = malloc(len+1);
   char* dot, *ft_str = file_title;
 
@@ -406,7 +417,7 @@ static int saveallimagesone_cb(void)
 
   if (packfile)
   {
-    if (iupStrEqualNoCase(imgtype, "c"))  /* only for C files */
+    if (iupStrEqualNoCase(imgtype, "C"))  /* only for C files */
     {
       char* title = mainGetFileTitle(file_name);
       fprintf(packfile, "void load_all_images_%s(void)\n{\n", title);
@@ -450,13 +461,13 @@ static int saveimage_cb(Ihandle* self)
       if (!imgtype)
         return IUP_DEFAULT;
 
-      sprintf(file_name, "%s.%s", name, imgtype);
+      sprintf(file_name, "%s.%s", name, StrLower(imgtype));
       if (GetSaveAsFile(file_name, imgtype) != -1)
       {
         if (!IupSaveImageAsText(elem, file_name, imgtype, name))
         {
 #ifdef USE_IM
-          if (!IupSaveImage(elem, file_name, StrUpper(imgtype)))
+          if (!IupSaveImage(elem, file_name, imgtype))
           {
             char* err_msg = IupGetGlobal("IUPIM_LASTERROR");
             if (err_msg)
@@ -703,7 +714,7 @@ static int loadimagelib_cb(Ihandle* self)
 static int loadbuffer_cb(Ihandle* self)
 {
   char buffer[10240] = "";
-  if (IupGetText("LED", buffer))
+  if (IupGetText("LED", buffer, 10240))
   {
     char* error;
 
@@ -749,8 +760,8 @@ static char* ParseFile(const char* dir, const char* FileName, int *offset)
     return NULL;
 
   {
-    int size = file - FileName + 1;
-    int dir_size = strlen(dir);
+    int size = (int)(file - FileName) + 1;
+    int dir_size = (int)strlen(dir);
     char* file_name = malloc(size+dir_size+1);
     memcpy(file_name, dir, dir_size);
     file_name[dir_size] = '\\';
@@ -771,7 +782,7 @@ static char* ParseDir(const char* FileName, int *offset)
     return NULL;
 
   {
-    int size = file - FileName + 1;
+    int size = (int)(file - FileName) + 1;
     char* dir = malloc(size);
     memcpy(dir, FileName, size-1);
     dir[size-1] = 0;
@@ -1064,6 +1075,10 @@ int main (int argc, char **argv)
 #endif  
     IupControlsOpen();
     IupImageLibOpen();
+
+#ifdef STOCK_TEST
+    IupSetGlobal("IMAGESTOCKSIZE", STOCK_TEST);
+#endif
 
     mainUpdateInternals();
 

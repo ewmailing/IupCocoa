@@ -102,15 +102,43 @@ static int iNormalizerSetNormalizeAttrib(Ihandle* ih, const char* value)
 static int iNormalizerSetAddControlHandleAttrib(Ihandle* ih, const char* value)
 {
   Ihandle* ih_control = (Ihandle*)value;
-  Ihandle** ih_list = (Ihandle**)iupArrayInc(ih->data->ih_array);
-  int count = iupArrayCount(ih->data->ih_array);
-  ih_list[count-1] = ih_control;
+  if (iupObjectCheck(ih_control))
+  {
+    Ihandle** ih_list = (Ihandle**)iupArrayInc(ih->data->ih_array);
+    int count = iupArrayCount(ih->data->ih_array);
+    ih_list[count - 1] = ih_control;
+  }
   return 0;
 }
 
 static int iNormalizerSetAddControlAttrib(Ihandle* ih, const char* value)
 {
   return iNormalizerSetAddControlHandleAttrib(ih, (char*)IupGetHandle(value));
+}
+
+static int iNormalizerSetDelControlHandleAttrib(Ihandle* ih, const char* value)
+{
+  Ihandle* ih_control = (Ihandle*)value;
+  if (iupObjectCheck(ih_control))
+  {
+    int i, count = iupArrayCount(ih->data->ih_array);
+    Ihandle** ih_list = (Ihandle**)iupArrayGetData(ih->data->ih_array);
+
+    for (i = 0; i < count; i++)
+    {
+      if (ih_list[i] == ih_control)
+      {
+        iupArrayRemove(ih->data->ih_array, i, 1);
+        return 0;
+      }
+    }
+  }
+  return 0;
+}
+
+static int iNormalizerSetDelControlAttrib(Ihandle* ih, const char* value)
+{
+  return iNormalizerSetDelControlHandleAttrib(ih, (char*)IupGetHandle(value));
 }
 
 static void iNormalizerComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
@@ -166,8 +194,10 @@ Iclass* iupNormalizerNewClass(void)
   ic->Destroy = iNormalizerDestroy;
 
   iupClassRegisterAttribute(ic, "NORMALIZE", NULL, iNormalizerSetNormalizeAttrib, IUPAF_SAMEASSYSTEM, "HORIZONTAL", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ADDCONTROL_HANDLE", NULL, iNormalizerSetAddControlHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ADDCONTROL", NULL, iNormalizerSetAddControlAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ADDCONTROL_HANDLE", NULL, iNormalizerSetAddControlHandleAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ADDCONTROL", NULL, iNormalizerSetAddControlAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_IHANDLENAME | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DELCONTROL_HANDLE", NULL, iNormalizerSetDelControlHandleAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DELCONTROL", NULL, iNormalizerSetDelControlAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_IHANDLENAME | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   return ic;
 }

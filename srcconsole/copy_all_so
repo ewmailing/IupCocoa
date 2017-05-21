@@ -16,29 +16,18 @@ Copy_SOs()
   cp -f ../lib/$PLAT/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
   cp -f $BASE_TEC/cd/lib/$PLAT/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
   cp -f $BASE_TEC/im/lib/$PLAT/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
+  cp -f $BASE_TEC/ftgl/lib/$PLAT/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
+  cp -f ../lib/$PLAT/Lua$LUA_SFX/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
+  cp -f $BASE_TEC/cd/lib/$PLAT/Lua$LUA_SFX/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
+  cp -f $BASE_TEC/im/lib/$PLAT/Lua$LUA_SFX/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
   cp -f $BASE_TEC/lua$LUA_SFX/bin/$PLAT/lua5* ../bin/$PLAT/Lua$LUA_SFX
   cp -f $BASE_EXTRA/luagl/lib/$PLAT/Lua$LUA_SFX/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
   cp -f $BASE_EXTRA/lfs/lib/$PLAT/Lua$LUA_SFX/*.$EXT ../bin/$PLAT/Lua$LUA_SFX
-  
-  #Remove Lua5.X from Lua5.Y folder
-  if [ $LUA_SFX == 51 ]; then
-    rm -f ../bin/$PLAT/Lua$LUA_SFX/*52.$EXT 
-    rm -f ../bin/$PLAT/Lua$LUA_SFX/*53.$EXT 
-  fi
-  if [ $LUA_SFX == 52 ]; then
-    rm -f ../bin/$PLAT/Lua$LUA_SFX/*51.$EXT 
-    rm -f ../bin/$PLAT/Lua$LUA_SFX/*53.$EXT 
-  fi
-  if [ $LUA_SFX == 53 ]; then
-    rm -f ../bin/$PLAT/Lua$LUA_SFX/*51.$EXT 
-    rm -f ../bin/$PLAT/Lua$LUA_SFX/*52.$EXT 
-  fi
-  
-  #Move the executable to the respective folder  
-  mv -f ../bin/$PLAT/iuplua$LUA_SFX ../bin/$PLAT/Lua$LUA_SFX/iuplua$LUA_SFX
 }
 
-for plat in Linux26g4_64 Linux32 Linux32_64 Linux35_64 Linux313_64 Linux319_64 SunOS511x86 MacOS1010
+# MacOS1010
+
+for plat in Linux26g4_64 Linux32 Linux32_64 Linux35_64 Linux313_64 Linux319_64 Linux44_64 SunOS511x86 
 do
   Copy_SOs $plat 51 so
   Copy_SOs $plat 52 so

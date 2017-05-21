@@ -1,6 +1,6 @@
 /***************************************************************************
  * base.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,11 +23,12 @@
 #include "mgl2/abstract.h"
 
 #ifdef __cplusplus
-#include <vector>
-#include <string>
+
+#if (MGL_HAVE_PTHREAD|MGL_HAVE_PTHR_WIDGET)
+#include <pthread.h>
+#endif
 
 #if MGL_HAVE_PTHREAD
-#include <pthread.h>
 #define MGL_PUSH(a,v,m)	{pthread_mutex_lock(&m);	a.push_back(v);	pthread_mutex_unlock(&m);}
 #else
 #define MGL_PUSH(a,v,m)	a.push_back(v);
@@ -51,15 +52,13 @@ template <class T> class mglStack
 	void *mutex;
 public:
 	mglStack(const mglStack<T> &st)
-	{
-		np=st.np;	dat = (T**)malloc(np*sizeof(T*));
+	{	np=st.np;	dat = (T**)malloc(np*sizeof(T*));
 		pb=st.pb;	m=n=0;	reserve(st.n);
-		for(size_t i=0;i<m;i++)	memcpy(dat[i],st.dat[i],(1L<<pb)*sizeof(T));
-		n=st.n;		mutex = 0;
-	}
+		for(size_t i=0;i<m;i++)	memcpy(dat[i],st.dat[i],((size_t)1<<pb)*sizeof(T));
+		n=st.n;		mutex = 0;	}
 	mglStack(size_t Pbuf=10)
 	{	np=16;	pb=Pbuf;	dat = (T**)malloc(np*sizeof(T*));
-		dat[0] = new T[1L<<pb];	n=0;	m=1;	mutex = 0;	}
+		dat[0] = new T[(size_t)1<<pb];	n=0;	m=1;	mutex = 0;	}
 	~mglStack()	{	clear();	delete [](dat[0]);	free(dat);	}
 	inline void set_mutex(void *m)	{	mutex = m;	}
 	void reserve(size_t num)
@@ -70,30 +69,16 @@ public:
 			num = 1+ (num>>pb);
 			if(num>np)
 			{	dat = (T**)realloc(dat, num*sizeof(T*));	np=num;	}
-			for(size_t i=m;i<num;i++)	dat[i] = new T[1L<<pb];
+			for(size_t i=m;i<num;i++)	dat[i] = new T[(size_t)1<<pb];
 			m = num;
 		}
 	}
 	void clear()
 	{
-		if(mutex)
-		{
-#if MGL_HAVE_PTHREAD
-			pthread_mutex_lock((pthread_mutex_t *)mutex);
-#elif MGL_HAVE_OMP
-			omp_set_lock((omp_lock_t *)mutex);
-#endif
-		}
+		if(mutex)	mgl_mutex_lock(mutex);
 		for(size_t i=0;i<m;i++)	delete [](dat[i]);
-		dat[0] = new T[1L<<pb];	n=0;	m=1;
-		if(mutex)
-		{
-#if MGL_HAVE_PTHREAD
-			pthread_mutex_unlock((pthread_mutex_t *)mutex);
-#elif MGL_HAVE_OMP
-			omp_unset_lock((omp_lock_t *)mutex);
-#endif
-		}
+		dat[0] = new T[(size_t)1<<pb];	n=0;	m=1;
+		if(mutex)	mgl_mutex_unlock(mutex);
 	}
 	T &operator[](size_t i)	{	register size_t d=i>>pb;	return dat[d][i-(d<<pb)];	}
 	const T &operator[](size_t i)	const	{	register size_t d=i>>pb;	return dat[d][i-(d<<pb)];	}
@@ -107,7 +92,7 @@ public:
 	const mglStack<T> &operator=(const mglStack<T> &st)
 	{
 		pb=st.pb;	clear();	reserve(st.n);
-		for(size_t i=0;i<st.m && i<m;i++)	memcpy(dat[i],st.dat[i],(1L<<pb)*sizeof(T));
+		for(size_t i=0;i<st.m && i<m;i++)	memcpy(dat[i],st.dat[i],((size_t)1<<pb)*sizeof(T));
 		n = st.n;	return st;
 	}
 };
@@ -120,9 +105,6 @@ struct MGL_EXPORT mglMatrix
 	bool norot;	// flag to disable pnts rotation
 	mglMatrix()	{	memset(this,0,sizeof(mglMatrix));	clear();	}
 	mglMatrix(const mglMatrix &aa) : x(aa.x),y(aa.y),z(aa.z),pf(aa.pf),norot(aa.norot) 	{	memcpy(b,aa.b,9*sizeof(mreal));	}
-#if MGL_HAVE_RVAL
-	mglMatrix(mglMatrix &&aa) : x(aa.x),y(aa.y),z(aa.z),pf(aa.pf),norot(aa.norot) 	{	memcpy(b,aa.b,9*sizeof(mreal));	}
-#endif
 	void Rotate(mreal tetz,mreal tetx,mreal tety);
 	void RotateN(mreal Tet,mreal x,mreal y,mreal z);
 	inline void clear()	{	x=y=z=pf=0;	memset(b,0,9*sizeof(mreal));	b[0]=b[4]=b[8]=1;	norot=false;	}
@@ -156,13 +138,42 @@ struct MGL_EXPORT mglPrim	// NOTE: use float for reducing memory size
 	};
 	mglPrim(int t=0):n1(0),n2(0),n3(0),n4(0),type(t),angl(0),id(0),z(0),w(0),m(0)	{}
 	mglPrim(const mglPrim &aa) : n1(aa.n1),n2(aa.n2),n3(aa.n3),n4(aa.n4),type(aa.type),angl(aa.angl),id(aa.id),z(aa.z),w(aa.w),m(aa.m) 	{}
-#if MGL_HAVE_RVAL
-	mglPrim(mglPrim &&aa) : n1(aa.n1),n2(aa.n2),n3(aa.n3),n4(aa.n4),type(aa.type),angl(aa.angl),id(aa.id),z(aa.z),w(aa.w),m(aa.m) 	{}
-#endif
 	const mglPrim &operator=(const mglPrim &aa)	{	memcpy(this, &aa, sizeof(mglPrim));	return aa;	}
 };
 bool operator<(const mglPrim &a,const mglPrim &b);
 bool operator>(const mglPrim &a,const mglPrim &b);
+//-----------------------------------------------------------------------------
+/// Structure for light source
+struct MGL_EXPORT mglLight
+{
+	mglLight():n(false),a(0),b(0)	{}
+	mglLight(const mglLight &aa) : n(aa.n),d(aa.d),r(aa.r),q(aa.q),p(aa.p),a(aa.a),b(aa.b),c(aa.c)	{}
+
+	bool n;			///< Availability of light sources
+	mglPoint d;		///< Direction of light sources
+	mglPoint r;		///< Position of light sources (NAN for infinity)
+	mglPoint q;		///< Actual position of light sources (filled by LightScale() function)
+	mglPoint p;		///< Actual direction of light sources (filled by LightScale() function)
+	mreal a;		///< Aperture of light sources
+	mreal b;		///< Brightness of light sources
+	mglColor c;		///< Color of light sources
+};
+//-----------------------------------------------------------------------------
+/// Structure for inplot
+struct MGL_EXPORT mglBlock
+{
+	int id;		///< object id
+	long n1,n2,n3,n4;	///< coordinates of corners {n1=x1,n2=x2,n3=y1,n4=y2}
+
+	mglLight light[10];	///< Light sources
+	mreal AmbBr;		///< Default ambient light brightness
+	mreal DifBr;		///< Default diffusive light brightness
+	mglMatrix B;		///< Transformation matrix
+
+	mglBlock():id(0),n1(0),n2(0),n3(0),n4(0),AmbBr(0.5),DifBr(0.5)	{}
+	mglBlock(const mglBlock &aa)	{	memcpy(this, &aa, sizeof(mglBlock));	}
+	const mglBlock &operator=(const mglBlock &aa)	{	memcpy(this, &aa, sizeof(mglBlock));	return aa;	}
+};
 //-----------------------------------------------------------------------------
 /// Structure for group of primitives
 struct MGL_EXPORT mglGroup
@@ -196,27 +207,31 @@ struct MGL_EXPORT mglText
 /// Structure for internal point representation
 struct MGL_EXPORT mglPnt	// NOTE: use float for reducing memory size
 {
-	float xx,yy,zz;	// original coordinates
-	float x,y,z;	// coordinates
-	float c,t,ta;	// index in color scheme
-	float u,v,w;	// normales
-	float r,g,b,a;	// RGBA color
+	union {	float dat[16];	struct {
+		float x,y,z;	// coordinates
+		float u,v,w;	// normales
+		float r,g,b,a;	// RGBA color
+		float xx,yy,zz;	// original coordinates
+		float c,t,ta;	// index in color scheme
+	}; };
 	short sub;		// subplot id and rotation information (later will be in subplot)
-	mglPnt(float X=0, float Y=0, float Z=0, float U=0, float V=0, float W=0, float R=0, float G=0, float B=0, float A=0):xx(X),yy(Y),zz(Z),x(X),y(Y),z(Z),c(0),t(0),ta(0),u(U),v(V),w(W),r(R),g(G),b(B),a(A),sub(0)	{}
-	mglPnt(const mglPnt &aa) : xx(aa.xx),yy(aa.yy),zz(aa.zz), x(aa.x),y(aa.y),z(aa.z), c(aa.c),t(aa.t),ta(aa.ta), u(aa.u),v(aa.v),w(aa.w), r(aa.r),g(aa.g),b(aa.b),a(aa.a), sub(aa.sub)	{}
-#if MGL_HAVE_RVAL
-	mglPnt(mglPnt &&aa) : xx(aa.xx),yy(aa.yy),zz(aa.zz), x(aa.x),y(aa.y),z(aa.z), c(aa.c),t(aa.t),ta(aa.ta), u(aa.u),v(aa.v),w(aa.w), r(aa.r),g(aa.g),b(aa.b),a(aa.a), sub(aa.sub)	{}
-#endif
-	inline const mglPnt&operator=(const mglPnt &aa)	{	memcpy(this,&aa,sizeof(mglPnt));	return aa;	}
+	mglPnt(float X, float Y=0, float Z=0, float U=0, float V=0, float W=0, float R=0, float G=0, float B=0, float A=0):x(X),y(Y),z(Z),u(U),v(V),w(W),r(R),g(G),b(B),a(A),xx(X),yy(Y),zz(Z),c(0),t(0),ta(0),sub(0)	{}
+	mglPnt():x(0),y(0),z(0),u(0),v(0),w(0),r(0),g(0),b(0),a(0),xx(0),yy(0),zz(0),c(0),t(0),ta(0),sub(0)	{}
+	mglPnt(const mglPnt &aa) : sub(aa.sub)	{	memcpy(dat,aa.dat,16*sizeof(float));	}
+	inline const mglPnt&operator=(const mglPnt &aa)	{ sub=aa.sub;	memcpy(dat,aa.dat,16*sizeof(float));	return aa;	}
 };
 inline mglPnt operator+(const mglPnt &a, const mglPnt &b)
-{	return mglPnt(a.x+b.x,a.y+b.y,a.z+b.z, a.u+b.u,a.v+b.v,a.w+b.w, a.r+b.r,a.g+b.g,a.b+b.b,a.a+b.a);	}
+{	mglPnt p;	for(long i=0;i<10;i++)	p.dat[i] = a.dat[i]+b.dat[i];	p.sub=a.sub;	return p;	}
+//{	return mglPnt(a.x+b.x,a.y+b.y,a.z+b.z, a.u+b.u,a.v+b.v,a.w+b.w, a.r+b.r,a.g+b.g,a.b+b.b,a.a+b.a);	}
 inline mglPnt operator-(const mglPnt &a, const mglPnt &b)
-{	return mglPnt(a.x-b.x,a.y-b.y,a.z-b.z, a.u-b.u,a.v-b.v,a.w-b.w, a.r-b.r,a.g-b.g,a.b-b.b,a.a-b.a);	}
+{	mglPnt p;	for(long i=0;i<10;i++)	p.dat[i] = a.dat[i]-b.dat[i];	p.sub=a.sub;	return p;	}
+//{	return mglPnt(a.x-b.x,a.y-b.y,a.z-b.z, a.u-b.u,a.v-b.v,a.w-b.w, a.r-b.r,a.g-b.g,a.b-b.b,a.a-b.a);	}
 inline mglPnt operator*(const mglPnt &a, float b)
-{	return mglPnt(a.x*b,a.y*b,a.z*b, a.u*b,a.v*b,a.w*b, a.r*b,a.g*b,a.b*b,a.a*b);	}
+{	mglPnt p;	for(long i=0;i<10;i++)	p.dat[i] = a.dat[i]*b;	p.sub=a.sub;	return p;	}
+//{	return mglPnt(a.x*b,a.y*b,a.z*b, a.u*b,a.v*b,a.w*b, a.r*b,a.g*b,a.b*b,a.a*b);	}
 inline mglPnt operator*(float b, const mglPnt &a)
-{	return mglPnt(a.x*b,a.y*b,a.z*b, a.u*b,a.v*b,a.w*b, a.r*b,a.g*b,a.b*b,a.a*b);	}
+{	mglPnt p;	for(long i=0;i<10;i++)	p.dat[i] = a.dat[i]*b;	p.sub=a.sub;	return p;	}
+//{	return mglPnt(a.x*b,a.y*b,a.z*b, a.u*b,a.v*b,a.w*b, a.r*b,a.g*b,a.b*b,a.a*b);	}
 //-----------------------------------------------------------------------------
 /// Structure for glyph representation
 struct MGL_EXPORT mglGlyph
@@ -244,22 +259,25 @@ struct MGL_EXPORT mglGlyph
 /// Structure for texture (color scheme + palette) representation
 struct MGL_EXPORT mglTexture
 {
-	mglColor col[MGL_TEXTURE_COLOURS];	///< Colors itself
+	mglColor *col;	///< Colors itself
 	long n;				///< Number of initial colors along u
 
 	char Sch[260];		///< Color scheme used
 	int Smooth;			///< Type of texture (smoothing and so on)
 	mreal Alpha;			///< Transparency
 
-	mglTexture():n(0),Smooth(0),Alpha(1)	{}
+	mglTexture():n(0),Smooth(0),Alpha(1)
+	{	col = new mglColor[MGL_TEXTURE_COLOURS];	}
 	mglTexture(const char *cols, int smooth=0,mreal alpha=1):n(0)
-	{	Set(cols,smooth,alpha);	}
+	{	col = new mglColor[MGL_TEXTURE_COLOURS];	Set(cols,smooth,alpha);	}
 	mglTexture(const mglTexture &aa) : n(aa.n),Smooth(aa.Smooth),Alpha(aa.Alpha)
-	{	memcpy(col,aa.col,MGL_TEXTURE_COLOURS*sizeof(mglColor));	memcpy(Sch,aa.Sch,260);	}
+	{	col = new mglColor[MGL_TEXTURE_COLOURS];	memcpy(Sch,aa.Sch,260);
+		memcpy(col,aa.col,MGL_TEXTURE_COLOURS*sizeof(mglColor));	}
 #if MGL_HAVE_RVAL
 	mglTexture(mglTexture &&aa) : n(aa.n),Smooth(aa.Smooth),Alpha(aa.Alpha)
-	{	memcpy(col,aa.col,MGL_TEXTURE_COLOURS*sizeof(mglColor));	memcpy(Sch,aa.Sch,260);	}
+	{	col = aa.col;	memcpy(Sch,aa.Sch,260);	aa.col=0;	}
 #endif
+	~mglTexture()	{	if(col)	delete []col;	}
 	void Clear()	{	n=0;	}
 	void Set(const char *cols, int smooth=0,mreal alpha=1);
 	void Set(HCDT val, const char *cols);
@@ -289,6 +307,18 @@ struct MGL_EXPORT mglActivePos
 	int n;		///< position of active point in command (object id)
 };
 //-----------------------------------------------------------------------------
+#if defined(_MSC_VER)
+template class MGL_EXPORT mglStack<mglPnt>;
+template class MGL_EXPORT mglStack<mglPrim>;
+template class MGL_EXPORT std::vector<mglGroup>;
+template class MGL_EXPORT std::vector<mglText>;
+template class MGL_EXPORT std::vector<mglTexture>;
+template class MGL_EXPORT std::vector<mglGlyph>;
+template class MGL_EXPORT std::vector<mglBlock>;
+template class MGL_EXPORT std::vector<mglMatrix>;
+template class MGL_EXPORT mglStack<mglActivePos>;
+#endif
+//-----------------------------------------------------------------------------
 /// Base class for canvas which handle all basic drawing
 class MGL_EXPORT mglBase
 {
@@ -302,7 +332,7 @@ public:
 	std::string Mess;	///< Buffer for receiving messages
 	int ObjId;			///< object id for mglPrim
 	int HighId;			///< object id to be highlited
-	mglStack<mglGroup> Grp;		///< List of groups with names -- need for export
+	std::vector<mglGroup> Grp;	///< List of groups with names -- need for export
 	mglStack<mglActivePos> Act;	///< Position of active points
 	std::string PlotId;	///< Id of plot for saving filename (in GLUT window for example)
 
@@ -313,7 +343,8 @@ public:
 	int FaceNum;		///< Set approximate number of visible faces and lines. By default (=0) it draw everything.
 	char Arrow1, Arrow2;///< Style of arrows at end and at start of curve
 	long InUse;			///< Smart pointer (number of users)
-	uint32_t Flag;			///< Flags for controlling drawing
+	uint32_t Flag;		///< Flags for controlling drawing
+	mreal size_opt;		///< Value of size option (or NAN if not specified)
 
 	inline bool get(uint32_t fl) const	{	return Flag&fl;	}
 	inline void set(uint32_t fl)	{	Flag |= fl;	}
@@ -362,7 +393,7 @@ public:
 	inline void SetCut(bool val)	{	set(val, MGL_ENABLE_CUT);	}
 	/// Set additional cutting box
 	inline void SetCutBox(mreal x1, mreal y1, mreal z1, mreal x2, mreal y2, mreal z2)
-	{	CutMin=mglPoint(x1,y1,z1);	CutMax=mglPoint(x2,y2,z2);	}
+	{	CutMin.Set(x1,y1,z1);	CutMax.Set(x2,y2,z2);	}
 	inline void SetCutBox(mglPoint v1, mglPoint v2)	{	CutMin=v1;	CutMax=v2;	}
 	/// Reset mask to solid state
 	inline void ResetMask()	{	mask = MGL_SOLID_MASK;	MaskAn = DefMaskAn;	}
@@ -372,6 +403,9 @@ public:
 	/// Set the using of light on/off.
 	virtual bool Light(bool enable)
 	{	bool t=get(MGL_ENABLE_LIGHT);	set(enable,MGL_ENABLE_LIGHT);	return t;	}
+	/// Set to attach light sources to inplot.
+	virtual bool AttachLight(bool enable)
+	{	bool t=get(MGL_LOCAL_LIGHT);	set(enable,MGL_LOCAL_LIGHT);	return t;	}
 	/// Set ambient light brightness
 	virtual void SetAmbient(mreal bright=0.5);
 	/// Set diffusive light brightness
@@ -399,6 +433,8 @@ public:
 	inline void SetMarkSize(mreal val)	{	MarkSize=0.02*val;	}
 	/// Set size of arrows
 	inline void SetArrowSize(mreal val)	{	ArrowSize=0.03*val;	}
+	/// Get unscaled arrow size
+	inline mreal GetArrowSize() const	{	return ArrowSize/0.03;	}
 
 	/// Set warning code ant fill Message
 	void SetWarn(int code, const char *who);
@@ -546,7 +582,7 @@ public:
 	void SetEventFunc(void (*func)(void *), void *par)	{	event_cb=func;	event_par=par;	}
 
 protected:
-	bool Stop;			///< Flag that execution should be terminated.
+	volatile bool Stop;	///< Flag that execution should be terminated.
 	void (*event_cb)(void *);	///< Function to be called for event processing
 	void *event_par;	///< Parameter for event processing function
 
@@ -561,26 +597,24 @@ protected:
 	long *PrmInd;		///< Indexes of sorted primitives
 	mglStack<mglPnt> Pnt; 	///< Internal points
 	mglStack<mglPrim> Prm;	///< Primitives (lines, triangles and so on) -- need for export
-	mglStack<mglPrim> Sub;	///< InPlot regions {n1=x1,n2=x2,n3=y1,n4=y2,id}
+	std::vector<mglBlock> Sub;	///< InPlot regions
 	std::vector<mglText> Ptx;	///< Text labels for mglPrim
 	std::vector<mglText> Leg;	///< Text labels for legend
 	std::vector<mglGlyph> Glf;	///< Glyphs data
-	mglStack<mglTexture> Txt;	///< Pointer to textures
+	std::vector<mglTexture> Txt;	///< Pointer to textures
 #if MGL_HAVE_PTHREAD
 	pthread_mutex_t mutexPnt, mutexTxt, mutexLeg, mutexGlf, mutexAct, mutexDrw;
 	pthread_mutex_t mutexSub, mutexPrm, mutexPtx, mutexStk, mutexGrp, mutexClf;
 #endif
-#if MGL_HAVE_OMP
-	omp_lock_t lockClf;
-#endif
+	void *lockClf;		///< pointer to mutex for mglStack
 
 	int TernAxis;		///< Flag that Ternary axis is used
 	unsigned PDef;		///< Pen bit mask
 	mreal pPos;			///< Current position in pen mask
 	mreal PenWidth;		///< Pen width for further line plotting (must be >0 !!!)
 //	long numT;			///< Number of textures
-	mreal AmbBr;		///< Default ambient light brightness
-	mreal DifBr;		///< Default diffusive light brightness
+	mreal AmbBr;		///< Default ambient light brightness	// TODO move to mglBlock
+	mreal DifBr;		///< Default diffusive light brightness	// TODO move to mglBlock
 
 	mreal persp;		///< Original value for perspective
 	mglMatrix Bp;		///< Transformation matrix for View() and Zoom()

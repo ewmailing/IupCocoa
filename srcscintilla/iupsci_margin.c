@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef SCI_NAMESPACE
+
 #include <Scintilla.h>
 
 #include "iup.h"
@@ -96,12 +96,8 @@ static int iScintillaSetMarginWidthAttribId(Ihandle* ih, int margin, const char*
 {
   int pixelWidth;
 
-  iupStrToInt(value, &pixelWidth);
-  
-  if(pixelWidth < 1)
-    pixelWidth = 16;
-
-  IupScintillaSendMessage(ih, SCI_SETMARGINWIDTHN, margin, pixelWidth);
+  if (iupStrToInt(value, &pixelWidth))
+    IupScintillaSendMessage(ih, SCI_SETMARGINWIDTHN, margin, pixelWidth);
 
   return 0;
 }
@@ -147,12 +143,8 @@ static int iScintillaSetMarginLeftAttrib(Ihandle* ih, const char* value)
 {
   int pixels;
 
-  iupStrToInt(value, &pixels);
-  
-  if(pixels < 1)
-    pixels = 16;
-
-  IupScintillaSendMessage(ih, SCI_SETMARGINLEFT, 0, pixels);
+  if (iupStrToInt(value, &pixels))
+    IupScintillaSendMessage(ih, SCI_SETMARGINLEFT, 0, pixels);
 
   return 0;
 }
@@ -167,12 +159,8 @@ static int iScintillaSetMarginRightAttrib(Ihandle* ih, const char* value)
 {
   int pixels;
 
-  iupStrToInt(value, &pixels);
-  
-  if(pixels < 1)
-    pixels = 16;
-
-  IupScintillaSendMessage(ih, SCI_SETMARGINRIGHT, 0, pixels);
+  if (iupStrToInt(value, &pixels))
+    IupScintillaSendMessage(ih, SCI_SETMARGINRIGHT, 0, pixels);
 
   return 0;
 }

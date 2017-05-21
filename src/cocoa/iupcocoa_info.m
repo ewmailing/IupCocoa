@@ -13,6 +13,8 @@
 
 #import <Cocoa/Cocoa.h>
 //#include <Carbon/Carbon.h>
+// For computer name
+#include <SystemConfiguration/SystemConfiguration.h>
 
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -282,15 +284,35 @@ char *iupdrvGetSystemVersion(void)
 
 }
 
+/*
+Drat. hostName blocks so if the network is down, this function will hang.
+
+Claims are CSCopeMachineName() does not block, but it is deprecated.
+ 
+SCDynamicStoreCopyLocalHostName sounds like it might work.
+// https://lists.apple.com/archives/cocoa-dev/2009/Sep/msg00680.html
+  If you're just looking for the mDNS Local Hostname, it's MUCH more efficient to use SCDynamicStoreCopyLocalHostName, which is just a Mach message over to configd running on the local machine. No network delays.
+ It's peer function, SCDynamicStoreCopyComputerName might be even better.
+Both require the SystemConfiguration framework
+
+
+gethostname may also work
+// https://lists.apple.com/archives/cocoa-dev/2009/Sep/msg00616.html
+ char hostname[_POSIX_HOST_NAME_MAX + 1];
+ gethostname(hostname, _POSIX_HOST_NAME_MAX);
+ name = [NSString stringWithCString:hostname encoding:NSUTF8StringEncoding];
+ */
 char *iupdrvGetComputerName(void)
 {
-#if 0
+/*
 	char* str = iupStrGetMemory(50);
-	CFStringRef computerName = CSCopyMachineName();
-	CFStringGetCString(computerName, str, 50, kCFStringEncodingUTF8);
+	CFStringRef computer_name = CSCopyMachineName(); // suspect: should CFRelease?
+	CFStringGetCString(computer_name, str, 50, kCFStringEncodingUTF8);
 	return str;
-#else
+*/
 	
+#if 0
+
 	// hostName is considered good enough for Bonjour names so it is good enough for this
 	NSString* host_name = nil;
 	host_name = [[NSProcessInfo processInfo] hostName];
@@ -303,9 +325,23 @@ char *iupdrvGetComputerName(void)
 	strlcpy(iup_str, c_str, str_len+1);
 	
 	return iup_str;
+#else
+	
+	// Returns NULL/nil if no computer name set, or error occurred. OSX 10.1+
+	NSString* computer_name = [(NSString *)SCDynamicStoreCopyComputerName(NULL, NULL) autorelease];
+	const char* c_str = [computer_name UTF8String];
+	// don't use [version_string length]...counts characters, not bytes
+	size_t str_len = strlen(c_str);
+	
+	char* iup_str = iupStrGetMemory((int)str_len);
+	strlcpy(iup_str, c_str, str_len+1);
+	
+	return iup_str;
+	
 #endif
 	
 }
+
 
 char *iupdrvGetUserName(void)
 {
@@ -334,6 +370,63 @@ char *iupdrvGetUserName(void)
 
 	
 }
+
+int iupdrvGetPreferencePath(char *filename, int str_len, const char* app_name)
+{
+	NSArray* support_paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+	if([support_paths count] > 0)
+	{
+		BOOL is_dir = NO;
+		NSError* the_error = nil;
+		
+		NSBundle* main_bundle = [NSBundle mainBundle];
+		// Use the Info.plist to get: com.organization.appname so we can create/use a unique subdirectory in ~/Library/Application Support
+		// Note Mac App Sandboxing will give a per-app sandbox with its own private ~/Library/Application Support so everything still works.
+		NSString* bundle_name = [[main_bundle infoDictionary] objectForKey:@"CFBundleIdentifier"];
+		NSString* ns_path = [[support_paths objectAtIndex:0] stringByAppendingPathComponent:bundle_name];
+
+		if(![[NSFileManager defaultManager] fileExistsAtPath:ns_path isDirectory:&is_dir]
+		   && is_dir == NO
+		   )
+		{
+			BOOL did_succeed = [[NSFileManager defaultManager] createDirectoryAtPath:ns_path withIntermediateDirectories:YES attributes:nil error:&the_error];
+			if(NO == did_succeed)
+			{
+				NSLog(@"Create preference directory error: %@", the_error);
+				filename[0] = '\0';
+				return 0;
+			}
+		}
+		
+		const char* c_path = [ns_path fileSystemRepresentation];
+		
+		if(NULL != c_path)
+		{
+			size_t num = strlcpy(filename, c_path, str_len);
+			if(num >= str_len)
+			{
+				filename[0] = '\0';
+				return 0;
+			}
+			num = strlcat(filename, "/", str_len);
+			if(num >= str_len)
+			{
+				filename[0] = '\0';
+				return 0;
+			}
+			return 1;
+		}
+		else
+		{
+			filename[0] = '\0';
+			return 0;
+		}
+	}
+
+	filename[0] = '\0';
+	return 0;
+}
+
 
 char* iupdrvLocaleInfo(void)
 {

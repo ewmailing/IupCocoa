@@ -47,7 +47,8 @@ void iupdrvTextAddSpin(int *w, int h)
 
 void iupdrvTextAddBorders(int *x, int *y)
 {
-  int border_size = 2*5;
+  /* LAYOUT_DECORATION_ESTIMATE */
+  int border_size = 2 * 5;
   (*x) += border_size;
   (*y) += border_size;
 }
@@ -659,8 +660,20 @@ static int gtkTextSetSelectedTextAttrib(Ihandle* ih, const char* value)
 
 static char* gtkTextGetCountAttrib(Ihandle* ih)
 {
-  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ih->handle));
-  int count = gtk_text_buffer_get_char_count(buffer);
+  int count;
+  if (ih->data->is_multiline)
+  {
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ih->handle));
+    count = gtk_text_buffer_get_char_count(buffer);
+  }
+  else
+  {
+#if GTK_CHECK_VERSION(2, 14, 0)
+    count = gtk_entry_get_text_length(GTK_ENTRY(ih->handle));
+#else
+    count = strlen(gtk_entry_get_text(GTK_ENTRY(ih->handle)));
+#endif
+  }
   return iupStrReturnInt(count);
 }
 
@@ -818,7 +831,7 @@ static int gtkTextSetScrollToAttrib(Ihandle* ih, const char* value)
     int pos = 1;
     iupStrToInt(value, &pos);
     if (pos < 1) pos = 1;
-    pos--;  /* return to GTK referece */
+    pos--;  /* return to GTK reference */
     gtk_editable_set_position(GTK_EDITABLE(ih->handle), pos);
   }
 
@@ -996,11 +1009,18 @@ static int gtkTextSetPaddingAttrib(Ihandle* ih, const char* value)
     }
     else
     {
+#if GTK_CHECK_VERSION(3, 4, 0)
+      g_object_set(G_OBJECT(ih->handle), "margin-bottom", ih->data->vert_padding, NULL);
+      g_object_set(G_OBJECT(ih->handle), "margin-top", ih->data->vert_padding, NULL);
+      g_object_set(G_OBJECT(ih->handle), "margin-left", ih->data->horiz_padding, NULL);
+      g_object_set(G_OBJECT(ih->handle), "margin-right", ih->data->horiz_padding, NULL);
+#else
 #if GTK_CHECK_VERSION(2, 10, 0)
       GtkBorder border;
       border.bottom = border.top = (gint16)ih->data->vert_padding;
       border.left = border.right = (gint16)ih->data->horiz_padding;
       gtk_entry_set_inner_border(GTK_ENTRY(ih->handle), &border);
+#endif
 #endif
     }
     return 0;
@@ -1136,6 +1156,18 @@ static int gtkTextSetTabSizeAttrib(Ihandle* ih, const char* value)
   gtk_text_view_set_tabs(GTK_TEXT_VIEW(ih->handle), tabs);
   pango_tab_array_free(tabs);
   return 1;
+}
+
+static int gtkTextSetCueBannerAttrib(Ihandle *ih, const char *value)
+{
+  if (!ih->data->is_multiline)
+  {
+#if GTK_CHECK_VERSION(3, 2, 0)
+    gtk_entry_set_placeholder_text(GTK_ENTRY(ih->handle), iupgtkStrConvertToSystem(value));
+    return 1;
+#endif
+  }
+  return 0;
 }
 
 static int gtkTextSetOverwriteAttrib(Ihandle* ih, const char* value)
@@ -1435,11 +1467,13 @@ static gboolean gtkTextButtonEvent(GtkWidget *widget, GdkEventButton *evt, Ihand
 static void gtkTextEntryDeleteText(GtkEditable *editable, int start, int end, Ihandle* ih)
 {
   IFnis cb = (IFnis)IupGetCallback(ih, "ACTION");
+  int ret;
 
   if (ih->data->disable_callbacks)
     return;
 
-  if (iupEditCallActionCb(ih, cb, NULL, start, end, ih->data->mask, ih->data->nc, 1, iupgtkStrGetUTF8Mode())==0)
+  ret = iupEditCallActionCb(ih, cb, NULL, start, end, ih->data->mask, ih->data->nc, 1, iupgtkStrGetUTF8Mode());
+  if (ret == 0)
     g_signal_stop_emission_by_name (editable, "delete_text");
 }
 
@@ -1472,6 +1506,7 @@ static void gtkTextBufferDeleteRange(GtkTextBuffer *textbuffer, GtkTextIter *sta
 {
   IFnis cb = (IFnis)IupGetCallback(ih, "ACTION");
   int start, end;
+  int ret;
 
   if (ih->data->disable_callbacks)
     return;
@@ -1479,7 +1514,8 @@ static void gtkTextBufferDeleteRange(GtkTextBuffer *textbuffer, GtkTextIter *sta
   start = gtk_text_iter_get_offset(start_iter);
   end = gtk_text_iter_get_offset(end_iter);
 
-  if (iupEditCallActionCb(ih, cb, NULL, start, end, ih->data->mask, ih->data->nc, 1, iupgtkStrGetUTF8Mode())==0)
+  ret = iupEditCallActionCb(ih, cb, NULL, start, end, ih->data->mask, ih->data->nc, 1, iupgtkStrGetUTF8Mode());
+  if (ret == 0)
     g_signal_stop_emission_by_name (textbuffer, "delete_range");
 }
 
@@ -1550,7 +1586,7 @@ static int gtkTextMapMethod(Ihandle* ih)
     if (iupAttribGetBoolean(ih, "WORDWRAP"))
     {
       wordwrap = 1;
-      ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scroolbar */
+      ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scrollbar */
     }
 
     if (iupAttribGetBoolean(ih, "BORDER"))
@@ -1588,7 +1624,7 @@ static int gtkTextMapMethod(Ihandle* ih)
   else
   {
     if (iupAttribGetBoolean(ih, "SPIN"))
-      ih->handle = gtk_spin_button_new_with_range(0, 100, 1);  /* It inherits from GtkEntry */
+      ih->handle = gtk_spin_button_new_with_range((double)iupAttribGetInt(ih, "SPINMIN"), (double)iupAttribGetInt(ih, "SPINMAX"), (double)iupAttribGetInt(ih, "SPININC"));  /* It inherits from GtkEntry */
     else
       ih->handle = gtk_entry_new();
 
@@ -1598,8 +1634,18 @@ static int gtkTextMapMethod(Ihandle* ih)
     /* formatting is never supported when MULTILINE=NO */
     ih->data->has_formatting = 0;
 
-    gtk_entry_set_has_frame((GtkEntry*)ih->handle, IupGetInt(ih, "BORDER"));
+    gtk_entry_set_has_frame((GtkEntry*)ih->handle, iupAttribGetBoolean(ih, "BORDER"));
     gtk_entry_set_width_chars((GtkEntry*)ih->handle, 1);  /* minimum size */
+#if GTK_CHECK_VERSION(3, 14, 0)
+    if (!iupAttribGetBoolean(ih, "BORDER"))
+    {
+      GtkStyleContext *context = gtk_widget_get_style_context(ih->handle);
+      GtkCssProvider *provider = gtk_css_provider_new();
+      gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider), "*{ border: none; }", -1, NULL);
+      gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      g_object_unref(provider);
+    }
+#endif
 
     if (iupAttribGetBoolean(ih, "PASSWORD"))
       gtk_entry_set_visibility((GtkEntry*)ih->handle, FALSE);
@@ -1620,6 +1666,8 @@ static int gtkTextMapMethod(Ihandle* ih)
         iupAttribSet(ih, "_IUPGTK_SPIN_NOAUTO", "1");
       }
     }
+
+    iupgtkClearSizeStyleCSS(ih->handle);
   }
 
   /* add to the parent, all GTK controls must call this. */
@@ -1712,15 +1760,15 @@ void iupdrvTextInitClass(Iclass* ic)
 
   /* IupText Windows and GTK only */
   iupClassRegisterAttribute(ic, "ADDFORMATTAG", NULL, iupTextSetAddFormatTagAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ADDFORMATTAG_HANDLE", NULL, iupTextSetAddFormatTagHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ADDFORMATTAG_HANDLE", NULL, iupTextSetAddFormatTagHandleAttrib, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORMATTING", iupTextGetFormattingAttrib, iupTextSetFormattingAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, gtkTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TABSIZE", NULL, gtkTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CUEBANNER", NULL, gtkTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
   /* Not Supported */
-  iupClassRegisterAttribute(ic, "CUEBANNER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 }

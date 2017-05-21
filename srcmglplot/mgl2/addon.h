@@ -1,6 +1,6 @@
 /***************************************************************************
  * addon.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -40,9 +40,9 @@ void MGL_EXPORT mgl_fft_freq(double *freq,long nn);
 /// Remove double spaces from the string
 void MGL_EXPORT mgl_strcls(char *str);
 /// Get position of substring or return -1 if not found
-long MGL_EXPORT_PURE mgl_strpos(const char *str,char *fnd);
+long MGL_EXPORT mgl_strpos(const char *str,char *fnd);
 /// Get position of symbol or return -1 if not found
-long MGL_EXPORT_PURE mgl_chrpos(const char *str,char fnd);
+long MGL_EXPORT mgl_chrpos(const char *str,char fnd);
 
 /// Get uncommented string from file (NOTE: it is not thread safe!!!)
 MGL_EXPORT char *mgl_fgetstr(FILE *fp);

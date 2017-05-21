@@ -15,7 +15,7 @@
 #include "iup_config.h"
 #include "iup_linefile.h"
 #include "iup_str.h"
-
+#include "iup_drvinfo.h"
 
 #define GROUPKEYSIZE 100
 #define MAX_LINES 500
@@ -51,7 +51,7 @@ static char* iConfigSetFilename(Ihandle* ih)
   char* app_name;
   char* app_path;
   int app_config;
-  char* home;
+  int did_succeed;
   
   char filename[10240] = "";
   char* app_filename = IupGetAttribute(ih, "APP_FILENAME");
@@ -65,41 +65,40 @@ static char* iConfigSetFilename(Ihandle* ih)
   if (!app_name)
     return NULL;
 
-  home = getenv("HOME");
-  if (home && !app_config)
+  did_succeed = iupdrvGetPreferencePath(filename, 10240, app_name);
+  if (did_succeed && !app_config)
   {
-    /* UNIX format */
-    strcat(filename, home);
-    strcat(filename, "/.");
+#if defined(__ANDROID__)
+    strlcat(filename, app_name, 10240);
+    strlcat(filename, ".cfg", 10240);
+#elif defined(__APPLE__)
+    strlcat(filename, app_name, 10240);
+    strlcat(filename, ".cfg", 10240);
+#elif defined(WIN32)
     strcat(filename, app_name);
+    strcat(filename, ".cfg");
+#else
+    /* UNIX format */
+    strcat(filename, ".");
+    strcat(filename, app_name);
+#endif
   }
   else
   {
-    /* Windows format */
-    char* homedrive = getenv("HOMEDRIVE");
-    char* homepath = getenv("HOMEPATH");
-    if (homedrive && homepath && !app_config)
-    {
-      strcat(filename, homedrive);
-      strcat(filename, homepath);
-      strcat(filename, "\\");
-      strcat(filename, app_name);
-      strcat(filename, ".cfg");
-    }
-    else
-    {
-      if (!app_path)
-        return NULL;
+    if (!app_path)
+      return NULL;
 
       strcat(filename, app_path);
-#ifndef WIN32
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
+      /* these platforms shouldn't use a .dot file */
+#else
+      /* Unix generic hidden dot prefix */
       strcat(filename, ".");
 #endif
       strcat(filename, app_name);
-#ifdef WIN32
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(WIN32)
       strcat(filename, ".cfg");
 #endif
-    }
   }
 
   IupSetStrAttribute(ih, "FILENAME", filename);
@@ -449,15 +448,23 @@ void IupConfigDialogShow(Ihandle* ih, Ihandle* dialog, const char* name)
   int shown = 0;
   int set_size = 0;
 
-  if (IupConfigGetVariableInt(ih, name, "Maximized"))
+  /* does nothing if already visible */
+  if (IupGetInt(dialog, "VISIBLE"))
+  {
+    IupShow(dialog);
+    return;
+  }
+
+  if (IupConfigGetVariableIntDef(ih, name, "Maximized", 1) && IupGetInt(dialog, "RESIZE"))
   {
     IupSetAttribute(dialog, "PLACEMENT", "MAXIMIZED");
   }
   else
   {
-    /* dialog size from Config */
-    if (IupConfigGetVariableStr(ih, name, "Width"))
+    /* set size only if dialog is resizable */
+    if (IupGetInt(dialog, "RESIZE"))
     {
+      /* dialog size from Config */
       int width = IupConfigGetVariableInt(ih, name, "Width");
       int height = IupConfigGetVariableInt(ih, name, "Height");
       if (width != 0 || height != 0)
@@ -484,12 +491,28 @@ void IupConfigDialogShow(Ihandle* ih, Ihandle* dialog, const char* name)
     {
       int x = IupConfigGetVariableInt(ih, name, "X");
       int y = IupConfigGetVariableInt(ih, name, "Y");
+      int virtual_x, virtual_y, virtual_w, virtual_h;
+      int monitors_count = IupGetInt(NULL, "MONITORSCOUNT");
+      if (monitors_count > 1)
+      {
+        char* virtual_screen = IupGetGlobal("VIRTUALSCREEN");
+        sscanf(virtual_screen, "%d %d %d %d", &virtual_x, &virtual_y, &virtual_w, &virtual_h);
+      }
+      else
+      {
+        virtual_x = 0;
+        virtual_y = 0;
+        IupGetIntInt(NULL, "SCREENSIZE", &virtual_w, &virtual_h);
+      }
+
+      if (x < virtual_x) x = virtual_x;
+      if (y < virtual_y) y = virtual_y;
+      if (x > virtual_x + virtual_w) x = virtual_x;
+      if (y > virtual_y + virtual_h) y = virtual_y;
+
       IupShowXY(dialog, x, y);
       shown = 1;
     }
-
-    if (!set_size && !shown)
-      IupSetAttribute(dialog, "PLACEMENT", "MAXIMIZED");
   }
 
   if (!shown)
@@ -510,21 +533,24 @@ void IupConfigDialogClosed(Ihandle* ih, Ihandle* dialog, const char* name)
   IupConfigSetVariableInt(ih, name, "X", x);
   IupConfigSetVariableInt(ih, name, "Y", y);
 
+  /* save size only if dialog is resizable */
+  if (IupGetInt(dialog, "RESIZE"))
+  {
 #ifdef WIN32
-  IupGetIntInt(dialog, "RASTERSIZE", &width, &height);
+    IupGetIntInt(dialog, "RASTERSIZE", &width, &height);
 #else
-  IupGetIntInt(dialog, "CLIENTSIZE", &width, &height);
+    IupGetIntInt(dialog, "CLIENTSIZE", &width, &height);
 #endif
-  IupConfigSetVariableInt(ih, name, "Width", width);
-  IupConfigSetVariableInt(ih, name, "Height", height);
+    IupConfigSetVariableInt(ih, name, "Width", width);
+    IupConfigSetVariableInt(ih, name, "Height", height);
 
-
-  maximized = IupGetInt(dialog, "MAXIMIZED"); // Windows Only
-  IupGetIntInt(NULL, "SCREENSIZE", &screen_width, &screen_height);
-  if (maximized || 
-      ((x < 0 && (2 * x + width == screen_width)) &&    // Works only for the main screen
-       (y < 0 && (2 * y + height == screen_height))))
-    IupConfigSetVariableInt(ih, name, "Maximized", 1);
-  else
-    IupConfigSetVariableInt(ih, name, "Maximized", 0);
+    maximized = IupGetInt(dialog, "MAXIMIZED"); // Windows Only
+    IupGetIntInt(NULL, "SCREENSIZE", &screen_width, &screen_height);
+    if (maximized ||
+        ((x < 0 && (2 * x + width == screen_width)) &&    // Works only for the main screen
+        (y < 0 && (2 * y + height == screen_height))))
+        IupConfigSetVariableInt(ih, name, "Maximized", 1);
+    else
+      IupConfigSetVariableInt(ih, name, "Maximized", 0);
+  }
 }

@@ -10,6 +10,7 @@
 struct _cdCanvas;
 
 typedef int (*IFidle)(void);  /* idle */
+typedef void (*IFentry)(void);  /* entry */
 
 typedef void(*IFi)(int); /* globalentermodal_cb, globalleavemodal_cb,  */
 typedef void(*IFii)(int, int); /* globalkeypress_cb */
@@ -57,6 +58,7 @@ typedef int (*IFniiff)(Ihandle*, int, int, float, float); /* delete_cb (pplot) *
 typedef int (*IFniiffi)(Ihandle*, int, int, float, float, int); /* select_cb (pplot) */
 typedef int (*IFniidd)(Ihandle*, int, int, double, double); /* delete_cb */
 typedef int (*IFniiddi)(Ihandle*, int, int, double, double, int); /* select_cb */
+typedef int (*IFniiddiddi)(Ihandle*, int, int, double, double, int, double, double, int); /* clicksegment_cb */
 typedef int (*IFniiffFF)(Ihandle*, int, int, float, float, float*, float*); /* edit_cb */
 typedef int (*IFniiffs)(Ihandle*, int, int, float, float, char*);  /* plotbutton_cb (pplot) */
 typedef int (*IFniidds)(Ihandle*, int, int, double, double, char*);  /* plotbutton_cb */

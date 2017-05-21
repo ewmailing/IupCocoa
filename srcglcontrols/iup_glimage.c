@@ -30,7 +30,7 @@ void iupGLColorMakeInactive(unsigned char *r, unsigned char *g, unsigned char *b
 
 void iupGLImageGetInfo(const char* name, int *w, int *h, int *bpp)
 {
-  Ihandle* ih = IupGetHandle(name);
+  Ihandle* ih = iupImageGetHandle(name);
   if (!ih)
     return;
 

@@ -20,6 +20,7 @@
 #include "iup_stdcontrols.h"
 #include "iup_layout.h"
 #include "iup_drv.h"
+#include "iup_childtree.h"
 
 
 /*****************************************************************************\
@@ -33,6 +34,9 @@ static int iScrollBoxScroll_CB(Ihandle *ih, int op, float posx, float posy)
     int x, y;
 
     char* offset = iupAttribGet(ih, "CHILDOFFSET");
+
+    if ((op == IUP_SBDRAGH || op == IUP_SBDRAGV) && !iupAttribGetBoolean(ih, "LAYOUTDRAG"))
+      return IUP_DEFAULT;
 
     /* Native container, position is reset */
     x = 0;
@@ -73,8 +77,7 @@ static int iScrollBoxButton_CB(Ihandle *ih, int but, int pressed, int x, int y, 
 
 static int iScrollBoxMotion_CB(Ihandle *ih, int x, int y, char* status)
 {
-  if (iup_isbutton1(status) &&
-      iupAttribGet(ih, "_IUP_DRAG_SB"))
+  if (iup_isbutton1(status) && iupAttribGet(ih, "_IUP_DRAG_SB"))
   {
     int start_x = iupAttribGetInt(ih, "_IUP_START_X");
     int start_y = iupAttribGetInt(ih, "_IUP_START_Y");
@@ -82,8 +85,9 @@ static int iScrollBoxMotion_CB(Ihandle *ih, int x, int y, char* status)
     int dy = y - start_y;
     int posx = iupAttribGetInt(ih, "_IUP_START_POSX");
     int posy = iupAttribGetInt(ih, "_IUP_START_POSY");
-    IupSetInt(ih, "POSX", posx-dx);  /* drag direction is oposite to scrollbar */
+    IupSetInt(ih, "POSX", posx-dx);  /* drag direction is opposite to scrollbar */
     IupSetInt(ih, "POSY", posy-dy);
+
     iScrollBoxScroll_CB(ih, 0, IupGetFloat(ih, "POSX"), IupGetFloat(ih, "POSY"));
   }
   return IUP_DEFAULT;
@@ -95,6 +99,86 @@ static int iScrollBoxMotion_CB(Ihandle *ih, int x, int y, char* status)
 \*****************************************************************************/
 
 
+static int iScrollBoxGetChildPosition(Ihandle* ih, Ihandle* child, int *posx, int *posy)
+{
+  while (child->parent && child != ih)
+  {
+    *posx += child->x;
+    *posy += child->y;
+
+    child = iupChildTreeGetNativeParent(child);
+  }
+
+  if (!child->parent)
+    return 0;
+  else
+    return 1;
+}
+
+static int iScrollBoxSetScrollToChildHandleAttrib(Ihandle* ih, const char* value)
+{
+  Ihandle* child = (Ihandle*)value;
+  if (iupObjectCheck(child))
+  {
+    int posx = 0, posy = 0;
+    if (iScrollBoxGetChildPosition(ih, child, &posx, &posy))
+    {
+      IupSetInt(ih, "POSX", posx);
+      IupSetInt(ih, "POSY", posy);
+      iScrollBoxScroll_CB(ih, 0, IupGetFloat(ih, "POSX"), IupGetFloat(ih, "POSY"));
+    }
+  }
+  return 0;
+}
+
+static int iScrollBoxSetScrollToChildAttrib(Ihandle* ih, const char* value)
+{
+  return iScrollBoxSetScrollToChildHandleAttrib(ih, (char*)IupGetHandle(value));
+}
+
+static int iScrollBoxSetScrollToAttrib(Ihandle* ih, const char* value)
+{
+  if (iupStrEqualNoCase(value, "TOP"))
+  {
+    IupSetInt(ih, "POSX", 0);
+    IupSetInt(ih, "POSY", 0);
+    iScrollBoxScroll_CB(ih, 0, IupGetFloat(ih, "POSX"), IupGetFloat(ih, "POSY"));
+  }
+  else if (iupStrEqualNoCase(value, "BOTTOM"))
+  {
+    IupSetInt(ih, "POSX", 0);
+    IupSetInt(ih, "POSY", IupGetInt(ih, "YMAX") - IupGetInt(ih, "DY"));
+    iScrollBoxScroll_CB(ih, 0, IupGetFloat(ih, "POSX"), IupGetFloat(ih, "POSY"));
+  }
+  else
+  {
+    int posx, posy;
+    if (iupStrToIntInt(value, &posx, &posy, ',') == 2)
+    {
+      IupSetInt(ih, "POSX", posx);
+      IupSetInt(ih, "POSY", posy);
+      iScrollBoxScroll_CB(ih, 0, IupGetFloat(ih, "POSX"), IupGetFloat(ih, "POSY"));
+    }
+  }
+  return 0;
+}
+
+static char* iScrollBoxGetExpandAttrib(Ihandle* ih)
+{
+  if (iupAttribGetBoolean(ih, "CANVASBOX"))
+    return iupBaseGetExpandAttrib(ih);
+  else
+    return iupBaseContainerGetExpandAttrib(ih);
+}
+
+static int iScrollBoxSetExpandAttrib(Ihandle* ih, const char* value)
+{
+  if (iupAttribGetBoolean(ih, "CANVASBOX"))
+    return iupBaseSetExpandAttrib(ih, value);
+  else
+    return 1;  /* store on the hash table */
+}
+
 static void iScrollBoxComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
 {
   if (ih->firstchild)
@@ -103,10 +187,21 @@ static void iScrollBoxComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int 
     iupBaseComputeNaturalSize(ih->firstchild);
   }
 
-  /* ScrollBox size does not depends on the child size,
+  if (!iupAttribGetBoolean(ih, "CANVASBOX"))
+  {
+    /* ScrollBox size does not depends on the child size,
      its natural size must be 0 to be free of restrictions. */
-  (void)w;
-  (void)h;
+    if (ih->currentwidth == 0 && ih->currentheight == 0 && ih->firstchild)
+    {
+      *w = ih->firstchild->naturalwidth;
+      *h = ih->firstchild->naturalheight;
+    }
+    else
+    {
+      *w = 0;
+      *h = 0;
+    }
+  }
 
   /* Also set expand to its own expand so it will not depend on children */
   *children_expand = ih->expand;
@@ -251,8 +346,8 @@ Iclass* iupScrollBoxNewClass(void)
   ic->SetChildrenPosition = iScrollBoxSetChildrenPositionMethod;
 
   /* Base Container */
-  iupClassRegisterAttribute(ic, "EXPAND", iupBaseContainerGetExpandAttrib, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "CLIENTOFFSET", iupBaseGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_READONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "EXPAND", iScrollBoxGetExpandAttrib, iScrollBoxSetExpandAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CLIENTOFFSET", iupBaseGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_READONLY | IUPAF_NO_INHERIT);
   {
     IattribGetFunc drawsize_get = NULL;
     iupClassRegisterGetAttribute(ic, "DRAWSIZE", &drawsize_get, NULL, NULL, NULL, NULL);
@@ -268,6 +363,14 @@ Iclass* iupScrollBoxNewClass(void)
   iupClassRegisterReplaceAttribDef(ic, "BORDER", "NO", NULL);
   iupClassRegisterReplaceAttribFlags(ic, "BORDER", IUPAF_READONLY | IUPAF_NO_INHERIT);
   iupClassRegisterReplaceAttribDef(ic, "SCROLLBAR", "YES", NULL);
+
+  /* Scrollbox */
+  iupClassRegisterAttribute(ic, "SCROLLTO", NULL, iScrollBoxSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SCROLLTOCHILD", NULL, iScrollBoxSetScrollToChildAttrib, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SCROLLTOCHILD_HANDLE", NULL, iScrollBoxSetScrollToChildHandleAttrib, NULL, NULL, IUPAF_IHANDLE | IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "LAYOUTDRAG", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "CANVASBOX", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   return ic;
 }

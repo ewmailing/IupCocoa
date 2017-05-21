@@ -43,7 +43,7 @@ typedef HGLRC (WINAPI *wglCreateContextAttribsARB_PROC) (HDC hDC, HGLRC hShareCo
 
 
 /* Do NOT use _IcontrolData to make inheritance easy
-   when parent class in glcanvas */
+   when parent class is glcanvas */
 typedef struct _IGlControlData
 {
   HWND window;
@@ -393,60 +393,21 @@ static int wGLCanvasSetRefreshContextAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-static Iclass* wGlCanvasNewClass(void)
+void iupdrvGlCanvasInitClass(Iclass* ic)
 {
-  Iclass* ic = iupClassNew(iupRegisterFindClass("canvas"));
-
-  ic->name = "glcanvas";
-  ic->format = "a"; /* one ACTION callback name */
-  ic->nativetype = IUP_TYPECANVAS;
-  ic->childtype = IUP_CHILDNONE;
-  ic->is_interactive = 1;
-
-  ic->New = wGlCanvasNewClass;
   ic->Create = wGLCanvasCreateMethod;
   ic->Destroy = wGLCanvasDestroy;
   ic->Map = wGLCanvasMapMethod;
   ic->UnMap = wGLCanvasUnMapMethod;
 
-  iupClassRegisterCallback(ic, "SWAPBUFFERS_CB", "");
-
-  iupClassRegisterAttribute(ic, "BUFFER", NULL, NULL, IUPAF_SAMEASSYSTEM, "SINGLE", IUPAF_DEFAULT);
-  iupClassRegisterAttribute(ic, "COLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "RGBA", IUPAF_DEFAULT);
-  iupClassRegisterAttribute(ic, "ERROR", NULL, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-
-  iupClassRegisterAttribute(ic, "CONTEXT", NULL, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_STRING);
   iupClassRegisterAttribute(ic, "VISUAL", NULL, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_STRING);
-  iupClassRegisterAttribute(ic, "COLORMAP", NULL, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_STRING);
-
-  iupClassRegisterAttribute(ic, "CONTEXTFLAGS", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "CONTEXTPROFILE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "CONTEXTVERSION", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ARBCONTEXT", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "REFRESHCONTEXT", NULL, wGLCanvasSetRefreshContextAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-
-  return ic;
 }
+
 
 /******************************************* Exported functions */
 
-void IupGLCanvasOpen(void)
-{
-  if (!IupGetGlobal("_IUP_GLCANVAS_OPEN"))
-  {
-    iupRegisterClass(wGlCanvasNewClass());
-    IupSetGlobal("_IUP_GLCANVAS_OPEN", "1");
-  }
-}
-
-Ihandle* IupGLCanvas(const char *action)
-{
-  void *params[2];
-  params[0] = (void*)action;
-  params[1] = NULL;
-  return IupCreatev("glcanvas", params);
-}
 
 int IupGLIsCurrent(Ihandle* ih)
 {
@@ -499,6 +460,13 @@ void IupGLMakeCurrent(Ihandle* ih)
   {
     iupAttribSet(ih, "ERROR", NULL);
     iupAttribSet(ih, "LASTERROR", NULL);
+
+    if (!IupGetGlobal("GL_VERSION"))
+    {
+      IupSetStrGlobal("GL_VENDOR", (char*)glGetString(GL_VENDOR));
+      IupSetStrGlobal("GL_RENDERER", (char*)glGetString(GL_RENDERER));
+      IupSetStrGlobal("GL_VERSION", (char*)glGetString(GL_VERSION));
+    }
   }
 }
 

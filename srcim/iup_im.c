@@ -38,13 +38,13 @@ static void iSaveErrorMsg(int error)
       msg = "Error Opening Image File.";
       break;
     case IM_ERR_MEM:
-      msg = "Insuficient memory.";
+      msg = "Insufficient memory.";
       break;
     case IM_ERR_ACCESS:
       msg = "Error Accessing Image File.";
       break;
     case IM_ERR_DATA:
-      msg = "Image type not Suported.";
+      msg = "Image type not Supported.";
       break;
     case IM_ERR_FORMAT:
       msg = "Invalid Image File Format.";
@@ -88,24 +88,12 @@ static void iSaveErrorMsg(int error)
   IupSetGlobal("IUPIM_LASTERROR", msg);
 }
 
-Ihandle* IupLoadImage(const char* file_name)
+static Ihandle* iupLoadImageFile(imFile* ifile)
 {
   int i, error, width, height, color_mode, flags,
-      data_type, has_alpha = 0;
+    data_type, has_alpha = 0;
   Ihandle* iup_image = NULL;
   void* image_data = NULL;
-  imCounterCallback old_callback;
-  imFile* ifile;
-
-  iupASSERT(file_name);
-  if (!file_name)
-    return NULL;
-
-  old_callback = imCounterSetCallback(NULL, NULL);
-
-  ifile = imFileOpen(file_name, &error);
-  if (error)
-    goto load_finish;
 
   error = imFileReadImageInfo(ifile, 0, &width, &height, &color_mode, &data_type);
   if (error)
@@ -122,7 +110,7 @@ Ihandle* IupLoadImage(const char* file_name)
   color_mode = imColorModeToBitmap(color_mode);
   data_type = IM_BYTE;
 
-  image_data = malloc(imImageDataSize(width, height, flags|color_mode, data_type));
+  image_data = malloc(imImageDataSize(width, height, flags | color_mode, data_type));
   if (!image_data)
     goto load_finish;
 
@@ -150,7 +138,7 @@ Ihandle* IupLoadImage(const char* file_name)
     {
       unsigned char r, g, b;
       imColorDecode(&r, &g, &b, palette[i]);
-      IupSetRGBId(iup_image, "", i, r, g, b); 
+      IupSetRGBId(iup_image, "", i, r, g, b);
     }
 
     transp_index = imFileGetAttribute(ifile, "TransparencyIndex", NULL, NULL);
@@ -159,11 +147,106 @@ Ihandle* IupLoadImage(const char* file_name)
   }
 
 load_finish:
-  imCounterSetCallback(NULL, old_callback);
-  if (ifile) imFileClose(ifile);
   if (image_data) free(image_data);
   iSaveErrorMsg(error);
   return iup_image;
+}
+
+Ihandle* IupLoadImage(const char* file_name)
+{
+  int error;
+  Ihandle* iup_image = NULL;
+  imCounterCallback old_callback;
+  imFile* ifile;
+
+  iupASSERT(file_name);
+  if (!file_name)
+    return NULL;
+
+  old_callback = imCounterSetCallback(NULL, NULL);
+
+  ifile = imFileOpen(file_name, &error);
+  if (!error)
+    iup_image = iupLoadImageFile(ifile);
+  else
+    iSaveErrorMsg(error);
+
+  imCounterSetCallback(NULL, old_callback);
+
+  if (ifile) imFileClose(ifile);
+  return iup_image;
+}
+
+Ihandle* IupLoadAnimation(const char* file_name)
+{
+  int error;
+  Ihandle* animation = NULL;
+  imCounterCallback old_callback;
+  imFile* ifile;
+
+  iupASSERT(file_name);
+  if (!file_name)
+    return NULL;
+
+  old_callback = imCounterSetCallback(NULL, NULL);
+
+  ifile = imFileOpen(file_name, &error);
+  if (!error)
+  {
+    double fps;
+    int image_count, i;
+    imFileGetInfo(ifile, NULL, NULL, &image_count);
+
+    fps = imFileGetAttribReal(ifile, "FPS", 0);
+    if (fps)
+    {
+      int frametime = iupRound(1000.0 / fps);
+      IupSetInt(animation, "FRAMETIME", frametime);
+    }
+
+    for (i = 0; i < image_count; i++)
+    {
+      Ihandle* iup_image = iupLoadImageFile(ifile);
+      if (!iup_image)
+        break;
+
+      if (!animation)
+        animation = IupUser();
+
+      IupAppend(animation, iup_image);
+    }
+  }
+  else
+    iSaveErrorMsg(error);
+
+  imCounterSetCallback(NULL, old_callback);
+
+  if (ifile) imFileClose(ifile);
+  return animation;
+}
+
+Ihandle* IupLoadAnimationFrames(const char** file_name_list, int file_count)
+{
+  Ihandle* animation = NULL;
+  int i;
+
+  iupASSERT(file_name_list);
+  if (!file_name_list)
+    return NULL;
+
+  for (i = 0; i < file_count; i++)
+  {
+    Ihandle* iup_image = IupLoadImage(file_name_list[i]);
+    if (!iup_image)
+      break;
+
+    if (!animation)
+      animation = IupUser();
+
+    IupAppend(animation, iup_image);
+  }
+
+  return animation;
 }
 
 /* Study. Not public yet */

@@ -113,6 +113,101 @@ static const void* IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY = "IUP_COCOA_TOGGLE_RECEIVE
 @end
 
 
+void iupdrvToggleAddBorders(int *x, int *y)
+{
+	
+	
+}
+
+
+
+void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+{
+	
+	
+}
+
+
+static int cocoaToggleSetTitleAttrib(Ihandle* ih, const char* value)
+{
+	NSButton* the_toggle = ih->handle;
+
+	char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
+
+	if (ih->data->type == IUP_TOGGLE_TEXT)
+	{
+		if(stripped_str && *stripped_str!=0)
+		{
+			NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
+			[the_toggle setTitle:ns_string];
+			/*
+			 if(ih->data->type == IUP_TOGGLE_IMAGE)
+			 {
+			 // TODO: FEATURE: Cocoa allows text to be placed in different positions
+			 // https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Toggle/Tasks/SettingToggleImage.html
+			 [the_toggle setImagePosition:NSImageLeft];
+			 }
+			 else
+			 {
+			 //			[the_toggle setImagePosition:NSNoImage];
+			 
+			 }
+			 */
+		}
+		else
+		{
+			[the_toggle setTitle:@""];
+		}
+
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+
+static int cocoaToggleSetValueAttrib(Ihandle* ih, const char* value)
+{
+	NSButton* the_toggle = ih->handle;
+
+	if (iupStrEqualNoCase(value,"NOTDEF"))
+	{
+		[the_toggle setState:NSMixedState];
+	}
+	else
+	{
+		if (iupStrEqualNoCase(value,"TOGGLE"))
+		{
+			if([the_toggle state] == NSOffState)
+			{
+				[the_toggle setState:NSOnState];
+			}
+			else
+			{
+				[the_toggle setState:NSOffState];
+			}
+			
+		}
+		else
+		{
+			int new_state = iupStrBoolean(value);
+			[the_toggle setState:new_state];
+
+		}
+	}
+	
+	return 0;
+}
+
+static char* cocoaToggleGetValueAttrib(Ihandle* ih)
+{
+	NSButton* the_toggle = ih->handle;
+	int current_state = [the_toggle state];
+	// it happens that iupStrReturnChecked uses the same values for mixed, off, and on
+	return iupStrReturnChecked(current_state);
+}
+
 
 
 static int cocoaToggleMapMethod(Ihandle* ih)
@@ -124,16 +219,26 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 	static int woffset = 0;
 	static int hoffset = 0;
 	
-	woffset += 30;
-	hoffset += 30;
+//	woffset += 30;
+//	hoffset += 30;
 	//	ih->data->type = 0;
 	
-	//	NSToggle* the_toggle = [[NSToggle alloc] initWithFrame:NSZeroRect];
-	NSButton* the_toggle = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
+	NSButton* the_toggle = [[NSButton alloc] initWithFrame:NSZeroRect];
+//	NSButton* the_toggle = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
 	
 	[the_toggle setButtonType:NSSwitchButton];
 
 	
+	
+	if(iupAttribGetBoolean(ih, "3STATE"))
+	{
+		[the_toggle setAllowsMixedState:YES];
+	}
+	else
+	{
+		// too aggressive? should we just leave it alone?
+		[the_toggle setAllowsMixedState:NO];
+	}
 	
 	
 
@@ -175,6 +280,8 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 	}
 	else
 	{
+		ih->data->type = IUP_TOGGLE_TEXT;
+		
 		[the_toggle setButtonType:NSSwitchButton];
 //		[the_toggle setBezelStyle:NSRoundedBezelStyle];
 		
@@ -185,29 +292,10 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 	//	[the_toggle setToggleType:NSMomentaryLightButton];
 	
 
-	value = iupAttribGet(ih, "TITLE");
-	if(value && *value!=0)
-	{
-		ih->data->type |= IUP_TOGGLE_TEXT;
-		NSString* ns_string = [NSString stringWithUTF8String:value];
-		[the_toggle setTitle:ns_string];
-		/*
-		if(ih->data->type == IUP_TOGGLE_IMAGE)
-		{
-			// TODO: FEATURE: Cocoa allows text to be placed in different positions
-			// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Toggle/Tasks/SettingToggleImage.html
-			[the_toggle setImagePosition:NSImageLeft];
-		}
-		else
-		{
-			//			[the_toggle setImagePosition:NSNoImage];
-			
-		}
-		*/
-	}
+
 
 	
-	[the_toggle sizeToFit];
+//	[the_toggle sizeToFit];
 	
 	
 	
@@ -239,10 +327,10 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 	
 	
 	
-	//	gtk_widget_realize(ih->handle);
+	//	cocoa_widget_realize(ih->handle);
 	
 	/* update a mnemonic in a label if necessary */
-	//	iupgtkUpdateMnemonic(ih);
+	//	iupcocoaUpdateMnemonic(ih);
 	
 	return IUP_NOERROR;
 }
@@ -255,22 +343,10 @@ static void cocoaToggleUnMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_toggle, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 	[butten_receiver release];
 	
+	iupCocoaRemoveFromParent(ih);
+
 	[the_toggle release];
 	ih->handle = NULL;
-	
-}
-
-void iupdrvToggleAddBorders(int *x, int *y)
-{
-	
-	
-}
-
-
-
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
-{
-
 	
 }
 
@@ -287,26 +363,32 @@ void iupdrvToggleInitClass(Iclass* ic)
   /* Driver Dependent Attribute functions */
 
   /* Overwrite Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, gtkToggleSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, cocoaToggleSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
 
   /* Overwrite Visual */
-  iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, gtkToggleSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, cocoaToggleSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
 
   /* Special */
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, gtkToggleSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);  /* black */
-  iupClassRegisterAttribute(ic, "TITLE", NULL, gtkToggleSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaToggleSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);  /* black */
+#endif
 
+  iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaToggleSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
+#if 0
   /* IupToggle only */
-  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkToggleSetAlignmentAttrib, "ACENTER:ACENTER", NULL, IUPAF_NO_INHERIT); /* force new default value */
-  iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkToggleSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "IMINACTIVE", NULL, gtkToggleSetImInactiveAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "IMPRESS", NULL, gtkToggleSetImPressAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "VALUE", gtkToggleGetValueAttrib, gtkToggleSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, cocoaToggleSetAlignmentAttrib, "ACENTER:ACENTER", NULL, IUPAF_NO_INHERIT); /* force new default value */
+  iupClassRegisterAttribute(ic, "IMAGE", NULL, cocoaToggleSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "IMINACTIVE", NULL, cocoaToggleSetImInactiveAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "IMPRESS", NULL, cocoaToggleSetImPressAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#endif
+	
+  iupClassRegisterAttribute(ic, "VALUE", cocoaToggleGetValueAttrib, cocoaToggleSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "PADDING", iupToggleGetPaddingAttrib, gtkToggleSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
+#if 0
+  iupClassRegisterAttribute(ic, "PADDING", iupToggleGetPaddingAttrib, cocoaToggleSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "MARKUP", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);
 
   /* NOT supported */

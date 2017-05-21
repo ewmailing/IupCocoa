@@ -15,6 +15,7 @@
 #include "iup_attrib.h"
 #include "iup_str.h"
 #include "iup_register.h"
+#include "iup_image.h"
 
 #include "iup_glcontrols.h"
 #include "iup_glfont.h"
@@ -47,24 +48,24 @@ Ihandle* iupGLIconGetImageHandle(Ihandle* ih, const char* baseattrib, const char
     {
       int pressed = iupAttribGetInt(ih, "PRESSED");
       if (pressed)
-        image = IupGetHandle(iGLIconGetImageName(ih, baseattrib, "PRESS"));
+        image = iupImageGetHandle(iGLIconGetImageName(ih, baseattrib, "PRESS"));
       else
       {
         int highlight = iupAttribGetInt(ih, "HIGHLIGHT");
         if (highlight)
-          image = IupGetHandle(iGLIconGetImageName(ih, baseattrib, "HIGHLIGHT"));
+          image = iupImageGetHandle(iGLIconGetImageName(ih, baseattrib, "HIGHLIGHT"));
       }
     }
     else
     {
-      image = IupGetHandle(iGLIconGetImageName(ih, baseattrib, "INACTIVE"));
+      image = iupImageGetHandle(iGLIconGetImageName(ih, baseattrib, "INACTIVE"));
       if (!image)
         make_inactive = 1;
     }
   }
 
   if (!image)
-    image = IupGetHandle(imagename);
+    image = iupImageGetHandle(imagename);
 
   if (image && make_inactive)
     iupAttribSet(image, "MAKEINACTIVE", "1");
@@ -241,8 +242,8 @@ void iupGLIconDraw(Ihandle* ih, int icon_x, int icon_y, int icon_width, int icon
                                   img_width, img_height, txt_width, txt_height,
                                   &img_x, &img_y, &txt_x, &txt_y);
 
-      iupGLDrawImage(ih, img_x + icon_x, img_y + icon_y, baseattrib, imagename, active);
-      iupGLDrawText(ih, txt_x + icon_x, txt_y + icon_y, title, fgcolor, active);
+      iupGLDrawIconImage(ih, img_x + icon_x, img_y + icon_y, baseattrib, imagename, active);
+      iupGLDrawMultilineText(ih, txt_x + icon_x, txt_y + icon_y, title, fgcolor, active);
     }
     else
     {
@@ -250,7 +251,7 @@ void iupGLIconDraw(Ihandle* ih, int icon_x, int icon_y, int icon_width, int icon
 
       iGLIconGetPosition(ih, icon_width, icon_height, &x, &y, width, height);
 
-      iupGLDrawImage(ih, x + icon_x, y + icon_y, baseattrib, imagename, active);
+      iupGLDrawIconImage(ih, x + icon_x, y + icon_y, baseattrib, imagename, active);
     }
   }
   else if (title)
@@ -259,7 +260,7 @@ void iupGLIconDraw(Ihandle* ih, int icon_x, int icon_y, int icon_width, int icon
 
     iGLIconGetPosition(ih, icon_width, icon_height, &x, &y, width, height);
 
-    iupGLDrawText(ih, x + icon_x, y + icon_y, title, fgcolor, active);
+    iupGLDrawMultilineText(ih, x + icon_x, y + icon_y, title, fgcolor, active);
   }
 }
 

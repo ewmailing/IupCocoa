@@ -34,11 +34,11 @@
 #define min(a, b) ( (a < b) ? (a) : (b) )
 #endif
 
-#define ICB_DEG2RAD  0.01745329252f  /* degrees to radians (rad = ICB_DEG2RAD * deg) */
+#define ICB_RAD2DEG  57.2957795131  /* degrees to radians (deg = ICB_RAD2DEG * rad) */
 #define ICB_DEFAULTSIZE   181  /* default size */
 #define ICB_SPACE  4           /* size of the spacing */
-#define ICB_HUEWIDTH  18       /* width of the hue ring */
-#define ICB_MARKSIZE  6        /* size of the cursor mark */
+#define ICB_HUEWIDTH  20       /* width of the hue ring */
+#define ICB_MARKSIZE  8        /* size of the cursor mark */
 enum {ICB_INSIDE_NONE, ICB_INSIDE_HUE, ICB_INSIDE_SI};
 
 
@@ -68,7 +68,7 @@ struct _IcontrolData
   long bgcolor;
 
   /* attributes */
-  float hue,          /* 0<=H<=359 */
+  double hue,          /* 0<=H<=359 */
         saturation,   /* 0<=S<=1 */
         intensity;    /* 0<=I<=1 */
   unsigned char red, green, blue;  /* 0<=x<=255 */
@@ -77,42 +77,42 @@ struct _IcontrolData
 };
 
 
-static float iColorBrowserSXmax(Ihandle* ih, int y)
+static double iColorBrowserSXmax(Ihandle* ih, int y)
 {
   if (y == ih->data->yc)
-    return (float)(ih->data->SxMax - ih->data->Ix);
+    return (double)(ih->data->SxMax - ih->data->Ix);
   else if (y < ih->data->yc)
   {
-    float D2 = (ih->data->Iy2 - ih->data->Iy1)/2.0f;
-    return  ((float)(ih->data->SxMax - ih->data->Ix)*(y-ih->data->yc + D2))/D2;
+    double D2 = (ih->data->Iy2 - ih->data->Iy1)/2.0;
+    return  ((double)(ih->data->SxMax - ih->data->Ix)*(y-ih->data->yc + D2))/D2;
   }
   else
   {
-    float D2 = (ih->data->Iy2 - ih->data->Iy1)/2.0f;
-    return -((float)(ih->data->SxMax - ih->data->Ix)*(y-ih->data->yc - D2))/D2;
+    double D2 = (ih->data->Iy2 - ih->data->Iy1)/2.0;
+    return -((double)(ih->data->SxMax - ih->data->Ix)*(y-ih->data->yc - D2))/D2;
   }
 }
 
-static float iColorBrowserCalcIntensity(Ihandle* ih, int y)
+static double iColorBrowserCalcIntensity(Ihandle* ih, int y)
 {
-  return (float)(y - ih->data->Iy1)/(float)(ih->data->Iy2 - ih->data->Iy1);
+  return (double)(y - ih->data->Iy1)/(double)(ih->data->Iy2 - ih->data->Iy1);
 }
 
-static float iColorBrowserCalcSaturation(Ihandle* ih, int x, float sx_max)
+static double iColorBrowserCalcSaturation(Ihandle* ih, int x, double sx_max)
 {
   if (sx_max == 0)
     return 0;
   else
-    return (float)(x - ih->data->Ix)/sx_max;
+    return (x - ih->data->Ix)/sx_max;
 }
 
 /* Rotate points of 60 degrees */
-static void iColorBrowserRotatePoints(float *x1, float *y1, float *x2, float *y2, int xc, int yc)
+static void iColorBrowserRotatePoints(double *x1, double *y1, double *x2, double *y2, int xc, int yc)
 {
-  float xt, yt;
-  float nxt, nyt;
-  static const float s60 = 0.8660254f;
-  static const float c60 = 0.5f;
+  double xt, yt;
+  double nxt, nyt;
+  static const double s60 = 0.8660254;
+  static const double c60 = 0.5;
 
   xt = *x1 - xc; 
   yt = *y1 - yc;
@@ -165,12 +165,12 @@ static void iColorBrowserRenderImageHue(Ihandle* ih)
 
   for (y = 0; y < ih->data->h; y++)
   {
-    float sx_max = iColorBrowserSXmax(ih, y);
+    double sx_max = iColorBrowserSXmax(ih, y);
 
     for (x = 0; x < ih->data->w; x++)
     {
       int xl, yl;
-      float radius, diff1, diff2;
+      double radius, diff1, diff2;
 
       if (y > ih->data->Iy1 && 
           y < ih->data->Iy2 &&
@@ -180,32 +180,32 @@ static void iColorBrowserRenderImageHue(Ihandle* ih)
 
       xl = x - ih->data->xc;
       yl = y - ih->data->yc;
-      radius = sqrtf((float)xl*xl + (float)yl*yl);
+      radius = sqrt((double)xl*xl + (double)yl*yl);
 
       diff1 = radius - (ih->data->R-ICB_SPACE-ICB_HUEWIDTH);
       diff2 = (ih->data->R-ICB_SPACE) - radius;
 
       if (diff1>0 && diff2>0)
       {
-        float h, s, i;
+        double h, s, i;
         int offset = y*ih->data->w + x;
         unsigned char* r = red + offset;
         unsigned char* g = green + offset;
         unsigned char* b = blue + offset;
 
-        h = atan2f((float)yl, (float)xl);
-        h = (float)(h * CD_RAD2DEG);
-        s = 1.0f;   /* maximum saturation */
+        h = atan2((double)yl, (double)xl);
+        h = h * CD_RAD2DEG;
+        s = 1.0;   /* maximum saturation */
         i = 0.5f;   /* choose I where S is maximum */
 
         iupColorHSI2RGB(h, s, i, r, g, b);
 
         if (diff1<1 || diff2<1)  /* anti-aliasing */
         {
-          float diff = (float)(diff1<1? diff1: diff2);
-          *r = (unsigned char)((*r)*diff + bg_red*(1.0f-diff));
-          *g = (unsigned char)((*g)*diff + bg_green*(1.0f-diff));
-          *b = (unsigned char)((*b)*diff + bg_blue*(1.0f-diff));
+          double diff = diff1<1? diff1: diff2;
+          *r = (unsigned char)((*r)*diff + bg_red*(1.0-diff));
+          *g = (unsigned char)((*g)*diff + bg_green*(1.0-diff));
+          *b = (unsigned char)((*b)*diff + bg_blue*(1.0-diff));
         }
 
         if (!active)
@@ -216,7 +216,7 @@ static void iColorBrowserRenderImageHue(Ihandle* ih)
 
   if (active)
   {
-    float x1, x2, y1, y2;
+    double x1, x2, y1, y2;
     unsigned char shade_lr, shade_lg, shade_lb,
                   shade_dr, shade_dg, shade_db;
     shade_dr = (unsigned char)((2 * bg_red) / 3);
@@ -226,7 +226,10 @@ static void iColorBrowserRenderImageHue(Ihandle* ih)
     shade_lg = (unsigned char)((255 + bg_green) / 2);
     shade_lb = (unsigned char)((255 + bg_blue) / 2);
     cdCanvasForeground(ih->data->cd_canvas, cdEncodeColor(shade_dr, shade_dg, shade_db));
-    x1 = (float)(ih->data->xc-ih->data->R+ICB_SPACE); y1 = (float)ih->data->yc; x2 = (float)(x1+ICB_HUEWIDTH/2); y2 = (float)ih->data->yc;
+    x1 = (double)(ih->data->xc-ih->data->R+ICB_SPACE); 
+    y1 = (double)ih->data->yc; 
+    x2 = (double)(x1+ICB_HUEWIDTH/2); 
+    y2 = (double)ih->data->yc;
     cdCanvasLine(ih->data->cd_canvas, (int) x1, (int) y1, (int) x2, (int) y2);
     iColorBrowserRotatePoints(&x1, &y1, &x2, &y2, ih->data->xc, ih->data->yc);
     cdCanvasForeground(ih->data->cd_canvas, cdEncodeColor(shade_lr, shade_lg, shade_lb));
@@ -265,7 +268,7 @@ static void iColorBrowserRenderImageSI(Ihandle* ih)
 
   for (y = 0; y < ih->data->h; y++)
   {
-    float sx_max, i;
+    double sx_max, i;
 
     if (y < ih->data->Iy1)
       continue;
@@ -287,18 +290,18 @@ static void iColorBrowserRenderImageSI(Ihandle* ih)
         unsigned char* r = red + offset;
         unsigned char* g = green + offset;
         unsigned char* b = blue + offset;
-        float s, diff;
+        double s, diff;
 
         s = iColorBrowserCalcSaturation(ih, x, sx_max);
 
         iupColorHSI2RGB(ih->data->hue, s, i, r, g, b);
 
-        diff = sx_max - (float)(x - ih->data->Ix);
-        if (diff<1.0f)  /* anti-aliasing */
+        diff = sx_max - (double)(x - ih->data->Ix);
+        if (diff<1.0)  /* anti-aliasing */
         {
-          *r = (unsigned char)((*r)*diff + bg_red*(1.0f-diff));
-          *g = (unsigned char)((*g)*diff + bg_green*(1.0f-diff));
-          *b = (unsigned char)((*b)*diff + bg_blue*(1.0f-diff));
+          *r = (unsigned char)((*r)*diff + bg_red*(1.0-diff));
+          *g = (unsigned char)((*g)*diff + bg_green*(1.0-diff));
+          *b = (unsigned char)((*b)*diff + bg_blue*(1.0-diff));
         }
 
         if (!active)
@@ -319,7 +322,7 @@ static void iColorBrowserUpdateCursorSI(Ihandle* ih)
 
 static void iColorBrowserSetCursorSI(Ihandle* ih, int x, int y)
 {
-  float sx_max;
+  double sx_max;
 
   if (y < ih->data->Iy1)
     ih->data->si_y = ih->data->Iy1;
@@ -340,20 +343,20 @@ static void iColorBrowserSetCursorSI(Ihandle* ih, int x, int y)
   ih->data->intensity = iColorBrowserCalcIntensity(ih, ih->data->si_y);
   ih->data->saturation = iColorBrowserCalcSaturation(ih, ih->data->si_x, sx_max);
 
-  if (ih->data->saturation == -0.0f)
+  if (ih->data->saturation == -0.0)
     ih->data->saturation = 0;
-  if (ih->data->intensity == -0.0f)
+  if (ih->data->intensity == -0.0)
     ih->data->intensity = 0;
 }
 
 static void iColorBrowserUpdateCursorHue(Ihandle* ih)
 {
   int rc = ih->data->R-ICB_SPACE-ICB_HUEWIDTH/2;
-  float angle = ih->data->hue * ICB_DEG2RAD;
-  float cos_angle = cosf(angle);
-  float sin_angle = sinf(angle);
-  float x = rc*cos_angle + ih->data->xc;
-  float y = rc*sin_angle + ih->data->yc;
+  double angle = ih->data->hue / ICB_RAD2DEG;
+  double cos_angle = cos(angle);
+  double sin_angle = sin(angle);
+  double x = rc*cos_angle + ih->data->xc;
+  double y = rc*sin_angle + ih->data->yc;
   ih->data->h_x = iupROUND(x);
   ih->data->h_y = iupROUND(y);
 }
@@ -362,10 +365,10 @@ static void iColorBrowserSetCursorHue(Ihandle* ih, int x, int y)
 {
   int xl = x - ih->data->xc;
   int yl = y - ih->data->yc;
-  ih->data->hue = (float)(atan2f((float)yl, (float)xl) * CD_RAD2DEG);
-  ih->data->hue = fmodf(ih->data->hue, 360.0f);
-  if (ih->data->hue < 0.0f)
-    ih->data->hue += 360.0f;
+  ih->data->hue = atan2((double)yl, (double)xl) * CD_RAD2DEG;
+  ih->data->hue = fmod(ih->data->hue, 360.0);
+  if (ih->data->hue < 0.0)
+    ih->data->hue += 360.0;
 
   iColorBrowserUpdateCursorHue(ih);
 }
@@ -374,7 +377,7 @@ static int iColorBrowserCheckInside(Ihandle* ih, int x, int y)
 {
   int xl = x - ih->data->xc;
   int yl = y - ih->data->yc;
-  float radius = sqrtf((float)xl*xl + (float)yl*yl);
+  double radius = sqrt((double)xl*xl + (double)yl*yl);
 
   if (radius < ih->data->R-ICB_SPACE-ICB_HUEWIDTH-ICB_SPACE)
     return ICB_INSIDE_SI;
@@ -593,7 +596,7 @@ static int iColorBrowserRedraw_CB(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
-static int iColorBrowserWheel_CB(Ihandle* ih, float delta)
+static int iColorBrowserWheel_CB(Ihandle* ih, double delta)
 {
   ih->data->hue += delta;
 
@@ -632,18 +635,18 @@ static int iColorBrowserKeypress_CB(Ihandle* ih, int c, int press)
       x--;
       break;
     case K_PGUP:
-      ih->data->hue += 1.0f; 
+      ih->data->hue += 1.0; 
       changing_hue = 1; 
       break;
     case K_PGDN:
-      ih->data->hue -= 1.0f; 
+      ih->data->hue -= 1.0; 
       changing_hue = 1; break;
     case K_HOME:
-      ih->data->hue = 0.0f; 
+      ih->data->hue = 0.0; 
       changing_hue = 1; 
       break;
     case K_END:
-      ih->data->hue = 180.0f; 
+      ih->data->hue = 180.0; 
       changing_hue = 1; 
       break;
     default:
@@ -673,12 +676,12 @@ static int iColorBrowserKeypress_CB(Ihandle* ih, int c, int press)
 
 static char* iColorBrowserGetHSIAttrib(Ihandle* ih)
 {
-  return iupStrReturnStrf(IUP_FLOAT2STR" "IUP_FLOAT2STR" "IUP_FLOAT2STR, ih->data->hue, ih->data->saturation, ih->data->intensity);
+  return iupStrReturnStrf(IUP_DOUBLE2STR" "IUP_DOUBLE2STR" "IUP_DOUBLE2STR, ih->data->hue, ih->data->saturation, ih->data->intensity);
 }
 
 static int iColorBrowserSetHSIAttrib(Ihandle* ih, const char* value)
 {
-  float old_hue = ih->data->hue,
+  double old_hue = ih->data->hue,
         old_saturation = ih->data->saturation,
         old_intensity = ih->data->intensity;
 

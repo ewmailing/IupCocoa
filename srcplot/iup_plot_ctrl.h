@@ -20,7 +20,6 @@ struct _IcontrolData
   int numcol;
   int sync_view;
   int read_only;
-  int clear;
 
   cdCanvas* cd_canvas;
   int graphics_mode;
@@ -36,8 +35,9 @@ struct _IcontrolData
       last_pos_y,
       last_pos_moving;
 
-  int last_tip_ds,
-    last_tip_sample;
+  int last_cursor_plot,
+      last_cursor_ds,
+      last_cursor_sample;
 };
 
 void iupPlotRegisterAttributes(Iclass* ic);
@@ -45,6 +45,7 @@ void iupPlotRegisterAttributes(Iclass* ic);
 void iupPlotUpdateViewports(Ihandle* ih);
 void iupPlotRedraw(Ihandle* ih, int flush, int only_current, int reset_redraw);
 void iupPlotResetZoom(Ihandle *ih, int redraw);
+void iupPlotSetZoom(Ihandle *ih, int dir);
 
 void iupPlotSetPlotCurrent(Ihandle* ih, int p);
 void iupPlotShowMenuContext(Ihandle* ih, int screen_x, int screen_y, int x, int y);

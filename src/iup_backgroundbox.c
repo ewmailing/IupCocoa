@@ -41,6 +41,22 @@ static int iBackgroundBoxSetBgColorAttrib(Ihandle* ih, const char* value)
   return 1;  /* save on the hash table */
 }
 
+static char* iBackgroundBoxGetExpandAttrib(Ihandle* ih)
+{
+  if (iupAttribGetBoolean(ih, "CANVASBOX"))
+    return iupBaseGetExpandAttrib(ih);
+  else
+    return iupBaseContainerGetExpandAttrib(ih);
+}
+
+static int iBackgroundBoxSetExpandAttrib(Ihandle* ih, const char* value)
+{
+  if (iupAttribGetBoolean(ih, "CANVASBOX"))
+    return iupBaseSetExpandAttrib(ih, value);
+  else
+    return 1;  /* store on the hash table */
+}
+
 static int iBackgroundBoxGetBorder(Ihandle* ih)
 {
   if (iupAttribGetBoolean(ih, "BORDER"))
@@ -52,6 +68,8 @@ static int iBackgroundBoxGetBorder(Ihandle* ih)
 static char* iBackgroundBoxGetClientOffsetAttrib(Ihandle* ih)
 {
   int dx = 0, dy = 0;
+
+  /* only native offset here */
   if (iupAttribGetBoolean(ih, "BORDER"))
   {
     dx = 1;
@@ -60,17 +78,56 @@ static char* iBackgroundBoxGetClientOffsetAttrib(Ihandle* ih)
   return iupStrReturnIntInt(dx, dy, 'x');
 }
 
+static char* iBackgroundBoxGetClientSizeAttrib(Ihandle* ih)
+{
+  int border = iBackgroundBoxGetBorder(ih);
+  int width = ih->currentwidth - 2 * border;
+  int height = ih->currentheight - 2 * border;
+
+  if (iupAttribGetBoolean(ih, "DECORATION"))
+  {
+    int decorwidth, decorheight;
+    IupGetIntInt(ih, "DECORSIZE", &decorwidth, &decorheight);
+    width -= decorwidth;
+    height -= decorheight;
+  }
+
+  if (width < 0) width = 0;
+  if (height < 0) height = 0;
+
+  return iupStrReturnIntInt(width, height, 'x');
+}
+
 static void iBackgroundBoxComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
 {
   if (ih->firstchild)
   {
-    int border = iBackgroundBoxGetBorder(ih);
-
+    /* update child natural size first */
     iupBaseComputeNaturalSize(ih->firstchild);
 
-    *children_expand = ih->firstchild->expand;
-    *w = ih->firstchild->naturalwidth + 2*border;
-    *h = ih->firstchild->naturalheight + 2*border;
+    if (iupAttribGetBoolean(ih, "CANVASBOX"))
+    {
+      /* use this to overwrite container behavior in iupBaseComputeNaturalSize */
+      *children_expand = ih->expand;
+    }
+    else
+    {
+      int border = iBackgroundBoxGetBorder(ih);
+      int width = ih->firstchild->naturalwidth + 2 * border;
+      int height = ih->firstchild->naturalheight + 2 * border;
+
+      if (iupAttribGetBoolean(ih, "DECORATION"))
+      {
+        int decorwidth, decorheight;
+        IupGetIntInt(ih, "DECORSIZE", &decorwidth, &decorheight);
+        width += decorwidth;
+        height += decorheight;
+      }
+
+      *children_expand = ih->firstchild->expand;
+      *w = width;
+      *h = height;
+    }
   }
 }
 
@@ -78,10 +135,32 @@ static void iBackgroundBoxSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
 {
   if (ih->firstchild)
   {
-    int border = iBackgroundBoxGetBorder(ih);
-    int width  = (ih->currentwidth  > border ? ih->currentwidth  - border : 0);
-    int height = (ih->currentheight > border ? ih->currentheight - border : 0);
-    iupBaseSetCurrentSize(ih->firstchild, width, height, shrink);
+    Ihandle* child = ih->firstchild;
+
+    if (iupAttribGetBoolean(ih, "CANVASBOX"))
+    {
+      /* update child to its own natural size */
+      iupBaseSetCurrentSize(child, child->naturalwidth, child->naturalheight, shrink);
+    }
+    else
+    {
+      int border = iBackgroundBoxGetBorder(ih);
+      int width = ih->currentwidth - 2 * border;
+      int height = ih->currentheight - 2 * border;
+
+      if (iupAttribGetBoolean(ih, "DECORATION"))
+      {
+        int decorwidth, decorheight;
+        IupGetIntInt(ih, "DECORSIZE", &decorwidth, &decorheight);
+        width -= decorwidth;
+        height -= decorheight;
+      }
+
+      if (width < 0) width = 0;
+      if (height < 0) height = 0;
+
+      iupBaseSetCurrentSize(child, width, height, shrink);
+    }
   }
 }
 
@@ -97,14 +176,20 @@ static void iBackgroundBoxSetChildrenPositionMethod(Ihandle* ih, int x, int y)
 
     if (offset) iupStrToIntInt(offset, &x, &y, 'x');
 
+    if (iupAttribGetBoolean(ih, "DECORATION"))
+    {
+      int decor_x, decor_y;
+      IupGetIntInt(ih, "DECOROFFSET", &decor_x, &decor_y);
+      x += decor_x;
+      y += decor_y;
+    }
+
     iupBaseSetPosition(ih->firstchild, x, y);
   }
 }
 
 static int iBackgroundBoxCreateMethod(Ihandle* ih, void** params)
 {
-  IupSetAttribute(ih, "CANFOCUS", "NO");
-
   if (params)
   {
     Ihandle** iparams = (Ihandle**)params;
@@ -114,15 +199,15 @@ static int iBackgroundBoxCreateMethod(Ihandle* ih, void** params)
   return IUP_NOERROR;
 }
 
-Iclass* iupBackgroundBoxNewClass(void)
+Iclass* iupBackgroundBoxNewBaseClass(const char* name, const char* base_name)
 {
-  Iclass* ic = iupClassNew(iupRegisterFindClass("canvas"));
+  Iclass* ic = iupClassNew(iupRegisterFindClass(base_name));
 
-  ic->name   = "backgroundbox";
+  ic->name = (char*)name;
   ic->format = "h";   /* one Ihandle* */
   ic->nativetype = IUP_TYPECANVAS;
   ic->childtype  = IUP_CHILDMANY+1;  /* 1 child */
-  ic->is_interactive = 0;
+  ic->is_interactive = 1;
 
   /* Class functions */
   ic->New = iupBackgroundBoxNewClass;
@@ -133,13 +218,9 @@ Iclass* iupBackgroundBoxNewClass(void)
   ic->SetChildrenPosition = iBackgroundBoxSetChildrenPositionMethod;
 
   /* Base Container */
-  iupClassRegisterAttribute(ic, "EXPAND", iupBaseContainerGetExpandAttrib, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "EXPAND", iBackgroundBoxGetExpandAttrib, iBackgroundBoxSetExpandAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CLIENTOFFSET", iBackgroundBoxGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_READONLY | IUPAF_NO_INHERIT);
-  {
-    IattribGetFunc drawsize_get = NULL;
-    iupClassRegisterGetAttribute(ic, "DRAWSIZE", &drawsize_get, NULL, NULL, NULL, NULL);
-    iupClassRegisterAttribute(ic, "CLIENTSIZE", drawsize_get, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-  }
+  iupClassRegisterAttribute(ic, "CLIENTSIZE", iBackgroundBoxGetClientSizeAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   /* Native Container */
   iupClassRegisterAttribute(ic, "CHILDOFFSET", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
@@ -149,8 +230,20 @@ Iclass* iupBackgroundBoxNewClass(void)
   iupClassRegisterReplaceAttribDef  (ic, "BORDER", "NO", NULL);
   iupClassRegisterReplaceAttribFlags(ic, "BORDER", IUPAF_NO_INHERIT);
   iupClassRegisterReplaceAttribDef  (ic, "SCROLLBAR", "NO", NULL);
+  iupClassRegisterAttribute(ic, "CANFOCUS", NULL, NULL, IUPAF_SAMEASSYSTEM, "NO", IUPAF_NO_INHERIT);
+
+  /* New */
+  iupClassRegisterAttribute(ic, "CANVASBOX", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DECORATION", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DECORSIZE", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DECOROFFSET", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   return ic;
+}
+
+Iclass* iupBackgroundBoxNewClass(void)
+{
+  return iupBackgroundBoxNewBaseClass("backgroundbox", "canvas");
 }
 
 Ihandle* IupBackgroundBox(Ihandle* child)

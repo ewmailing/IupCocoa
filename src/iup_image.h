@@ -7,6 +7,8 @@
 #ifndef __IUP_IMAGE_H 
 #define __IUP_IMAGE_H
 
+#include "iup_export.h" /* need IUP_EXPORTI */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +22,7 @@ enum {IUPIMAGE_IMAGE, IUPIMAGE_ICON, IUPIMAGE_CURSOR};
 void* iupdrvImageLoad(const char* name, int type);
 void  iupdrvImageDestroy(void* handle, int type);
 int   iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp);  /* only for IUPIMAGE_IMAGE */
+void  iupdrvImageGetData(void* handle, unsigned char* imgdata);   /* only for IUPIMAGE_IMAGE */
 
 void* iupImageGetMask(const char* name);
 void* iupImageGetIcon(const char* name);
@@ -29,13 +32,15 @@ void iupImageGetInfo(const char* name, int *w, int *h, int *bpp);
 void iupImageUpdateParent(Ihandle *parent);
 void iupImageClearFromCache(Ihandle* ih, void* handle);
 
+IUP_EXPORTI Ihandle* iupImageGetHandle(const char* name);
+
 typedef struct _iupColor { 
   unsigned char r, g, b, a; 
 } iupColor;
 
-int iupImageInitColorTable(Ihandle *ih, iupColor* colors, int *colors_count);
+IUP_EXPORTI int iupImageInitColorTable(Ihandle *ih, iupColor* colors, int *colors_count);
 void iupImageInitNonBgColors(Ihandle* ih, unsigned char *colors);
-void iupImageColorMakeInactive(unsigned char *r, unsigned char *g, unsigned char *b, 
+IUP_EXPORTI void iupImageColorMakeInactive(unsigned char *r, unsigned char *g, unsigned char *b, 
                                unsigned char bg_r, unsigned char bg_g, unsigned char bg_b);
 int iupImageNormBpp(int bpp);
 
@@ -51,8 +56,9 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata);
 void iupImageStockInit(void);
 void iupImageStockFinish(void);
 typedef Ihandle* (*iupImageStockCreateFunc)(void);
-void iupImageStockSet(const char *name, iupImageStockCreateFunc func, const char* native_name);
-void iupImageStockLoadAll(void);  /* Used only in IupView */
+IUP_EXPORTI void iupImageStockSet(const char *name, iupImageStockCreateFunc func, const char* native_name);
+IUP_EXPORTI void iupImageStockLoadAll(void);  /* Used only in IupView */
+int iupImageStockGetSize(void);
 
 
 #ifdef __cplusplus

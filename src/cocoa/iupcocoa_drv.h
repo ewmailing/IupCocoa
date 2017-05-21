@@ -16,10 +16,21 @@ extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 
 	
 void iupCocoaAddToParent(Ihandle* ih);
-// Cocoa is in Cartesian (a.k.a. math book, aka OpenGL coordinates, aka y increases upwards), but Iup is y increases downwards.
+void iupCocoaRemoveFromParent(Ihandle* ih);
+
+	// Cocoa is in Cartesian (a.k.a. math book, aka OpenGL coordinates, aka y increases upwards), but Iup is y increases downwards.
 int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height);
 int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height);
-	
+
+
+int iupCocoaMenuIsApplicationBar(Ihandle* ih);
+void iupCocoaMenuSetApplicationMenu(Ihandle* ih);
+// Note: This only gets the user's Ihandle to the application menu. If the user doesn't set it, the default application will not be returned in its place. NULL will be returned instead.
+Ihandle* iupCocoaMenuGetApplicationMenu(void);
+// My current understanding is that IUP will not clean up our application menu Ihandles. So we need to do it ourselves.
+void iupCocoaMenuCleanupApplicationMenu(void);
+
+
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
@@ -55,7 +66,9 @@ gboolean iupmacFocusInOutEvent(GtkWidget *widget, GdkEventFocus *evt, Ihandle* i
 gboolean iupmacKeyPressEvent(GtkWidget *widget, GdkEventKey *evt, Ihandle* ih);
 gboolean iupmacKeyReleaseEvent(GtkWidget *widget, GdkEventKey *evt, Ihandle* ih);
 void iupmacButtonKeySetStatus(guint state, unsigned int but, char* status, int doubleclick);
-void iupmacKeyEncode(int key, guint *keyval, guint *state);
+// original code used guint. Not sure what those are; changing to NSUInteger
+// FIXME: file does not compile
+//void iupmacKeyEncode(int key, NSUInteger *keyval, NSUInteger *state);
 
 
 /* font */

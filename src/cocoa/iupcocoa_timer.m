@@ -78,7 +78,7 @@ void iupdrvTimerRun(Ihandle* ih)
 	  // [[NSDate date] timeIntervalSince1970]; isn't so great because it is affected by network clock changes and so forth.
 	  double start_time = CACurrentMediaTime();
 
-	  NSTimer* the_timer = [NSTimer scheduledTimerWithTimeInterval:(time_ms/1000.0)
+	  NSTimer* the_timer = [NSTimer timerWithTimeInterval:(time_ms/1000.0)
 		target:timer_controller
         selector:@selector(onTimerCallback:)
         userInfo:(id)[NSValue valueWithPointer:ih]
@@ -94,12 +94,8 @@ void iupdrvTimerRun(Ihandle* ih)
 	  // specify the modes to avoid the blockage.
 	  // NSDefaultRunLoopMode seems to be the default. I don't think I need to explicitly
 	  // set this one, but just in case, I will set it anyway.
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSDefaultRunLoopMode];
-	  // This seems to be the one for preventing blocking on other events (popup box, slider, etc)
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSEventTrackingRunLoopMode];
-	  // This seems to be the one for dialogs.
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSModalPanelRunLoopMode];
-	  
+	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSRunLoopCommonModes];
+
 
 	[timer_controller setTheTimer:the_timer];
 	  [timer_controller setStartTime:start_time];

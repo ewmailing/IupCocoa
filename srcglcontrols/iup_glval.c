@@ -96,7 +96,7 @@ static int iGLValACTION_CB(Ihandle* ih)
 
   /* draw slider background */
   if (bgimage)
-    iupGLDrawImageZoom(ih, border_width, border_width,
+    iupGLDrawIconImageZoom(ih, border_width, border_width,
                            border_width, border_width,
                            "BACKIMAGE", bgimage, active);
   else
@@ -142,7 +142,7 @@ static int iGLValACTION_CB(Ihandle* ih)
     if (x1 + x + width > ih->currentwidth - 1) x = ih->currentwidth - 1 - width - x1;
     if (y1 + y + height > ih->currentheight - 1) y = ih->currentheight - 1 - height - y1;
 
-    iupGLDrawImage(ih, x1 + x, y1 + y, "IMAGE", image, active);
+    iupGLDrawIconImage(ih, x1 + x, y1 + y, "IMAGE", image, active);
   }
   else
   {

@@ -41,6 +41,7 @@
    FRAMEHORIZCOLOR
    FRAMEVERTCOLOR
    MASK
+   ALIGN
    SORTSIGN
    ALIGNMENT
    RASTERWIDTH   
@@ -80,13 +81,14 @@ static char* imatrix_col_attrib[IMAT_NUM_ATTRIB_COL] = {
   "TYPE",
   "FRAMEVERTCOLOR"};
 
-#define IMAT_NUM_ATTRIB_CELL 8
+#define IMAT_NUM_ATTRIB_CELL 9
 static char* imatrix_cell_attrib[IMAT_NUM_ATTRIB_CELL] = { 
   "BGCOLOR",   /* all use L:C */
   "FGCOLOR",
   "FONT",
   "TYPE",
   "MASK",
+  "ALIGN",
   "TOGGLEVALUE",
   "FRAMEHORIZCOLOR",
   "FRAMEVERTCOLOR"};

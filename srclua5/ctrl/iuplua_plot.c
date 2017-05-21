@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #include <lua.h>
-#include <lauxlib.h>
 #include <lualib.h>
+#include <lauxlib.h>
 
 #include "iup.h"
 #include "iup_plot.h"
@@ -230,6 +230,23 @@ static int PlotFindSample(lua_State *L)
     return 1;
 }
 
+static int PlotFindSegment(lua_State *L)
+{
+  Ihandle *ih = iuplua_checkihandle(L, 1);
+  int ds_index, sample_index1, sample_index2;
+  int ret = IupPlotFindSegment(ih, luaL_checknumber(L, 2), luaL_checknumber(L, 3), &ds_index, &sample_index1, &sample_index2);
+  lua_pushinteger(L, ret);
+  if (ret)
+  {
+    lua_pushinteger(L, ds_index);
+    lua_pushinteger(L, sample_index1);
+    lua_pushinteger(L, sample_index2);
+    return 4;
+  }
+  else
+    return 1;
+}
+
 static int PlotInsert(lua_State *L)
 {
   Ihandle *ih = iuplua_checkihandle(L, 1);
@@ -330,6 +347,14 @@ static int PlotGetSampleSelection(lua_State *L)
   return 1;
 }
 
+static int PlotGetSampleExtra(lua_State *L)
+{
+  Ihandle *ih = iuplua_checkihandle(L, 1);
+  double extra = IupPlotGetSampleExtra(ih, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3));
+  lua_pushnumber(L, extra);
+  return 1;
+}
+
 static int PlotSetSample(lua_State *L)
 {
   Ihandle *ih = iuplua_checkihandle(L, 1);
@@ -348,6 +373,13 @@ static int PlotSetSampleSelection(lua_State *L)
 {
   Ihandle *ih = iuplua_checkihandle(L, 1);
   IupPlotSetSampleSelection(ih, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+  return 0;
+}
+
+static int PlotSetSampleExtra(lua_State *L)
+{
+  Ihandle *ih = iuplua_checkihandle(L, 1);
+  IupPlotSetSampleExtra(ih, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), luaL_checknumber(L, 4));
   return 0;
 }
 
@@ -391,7 +423,8 @@ void iuplua_plotfuncs_open (lua_State *L)
   iuplua_register(L, PlotLoadData    ,"PlotLoadData");
   iuplua_register(L, PlotSetFormula  ,"PlotSetFormula");
   iuplua_register(L, PlotFindSample  ,"PlotFindSample");
-  iuplua_register(L, PlotInsert      ,"PlotInsert");
+  iuplua_register(L, PlotFindSegment, "PlotFindSegment");
+  iuplua_register(L, PlotInsert, "PlotInsert");
   iuplua_register(L, PlotInsertStr   ,"PlotInsertStr");
   iuplua_register(L, PlotInsertSegment, "PlotInsertSegment");
   iuplua_register(L, PlotInsertSamples    ,"PlotInsertSamples");
@@ -401,9 +434,11 @@ void iuplua_plotfuncs_open (lua_State *L)
   iuplua_register(L, PlotGetSample, "PlotGetSample");
   iuplua_register(L, PlotGetSampleStr, "PlotGetSampleStr");
   iuplua_register(L, PlotGetSampleSelection, "PlotGetSampleSelection");
+  iuplua_register(L, PlotGetSampleExtra, "PlotGetSampleExtra");
   iuplua_register(L, PlotSetSample, "PlotSetSample");
   iuplua_register(L, PlotSetSampleStr, "PlotSetSampleStr");
   iuplua_register(L, PlotSetSampleSelection, "PlotSetSampleSelection");
+  iuplua_register(L, PlotSetSampleExtra, "PlotSetSampleExtra");
 
   iuplua_register(L, PlotTransform, "PlotTransform");
   iuplua_register(L, PlotTransformTo, "PlotTransformTo");

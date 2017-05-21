@@ -13,9 +13,9 @@ extern "C" {
 #endif
 
 
-void iupGLDrawText(Ihandle* ih, int x, int y, const char* str, const char* color, int active);
-void iupGLDrawImage(Ihandle* ih, int x, int y, const char* baseattrib, const char* imagename, int active);
-void iupGLDrawImageZoom(Ihandle *ih, int xmin, int xmax, int ymin, int ymax, const char* baseattrib, const char* imagename, int active);
+void iupGLDrawMultilineText(Ihandle* ih, int x, int y, const char* str, const char* color, int active);
+void iupGLDrawIconImage(Ihandle* ih, int x, int y, const char* baseattrib, const char* imagename, int active);
+void iupGLDrawIconImageZoom(Ihandle *ih, int xmin, int xmax, int ymin, int ymax, const char* baseattrib, const char* imagename, int active);
 void iupGLDrawLine(Ihandle* ih, int x1, int y1, int x2, int y2, float linewidth, const char* color, int active);
 void iupGLDrawPolygon(Ihandle* ih, const int* points, int count, const char* color, int active);
 void iupGLDrawPolyline(Ihandle* ih, const int* points, int count, float linewidth, const char* color, int active, int loop);

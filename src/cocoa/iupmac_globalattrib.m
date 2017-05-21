@@ -22,11 +22,14 @@
 
 int iupmac_utf8autoconvert = 1;
 
+
 static void macGlobalSendKey(int key, int press)
 {
 #if 0
   Ihandle* focus;
-  int keyval, state;
+ // original code used int for guint. anging to NSUInteger
+ //int keyval, state;
+ NSUInteger keyval, state;
 
   focus = IupGetFocus();
   if (!focus)
@@ -73,6 +76,7 @@ static void macGlobalSendKey(int key, int press)
 #endif
 }
 
+// Note: Everything before MENU is unaudited
 int iupdrvSetGlobal(const char *name, const char *value)
 {
   if (iupStrEqual(name, "LANGUAGE"))
@@ -119,6 +123,18 @@ int iupdrvSetGlobal(const char *name, const char *value)
       macGlobalSendKey(key, 0x03);
     return 0;
   }
+	
+
+	// Allows the user to set the global application menu
+	if (iupStrEqual(name, "MENU"))
+	{
+		// We expect the value to be an Ihandle for an IupMenu
+		Ihandle* ih = (Ihandle*)value;
+		iupCocoaMenuSetApplicationMenu(ih);
+
+		return 1;
+	}
+	
   return 1;
 }
 
@@ -218,5 +234,10 @@ char *iupdrvGetGlobal(const char *name)
     else
       return "NO";
   }
+  if (iupStrEqual(name, "MENU"))
+  {
+	  return (char*)iupCocoaMenuGetApplicationMenu();
+  }
+	
   return NULL;
 }

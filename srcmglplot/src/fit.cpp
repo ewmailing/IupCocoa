@@ -1,6 +1,6 @@
 /***************************************************************************
  * fit.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -28,14 +28,18 @@
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
 #endif
-mglData MGL_NO_EXPORT mglFormulaCalc(const char *str, const std::vector<mglDataA*> &head);
+HMDT MGL_NO_EXPORT mglFormulaCalc(const char *str, const std::vector<mglDataA*> &head);
 //-----------------------------------------------------------------------------
 int mglFitPnts=100;		///< Number of output points in fitting
 char mglFitRes[1024];	///< Last fitted formula
 mreal mglFitChi=NAN;	///< Chi value for last fitted formula
+mglData mglFitCovar;	///< Covar matrix for lat fitted formula
 //-----------------------------------------------------------------------------
 mreal MGL_EXPORT mgl_get_fit_chi()	{	return mglFitChi;	}
 mreal MGL_EXPORT mgl_get_fit_chi_()	{	return mglFitChi;	}
+//-----------------------------------------------------------------------------
+HCDT MGL_EXPORT mgl_get_fit_covar()	{	return &mglFitCovar;	}
+uintptr_t MGL_EXPORT mgl_get_fit_covar_()	{	return (uintptr_t)&mglFitCovar;	}
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mgl_puts_fit(HMGL gr, double x, double y, double z, const char *pre, const char *font, double size)
 {
@@ -77,16 +81,16 @@ int	mgl_fit__f (const gsl_vector *x, void *data, gsl_vector *f)
 	if(fd->x)	list.push_back(fd->x);
 	if(fd->y)	list.push_back(fd->y);
 	if(fd->z)	list.push_back(fd->z);
-	mglData res = mglFormulaCalc(fd->eq, list);
+	HMDT res = mglFormulaCalc(fd->eq, list);
 #pragma omp parallel for
 	for(long i=0;i<fd->n;i++)
 	{
 		mreal aa = fd->a[i], ss = fd->s[i];
 		if(mgl_isnum(aa) && ss==ss && ss!=0)
-			gsl_vector_set (f, i, (res.a[i] - aa)/ss);
+			gsl_vector_set (f, i, (res->a[i] - aa)/ss);
 		else	gsl_vector_set (f, i, 0);
 	}
-	delete []var;
+	delete []var;	mgl_delete_data(res);
 	return GSL_SUCCESS;
 }
 //-----------------------------------------------------------------------------
@@ -100,23 +104,24 @@ int MGL_NO_EXPORT mgl_fit__df (const gsl_vector * x, void *data, gsl_matrix * J)
 	if(fd->x)	list.push_back(fd->x);
 	if(fd->y)	list.push_back(fd->y);
 	if(fd->z)	list.push_back(fd->z);
-	mglData res = mglFormulaCalc(fd->eq, list);
+	HMDT res = mglFormulaCalc(fd->eq, list);
 	const mreal eps = 1e-5;
 	for(long j=0;j<fd->m;j++)
 	{
 		var[j].Fill(gsl_vector_get(x,j)+eps);
-		mglData dif = (mglFormulaCalc(fd->eq, list)-res)/eps;
+		HMDT dif = mglFormulaCalc(fd->eq, list);
 		var[j].Fill(gsl_vector_get(x,j));
 #pragma omp parallel for
 		for(long i=0;i<fd->n;i++)
 		{
 			mreal aa = fd->a[i], ss = fd->s[i];
 			if(mgl_isnum(aa) && ss==ss && ss!=0)
-				gsl_matrix_set (J, i, j, dif.a[i]/ss);
+				gsl_matrix_set (J, i, j, (dif->a[i]-res->a[i])/(eps*ss));
 			else	gsl_matrix_set (J, i, j, 0);
 		}
+		mgl_delete_data(dif);
 	}
-	delete []var;
+	delete []var;	mgl_delete_data(res);
 	return GSL_SUCCESS;
 }
 //-----------------------------------------------------------------------------
@@ -130,31 +135,32 @@ int MGL_NO_EXPORT mgl_fit__fdf (const gsl_vector * x, void *data, gsl_vector * f
 	if(fd->x)	list.push_back(fd->x);
 	if(fd->y)	list.push_back(fd->y);
 	if(fd->z)	list.push_back(fd->z);
-	mglData res = mglFormulaCalc(fd->eq, list);
+	HMDT res = mglFormulaCalc(fd->eq, list);
 #pragma omp parallel for
 	for(long i=0;i<fd->n;i++)
 	{
 		mreal aa = fd->a[i], ss = fd->s[i];
 		if(mgl_isnum(aa) && ss==ss && ss!=0)
-			gsl_vector_set (f, i, (res.a[i] - aa)/ss);
+			gsl_vector_set (f, i, (res->a[i] - aa)/ss);
 		else	gsl_vector_set (f, i, 0);
 	}
 	const mreal eps = 1e-5;
 	for(long j=0;j<fd->m;j++)
 	{
 		var[j].Fill(gsl_vector_get(x,j)+eps);
-		mglData dif = (mglFormulaCalc(fd->eq, list)-res)/eps;
+		HMDT dif = mglFormulaCalc(fd->eq, list);
 		var[j].Fill(gsl_vector_get(x,j));
 #pragma omp parallel for
 		for(long i=0;i<fd->n;i++)
 		{
 			mreal aa = fd->a[i], ss = fd->s[i];
 			if(mgl_isnum(aa) && ss==ss && ss!=0)
-				gsl_matrix_set (J, i, j, dif.a[i]/ss);
+				gsl_matrix_set (J, i, j, (dif->a[i]-res->a[i])/(eps*ss));
 			else	gsl_matrix_set (J, i, j, 0);
 		}
+		mgl_delete_data(dif);
 	}
-	delete []var;
+	delete []var;	mgl_delete_data(res);
 	return GSL_SUCCESS;
 }
 #endif
@@ -169,7 +175,6 @@ mreal MGL_NO_EXPORT mgl_fit_base(mglFitData &fd, mreal *ini)
 	double *x_init = new double[fd.m];
 	for(i=0;i<m;i++)	x_init[i] = ini[i];
 	// setup fitting
-	gsl_matrix *covar = gsl_matrix_alloc(m, m);
 	gsl_vector_view vx = gsl_vector_view_array(x_init, m);
 	const gsl_multifit_fdfsolver_type *T = gsl_multifit_fdfsolver_lmsder;
 	gsl_multifit_fdfsolver *s = gsl_multifit_fdfsolver_alloc(T, n, m);
@@ -187,12 +192,23 @@ mreal MGL_NO_EXPORT mgl_fit_base(mglFitData &fd, mreal *ini)
 		status = gsl_multifit_test_delta (s->dx, s->x, 1e-4, 1e-4 );
 	}
 	while ( status == GSL_CONTINUE && iter < 500 );
-	gsl_multifit_covar (s->J, 0.0, covar );
+
+	gsl_matrix *covar = gsl_matrix_alloc(m, m);
+#ifdef MGL_HAVE_GSL2
+	gsl_matrix *J = gsl_matrix_alloc(s->fdf->n, s->fdf->p);
+	gsl_multifit_fdfsolver_jac(s, J);
+	gsl_multifit_covar (J, 0.0, covar);
+	gsl_matrix_free (J);
+#else
+	gsl_multifit_covar(s->J, 0.0, covar);
+#endif
+	mglFitCovar.Set(covar);
+	gsl_matrix_free(covar);
+
 	mreal res = gsl_blas_dnrm2(s->f);
 	for(i=0;i<m;i++)	ini[i] = gsl_vector_get(s->x, i);
 	// free memory
-	gsl_multifit_fdfsolver_free (s);
-	gsl_matrix_free (covar);
+	gsl_multifit_fdfsolver_free(s);
 	delete []x_init;
 	return res;
 #else
@@ -289,10 +305,10 @@ void MGL_NO_EXPORT mgl_fill_fit(HMGL gr, mglData &fit, mglData &in, mglFitData &
 	mglDataV x(nx,ny,nz, gr->Min.x,gr->Max.x,'x');	x.s = L"x";	list.push_back(&x);
 	mglDataV y(nx,ny,nz, gr->Min.y,gr->Max.y,'y');	y.s = L"y";	list.push_back(&y);
 	mglDataV z(nx,ny,nz, gr->Min.z,gr->Max.z,'z');	z.s = L"z";	list.push_back(&z);
-	mglData res = mglFormulaCalc(fd.eq, list);
+	HMDT res = mglFormulaCalc(fd.eq, list);
 	long nn = nx*ny*nz;
-	memcpy(fit.a+k*nn,res.a,nn*sizeof(mreal));
-	delete []vv;
+	memcpy(fit.a+k*nn,res->a,nn*sizeof(mreal));
+	delete []vv;	mgl_delete_data(res);
 }
 //-----------------------------------------------------------------------------
 HMDT MGL_EXPORT mgl_fit_xys(HMGL gr, HCDT xx, HCDT yy, HCDT ss, const char *eq, const char *var, HMDT ini, const char *opt)
@@ -495,7 +511,7 @@ uintptr_t MGL_EXPORT mgl_hist_xyz_(uintptr_t* gr, uintptr_t* x, uintptr_t* y, ui
 	uintptr_t r = (uintptr_t)mgl_hist_xyz(_GR_, _DA_(x), _DA_(y), _DA_(z), _DA_(a), o);
 	delete []o;	return r;	}
 //-----------------------------------------------------------------------------
-MGL_EXPORT_CONST const char *mgl_get_fit(HMGL )	{	return mglFitRes;	}
+MGL_EXPORT const char *mgl_get_fit(HMGL )	{	return mglFitRes;	}
 int MGL_EXPORT mgl_get_fit_(uintptr_t *gr, char *out, int len)
 {
 	const char *res = mgl_get_fit(_GR_);
