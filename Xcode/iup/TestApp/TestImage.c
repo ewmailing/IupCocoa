@@ -107,10 +107,10 @@ int main(int argc, char **argv)
 
   lbl_size = IupLabel ( string_size );
   
-  frm_btn = /*IupFrame*/ ( btn );
-  frm_lbl = /*IupFrame*/ ( IupVbox(IupLabel ( "label" ), lbl, NULL ) );
-  frm_tgl = /*IupFrame*/ ( tgl );
-  frm_tgl_radio = /*IupFrame*/ ( IupRadio ( IupVbox ( tgl_radio_1, tgl_radio_2, NULL ) ) );
+  frm_btn = IupFrame ( btn );
+  frm_lbl = IupFrame ( IupVbox(IupLabel ( "label" ), lbl, NULL ) );
+  frm_tgl = IupFrame ( tgl );
+  frm_tgl_radio = IupFrame ( IupRadio ( IupVbox ( tgl_radio_1, tgl_radio_2, NULL ) ) );
 
   IupSetAttributes ( frm_btn, "TITLE=button, SIZE=EIGHTHxEIGHTH" );
   IupSetAttributes ( frm_lbl, "TITLE=label , SIZE=EIGHTHxEIGHTH" );
