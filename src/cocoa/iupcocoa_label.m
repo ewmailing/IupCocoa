@@ -36,7 +36,7 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 	{
 		// This could be a NSTextField, some kind of image, or something else.
 		
-		if([the_label respondsToSelector:@selector(setStringValue:)])
+		if ([the_label respondsToSelector:@selector(setStringValue:)])
 		{
 			NSString* ns_string = nil;
 			if(value)
@@ -48,14 +48,62 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 			{
 				ns_string = @"";
 			}
-			// This will throw an exception for a nil string.
-			[the_label setStringValue:ns_string];
-			[the_label sizeToFit];
+			// NSImageCells don't accept a stringValue
+			id cell = [the_label respondsToSelector:@selector(cell)] ? [the_label cell] : nil;
+			if (![cell isKindOfClass:[NSImageCell class]]) {
+                // This will throw an exception for a nil string.
+                [the_label setStringValue:ns_string];
+                [the_label sizeToFit];
+			}
 		}
 	}
 	return 1;
 
 }
+
+static char *cocoaLabelGetTitleAttrib(Ihandle* ih)
+{
+    id the_label = ih->handle;
+    if ([the_label respondsToSelector:@selector(stringValue)]) {
+        return iupStrReturnStr([[the_label stringValue] UTF8String]);
+    }
+    return NULL;
+}
+
+static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
+{
+  id the_label = ih->handle;
+  if ([the_label isKindOfClass:[NSTextField class]]) {
+    NSTextField *text = (NSTextField *)the_label;
+    if (iupStrEqualNoCasePartial(value, "ALEFT"))
+      text.alignment = NSTextAlignmentLeft;
+    else if (iupStrEqualNoCasePartial(value, "ACENTER"))
+      text.alignment = NSTextAlignmentCenter;
+    else if (iupStrEqualNoCasePartial(value, "ARIGHT"))
+      text.alignment = NSTextAlignmentRight;
+  }
+  return 0;
+}
+
+static char *cocoaLabelGetAlignmentAttrib(Ihandle* ih)
+{
+  id the_label = ih->handle;
+  const char *defaultAlignment = "ALEFT:ACENTER";
+  if ([the_label isKindOfClass:[NSTextField class]]) {
+    NSTextField *text = (NSTextField *)the_label;
+    switch ([text alignment]) {
+    case NSTextAlignmentCenter:
+        return "ACENTER:ACENTER";
+    case NSTextAlignmentRight:
+        return "ARIGHT:ACENTER";
+     default:
+    case NSTextAlignmentLeft:
+        return defaultAlignment;
+    }
+  }
+  return defaultAlignment;
+}
+
 
 static int cocoaLabelMapMethod(Ihandle* ih)
 {
@@ -110,8 +158,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			}
 			
 			
-			id the_bitmap;
-			the_bitmap = iupImageGetImage(name, ih, make_inactive);
+			id the_bitmap = iupImageGetImage(name, ih, make_inactive);
 			int width;
 			int height;
 			int bpp;
@@ -124,33 +171,12 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
 //			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(woffset, hoffset, width, height)];
 			[image_view setImage:the_bitmap];
+            
 			
 //			woffset += 30;
 //			hoffset += 30;
 			
 			the_label = image_view;
-			
-#if 0
-			if (!the_bitmap)
-					return;
-			
-			/* must use this info, since image can be a driver image loaded from resources */
-			iupdrvImageGetInfo(hBitmap, &width, &height, &bpp);
-
-			
-			NSBitmapImageRep* bitmap_image = [[NSBitmapImageRep alloc]
-									 initWithBitmapDataPlanes:NULL
-									 pixelsWide: width
-									 pixelsHigh: height
-									 bitsPerSample: 8
-									 samplesPerPixel: 4
-									 hasAlpha: YES
-									 isPlanar: NO
-									 colorSpaceName: NSCalibratedRGBColorSpace
-									 bytesPerRow: width * 4
-									 bitsPerPixel: 32]
-#endif
-
 		}
 		else
 		{
@@ -215,7 +241,7 @@ void iupdrvLabelInitClass(Iclass* ic)
 {
   /* Driver Dependent Class functions */
   ic->Map = cocoaLabelMapMethod;
-	ic->UnMap = cocoaLabelUnMapMethod;
+  ic->UnMap = cocoaLabelUnMapMethod;
 
 #if 0
 
@@ -232,13 +258,15 @@ void iupdrvLabelInitClass(Iclass* ic)
 	
 #endif
 	
-  iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#if 0
+  iupClassRegisterAttribute(ic, "TITLE", cocoaLabelGetTitleAttrib, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   /* IupLabel only */
-  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
-  iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ALIGNMENT", cocoaLabelGetAlignmentAttrib, cocoaLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
+#if 0
+  iupClassRegisterAttribute(ic, "IMAGE", cocoaLabelGetImageAttrib, cocoaLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "PADDING", iupLabelGetPaddingAttrib, gtkLabelSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
+#endif
 
+#if 0
   /* IupLabel GTK and Motif only */
   iupClassRegisterAttribute(ic, "IMINACTIVE", NULL, gtkLabelSetImInactiveAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
