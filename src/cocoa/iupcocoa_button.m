@@ -225,6 +225,7 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 			
 		the_bitmap = iupImageGetImage(value, ih, make_inactive);
 		[the_button setImage:the_bitmap];
+        [the_button setImagePosition:NSImageLeft];
 		
 		
 		value = iupAttribGet(ih, "IMPRESS");
