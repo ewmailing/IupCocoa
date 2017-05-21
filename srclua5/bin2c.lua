@@ -58,9 +58,9 @@ static const unsigned char B1[]={
 
 };
 
- iuplua_dobuffer(L,(const char*)B1,sizeof(B1),%q);
+ %siuplua_dobuffer(L,(const char*)B1,sizeof(B1),%q)%s;
 }
 ]=])
 
--- replaced by iuplua_dostring
+-- replaced by iuplua_dobuffer
 -- if (%sluaL_loadbuffer(L,(const char*)B1,sizeof(B1),%q)%s==0) %slua_pcall(L, 0, 0, 0);

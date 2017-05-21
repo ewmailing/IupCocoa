@@ -32,7 +32,7 @@ Iclass* iupUserNewClass(void)
   ic->name = "user";
   ic->format = NULL;  /* no parameters */
   ic->nativetype = IUP_TYPEVOID;
-  ic->childtype = IUP_CHILDMANY;
+  ic->childtype = IUP_CHILDMANY; /* can have children */
   ic->is_interactive = 0;
 
   ic->New = iupUserNewClass;

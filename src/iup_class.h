@@ -45,8 +45,8 @@ typedef struct Iclass_ Iclass;
 struct Iclass_
 {
   /* Class configuration parameters. */
-  char* name;     /**< class name. No default, must be initialized. */
-  char* format;   /**< Creation parameters format of the class. \n
+  const char* name;     /**< class name. No default, must be initialized. */
+  const char* format;   /**< Creation parameters format of the class. \n
                    * Used only for LED parsing. \n
                    * It can have none (NULL), one or more of the following.
                    * - "b" = (unsigned char) - byte
@@ -69,7 +69,7 @@ struct Iclass_
 
   Iclass* parent; /**< class parent to implement inheritance.
                    * Class name must be different. \n
-                   * Creation parameters should be the same or repace the parents creation function. \n
+                   * Creation parameters should be the same or replace the parents creation function. \n
                    * Native type should be the same.  \n
                    * Child type should be a more restrictive or equal type (many->one->none). \n
                    * Attribute functions will have only one common table. \n
@@ -119,12 +119,6 @@ struct Iclass_
   void (*Destroy)(Ihandle* ih);
 
 
-
-  /** Returns the actual parent to add a child. The default implementation returns itself. \n
-   * Called only from IupAppend or IupReparent. \n
-   * This allows IUP elements to be a combination of other IUP elements in a single IUP element.
-   */
-  Ihandle* (*GetInnerContainer)(Ihandle* ih);
 
   /** Returns the internal native parent. The default implementation returns the handle of itself. \n
     * Called from \ref iupChildTreeGetNativeParentHandle. \n
@@ -196,7 +190,7 @@ struct Iclass_
 
 /** Allocates memory for the Iclass structure and 
  * initializes the attribute handling functions table. \n
- * If parent is spcified then a new instance of the parent class is created
+ * If parent is specified then a new instance of the parent class is created
  * and set as the actual parent class.
  * \ingroup iclass */
 Iclass* iupClassNew(Iclass* ic_parent);
@@ -339,7 +333,7 @@ void iupClassRegisterReplaceAttribFlags(Iclass* ic, const char* name, int _flags
 
 /** Register the parameters of a callback. \n
  * Format follows the \ref iupcbs.h header definitions. \n
- * Notice that these definitions are similiar to the class registration
+ * Notice that these definitions are similar to the class registration
  * but have several differences and conflicts, for backward compatibility reasons. \n
  * It can have none, one or more of the following. \n
  * - "c" = (unsigned char) - byte
@@ -391,12 +385,6 @@ void iupClassObjectUnMap(Ihandle* ih);
  * \ingroup iclassobject
  */
 void iupClassObjectDestroy(Ihandle* ih);
-
-/** Calls \ref Iclass::GetInnerContainer method.
- * The parent class is ignored. If necessary the child class must handle the parent class internally.
- * \ingroup iclassobject
- */
-Ihandle* iupClassObjectGetInnerContainer(Ihandle* ih);
 
 /** Calls \ref Iclass::GetInnerNativeContainerHandle method. Returns ih->handle if there is no inner parent.
  * The parent class is ignored. If necessary the child class must handle the parent class internally.
@@ -467,6 +455,9 @@ int   iupClassObjectCurAttribIsInherit(Iclass* ic);
 
 /* Used in iupObjectCreate and IupMap */
 void iupClassObjectEnsureDefaultAttributes(Ihandle* ih);
+
+/* Used in iupRegisterUpdateClasses */
+void iupClassUpdate(Iclass* ic);
 
 /* Used in IupLayoutDialog */
 int iupClassAttribIsRegistered(Iclass* ic, const char* name);

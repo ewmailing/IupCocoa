@@ -26,6 +26,7 @@ struct _Imask
   char* mask_str;
   ImaskParsed* fsm;
   int casei;
+  int noempty;
   char type;
   float fmin, 
         fmax;
@@ -38,11 +39,20 @@ int iupMaskCheck(Imask* mask, const char *val)
 {
   int ret;
 
-  /* empty text or no mask */
-  if (!val || !(*val) || !mask) 
+  /* no mask */
+  if (!mask)
     return 1;
 
-  ret = iupMaskMatch(val,mask->fsm,0,NULL,NULL,NULL,mask->casei);
+  /* NULL or empty text */
+  if (!val || val[0]==0)
+  {
+    if (mask->noempty)
+      return 0;
+    else
+      return 1;
+  }
+
+  ret = iupMaskMatch(val, mask->fsm, 0, NULL, NULL, NULL, mask->casei);
   if (ret == IMASK_PARTIALMATCH)
     return -1;
   if (ret != (int)strlen(val))
@@ -71,7 +81,23 @@ int iupMaskCheck(Imask* mask, const char *val)
   return 1;
 }
 
-Imask* iupMaskCreate(const char* mask_str, int casei)
+void iupMaskSetNoEmpty(Imask* mask, int noempty)
+{
+  if (!mask)
+    return;
+
+  mask->noempty = noempty;
+}
+
+void iupMaskSetCaseI(Imask* mask, int casei)
+{
+  if (!mask)
+    return;
+
+  mask->casei = casei;
+}
+
+Imask* iupMaskCreate(const char* mask_str)
 {
   ImaskParsed* fsm;
   Imask* mask;
@@ -92,7 +118,8 @@ Imask* iupMaskCreate(const char* mask_str, int casei)
   memset(mask, 0, sizeof(Imask));
 
   mask->mask_str = copy_mask_str;
-  mask->casei = casei;
+  mask->casei = 0;
+  mask->noempty = 0;
   mask->fsm = fsm;
 
   return mask;
@@ -103,9 +130,9 @@ Imask* iupMaskCreateInt(int min, int max)
   Imask* mask;
 
   if (min < 0)
-    mask = iupMaskCreate(IUP_MASK_INT, 0);
+    mask = iupMaskCreate(IUP_MASK_INT);
   else
-    mask = iupMaskCreate(IUP_MASK_UINT, 0);
+    mask = iupMaskCreate(IUP_MASK_UINT);
 
   if (mask)
   {
@@ -137,16 +164,16 @@ Imask* iupMaskCreateReal(int positive, const char* decimal_symbol)
   if (use_comma)
   {
     if (positive)
-      mask = iupMaskCreate(IUP_MASK_UFLOATCOMMA, 0);
+      mask = iupMaskCreate(IUP_MASK_UFLOATCOMMA);
     else
-      mask = iupMaskCreate(IUP_MASK_FLOATCOMMA, 0);
+      mask = iupMaskCreate(IUP_MASK_FLOATCOMMA);
   }
   else
   {
     if (positive)
-      mask = iupMaskCreate(IUP_MASK_UFLOAT, 0);
+      mask = iupMaskCreate(IUP_MASK_UFLOAT);
     else
-      mask = iupMaskCreate(IUP_MASK_FLOAT, 0);
+      mask = iupMaskCreate(IUP_MASK_FLOAT);
   }
 
   return mask;

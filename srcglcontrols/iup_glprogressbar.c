@@ -55,7 +55,7 @@ static void iGLProgressBarDrawText(Ihandle* ih, double percent,
   txt_x = (width - (txt_width)) / 2;
   txt_y = (height - (txt_height)) / 2;
 
-  iupGLDrawText(ih, x + txt_x, y + txt_y, text, txtcolor, active);
+  iupGLDrawMultilineText(ih, x + txt_x, y + txt_y, text, txtcolor, active);
 }
 
 static int iGLProgressBarACTION_CB(Ihandle* ih)
@@ -70,7 +70,7 @@ static int iGLProgressBarACTION_CB(Ihandle* ih)
 
   /* draw background */
   if (bgimage)
-    iupGLDrawImageZoom(ih, border_width, ih->currentwidth - 1 - border_width,
+    iupGLDrawIconImageZoom(ih, border_width, ih->currentwidth - 1 - border_width,
                            border_width, ih->currentheight - 1 - border_width,
                            "BACKIMAGE", bgimage, active);
   else
@@ -286,7 +286,8 @@ Iclass* iupGLProgressBarNewClass(void)
 
   iupClassRegisterAttribute(ic, "PADDING", iGLProgressBarGetPaddingAttrib, iGLProgressBarSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "1x1", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TEXT", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SHOW_TEXT", iGLProgressBarGetShowTextAttrib, iGLProgressBarSetShowTextAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  /*OLD*/iupClassRegisterAttribute(ic, "SHOW_TEXT", iGLProgressBarGetShowTextAttrib, iGLProgressBarSetShowTextAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SHOWTEXT", iGLProgressBarGetShowTextAttrib, iGLProgressBarSetShowTextAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "200 225 245", IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "TXTCOLOR", NULL, NULL, "0 0 0", NULL, IUPAF_DEFAULT);  /* inheritable */

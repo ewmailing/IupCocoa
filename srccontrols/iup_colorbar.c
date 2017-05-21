@@ -322,6 +322,8 @@ static void iColorbarRepaint(Ihandle* ih)
   if (ih->data->bufferize == 1)
     return;
 
+  cdCanvasActivate(ih->data->cd_canvas);
+
   /* update render */
   cdCanvasBackground(ih->data->cd_canvas, ih->data->bgcolor);
   cdCanvasClear(ih->data->cd_canvas);
@@ -613,6 +615,8 @@ static int iColorbarRedraw_CB(Ihandle* ih)
   if (!ih->data->cd_canvas)
     return IUP_DEFAULT;
 
+  cdCanvasActivate(ih->data->cd_canvas);
+
   /* update display */
   cdCanvasFlush(ih->data->cd_canvas);
   if (ih->data->has_focus)
@@ -662,6 +666,7 @@ static int iColorbarFocus_CB(Ihandle* ih, int focus)
 
   if (ih->data->cd_canvas)
   {
+    cdCanvasActivate(ih->data->cd_canvas);
     cdCanvasFlush(ih->data->cd_canvas);
     if (ih->data->has_focus)
       iColorbarDrawFocusCell(ih);
@@ -810,7 +815,9 @@ static int iColorbarKeyPress_CB(Ihandle* ih, int c, int press)
 
   if (ih->data->cd_canvas)
   {
+    cdCanvasActivate(ih->data->cd_canvas);
     cdCanvasFlush(ih->data->cd_canvas);
+
     if (ih->data->has_focus)
       iColorbarDrawFocusCell(ih);
   }

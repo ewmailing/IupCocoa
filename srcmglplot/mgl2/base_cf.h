@@ -1,6 +1,6 @@
 /***************************************************************************
  * base_cf.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -32,20 +32,20 @@ int MGL_EXPORT mgl_check_version_(const char *ver, int);
 void MGL_EXPORT mgl_suppress_warn(int on);
 void MGL_EXPORT mgl_suppress_warn_(int *on);
 /// Get last warning code
-int MGL_EXPORT_PURE mgl_get_warn(HMGL gr);
-int MGL_EXPORT_PURE mgl_get_warn_(uintptr_t *gr);
+int MGL_EXPORT mgl_get_warn(HMGL gr);
+int MGL_EXPORT mgl_get_warn_(uintptr_t *gr);
 /// Set warning code ant fill message
 void MGL_EXPORT mgl_set_warn(HMGL gr, int code, const char *text);
 void MGL_EXPORT mgl_set_warn_(uintptr_t *gr, int *code, const char *text,int);
 /// Get text of warning message(s)
-MGL_EXPORT_PURE const char *mgl_get_mess(HMGL gr);
+MGL_EXPORT const char *mgl_get_mess(HMGL gr);
 int MGL_EXPORT mgl_get_mess_(uintptr_t *gr, char *out, int len);
 
 /// Set name of plot for saving filename
 void MGL_EXPORT mgl_set_plotid(HMGL gr, const char *id);
 void MGL_EXPORT mgl_set_plotid_(uintptr_t *gr, const char *id,int);
 /// Get name of plot for saving filename
-MGL_EXPORT_PURE const char *mgl_get_plotid(HMGL gr);
+MGL_EXPORT const char *mgl_get_plotid(HMGL gr);
 int MGL_EXPORT mgl_get_plotid_(uintptr_t *gr, char *out, int len);
 
 /// Ask to stop drawing
@@ -58,9 +58,14 @@ int MGL_EXPORT mgl_need_stop_(uintptr_t *gr);
 void MGL_EXPORT mgl_set_event_func(HMGL gr, void (*func)(void *), void *par);
 
 /// Get plot quality
-int MGL_EXPORT_PURE mgl_get_quality(HMGL gr);
-int MGL_EXPORT_PURE mgl_get_quality_(uintptr_t *gr);
+int MGL_EXPORT mgl_get_quality(HMGL gr);
+int MGL_EXPORT mgl_get_quality_(uintptr_t *gr);
 /// Set plot quality
+/** qual=0 -- no face drawing (fastest),
+ *  qual=1 -- no color interpolation (fast),
+ *  qual=2 -- high quality (normal),
+ *  qual|4 -- direct bitmap drawing (low memory usage);
+ *  qual|8 for dots drawing instead of primitives (extremely fast). */
 void MGL_EXPORT mgl_set_quality(HMGL gr, int qual);
 void MGL_EXPORT mgl_set_quality_(uintptr_t *gr, int *qual);
 /// Set drawing region for Quality&4
@@ -68,10 +73,10 @@ void MGL_EXPORT mgl_set_draw_reg(HMGL gr, long nx, long ny, long m);
 void MGL_EXPORT mgl_set_draw_reg_(uintptr_t *gr, int *nx, int *ny, int *m);
 
 /// Check if support of frames is enabled (i.e. MGL_VECT_FRAME is set and Quality&MGL_DRAW_LMEM==0)
-int MGL_EXPORT_PURE mgl_is_frames(HMGL gr);
+int MGL_EXPORT mgl_is_frames(HMGL gr);
 /// Get bit-value flag of HMGL state (for advanced users only)
-int MGL_EXPORT_PURE mgl_get_flag(HMGL gr, uint32_t flag);
-int MGL_EXPORT_PURE mgl_get_flag_(uintptr_t *gr, unsigned long *flag);
+int MGL_EXPORT mgl_get_flag(HMGL gr, uint32_t flag);
+int MGL_EXPORT mgl_get_flag_(uintptr_t *gr, unsigned long *flag);
 /// Set bit-value flag of HMGL state (for advanced users only)
 void MGL_EXPORT mgl_set_flag(HMGL gr, int val, uint32_t flag);
 void MGL_EXPORT mgl_set_flag_(uintptr_t *gr, int *val, unsigned long *flag);
@@ -115,7 +120,7 @@ void MGL_EXPORT mgl_set_mask_angle_(uintptr_t *gr, int *angle);
 /// Set default value of alpha-channel
 void MGL_EXPORT mgl_set_alpha_default(HMGL gr, double alpha);
 void MGL_EXPORT mgl_set_alpha_default_(uintptr_t *gr, mreal *alpha);
-/// Set relative width of rectangles in Bars, Barh, BoxPlot
+/// Set relative width of rectangles in Bars, Barh, BoxPlot, Candle, OHLC (default is 0.7)
 void MGL_EXPORT mgl_set_bar_width(HMGL gr, double width);
 void MGL_EXPORT mgl_set_bar_width_(uintptr_t *gr, mreal *width);
 /// Set number of mesh lines (use 0 to draw all of them)
@@ -170,13 +175,16 @@ void MGL_EXPORT mgl_zoom_axis_(uintptr_t *gr, mreal *x1, mreal *y1, mreal *z1, m
 /// Set axis origin
 void MGL_EXPORT mgl_set_origin(HMGL gr, double x0, double y0, double z0);
 void MGL_EXPORT mgl_set_origin_(uintptr_t *gr, mreal *x0, mreal *y0, mreal *z0);
-/// Set the transformation formulas for coordinate
+/// Set the transformation formulas for coordinate. Use "" or NULL for built-in ones
 void MGL_EXPORT mgl_set_func(HMGL gr, const char *EqX,const char *EqY,const char *EqZ,const char *EqA);
 void MGL_EXPORT mgl_set_func_(uintptr_t *gr, const char *EqX, const char *EqY, const char *EqZ, const char *EqA, int, int, int, int);
 /// Set one of predefined transformation rule
 void MGL_EXPORT mgl_set_coor(HMGL gr, int how);
 void MGL_EXPORT mgl_set_coor_(uintptr_t *gr, int *how);
 /// Set to draw Ternary axis (triangle like axis, grid and so on)
+/** val=1 for Ternary axis (a+b+c=1, z=z),
+ *  val=2 for Quaternary axis (a+b+c+d=1),
+ *  val|4 for projections. */
 void MGL_EXPORT mgl_set_ternary(HMGL gr, int kind);
 void MGL_EXPORT mgl_set_ternary_(uintptr_t *gr, int *kind);
 

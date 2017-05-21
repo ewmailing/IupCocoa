@@ -39,10 +39,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\x64\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\Debug_64\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\obj\Debug\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_x64\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_64\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -85,17 +85,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\iupcb.h" />
-    <ClInclude Include="..\include\iupcells.h" />
-    <ClInclude Include="..\include\iupcolorbar.h" />
     <ClInclude Include="..\include\iupcontrols.h" />
-    <ClInclude Include="..\include\iupdial.h" />
-    <ClInclude Include="..\include\iupgauge.h" />
-    <ClInclude Include="..\include\iupmask.h" />
-    <ClInclude Include="..\include\iupmatrix.h" />
-    <ClInclude Include="..\include\iuptabs.h" />
-    <ClInclude Include="..\include\iuptree.h" />
-    <ClInclude Include="..\include\iupval.h" />
     <ClInclude Include="..\srccontrols\iup_controls.h" />
     <ClInclude Include="..\srccontrols\color\iup_colorhsi.h" />
     <ClInclude Include="..\srccontrols\matrix\iupmat_aux.h" />
@@ -135,7 +125,6 @@
     <ClCompile Include="..\srccontrols\iup_controls.c" />
     <ClCompile Include="..\srccontrols\iup_dial.c" />
     <ClCompile Include="..\srccontrols\iup_gauge.c" />
-    <ClCompile Include="..\srccontrols\iup_oldmask.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="..\srccontrols\iupcontrols.def" />

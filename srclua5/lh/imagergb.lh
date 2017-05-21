@@ -50,5 +50,5 @@ static const unsigned char B1[]={
 101,116, 34, 41, 10,
 };
 
- iuplua_dobuffer(L,(const char*)B1,sizeof(B1),"");
+ iuplua_dobuffer(L,(const char*)B1,sizeof(B1),"elem/imagergb.lua");
 }

@@ -1,0 +1,9 @@
+
+Using static libraries:
+
+gcc -o sample sample.c -I../../../include ../../../lib/$TEC_UNAME/libiup.a -lgtk-x11-2.0 -lgdk-x11-2.0 -lgdk_pixbuf-2.0 -lpangox-1.0 -lpango-1.0 -lgobject-2.0 -lgmodule-2.0 -lglib-2.0 -lXext -lX11 -lm
+
+Using dynamic libraries:
+
+gcc -o sample sample.c -I../../../include -L../../../lib/$TEC_UNAME -liup
+

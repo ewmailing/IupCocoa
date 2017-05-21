@@ -1,6 +1,6 @@
 /***************************************************************************
  * type.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -41,6 +41,7 @@ struct MGL_EXPORT mglPoint
 #if MGL_HAVE_RVAL
 	mglPoint(mglPoint &&d):x(d.x),y(d.y),z(d.z),c(d.c)	{}
 #endif
+	inline void Set(mreal X=0,mreal Y=0,mreal Z=0,mreal C=0)	{x=X;y=Y;z=Z;c=C;}
 	inline bool IsNAN()		{	return (x!=x || y!=y || z!=z || c!=c);	}
 	inline mreal val(int i)	{	return (i<2 ? (i==0 ? x:y) : (i==2 ? z:c));	}
 	inline mreal norm()		{	return sqrt(x*x+y*y+z*z);	}
@@ -92,6 +93,8 @@ inline bool operator>(const mglPoint &a, const mglPoint &b)
 {	return a.x>=b.x && a.y>=b.y && a.z>=b.z;	}
 inline mreal mgl_norm(const mglPoint &p)
 {	return sqrt(p.x*p.x+p.y*p.y+p.z*p.z);	}
+inline mreal mgl_anorm(const mglPoint &p)
+{	return fabs(p.x)+fabs(p.y)+fabs(p.z);	}
 #endif
 //-----------------------------------------------------------------------------
 /// Class for RGBA color

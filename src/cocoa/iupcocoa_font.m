@@ -101,18 +101,18 @@ static ImacFont* macFindFont(const char *standardfont)
   fonts = (ImacFont*)iupArrayInc(mac_fonts);
 
   strcpy(fonts[i].standardfont, standardfont);
-  fonts[i].hFont = hFont;          
+  fonts[i].hFont = [hFont retain];
   fonts[i].attributes = [attributes copy];
 //	fonts[i].charheight = (int)([hFont ascender] + fabs([hFont descender]) + 0.5);
 	//	fonts[i].charheight = (int)([hFont capHeight] + 0.5);
 //	fonts[i].charheight = (int)([hFont defaultLineHeightForFont] + 0.5);
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
-	fonts[i].charheight = [lm defaultLineHeightForFont:hFont] + 0.5;
+	fonts[i].charheight = iupROUND([lm defaultLineHeightForFont:hFont]);
 	[lm release];
 
 	
   NSRect rect = [hFont boundingRectForFont];
-  fonts[i].charwidth = (int)(rect.size.width+0.5);
+  fonts[i].charwidth = iupROUND(rect.size.width);
 
 	[attributes release];
 	
@@ -123,12 +123,14 @@ char* iupdrvGetSystemFont(void)
 {
   static char systemfont[200] = "";
   NSFont *font = [NSFont systemFontOfSize:0];
+	// systemfont: ".AppleSystemUIFont 13.00 pt. P [] (0x60800004b400) fobj=0x10040a600, spc=3.59"
 	NSLog(@"systemfont: %@", font);
-  char *name = [[font familyName] UTF8String];
+	// ".AppleSystemUIFont"
+  const char *name = [[font familyName] UTF8String];
   if(*name)
-    strcpy(systemfont,name);
+    strlcpy(systemfont,name, 200);
   else
-    strcpy(systemfont, "Tahoma, 10");
+    strlcpy(systemfont, "Helvetica Neue, 13", 200);
   return systemfont;
 }
 
@@ -158,22 +160,97 @@ NSFont *iupmacGetHFont(const char* value)
 
 static ImacFont* macFontCreateNativeFont(Ihandle *ih, const char* value)
 {
-  ImacFont* macfont = macFindFont(value);
-  if (!macfont)
-  {
-    iupERROR1("Failed to create Font: %s", value); 
-    return NULL;
-  }
+	
+	if(NULL == value)
+	{
+		
+		NSFont* default_font = [NSFont systemFontOfSize:0];
+//		NSFont* default_font = [NSFont labelFontOfSize:0];
+//		NSFont* default_font = [NSFont labelFontOfSize:13];
+//		NSFont* default_font = [NSFont userFontOfSize:0];
+		iupdrvGetSystemFont();
+		
+		// FIXME: LEAK (this is not freed anywhere)
+		
+		ImacFont* macfont = (ImacFont*)calloc(1, sizeof(ImacFont));
+		const char* font_name = [[default_font familyName] UTF8String];
+		NSLog(@"font name: %@", [default_font familyName]);
+		NSLog(@"font size: %f", [default_font pointSize]);
 
-  iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
-  return macfont;
+		// max size is in ImacFont definition
+		strlcpy(macfont->standardfont, font_name, 200);
+		macfont->hFont = [default_font retain];
+/*
+		NSFont* font_copy = [NSFont fontWithName:[default_font familyName] size:[default_font pointSize]];
+		NSLog(@"font_copy %@", font_copy);
+*/
+		NSDictionary* font_attributes = @{
+			NSFontAttributeName:default_font
+//			NSFontAttributeName:font_copy
+//			NSFontAttributeName:[NSNumber numberWithDouble:(double)[default_font pointSize]],
+		};
+		macfont->attributes = [font_attributes retain];
+
+		//		NSSize size = [str sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSFont systemFontOfSize:0], NSFontAttributeName, nil]];
+
+		
+		iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
+
+		// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/StringHeight.html#//apple_ref/doc/uid/20001809-CJBGBIBB
+		// defaultLineHeightForFont: 16
+		// boundingRectForFont: (width = 21.099609375, height = 17.6337890625)
+		NSLayoutManager *lm = [[NSLayoutManager alloc] init];
+		macfont->charheight = (int)ceil([lm defaultLineHeightForFont:default_font]);
+		[lm release];
+
+		// We're going to have problems with NSTextField height
+		// http://stackoverflow.com/questions/13010264/change-nstextfields-height-according-to-font-size
+		// https://lists.apple.com/archives/cocoa-dev/2006/Jan/msg01874.html
+		
+		
+  NSRect font_rect = [default_font boundingRectForFont];
+  macfont->charwidth = (int)ceil(font_rect.size.width);
+		
+		
+//		macfont->charheight
+//		pointSize
+		return macfont;
+		
+	}
+	else
+	{
+	  ImacFont* macfont = macFindFont(value);
+	  if (!macfont)
+	  {
+		iupERROR1("Failed to create Font: %s", value); 
+		return NULL;
+	  }
+
+	  iupAttribSet(ih, "_IUP_WINFONT", (char*)macfont);
+	  return macfont;
+	}
 }
+
+
+int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
+{
+	return 1;
+}
+
+const char* iupdrvGetFontAttrib(Ihandle* ih)
+{
+	return NULL;
+}
+
 
 static ImacFont* macFontGet(Ihandle *ih)
 {
   ImacFont* macfont = (ImacFont*)iupAttribGet(ih, "_IUP_WINFONT");
   if (!macfont)
-    macfont = macFontCreateNativeFont(ih, iupGetFontAttrib(ih));
+  {
+	  // FIXME: Used to call iupGetFontAttrib, but function seems to have been removed between 3.15 and 3.21
+    macfont = macFontCreateNativeFont(ih, iupdrvGetFontAttrib(ih));
+  }
   return macfont;
 }
 
@@ -211,10 +288,11 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
   int num_lin, max_w;
 	int max_h;
 	
+	/* This won't work because other callbacks assume the string size and then add padding on top of it.
 	id native_object = ih->handle;
 	if([native_object respondsToSelector:@selector(sizeToFit)])
    {
-	   [native_object sizeToFit];
+//	   [native_object sizeToFit];
 	   NSRect the_rect = [native_object frame];
 	   
 	   if (w) *w = the_rect.size.width;
@@ -222,7 +300,7 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	   
 	   return;
    }
-	
+*/
 
 	
 	
@@ -262,30 +340,54 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 
 //		NSSize size = [str sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSFont systemFontOfSize:0], NSFontAttributeName, nil]];
 */
-		
-		[array_of_nsstring_lines addObject:str];
-		
-		[str release];
+		if(nil != str)
+		{
+			[array_of_nsstring_lines addObject:str];
+			[str release];
+		}
+		else
+		{
+			[array_of_nsstring_lines addObject:@""];
+
+		}
 		
 		
 //		max_w = iupMAX(max_w, size.width + 0.5);
 
       curstr = nextstr;
       if (*nextstr)
+	  {
         num_lin++;
+	  }
     } while(*nextstr);
 
 	  NSString* joined_string = [array_of_nsstring_lines componentsJoinedByString:@"\n"];
-	  
+	  // 10.11+
+	  // boundingRectWithSize:options:attributes:context:
+	  //
+	  // sizeWithFont:constrainedToSize:lineBreakMode: on iOS, but deprecated in iOS7
 	  NSSize size = [joined_string sizeWithAttributes: macfont->attributes];
 
-	  max_w = size.width + 0.5;
-	  max_h = size.height + 0.5;
-  }
+	  max_w = (int)ceil(size.width);
+	  max_h = (int)ceil(size.height);
 
-  if (w) *w = max_w;
+	  [array_of_nsstring_lines release];
+  }
+	
+
+	
+  if (w)
+  {
+	  
+  *w = max_w;
+	  
+	  
+  }
 //	if (h) *h = (macfont->charheight*num_lin)+0.5;
-	if (h) *h = max_h;
+	if (h)
+	{
+		*h = max_h;
+	}
 }
 
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
@@ -294,15 +396,15 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 //	return 40;
 	
   NSDictionary *attributes;
-  int len;
+  size_t len;
   char* line_end;
 
   if (!str || str[0]==0)
     return 0;
 
   attributes = (NSDictionary*)iupmacGetHFontAttrib(ih);
-	NSLog(@"disabled iupdrvFontGetStringWidth due to crash");
-	return 0;
+//	NSLog(@"disabled iupdrvFontGetStringWidth due to crash");
+//	return 0;
 
 	
   if (!attributes || ([attributes count] == 0))
@@ -321,9 +423,15 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 	
 	ImacFont* macfont = macFontGet(ih);
 
-  NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
 
-  return size.width;
+	// 10.11+
+	// boundingRectWithSize:options:attributes:context:
+	//
+	// sizeWithFont:constrainedToSize:lineBreakMode: on iOS, but deprecated in iOS7
+  NSSize size = [ns_str sizeWithAttributes: macfont->attributes];
+	[ns_str release];
+	
+  return (int)ceil(size.width);
 }
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
@@ -336,7 +444,7 @@ void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
     return;
   }
 
-  if (charwidth)  *charwidth = macfont->charwidth; 
+  if (charwidth)  *charwidth = macfont->charwidth;
   if (charheight) *charheight = macfont->charheight;
 }
 
@@ -351,8 +459,13 @@ void iupdrvFontFinish(void)
   ImacFont* fonts = (ImacFont*)iupArrayGetData(mac_fonts);
   for (i = 0; i < count; i++)
   {
+	  
+	  [fonts[i].hFont release];
+	  [fonts[i].attributes release];
     fonts[i].hFont = nil;
 	fonts[i].attributes = nil;
+//	  free(fonts[i]);
+//	  fonts[i] = NULL;
   }
   iupArrayDestroy(mac_fonts);
 }

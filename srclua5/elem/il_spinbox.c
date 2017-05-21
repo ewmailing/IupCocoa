@@ -21,7 +21,7 @@ static int spinbox_spin_cb(Ihandle *self, int p0)
 
 static int Spinbox(lua_State *L)
 {
-  Ihandle *ih = IupSpinbox(iuplua_checkihandle(L, 1));
+  Ihandle *ih = IupSpinbox(iuplua_checkihandleornil(L, 1));
   iuplua_plugstate(L, ih);
   iuplua_pushihandle_raw(L, ih);
   return 1;

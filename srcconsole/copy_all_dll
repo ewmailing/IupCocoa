@@ -21,10 +21,17 @@ Copy_DLLs()
   cp -f ../lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
   cp -f $BASE_TEC/cd/lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
   cp -f $BASE_TEC/im/lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f $BASE_TEC/ftgl/lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f $BASE_TEC/freetype/lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f $BASE_TEC/zlib/lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f ../lib/$PLAT/Lua$LUA_SFX/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f $BASE_TEC/cd/lib/$PLAT/Lua$LUA_SFX/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f $BASE_TEC/im/lib/$PLAT/Lua$LUA_SFX/*.dll ../bin/$SYS/Lua$LUA_SFX
   cp -f $BASE_TEC/lua$LUA_SFX/lib/$PLAT/*.dll ../bin/$SYS/Lua$LUA_SFX
   cp -f $BASE_TEC/lua$LUA_SFX/bin/$SYS.$PLAT/*ua5*.exe ../bin/$SYS/Lua$LUA_SFX
   cp -f $BASE_EXTRA/luagl/lib/$PLAT/Lua$LUA_SFX/*.dll ../bin/$SYS/Lua$LUA_SFX
   cp -f $BASE_EXTRA/lfs/lib/$PLAT/Lua$LUA_SFX/*.dll ../bin/$SYS/Lua$LUA_SFX
+  cp -f $BASE_EXTRA/luacom/lib/$PLAT/Lua$LUA_SFX/*.dll ../bin/$SYS/Lua$LUA_SFX
   
   #Copy Run Time Libraries
   if [ $1 == dll8 ]; then
@@ -34,23 +41,6 @@ Copy_DLLs()
   if [ $1 == dll10 ]; then
     cp -f ../dist/Microsoft.VC100/$PLAT/* ../bin/$SYS/Lua$LUA_SFX
   fi
-  
-  #Remove Lua5.X from Lua5.Y folder
-  if [ $LUA_SFX == 51 ]; then
-    rm -f ../bin/$SYS/Lua$LUA_SFX/*52.dll
-    rm -f ../bin/$SYS/Lua$LUA_SFX/*53.dll
-  fi
-  if [ $LUA_SFX == 52 ]; then
-    rm -f ../bin/$SYS/Lua$LUA_SFX/*51.dll
-    rm -f ../bin/$SYS/Lua$LUA_SFX/*53.dll
-  fi
-  if [ $LUA_SFX == 53 ]; then
-    rm -f ../bin/$SYS/Lua$LUA_SFX/*51.dll
-    rm -f ../bin/$SYS/Lua$LUA_SFX/*52.dll
-  fi
-
-  #Move the executable to the respective folder  
-  mv -f ../bin/$SYS/iuplua$LUA_SFX.exe ../bin/$SYS/Lua$LUA_SFX/iuplua$LUA_SFX.exe
 }
 
 Copy_DLLs dll10 Win32 51
@@ -60,6 +50,6 @@ Copy_DLLs dll10 Win64 52
 Copy_DLLs dll10 Win32 53
 Copy_DLLs dll10 Win64 53
 
-Copy_DLLs cygw17 cygw17 51
-Copy_DLLs cygw17 cygw17 52
-Copy_DLLs cygw17 cygw17 53
+#Copy_DLLs cygw17 cygw17 51
+#Copy_DLLs cygw17 cygw17 52
+#Copy_DLLs cygw17 cygw17 53

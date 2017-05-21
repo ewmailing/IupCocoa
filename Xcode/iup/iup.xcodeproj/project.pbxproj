@@ -7,7 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00006F111ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */; };
+		00006F121ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */; };
+		002CC4CC1EA2416B0007C8E7 /* iup_animatedlabel.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4C61EA2416B0007C8E7 /* iup_animatedlabel.c */; };
+		002CC4CD1EA2416B0007C8E7 /* iup_datepick.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4C71EA2416B0007C8E7 /* iup_datepick.c */; };
+		002CC4CE1EA2416B0007C8E7 /* iup_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4C81EA2416B0007C8E7 /* iup_draw.c */; };
+		002CC4CF1EA2416B0007C8E7 /* iup_drvdraw.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4C91EA2416B0007C8E7 /* iup_drvdraw.h */; };
+		002CC4D01EA2416B0007C8E7 /* iup_flatframe.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4CA1EA2416B0007C8E7 /* iup_flatframe.c */; };
+		002CC4D11EA2416B0007C8E7 /* iup_flattabs.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4CB1EA2416B0007C8E7 /* iup_flattabs.c */; };
+		002CC4D41EA241E90007C8E7 /* iup_plus.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4D21EA241E90007C8E7 /* iup_plus.h */; };
+		002CC4D51EA241E90007C8E7 /* iupdraw.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4D31EA241E90007C8E7 /* iupdraw.h */; };
+		002CC4D71EA24A850007C8E7 /* iupcocoa_calendar.m in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */; };
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
+		005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */; };
+		005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */; };
+		005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */; };
+		0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0070FB981E0E0B79009A8631 /* IupAppDelegate.h */; };
+		0070FB9B1E0E0B79009A8631 /* IupAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB991E0E0B79009A8631 /* IupAppDelegate.m */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
@@ -42,7 +58,6 @@
 		00E3A7871B60583600BEC175 /* iup_dialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6701B60583600BEC175 /* iup_dialog.h */; };
 		00E3A7881B60583600BEC175 /* iup_dlglist.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6711B60583600BEC175 /* iup_dlglist.c */; };
 		00E3A7891B60583600BEC175 /* iup_dlglist.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6721B60583600BEC175 /* iup_dlglist.h */; };
-		00E3A78A1B60583600BEC175 /* iup_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6731B60583600BEC175 /* iup_draw.h */; };
 		00E3A78B1B60583600BEC175 /* iup_drv.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6741B60583600BEC175 /* iup_drv.h */; };
 		00E3A78C1B60583600BEC175 /* iup_drvfont.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6751B60583600BEC175 /* iup_drvfont.h */; };
 		00E3A78D1B60583600BEC175 /* iup_drvinfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6761B60583600BEC175 /* iup_drvinfo.h */; };
@@ -132,29 +147,15 @@
 		00E3A7E21B60583600BEC175 /* iup_val.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6CB1B60583600BEC175 /* iup_val.h */; };
 		00E3A7E31B60583600BEC175 /* iup_vbox.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6CC1B60583600BEC175 /* iup_vbox.c */; };
 		00E3A7E41B60583600BEC175 /* iup_zbox.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6CD1B60583600BEC175 /* iup_zbox.c */; };
-		00E3A7E51B60583600BEC175 /* iupgtk.def in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6CE1B60583600BEC175 /* iupgtk.def */; };
-		00E3A7E61B60583600BEC175 /* iupstub.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6CF1B60583600BEC175 /* iupstub.mak */; };
-		00E3A7E71B60583600BEC175 /* make_uname in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6D01B60583600BEC175 /* make_uname */; };
-		00E3A7E81B60583600BEC175 /* make_uname.bat in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6D11B60583600BEC175 /* make_uname.bat */; };
-		00E3A7E91B60583600BEC175 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6D21B60583600BEC175 /* Makefile */; };
 		00E3A8691B60595300BEC175 /* iup.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83B1B60595300BEC175 /* iup.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A86A1B60595300BEC175 /* iup_class_cbs.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83C1B60595300BEC175 /* iup_class_cbs.hpp */; };
-		00E3A86B1B60595300BEC175 /* iup_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83D1B60595300BEC175 /* iup_config.h */; };
+		00E3A86B1B60595300BEC175 /* iup_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83D1B60595300BEC175 /* iup_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A86C1B60595300BEC175 /* iup_mglplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83E1B60595300BEC175 /* iup_mglplot.h */; };
 		00E3A86D1B60595300BEC175 /* iup_plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83F1B60595300BEC175 /* iup_plot.h */; };
-		00E3A86E1B60595300BEC175 /* iup_pplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8401B60595300BEC175 /* iup_pplot.h */; };
 		00E3A86F1B60595300BEC175 /* iup_scintilla.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8411B60595300BEC175 /* iup_scintilla.h */; };
-		00E3A8701B60595300BEC175 /* iupcb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8421B60595300BEC175 /* iupcb.h */; };
-		00E3A8711B60595300BEC175 /* iupcbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8431B60595300BEC175 /* iupcbox.h */; };
 		00E3A8721B60595300BEC175 /* iupcbs.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8441B60595300BEC175 /* iupcbs.h */; };
-		00E3A8731B60595300BEC175 /* iupcells.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8451B60595300BEC175 /* iupcells.h */; };
-		00E3A8741B60595300BEC175 /* iupcolorbar.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8461B60595300BEC175 /* iupcolorbar.h */; };
 		00E3A8751B60595300BEC175 /* iupcontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8471B60595300BEC175 /* iupcontrols.h */; };
 		00E3A8761B60595300BEC175 /* iupdef.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8481B60595300BEC175 /* iupdef.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		00E3A8771B60595300BEC175 /* iupdial.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8491B60595300BEC175 /* iupdial.h */; };
-		00E3A8781B60595300BEC175 /* iupgauge.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84A1B60595300BEC175 /* iupgauge.h */; };
-		00E3A8791B60595300BEC175 /* iupgc.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84B1B60595300BEC175 /* iupgc.h */; };
-		00E3A87A1B60595300BEC175 /* iupgetparam.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84C1B60595300BEC175 /* iupgetparam.h */; };
 		00E3A87B1B60595300BEC175 /* iupgl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84D1B60595300BEC175 /* iupgl.h */; };
 		00E3A87C1B60595300BEC175 /* iupglcontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84E1B60595300BEC175 /* iupglcontrols.h */; };
 		00E3A87D1B60595300BEC175 /* iupim.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84F1B60595300BEC175 /* iupim.h */; };
@@ -162,7 +163,6 @@
 		00E3A87F1B60595300BEC175 /* iuplua.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8511B60595300BEC175 /* iuplua.h */; };
 		00E3A8801B60595300BEC175 /* iuplua_mglplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8521B60595300BEC175 /* iuplua_mglplot.h */; };
 		00E3A8811B60595300BEC175 /* iuplua_plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8531B60595300BEC175 /* iuplua_plot.h */; };
-		00E3A8821B60595300BEC175 /* iuplua_pplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8541B60595300BEC175 /* iuplua_pplot.h */; };
 		00E3A8831B60595300BEC175 /* iuplua_scintilla.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8551B60595300BEC175 /* iuplua_scintilla.h */; };
 		00E3A8841B60595300BEC175 /* iupluacontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8561B60595300BEC175 /* iupluacontrols.h */; };
 		00E3A8851B60595300BEC175 /* iupluagl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8571B60595300BEC175 /* iupluagl.h */; };
@@ -172,16 +172,9 @@
 		00E3A8891B60595300BEC175 /* iupluaole.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85B1B60595300BEC175 /* iupluaole.h */; };
 		00E3A88A1B60595300BEC175 /* iupluatuio.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85C1B60595300BEC175 /* iupluatuio.h */; };
 		00E3A88B1B60595300BEC175 /* iupluaweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85D1B60595300BEC175 /* iupluaweb.h */; };
-		00E3A88C1B60595300BEC175 /* iupmask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85E1B60595300BEC175 /* iupmask.h */; };
-		00E3A88D1B60595300BEC175 /* iupmatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85F1B60595300BEC175 /* iupmatrix.h */; };
 		00E3A88E1B60595300BEC175 /* iupmatrixex.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8601B60595300BEC175 /* iupmatrixex.h */; };
 		00E3A88F1B60595300BEC175 /* iupole.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8611B60595300BEC175 /* iupole.h */; };
-		00E3A8901B60595300BEC175 /* iupsbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8621B60595300BEC175 /* iupsbox.h */; };
-		00E3A8911B60595300BEC175 /* iupspin.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8631B60595300BEC175 /* iupspin.h */; };
-		00E3A8921B60595300BEC175 /* iuptabs.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8641B60595300BEC175 /* iuptabs.h */; };
-		00E3A8931B60595300BEC175 /* iuptree.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8651B60595300BEC175 /* iuptree.h */; };
 		00E3A8941B60595300BEC175 /* iuptuio.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8661B60595300BEC175 /* iuptuio.h */; };
-		00E3A8951B60595300BEC175 /* iupval.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8671B60595300BEC175 /* iupval.h */; };
 		00E3A8961B60595300BEC175 /* iupweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8681B60595300BEC175 /* iupweb.h */; };
 		00E3A8BC1B605CE500BEC175 /* iupcocoa_loop.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */; };
 		00E3A8BE1B605D0B00BEC175 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A8BD1B605D0B00BEC175 /* Cocoa.framework */; };
@@ -242,7 +235,23 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUPCocoaVerticalAlignmentTextFieldCell.h; sourceTree = "<group>"; };
+		00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IUPCocoaVerticalAlignmentTextFieldCell.m; sourceTree = "<group>"; };
+		002CC4C61EA2416B0007C8E7 /* iup_animatedlabel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_animatedlabel.c; sourceTree = "<group>"; };
+		002CC4C71EA2416B0007C8E7 /* iup_datepick.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_datepick.c; sourceTree = "<group>"; };
+		002CC4C81EA2416B0007C8E7 /* iup_draw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_draw.c; sourceTree = "<group>"; };
+		002CC4C91EA2416B0007C8E7 /* iup_drvdraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_drvdraw.h; sourceTree = "<group>"; };
+		002CC4CA1EA2416B0007C8E7 /* iup_flatframe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatframe.c; sourceTree = "<group>"; };
+		002CC4CB1EA2416B0007C8E7 /* iup_flattabs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flattabs.c; sourceTree = "<group>"; };
+		002CC4D21EA241E90007C8E7 /* iup_plus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_plus.h; sourceTree = "<group>"; };
+		002CC4D31EA241E90007C8E7 /* iupdraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupdraw.h; sourceTree = "<group>"; };
+		002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_calendar.m; sourceTree = "<group>"; };
 		00346C3F1B6880140045148B /* iupcocoa_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_info.m; sourceTree = "<group>"; };
+		005DCBA31EBD659500A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalMainMenu.xib; sourceTree = "<group>"; };
+		005DCBAB1EBDD27300A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalServiceMenu.xib; sourceTree = "<group>"; };
+		005DCBAD1EBDD27300A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalWindowMenu.xib; sourceTree = "<group>"; };
+		0070FB981E0E0B79009A8631 /* IupAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegate.h; sourceTree = "<group>"; };
+		0070FB991E0E0B79009A8631 /* IupAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupAppDelegate.m; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A5F81B60578300BEC175 /* iupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -282,7 +291,6 @@
 		00E3A6701B60583600BEC175 /* iup_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_dialog.h; sourceTree = "<group>"; };
 		00E3A6711B60583600BEC175 /* iup_dlglist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_dlglist.c; sourceTree = "<group>"; };
 		00E3A6721B60583600BEC175 /* iup_dlglist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_dlglist.h; sourceTree = "<group>"; };
-		00E3A6731B60583600BEC175 /* iup_draw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_draw.h; sourceTree = "<group>"; };
 		00E3A6741B60583600BEC175 /* iup_drv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_drv.h; sourceTree = "<group>"; };
 		00E3A6751B60583600BEC175 /* iup_drvfont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_drvfont.h; sourceTree = "<group>"; };
 		00E3A6761B60583600BEC175 /* iup_drvinfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_drvinfo.h; sourceTree = "<group>"; };
@@ -383,19 +391,10 @@
 		00E3A83D1B60595300BEC175 /* iup_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_config.h; sourceTree = "<group>"; };
 		00E3A83E1B60595300BEC175 /* iup_mglplot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_mglplot.h; sourceTree = "<group>"; };
 		00E3A83F1B60595300BEC175 /* iup_plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_plot.h; sourceTree = "<group>"; };
-		00E3A8401B60595300BEC175 /* iup_pplot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_pplot.h; sourceTree = "<group>"; };
 		00E3A8411B60595300BEC175 /* iup_scintilla.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_scintilla.h; sourceTree = "<group>"; };
-		00E3A8421B60595300BEC175 /* iupcb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcb.h; sourceTree = "<group>"; };
-		00E3A8431B60595300BEC175 /* iupcbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcbox.h; sourceTree = "<group>"; };
 		00E3A8441B60595300BEC175 /* iupcbs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcbs.h; sourceTree = "<group>"; };
-		00E3A8451B60595300BEC175 /* iupcells.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcells.h; sourceTree = "<group>"; };
-		00E3A8461B60595300BEC175 /* iupcolorbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcolorbar.h; sourceTree = "<group>"; };
 		00E3A8471B60595300BEC175 /* iupcontrols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcontrols.h; sourceTree = "<group>"; };
 		00E3A8481B60595300BEC175 /* iupdef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupdef.h; sourceTree = "<group>"; };
-		00E3A8491B60595300BEC175 /* iupdial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupdial.h; sourceTree = "<group>"; };
-		00E3A84A1B60595300BEC175 /* iupgauge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupgauge.h; sourceTree = "<group>"; };
-		00E3A84B1B60595300BEC175 /* iupgc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupgc.h; sourceTree = "<group>"; };
-		00E3A84C1B60595300BEC175 /* iupgetparam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupgetparam.h; sourceTree = "<group>"; };
 		00E3A84D1B60595300BEC175 /* iupgl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupgl.h; sourceTree = "<group>"; };
 		00E3A84E1B60595300BEC175 /* iupglcontrols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupglcontrols.h; sourceTree = "<group>"; };
 		00E3A84F1B60595300BEC175 /* iupim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupim.h; sourceTree = "<group>"; };
@@ -403,7 +402,6 @@
 		00E3A8511B60595300BEC175 /* iuplua.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuplua.h; sourceTree = "<group>"; };
 		00E3A8521B60595300BEC175 /* iuplua_mglplot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuplua_mglplot.h; sourceTree = "<group>"; };
 		00E3A8531B60595300BEC175 /* iuplua_plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuplua_plot.h; sourceTree = "<group>"; };
-		00E3A8541B60595300BEC175 /* iuplua_pplot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuplua_pplot.h; sourceTree = "<group>"; };
 		00E3A8551B60595300BEC175 /* iuplua_scintilla.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuplua_scintilla.h; sourceTree = "<group>"; };
 		00E3A8561B60595300BEC175 /* iupluacontrols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupluacontrols.h; sourceTree = "<group>"; };
 		00E3A8571B60595300BEC175 /* iupluagl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupluagl.h; sourceTree = "<group>"; };
@@ -413,16 +411,9 @@
 		00E3A85B1B60595300BEC175 /* iupluaole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupluaole.h; sourceTree = "<group>"; };
 		00E3A85C1B60595300BEC175 /* iupluatuio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupluatuio.h; sourceTree = "<group>"; };
 		00E3A85D1B60595300BEC175 /* iupluaweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupluaweb.h; sourceTree = "<group>"; };
-		00E3A85E1B60595300BEC175 /* iupmask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupmask.h; sourceTree = "<group>"; };
-		00E3A85F1B60595300BEC175 /* iupmatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupmatrix.h; sourceTree = "<group>"; };
 		00E3A8601B60595300BEC175 /* iupmatrixex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupmatrixex.h; sourceTree = "<group>"; };
 		00E3A8611B60595300BEC175 /* iupole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupole.h; sourceTree = "<group>"; };
-		00E3A8621B60595300BEC175 /* iupsbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupsbox.h; sourceTree = "<group>"; };
-		00E3A8631B60595300BEC175 /* iupspin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupspin.h; sourceTree = "<group>"; };
-		00E3A8641B60595300BEC175 /* iuptabs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuptabs.h; sourceTree = "<group>"; };
-		00E3A8651B60595300BEC175 /* iuptree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuptree.h; sourceTree = "<group>"; };
 		00E3A8661B60595300BEC175 /* iuptuio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iuptuio.h; sourceTree = "<group>"; };
-		00E3A8671B60595300BEC175 /* iupval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupval.h; sourceTree = "<group>"; };
 		00E3A8681B60595300BEC175 /* iupweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupweb.h; sourceTree = "<group>"; };
 		00E3A8981B605A7500BEC175 /* iupcocoa_colordlg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_colordlg.m; sourceTree = "<group>"; };
 		00E3A8991B605A7500BEC175 /* iupcocoa_common.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_common.m; sourceTree = "<group>"; };
@@ -432,10 +423,10 @@
 		00E3A89D1B605A7500BEC175 /* iupcocoa_font.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_font.m; sourceTree = "<group>"; };
 		00E3A89E1B605A7500BEC175 /* iupcocoa_fontdlg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_fontdlg.m; sourceTree = "<group>"; };
 		00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_globalattrib.m; sourceTree = "<group>"; };
-		00E3A8A01B605A7500BEC175 /* iupmac_help.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_help.c; sourceTree = "<group>"; };
+		00E3A8A01B605A7500BEC175 /* iupmac_help.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_help.m; sourceTree = "<group>"; };
 		00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_image.m; sourceTree = "<group>"; };
-		00E3A8A21B605A7500BEC175 /* iupmac_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_info.c; sourceTree = "<group>"; };
-		00E3A8A31B605A7500BEC175 /* iupmac_key.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_key.c; sourceTree = "<group>"; };
+		00E3A8A21B605A7500BEC175 /* iupmac_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_info.m; sourceTree = "<group>"; };
+		00E3A8A31B605A7500BEC175 /* iupmac_key.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupmac_key.m; sourceTree = "<group>"; };
 		00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_loop.m; sourceTree = "<group>"; };
 		00E3A8A51B605A7500BEC175 /* iupcocoa_messagedlg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_messagedlg.m; sourceTree = "<group>"; };
 		00E3A8A61B605A7500BEC175 /* iupcocoa_open.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_open.m; sourceTree = "<group>"; };
@@ -460,7 +451,7 @@
 		00E3A8EC1B609AE000BEC175 /* iupcocoa_clipboard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_clipboard.m; sourceTree = "<group>"; };
 		00E3A8F21B609B8700BEC175 /* TestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A8F51B609B8700BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E3A8F91B609B8700BEC175 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		00E3A8F91B609B8700BEC175 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		00E3A8FB1B609B8700BEC175 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		00E3A9041B609B8700BEC175 /* TestAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A9091B609B8800BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -513,6 +504,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		005DCB9F1EBD659500A66253 /* xib */ = {
+			isa = PBXGroup;
+			children = (
+				005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */,
+				005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */,
+				005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */,
+			);
+			path = xib;
+			sourceTree = "<group>";
+		};
 		00E3A5E31B60578200BEC175 = {
 			isa = PBXGroup;
 			children = (
@@ -577,8 +578,14 @@
 			isa = PBXGroup;
 			children = (
 				00E3A8971B605A7500BEC175 /* cocoa */,
-				00E3A60C1B60583500BEC175 /* config.mak */,
 				00E3A60D1B60583500BEC175 /* gtk */,
+				002CC4C61EA2416B0007C8E7 /* iup_animatedlabel.c */,
+				002CC4C71EA2416B0007C8E7 /* iup_datepick.c */,
+				002CC4C81EA2416B0007C8E7 /* iup_draw.c */,
+				002CC4C91EA2416B0007C8E7 /* iup_drvdraw.h */,
+				002CC4CA1EA2416B0007C8E7 /* iup_flatframe.c */,
+				002CC4CB1EA2416B0007C8E7 /* iup_flattabs.c */,
+				00E3A60C1B60583500BEC175 /* config.mak */,
 				00E3A6541B60583500BEC175 /* iup.c */,
 				00E3A6551B60583500BEC175 /* iup.def */,
 				00E3A6561B60583500BEC175 /* iup_array.c */,
@@ -610,7 +617,6 @@
 				00E3A6701B60583600BEC175 /* iup_dialog.h */,
 				00E3A6711B60583600BEC175 /* iup_dlglist.c */,
 				00E3A6721B60583600BEC175 /* iup_dlglist.h */,
-				00E3A6731B60583600BEC175 /* iup_draw.h */,
 				00E3A6741B60583600BEC175 /* iup_drv.h */,
 				00E3A6751B60583600BEC175 /* iup_drvfont.h */,
 				00E3A6761B60583600BEC175 /* iup_drvinfo.h */,
@@ -723,24 +729,17 @@
 		00E3A83A1B60595300BEC175 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				002CC4D21EA241E90007C8E7 /* iup_plus.h */,
+				002CC4D31EA241E90007C8E7 /* iupdraw.h */,
 				00E3A83B1B60595300BEC175 /* iup.h */,
 				00E3A83C1B60595300BEC175 /* iup_class_cbs.hpp */,
 				00E3A83D1B60595300BEC175 /* iup_config.h */,
 				00E3A83E1B60595300BEC175 /* iup_mglplot.h */,
 				00E3A83F1B60595300BEC175 /* iup_plot.h */,
-				00E3A8401B60595300BEC175 /* iup_pplot.h */,
 				00E3A8411B60595300BEC175 /* iup_scintilla.h */,
-				00E3A8421B60595300BEC175 /* iupcb.h */,
-				00E3A8431B60595300BEC175 /* iupcbox.h */,
 				00E3A8441B60595300BEC175 /* iupcbs.h */,
-				00E3A8451B60595300BEC175 /* iupcells.h */,
-				00E3A8461B60595300BEC175 /* iupcolorbar.h */,
 				00E3A8471B60595300BEC175 /* iupcontrols.h */,
 				00E3A8481B60595300BEC175 /* iupdef.h */,
-				00E3A8491B60595300BEC175 /* iupdial.h */,
-				00E3A84A1B60595300BEC175 /* iupgauge.h */,
-				00E3A84B1B60595300BEC175 /* iupgc.h */,
-				00E3A84C1B60595300BEC175 /* iupgetparam.h */,
 				00E3A84D1B60595300BEC175 /* iupgl.h */,
 				00E3A84E1B60595300BEC175 /* iupglcontrols.h */,
 				00E3A84F1B60595300BEC175 /* iupim.h */,
@@ -748,7 +747,6 @@
 				00E3A8511B60595300BEC175 /* iuplua.h */,
 				00E3A8521B60595300BEC175 /* iuplua_mglplot.h */,
 				00E3A8531B60595300BEC175 /* iuplua_plot.h */,
-				00E3A8541B60595300BEC175 /* iuplua_pplot.h */,
 				00E3A8551B60595300BEC175 /* iuplua_scintilla.h */,
 				00E3A8561B60595300BEC175 /* iupluacontrols.h */,
 				00E3A8571B60595300BEC175 /* iupluagl.h */,
@@ -758,16 +756,9 @@
 				00E3A85B1B60595300BEC175 /* iupluaole.h */,
 				00E3A85C1B60595300BEC175 /* iupluatuio.h */,
 				00E3A85D1B60595300BEC175 /* iupluaweb.h */,
-				00E3A85E1B60595300BEC175 /* iupmask.h */,
-				00E3A85F1B60595300BEC175 /* iupmatrix.h */,
 				00E3A8601B60595300BEC175 /* iupmatrixex.h */,
 				00E3A8611B60595300BEC175 /* iupole.h */,
-				00E3A8621B60595300BEC175 /* iupsbox.h */,
-				00E3A8631B60595300BEC175 /* iupspin.h */,
-				00E3A8641B60595300BEC175 /* iuptabs.h */,
-				00E3A8651B60595300BEC175 /* iuptree.h */,
 				00E3A8661B60595300BEC175 /* iuptuio.h */,
-				00E3A8671B60595300BEC175 /* iupval.h */,
 				00E3A8681B60595300BEC175 /* iupweb.h */,
 			);
 			name = include;
@@ -777,6 +768,10 @@
 		00E3A8971B605A7500BEC175 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */,
+				00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */,
+				005DCB9F1EBD659500A66253 /* xib */,
+				002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */,
 				00346C3F1B6880140045148B /* iupcocoa_info.m */,
 				00E3A8EC1B609AE000BEC175 /* iupcocoa_clipboard.m */,
 				00E3A8E81B6098D300BEC175 /* iupcocoa_text.m */,
@@ -801,16 +796,18 @@
 				00E3A89D1B605A7500BEC175 /* iupcocoa_font.m */,
 				00E3A89E1B605A7500BEC175 /* iupcocoa_fontdlg.m */,
 				00E3A89F1B605A7500BEC175 /* iupmac_globalattrib.m */,
-				00E3A8A01B605A7500BEC175 /* iupmac_help.c */,
+				00E3A8A01B605A7500BEC175 /* iupmac_help.m */,
 				00E3A8A11B605A7500BEC175 /* iupcocoa_image.m */,
-				00E3A8A21B605A7500BEC175 /* iupmac_info.c */,
-				00E3A8A31B605A7500BEC175 /* iupmac_key.c */,
+				00E3A8A21B605A7500BEC175 /* iupmac_info.m */,
+				00E3A8A31B605A7500BEC175 /* iupmac_key.m */,
 				00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */,
 				00E3A8A51B605A7500BEC175 /* iupcocoa_messagedlg.m */,
 				00E3A8A61B605A7500BEC175 /* iupcocoa_open.m */,
 				00E3A8A71B605A7500BEC175 /* iupcocoa_timer.m */,
 				00E3A8A81B605A7500BEC175 /* iupcocoa_tips.m */,
 				00E3A8A91B605A7500BEC175 /* iupcocoa_val.m */,
+				0070FB981E0E0B79009A8631 /* IupAppDelegate.h */,
+				0070FB991E0E0B79009A8631 /* IupAppDelegate.m */,
 			);
 			path = cocoa;
 			sourceTree = "<group>";
@@ -863,40 +860,35 @@
 				00E3A7B71B60583600BEC175 /* iup_menu.h in Headers */,
 				00E3A88B1B60595300BEC175 /* iupluaweb.h in Headers */,
 				00E3A86F1B60595300BEC175 /* iup_scintilla.h in Headers */,
+				002CC4D51EA241E90007C8E7 /* iupdraw.h in Headers */,
 				00E3A7821B60583600BEC175 /* iup_classbase.h in Headers */,
-				00E3A8921B60595300BEC175 /* iuptabs.h in Headers */,
 				00E3A8841B60595300BEC175 /* iupluacontrols.h in Headers */,
 				00E3A7B51B60583600BEC175 /* iup_maskparse.h in Headers */,
 				00E3A7C31B60583600BEC175 /* iup_progressbar.h in Headers */,
 				00E3A7D51B60583600BEC175 /* iup_table.h in Headers */,
 				00E3A7B11B60583600BEC175 /* iup_mask.h in Headers */,
-				00E3A8901B60595300BEC175 /* iupsbox.h in Headers */,
+				00006F111ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h in Headers */,
 				00E3A8801B60595300BEC175 /* iuplua_mglplot.h in Headers */,
 				00E3A8851B60595300BEC175 /* iupluagl.h in Headers */,
 				00E3A8751B60595300BEC175 /* iupcontrols.h in Headers */,
 				00E3A7701B60583600BEC175 /* iup_assert.h in Headers */,
-				00E3A87A1B60595300BEC175 /* iupgetparam.h in Headers */,
 				00E3A88A1B60595300BEC175 /* iupluatuio.h in Headers */,
 				00E3A8691B60595300BEC175 /* iup.h in Headers */,
 				00E3A78C1B60583600BEC175 /* iup_drvfont.h in Headers */,
 				00E3A8891B60595300BEC175 /* iupluaole.h in Headers */,
-				00E3A86E1B60595300BEC175 /* iup_pplot.h in Headers */,
+				0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */,
 				00E3A7A91B60583600BEC175 /* iup_ledlex.h in Headers */,
 				00E3A7931B60583600BEC175 /* iup_focus.h in Headers */,
 				00E3A7771B60583600BEC175 /* iup_button.h in Headers */,
 				00E3A87F1B60595300BEC175 /* iuplua.h in Headers */,
-				00E3A8951B60595300BEC175 /* iupval.h in Headers */,
 				00E3A77A1B60583600BEC175 /* iup_canvas.h in Headers */,
 				00E3A7D91B60583600BEC175 /* iup_text.h in Headers */,
 				00E3A7D71B60583600BEC175 /* iup_tabs.h in Headers */,
 				00E3A8761B60595300BEC175 /* iupdef.h in Headers */,
-				00E3A78A1B60583600BEC175 /* iup_draw.h in Headers */,
 				00E3A8811B60595300BEC175 /* iuplua_plot.h in Headers */,
 				00E3A8941B60595300BEC175 /* iuptuio.h in Headers */,
 				00E3A7A01B60583600BEC175 /* iup_image.h in Headers */,
 				00E3A76E1B60583600BEC175 /* iup_array.h in Headers */,
-				00E3A8931B60595300BEC175 /* iuptree.h in Headers */,
-				00E3A88C1B60595300BEC175 /* iupmask.h in Headers */,
 				00E3A87E1B60595300BEC175 /* iupkey.h in Headers */,
 				00E3A7991B60583600BEC175 /* iup_func.h in Headers */,
 				00E3A86A1B60595300BEC175 /* iup_class_cbs.hpp in Headers */,
@@ -904,25 +896,21 @@
 				00E3A8871B60595300BEC175 /* iupluaim.h in Headers */,
 				00E3A7D31B60583600BEC175 /* iup_strmessage.h in Headers */,
 				00E3A8861B60595300BEC175 /* iupluaglcontrols.h in Headers */,
-				00E3A8741B60595300BEC175 /* iupcolorbar.h in Headers */,
+				002CC4D41EA241E90007C8E7 /* iup_plus.h in Headers */,
 				00E3A86D1B60595300BEC175 /* iup_plot.h in Headers */,
 				00E3A7B31B60583600BEC175 /* iup_maskmatch.h in Headers */,
 				00E3A7971B60583600BEC175 /* iup_frame.h in Headers */,
-				00E3A8911B60595300BEC175 /* iupspin.h in Headers */,
 				00E3A78D1B60583600BEC175 /* iup_drvinfo.h in Headers */,
 				00E3A77F1B60583600BEC175 /* iup_class.h in Headers */,
 				00E3A8881B60595300BEC175 /* iupluamatrixex.h in Headers */,
 				00E3A8721B60595300BEC175 /* iupcbs.h in Headers */,
-				00E3A8771B60595300BEC175 /* iupdial.h in Headers */,
 				00E3A8961B60595300BEC175 /* iupweb.h in Headers */,
 				00E3A88E1B60595300BEC175 /* iupmatrixex.h in Headers */,
 				00E3A7AF1B60583600BEC175 /* iup_list.h in Headers */,
-				00E3A8731B60595300BEC175 /* iupcells.h in Headers */,
 				00E3A7BA1B60583600BEC175 /* iup_names.h in Headers */,
 				00E3A7721B60583600BEC175 /* iup_attrib.h in Headers */,
 				00E3A87D1B60595300BEC175 /* iupim.h in Headers */,
 				00E3A7BC1B60583600BEC175 /* iup_normalizer.h in Headers */,
-				00E3A88D1B60595300BEC175 /* iupmatrix.h in Headers */,
 				00E3A7C11B60583600BEC175 /* iup_predialogs.h in Headers */,
 				00E3A7891B60583600BEC175 /* iup_dlglist.h in Headers */,
 				00E3A7751B60583600BEC175 /* iup_box.h in Headers */,
@@ -931,25 +919,21 @@
 				00E3A7DD1B60583600BEC175 /* iup_toggle.h in Headers */,
 				00E3A7871B60583600BEC175 /* iup_dialog.h in Headers */,
 				00E3A78B1B60583600BEC175 /* iup_drv.h in Headers */,
+				002CC4CF1EA2416B0007C8E7 /* iup_drvdraw.h in Headers */,
 				00E3A87C1B60595300BEC175 /* iupglcontrols.h in Headers */,
 				00E3A7A61B60583600BEC175 /* iup_layout.h in Headers */,
 				00E3A7A41B60583600BEC175 /* iup_label.h in Headers */,
 				00E3A7C81B60583600BEC175 /* iup_register.h in Headers */,
 				00E3A86B1B60595300BEC175 /* iup_config.h in Headers */,
-				00E3A8791B60595300BEC175 /* iupgc.h in Headers */,
 				00E3A7CF1B60583600BEC175 /* iup_stdcontrols.h in Headers */,
 				00E3A86C1B60595300BEC175 /* iup_mglplot.h in Headers */,
-				00E3A8711B60595300BEC175 /* iupcbox.h in Headers */,
 				00E3A7A21B60583600BEC175 /* iup_key.h in Headers */,
 				00E3A7DB1B60583600BEC175 /* iup_timer.h in Headers */,
 				00E3A87B1B60595300BEC175 /* iupgl.h in Headers */,
 				00E3A7BE1B60583600BEC175 /* iup_object.h in Headers */,
 				00E3A7AC1B60583600BEC175 /* iup_linefile.h in Headers */,
-				00E3A8781B60595300BEC175 /* iupgauge.h in Headers */,
-				00E3A8821B60595300BEC175 /* iuplua_pplot.h in Headers */,
 				00E3A7E21B60583600BEC175 /* iup_val.h in Headers */,
 				00E3A8831B60595300BEC175 /* iuplua_scintilla.h in Headers */,
-				00E3A8701B60595300BEC175 /* iupcb.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1095,10 +1079,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */,
+				005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */,
 				00E3A76C1B60583600BEC175 /* iup.def in Resources */,
-				00E3A7E71B60583600BEC175 /* make_uname in Resources */,
-				00E3A7E81B60583600BEC175 /* make_uname.bat in Resources */,
-				00E3A7E51B60583600BEC175 /* iupgtk.def in Resources */,
+				005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1149,6 +1133,7 @@
 				00E3A7961B60583600BEC175 /* iup_frame.c in Sources */,
 				00E3A7E31B60583600BEC175 /* iup_vbox.c in Sources */,
 				00E3A7C61B60583600BEC175 /* iup_recplay.c in Sources */,
+				002CC4D71EA24A850007C8E7 /* iupcocoa_calendar.m in Sources */,
 				00E3A7951B60583600BEC175 /* iup_fontdlg.c in Sources */,
 				00E3A8CA1B6084C000BEC175 /* iup_list.c in Sources */,
 				00E3A8EB1B6098D300BEC175 /* iupcocoa_toggle.m in Sources */,
@@ -1164,8 +1149,10 @@
 				00E3A8C31B606FDD00BEC175 /* iupcocoa_dialog.m in Sources */,
 				00E3A7941B60583600BEC175 /* iup_font.c in Sources */,
 				00E3A7B01B60583600BEC175 /* iup_mask.c in Sources */,
+				002CC4D11EA2416B0007C8E7 /* iup_flattabs.c in Sources */,
 				00E3A7C91B60583600BEC175 /* iup_sbox.c in Sources */,
 				00E3A7CA1B60583600BEC175 /* iup_scanf.c in Sources */,
+				00006F121ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m in Sources */,
 				00E3A7CB1B60583600BEC175 /* iup_scrollbox.c in Sources */,
 				00E3A79E1B60583600BEC175 /* iup_hbox.c in Sources */,
 				00E3A7B91B60583600BEC175 /* iup_names.c in Sources */,
@@ -1173,7 +1160,6 @@
 				00E3A8C01B605FB300BEC175 /* iupcocoa_open.m in Sources */,
 				00E3A7E11B60583600BEC175 /* iup_val.c in Sources */,
 				00E3A8D31B608ED900BEC175 /* iupcocoa_colordlg.m in Sources */,
-				00E3A7E61B60583600BEC175 /* iupstub.mak in Sources */,
 				00E3A7C21B60583600BEC175 /* iup_progressbar.c in Sources */,
 				00E3A7841B60583600BEC175 /* iup_config.c in Sources */,
 				00E3A7B41B60583600BEC175 /* iup_maskparse.c in Sources */,
@@ -1204,12 +1190,14 @@
 				00E3A7251B60583600BEC175 /* config.mak in Sources */,
 				00E3A7A81B60583600BEC175 /* iup_ledlex.c in Sources */,
 				00E3A7C51B60583600BEC175 /* iup_radio.c in Sources */,
+				002CC4CD1EA2416B0007C8E7 /* iup_datepick.c in Sources */,
 				00E3A7D81B60583600BEC175 /* iup_text.c in Sources */,
 				00E3A7881B60583600BEC175 /* iup_dlglist.c in Sources */,
 				00E3A8DC1B60952400BEC175 /* iupcocoa_menu.m in Sources */,
 				00E3A7D41B60583600BEC175 /* iup_table.c in Sources */,
 				00E3A8E21B6096EC00BEC175 /* iupcocoa_progressbar.m in Sources */,
 				00E3A7A71B60583600BEC175 /* iup_layoutdlg.c in Sources */,
+				0070FB9B1E0E0B79009A8631 /* IupAppDelegate.m in Sources */,
 				00E3A7801B60583600BEC175 /* iup_classattrib.c in Sources */,
 				00E3A77B1B60583600BEC175 /* iup_cbox.c in Sources */,
 				00E3A7901B60583600BEC175 /* iup_fill.c in Sources */,
@@ -1222,13 +1210,14 @@
 				00E3A79A1B60583600BEC175 /* iup_getparam.c in Sources */,
 				00E3A7731B60583600BEC175 /* iup_backgroundbox.c in Sources */,
 				00E3A7D01B60583600BEC175 /* iup_str.c in Sources */,
-				00E3A7E91B60583600BEC175 /* Makefile in Sources */,
 				00E3A7C01B60583600BEC175 /* iup_predialogs.c in Sources */,
 				00E3A7A11B60583600BEC175 /* iup_key.c in Sources */,
 				00E3A7E01B60583600BEC175 /* iup_user.c in Sources */,
 				00E3A7DE1B60583600BEC175 /* iup_tree.c in Sources */,
 				00E3A7D21B60583600BEC175 /* iup_strmessage.c in Sources */,
+				002CC4D01EA2416B0007C8E7 /* iup_flatframe.c in Sources */,
 				00E3A8C81B60744200BEC175 /* iupcocoa_draw.m in Sources */,
+				002CC4CE1EA2416B0007C8E7 /* iup_draw.c in Sources */,
 				00E3A8D81B60923D00BEC175 /* iupcocoa_image.m in Sources */,
 				00E3A7711B60583600BEC175 /* iup_attrib.c in Sources */,
 				00346C401B6880140045148B /* iupcocoa_info.m in Sources */,
@@ -1243,6 +1232,7 @@
 				00E3A8C61B60724900BEC175 /* iupcocoa_font.m in Sources */,
 				00E3A7B21B60583600BEC175 /* iup_maskmatch.c in Sources */,
 				00E3A8EA1B6098D300BEC175 /* iupcocoa_text.m in Sources */,
+				002CC4CC1EA2416B0007C8E7 /* iup_animatedlabel.c in Sources */,
 				00E3A7AD1B60583600BEC175 /* iup_link.c in Sources */,
 				00E3A7AB1B60583600BEC175 /* iup_linefile.c in Sources */,
 				00E3A7921B60583600BEC175 /* iup_focus.c in Sources */,
@@ -1297,6 +1287,33 @@
 			targetProxy = 00E3A9051B609B8700BEC175 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				005DCBA31EBD659500A66253 /* Base */,
+			);
+			name = CanonicalMainMenu.xib;
+			sourceTree = "<group>";
+		};
+		005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				005DCBAB1EBDD27300A66253 /* Base */,
+			);
+			name = CanonicalServiceMenu.xib;
+			sourceTree = "<group>";
+		};
+		005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				005DCBAD1EBDD27300A66253 /* Base */,
+			);
+			name = CanonicalWindowMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		00E3A6011B60578300BEC175 /* Debug */ = {
@@ -1392,6 +1409,12 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					IUP_BUILD_LIBRARY,
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				INFOPLIST_FILE = iup/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
@@ -1410,6 +1433,11 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					IUP_BUILD_LIBRARY,
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				INFOPLIST_FILE = iup/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
@@ -1454,7 +1482,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1470,7 +1497,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = TestApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";

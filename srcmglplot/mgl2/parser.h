@@ -1,6 +1,6 @@
 /***************************************************************************
  * parser.h is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,7 +22,6 @@
 
 #ifdef __cplusplus
 #include "mgl2/mgl.h"
-#include <string>
 #if MGL_HAVE_LTDL
 #include <ltdl.h>
 #endif
@@ -35,7 +34,8 @@ struct mglArg
 	std::wstring w;	///< String with parameters
 	std::string s;	///< String with parameters
 	mreal v;		///< Numerical value (used if type==2)
-	mglArg():type(-1),d(0),v(0)	{}
+	dual c;			///< Numerical complex value (used if type==2)
+	mglArg():type(-1),d(0),v(0),c(0.)	{}
 };
 //-----------------------------------------------------------------------------
 /// Structure for MGL command
@@ -58,8 +58,9 @@ extern mglCommand mgls_base_cmd[];
 struct mglNum
 {
 	mreal d;		///< Number itself
+	dual c;
 	std::wstring s;	///< Number name
-	mglNum(mreal val=0):d(val)	{}
+	mglNum(mreal val=0):d(val),c(val)	{}
 };
 //-----------------------------------------------------------------------------
 /// Structure for function name and position.
@@ -97,7 +98,7 @@ public:
 	bool AllowDllCall;	///< Allow calls from external dynamic libraries
 	bool AllowSetSize;	///< Allow using setsize command
 	bool AllowFileIO;	///< Allow reading/saving files
-	bool Stop;			///< Stop command was. Flag prevent further execution
+	volatile bool Stop;	///< Stop command was. Flag prevent further execution
 	mglCommand *Cmd;	///< Table of MGL commands (can be changed by user). It MUST be sorted by 'name'!!!
 	long InUse;			///< Smart pointer (number of users)
 	const mglBase *curGr;	///< Current grapher
@@ -139,8 +140,8 @@ public:
 	mglDataA *FindVar(const char *name) MGL_FUNC_PURE;
 	mglDataA *FindVar(const wchar_t *name) MGL_FUNC_PURE;
 	/// Find variable or create it if absent
-	mglData *AddVar(const char *name);
-	mglData *AddVar(const wchar_t *name);
+	mglDataA *AddVar(const char *name);
+	mglDataA *AddVar(const wchar_t *name);
 	/// Find number or return 0 if absent
 	mglNum *FindNum(const char *name) MGL_FUNC_PURE;
 	mglNum *FindNum(const wchar_t *name) MGL_FUNC_PURE;
@@ -159,6 +160,8 @@ public:
 	void DeleteVar(const wchar_t *name);
 	/// Delete all data variables
 	void DeleteAll();
+	/// Set variant of argument(s) separated by '?' to be used
+	inline void SetVariant(int var=0)	{	Variant = var<=0?0:var;	}
 private:
 //	long parlen;		///< Length of parameter strings
 	std::wstring par[40];	///< Parameter for substituting instead of $1, ..., $9
@@ -174,6 +177,7 @@ private:
 	int for_stack[40];	///< The order of for-variables
 	int for_addr;		///< Flag for saving address in variable (for_addr-1)
 	bool for_br;		///< Break is switched on (skip all comands until 'next')
+	unsigned Variant;	///< Select variant of argument(s) separated by '?'
 
 	/// Parse command
 	int Exec(mglGraph *gr, const wchar_t *com, long n, mglArg *a, const std::wstring &var, const wchar_t *opt);
@@ -192,6 +196,7 @@ private:
 	/// In skip mode
 	bool inline ifskip()	{	return (if_pos>0 && !(if_stack[if_pos-1]&1));	}
 	bool inline skip()		{	return (Skip || ifskip() || for_br);	}
+	bool CheckForName(const std::wstring &s);	// check if name is valid for new data
 };
 //-----------------------------------------------------------------------------
 #endif

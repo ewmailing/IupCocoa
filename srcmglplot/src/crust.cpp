@@ -1,6 +1,6 @@
 /***************************************************************************
  * crust.cpp is part of Math Graphic Library
- * Copyright (C) 2007-2014 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
+ * Copyright (C) 2007-2016 Alexey Balakin <mathgl.abalakin@gmail.ru>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,6 +20,7 @@
 #include <float.h>
 #include <math.h>
 #include <list>
+#include <limits>
 #include "mgl2/other.h"
 #include "mgl2/data.h"
 #include "mgl2/thread.h"
@@ -31,7 +32,7 @@
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mgl_triplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HCDT a, const char *sch, const char *opt)
 {
-	long n = x->GetNx(), m = nums->GetNy();
+	long n = x->GetNN(), m = nums->GetNy();
 	if(mgl_check_trig(gr,nums,x,y,z,a,"TriPlot"))	return;
 
 	long ss=gr->AddTexture(sch);
@@ -39,19 +40,19 @@ void MGL_EXPORT mgl_triplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HCD
 	static int cgid=1;	gr->StartGroup("TriPlot",cgid++);
 
 	bool wire = mglchr(sch,'#');
-	long nc = a->GetNx();
+	long nc = a->GetNN();
 	if(nc!=n && nc>=m)	// colors per triangle
 	{
 		mglPoint p1,p2,p3,q;
 		gr->Reserve(m*3);
-		for(long i=0;i<m;i++)
+		for(long i=0;i<m;i++)	if(nums->v(0,i)>=0 && nums->v(1,i)>=0 && nums->v(2,i)>=0)
 		{
 			register long k1 = long(nums->v(0,i)+0.5);
-			p1 = mglPoint(x->v(k1), y->v(k1), z->v(k1));
+			p1.Set(x->v(k1), y->v(k1), z->v(k1));
 			register long k2 = long(nums->v(1,i)+0.5);
-			p2 = mglPoint(x->v(k2), y->v(k2), z->v(k2));
+			p2.Set(x->v(k2), y->v(k2), z->v(k2));
 			register long k3 = long(nums->v(2,i)+0.5);
-			p3 = mglPoint(x->v(k3), y->v(k3), z->v(k3));
+			p3.Set(x->v(k3), y->v(k3), z->v(k3));
 			q = wire ? mglPoint(NAN,NAN) : (p2-p1) ^ (p3-p1);
 			k1 = gr->AddPnt(p1,gr->GetC(ss,a->v(k1)),q);
 			k2 = gr->AddPnt(p2,gr->GetC(ss,a->v(k2)),q);
@@ -64,15 +65,15 @@ void MGL_EXPORT mgl_triplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HCD
 		gr->Reserve(n);
 		long *kk = new long[n];
 		mglPoint *pp = new mglPoint[n];
-		for(long i=0;i<m;i++)	// add averaged normales
+		for(long i=0;i<m;i++)	if(nums->v(0,i)>=0 && nums->v(1,i)>=0 && nums->v(2,i)>=0)	// add averaged normales
 		{
 			register long k1 = long(nums->v(0,i)+0.5);
 			register long k2 = long(nums->v(1,i)+0.5);
 			register long k3 = long(nums->v(2,i)+0.5);
 			if(!wire)
 			{
-				mglPoint q = mglPoint(x->v(k2)-x->v(k1), y->v(k2)-y->v(k1), z->v(k2)-z->v(k1)) ^
-					mglPoint(x->v(k3)-x->v(k1), y->v(k3)-y->v(k1), z->v(k3)-z->v(k1));
+				mglPoint q(mglPoint(x->v(k2)-x->v(k1), y->v(k2)-y->v(k1), z->v(k2)-z->v(k1)) ^
+					mglPoint(x->v(k3)-x->v(k1), y->v(k3)-y->v(k1), z->v(k3)-z->v(k1)));
 				q.Normalize();
 				// try be sure that in the same direction ...
 				if(q.z<0)	q *= -1;
@@ -82,7 +83,7 @@ void MGL_EXPORT mgl_triplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HCD
 		}
 		for(long i=0;i<n;i++)	// add points
 			kk[i] = gr->AddPnt(mglPoint(x->v(i), y->v(i), z->v(i)), gr->GetC(ss,a->v(i)), pp[i]);
-		for(long i=0;i<m;i++)	// draw triangles
+		for(long i=0;i<m;i++)	if(nums->v(0,i)>=0 && nums->v(1,i)>=0 && nums->v(2,i)>=0)	// draw triangles
 		{
 			register long k1 = long(nums->v(0,i)+0.5);
 			register long k2 = long(nums->v(1,i)+0.5);
@@ -105,7 +106,7 @@ void MGL_EXPORT mgl_triplot_xyz(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, cons
 void MGL_EXPORT mgl_triplot_xy(HMGL gr, HCDT nums, HCDT x, HCDT y, const char *sch, const char *opt)
 {
 	gr->SaveState(opt);
-	mglData z(x->GetNx());
+	mglData z(x->GetNN());
 	mreal zm = gr->AdjustZMin();	z.Fill(zm,zm);
 	mgl_triplot_xyzc(gr,nums,x,y,&z,&z,sch,0);
 }
@@ -133,7 +134,7 @@ void MGL_EXPORT mgl_triplot_xy_(uintptr_t *gr, uintptr_t *nums, uintptr_t *x, ui
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mgl_quadplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HCDT a, const char *sch, const char *opt)
 {
-	long n = x->GetNx(), m = nums->GetNy();
+	long n = x->GetNN(), m = nums->GetNy();
 	if(mgl_check_trig(gr,nums,x,y,z,a,"QuadPlot",4))	return;
 
 	long ss=gr->AddTexture(sch);
@@ -141,21 +142,21 @@ void MGL_EXPORT mgl_quadplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HC
 	static int cgid=1;	gr->StartGroup("QuadPlot",cgid++);
 	mglPoint p1,p2,p3,p4;
 
-	long nc = a->GetNx();
+	long nc = a->GetNN();
 	bool wire = mglchr(sch,'#');
 	if(nc!=n && nc>=m)	// colors per triangle
 	{
 		gr->Reserve(m*4);
-		for(long i=0;i<m;i++)
+		for(long i=0;i<m;i++)	if(nums->v(0,i)>=0 && nums->v(1,i)>=0 && nums->v(2,i)>=0 && nums->v(3,i)>=0)
 		{
 			register long k1 = long(nums->v(0,i)+0.5);
-			p1 = mglPoint(x->v(k1), y->v(k1), z->v(k1));
+			p1.Set(x->v(k1), y->v(k1), z->v(k1));
 			register long k2 = long(nums->v(1,i)+0.5);
-			p2 = mglPoint(x->v(k2), y->v(k2), z->v(k2));
+			p2.Set(x->v(k2), y->v(k2), z->v(k2));
 			register long k3 = long(nums->v(2,i)+0.5);
-			p3 = mglPoint(x->v(k3), y->v(k3), z->v(k3));
-			register long k4 = floor(nums->v(3,i)+0.5);
-			p4 = mglPoint(x->v(k4), y->v(k4), z->v(k4));
+			p3.Set(x->v(k3), y->v(k3), z->v(k3));
+			register long k4 = long(nums->v(3,i)+0.5);
+			p4.Set(x->v(k4), y->v(k4), z->v(k4));
 			mglPoint q = wire ? mglPoint(NAN,NAN):(p2-p1) ^ (p3-p1);
 			k1 = gr->AddPnt(p1,gr->GetC(ss,a->v(k1)),q);
 			k2 = gr->AddPnt(p2,gr->GetC(ss,a->v(k2)),q);
@@ -169,16 +170,16 @@ void MGL_EXPORT mgl_quadplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HC
 		gr->Reserve(n);
 		long *kk = new long[n];
 		mglPoint *pp = new mglPoint[n];
-		for(long i=0;i<m;i++)	// add averaged normales
-		{
+		for(long i=0;i<m;i++)	if(nums->v(0,i)>=0 && nums->v(1,i)>=0 && nums->v(2,i)>=0 && nums->v(3,i)>=0)
+		{	// add averaged normales
 			register long k1 = long(nums->v(0,i)+0.5);
-			p1 = mglPoint(x->v(k1), y->v(k1), z->v(k1));
+			p1.Set(x->v(k1), y->v(k1), z->v(k1));
 			register long k2 = long(nums->v(1,i)+0.5);
-			p2 = mglPoint(x->v(k2), y->v(k2), z->v(k2));
+			p2.Set(x->v(k2), y->v(k2), z->v(k2));
 			register long k3 = long(nums->v(2,i)+0.5);
-			p3 = mglPoint(x->v(k3), y->v(k3), z->v(k3));
-			register long k4 = floor(nums->v(3,i)+0.5);
-			p4 = mglPoint(x->v(k4), y->v(k4), z->v(k4));
+			p3.Set(x->v(k3), y->v(k3), z->v(k3));
+			register long k4 = long(nums->v(3,i)+0.5);
+			p4.Set(x->v(k4), y->v(k4), z->v(k4));
 
 			if(wire)	pp[k1]=pp[k2]=pp[k3]=pp[k4]=mglPoint(NAN,NAN);
 			else
@@ -192,12 +193,12 @@ void MGL_EXPORT mgl_quadplot_xyzc(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, HC
 		}
 		for(long i=0;i<n;i++)	// add points
 			kk[i] = gr->AddPnt(mglPoint(x->v(i), y->v(i), z->v(i)),gr->GetC(ss,a->v(i)), pp[i]);
-		for(long i=0;i<m;i++)	// draw quads
-		{
-			register long k1 = floor(nums->v(0,i)+0.5);
-			register long k2 = floor(nums->v(1,i)+0.5);
-			register long k3 = floor(nums->v(2,i)+0.5);
-			register long k4 = floor(nums->v(3,i)+0.5);
+		for(long i=0;i<m;i++)	if(nums->v(0,i)>=0 && nums->v(1,i)>=0 && nums->v(2,i)>=0 && nums->v(3,i)>=0)
+		{	// draw quads
+			register long k1 = long(nums->v(0,i)+0.5);
+			register long k2 = long(nums->v(1,i)+0.5);
+			register long k3 = long(nums->v(2,i)+0.5);
+			register long k4 = long(nums->v(3,i)+0.5);
 			if(wire)
 			{
 				gr->line_plot(kk[k1],kk[k2]);	gr->line_plot(kk[k1],kk[k3]);
@@ -216,7 +217,7 @@ void MGL_EXPORT mgl_quadplot_xyz(HMGL gr, HCDT nums, HCDT x, HCDT y, HCDT z, con
 void MGL_EXPORT mgl_quadplot_xy(HMGL gr, HCDT nums, HCDT x, HCDT y, const char *sch, const char *opt)
 {
 	gr->SaveState(opt);
-	mglData z(x->GetNx());	z.Fill(gr->Min.z,gr->Min.z);
+	mglData z(x->GetNN());	z.Fill(gr->Min.z,gr->Min.z);
 	mgl_quadplot_xyzc(gr,nums,x,y,&z,&z,sch,0);
 }
 //-----------------------------------------------------------------------------
@@ -245,30 +246,29 @@ void MGL_EXPORT mgl_quadplot_xy_(uintptr_t *gr, uintptr_t *nums, uintptr_t *x, u
 //-----------------------------------------------------------------------------
 std::vector<mglSegment> MGL_NO_EXPORT mgl_tri_lines(mreal val, HCDT nums, HCDT a, HCDT x, HCDT y, HCDT z)
 {
-	long n = x->GetNx(), m = nums->GetNy();
+	long n = x->GetNN(), m = nums->GetNy();
 	std::vector<mglSegment> lines;
 	for(long i=0;i<m;i++)
 	{
-		register long k1 = long(nums->v(0,i)+0.1);	if(k1<0 || k1>=n)	continue;
-		register long k2 = long(nums->v(1,i)+0.1);	if(k2<0 || k2>=n)	continue;
-		register long k3 = long(nums->v(2,i)+0.1);	if(k3<0 || k3>=n)	continue;
+		long k1 = long(nums->v(0,i)+0.5), k2 = long(nums->v(1,i)+0.5), k3 = long(nums->v(2,i)+0.5);
+		if(k1<0 || k1>=n || k2<0 || k2>=n || k3<0 || k3>=n)	continue;
 		register mreal v1 = a->v(k1), v2 = a->v(k2), v3 = a->v(k3);
 		register mreal d1 = mgl_d(val,v1,v2), d2 = mgl_d(val,v1,v3), d3 = mgl_d(val,v2,v3);
 		mglSegment line;
 		if(d1>=0 && d1<=1 && d2>=0 && d2<=1)
 		{
-			line.p1 = mglPoint(x->v(k1)*(1-d1)+x->v(k2)*d1, y->v(k1)*(1-d1)+y->v(k2)*d1, z->v(k1)*(1-d1)+z->v(k2)*d1);
-			line.p2 = mglPoint(x->v(k1)*(1-d2)+x->v(k3)*d2, y->v(k1)*(1-d2)+y->v(k3)*d2, z->v(k1)*(1-d2)+z->v(k3)*d2);
+			line.p1.Set(x->v(k1)*(1-d1)+x->v(k2)*d1, y->v(k1)*(1-d1)+y->v(k2)*d1, z->v(k1)*(1-d1)+z->v(k2)*d1);
+			line.p2.Set(x->v(k1)*(1-d2)+x->v(k3)*d2, y->v(k1)*(1-d2)+y->v(k3)*d2, z->v(k1)*(1-d2)+z->v(k3)*d2);
 		}
 		else if(d1>=0 && d1<=1 && d3>=0 && d3<=1)
 		{
-			line.p1 = mglPoint(x->v(k1)*(1-d1)+x->v(k2)*d1, y->v(k1)*(1-d1)+y->v(k2)*d1, z->v(k1)*(1-d1)+z->v(k2)*d1);
-			line.p2 = mglPoint(x->v(k2)*(1-d3)+x->v(k3)*d3, y->v(k2)*(1-d3)+y->v(k3)*d3, z->v(k2)*(1-d3)+z->v(k3)*d3);
+			line.p1.Set(x->v(k1)*(1-d1)+x->v(k2)*d1, y->v(k1)*(1-d1)+y->v(k2)*d1, z->v(k1)*(1-d1)+z->v(k2)*d1);
+			line.p2.Set(x->v(k2)*(1-d3)+x->v(k3)*d3, y->v(k2)*(1-d3)+y->v(k3)*d3, z->v(k2)*(1-d3)+z->v(k3)*d3);
 		}
 		else if(d3>=0 && d3<=1 && d2>=0 && d2<=1)
 		{
-			line.p1 = mglPoint(x->v(k1)*(1-d2)+x->v(k3)*d2, y->v(k1)*(1-d2)+y->v(k3)*d2, z->v(k1)*(1-d2)+z->v(k3)*d2);
-			line.p2 = mglPoint(x->v(k2)*(1-d3)+x->v(k3)*d3, y->v(k2)*(1-d3)+y->v(k3)*d3, z->v(k2)*(1-d3)+z->v(k3)*d3);
+			line.p1.Set(x->v(k1)*(1-d2)+x->v(k3)*d2, y->v(k1)*(1-d2)+y->v(k3)*d2, z->v(k1)*(1-d2)+z->v(k3)*d2);
+			line.p2.Set(x->v(k2)*(1-d3)+x->v(k3)*d3, y->v(k2)*(1-d3)+y->v(k3)*d3, z->v(k2)*(1-d3)+z->v(k3)*d3);
 		}
 		if(line.p1!=line.p2)	lines.push_back(line);
 	}
@@ -277,7 +277,7 @@ std::vector<mglSegment> MGL_NO_EXPORT mgl_tri_lines(mreal val, HCDT nums, HCDT a
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mgl_tricont_xyzcv(HMGL gr, HCDT v, HCDT nums, HCDT x, HCDT y, HCDT z, HCDT a, const char *sch, const char *opt)
 {
-	mglDataV zz(x->GetNx(),x->GetNy());
+	mglDataV zz(x->GetNN());
 	if(!z)	z = &zz;
 	if(mgl_check_trig(gr,nums,x,y,z,a,"TriCont"))	return;
 
@@ -342,7 +342,7 @@ void MGL_EXPORT mgl_tricont_xyc_(uintptr_t *gr, uintptr_t *nums, uintptr_t *x, u
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mgl_tricontv_xyzcv(HMGL gr, HCDT v, HCDT nums, HCDT x, HCDT y, HCDT z, HCDT a, const char *sch, const char *opt)
 {
-	mglDataV zz(x->GetNx(),x->GetNy());
+	mglDataV zz(x->GetNN());
 	if(!z)	z = &zz;
 	if(mgl_check_trig(gr,nums,x,y,z,a,"TriContV"))	return;
 
@@ -439,7 +439,7 @@ void MGL_EXPORT mgl_dots_ca(HMGL gr, HCDT x, HCDT y, HCDT z, HCDT c, HCDT a, con
 
 	for(long i=0;i<n;i+=d)
 	{
-		mglPoint p = mglPoint(x->vthr(i),y->vthr(i),z->vthr(i));
+		mglPoint p(x->vthr(i),y->vthr(i),z->vthr(i));
 		long pp = gr->AddPnt(p,gr->GetC(ss,c->vthr(i)),mglPoint(NAN),a?gr->GetA(a->vthr(i)):-1);
 		gr->mark_plot(pp, mk);
 	}
@@ -475,11 +475,11 @@ long MGL_NO_EXPORT mgl_crust(long n,mglPoint *pp,long **nn,mreal ff);
 HMDT MGL_EXPORT mgl_triangulation_3d(HCDT x, HCDT y, HCDT z)
 {
 	mglData *nums=0;
-	long n = x->GetNx(), m;
-	if(y->GetNx()!=n || z->GetNx()!=n)	return nums;
+	long n = x->GetNN(), m;
+	if(y->GetNN()!=n || z->GetNN()!=n)	return nums;
 	mglPoint *pp = new mglPoint[n];
 	long *nn=0;
-	for(long i=0;i<n;i++)	pp[i] = mglPoint(x->v(i), y->v(i), z->v(i));
+	for(long i=0;i<n;i++)	pp[i].Set(x->v(i), y->v(i), z->v(i));
 	m = mgl_crust(n,pp,&nn,0);
 
 	if(m>0)
@@ -498,30 +498,65 @@ HMDT MGL_EXPORT mgl_triangulation_2d(HCDT x, HCDT y)
 	if(y->GetNN()!=n)	return nums;
 	// use s-hull here
 	std::vector<Shx> pts;
-	std::vector<long> out;
 	Shx pt;
 
-	double mx = 0, my = 0;
+	double x1=mglInf, x2=-mglInf, y1=mglInf, y2=-mglInf;
 	for(long i=0;i<n;i++)
 	{
-		register double t;
-		t = fabs(x->vthr(i));	if(t>mx)	mx=t;
-		t = fabs(y->vthr(i));	if(t>my)	my=t;
+		register mreal xx=x->vthr(i), yy = y->vthr(i);
+		if(xx<x1)	x1=xx;	if(xx>x2)	x2=xx;
+		if(yy<y1)	y1=yy;	if(yy>y2)	y2=yy;
 	}
-	mx *= 1e-15;	my *= 1e-15;
-	for(long i=0;i<n;i++)
+	const double dx=x2-x1, dy=y2-y1;
+	if(dx==0 || dy==0)	return nums;
+	for(long i=0;i<n;i++)	// Filter NaNs and Infs
 	{
-		pt.r = x->vthr(i);	pt.c = y->vthr(i);
+		pt.r = (x->vthr(i)-x1)/dx;	pt.c = (y->vthr(i)-y1)/dy;
 		if(mgl_isbad(pt.r) || mgl_isbad(pt.c))	continue;
-		if(fabs(pt.r)<mx)	pt.r=0;
-		if(fabs(pt.c)<my)	pt.c=0;
 		pt.id = i;    pts.push_back(pt);
 	}
 
 	std::vector<Triad> triads;
-	if(de_duplicate(pts, out))
-		mgl_set_global_warn("There are duplicated points for triangulation.");
-	s_hull_pro(pts, triads);
+	static const double float_eps = std::numeric_limits<float>::epsilon();
+	Dupex grid_step(float_eps, float_eps);
+	const size_t original_size = pts.size();
+
+	if(pts.size() >= 3u && 0. < grid_step.r && 0. < grid_step.c) {
+		std::vector<long> out;
+		de_duplicate(pts, out, grid_step);
+
+		if (pts.size() >= 3u && s_hull_pro(pts, triads) < 0) {
+			// Error occured. It may be caused by degenerated dataset. Well, let's try to increment rounding grid step.
+			// Why 4? Why not. There are no particular reasons for this.
+			grid_step.r *= 4.;
+			grid_step.c *= 4.;
+
+			out.clear();
+			triads.clear();
+
+			de_duplicate(pts, out, grid_step);
+
+			if (pts.size() >= 3u && s_hull_pro(pts, triads) < 0) {
+				// Last try. Let's assume uniform points distribution and use range / sqrt(pts.size()) * 2 as epsilon.
+				// It removes a 3/4 of points in optimal case but in the worst case it merges all points to the one.
+				const double density = 1. + floor(0.5 + std::sqrt(static_cast<double>(pts.size())));
+				grid_step.r = grid_step.c = 2/density;
+
+				out.clear();
+				de_duplicate(pts, out, grid_step);
+
+				triads.clear();
+				s_hull_pro(pts, triads);
+			}
+		}
+	}
+
+	if (triads.empty()) {
+		mgl_set_global_warn("Cannot triangulate this set!");
+	} else if(original_size > pts.size()) {
+		mgl_set_global_warn("There are duplicated or indistinguishably adjacent points for triangulation.");
+	}
+
 	long m = triads.size();
 	nums=new mglData(3,m);
 	for(long i=0;i<m;i++)
@@ -552,12 +587,12 @@ MGL_NO_EXPORT void *mgl_grid_t(void *par)
 #if !MGL_HAVE_PTHREAD
 #pragma omp parallel for
 #endif
-	for(long i0=t->id;i0<t->n;i0+=mglNumThr)
+	for(long i0=t->id;i0<t->n;i0+=mglNumThr)	if(d[3*i0]>=0 && d[3*i0+1]>=0 && d[3*i0+2]>=0)
 	{
 		register long k1 = long(d[3*i0]+0.5), k2 = long(d[3*i0+1]+0.5), k3 = long(d[3*i0+2]+0.5);
 		mreal dxu,dxv,dyu,dyv;
 		mreal z1=zdat->vthr(k1), z2=zdat->vthr(k2), z3=zdat->vthr(k3);
-		mglPoint d1=mglPoint(x[k2]-x[k1],y[k2]-y[k1],z2-z1), d2=mglPoint(x[k3]-x[k1],y[k3]-y[k1],z3-z1), p;
+		mglPoint d1(x[k2]-x[k1],y[k2]-y[k1],z2-z1), d2(x[k3]-x[k1],y[k3]-y[k1],z3-z1), p;
 
 		dxu = d2.x*d1.y - d1.x*d2.y;
 		if(fabs(dxu)<1e-5) continue; // points lies on the same line
@@ -633,7 +668,7 @@ void MGL_EXPORT mgl_data_grid_(uintptr_t *gr, uintptr_t *d, uintptr_t *x, uintpt
 //-----------------------------------------------------------------------------
 void MGL_EXPORT mgl_crust(HMGL gr, HCDT x, HCDT y, HCDT z, const char *sch, const char *opt)
 {
-	if(y->GetNx()!=x->GetNx() || z->GetNx()!=x->GetNx())
+	if(y->GetNN()!=x->GetNN() || z->GetNN()!=x->GetNN())
 	{	gr->SetWarn(mglWarnDim,"Crust");	return;	}
 	HMDT nums = mgl_triangulation_3d(x, y, z);
 	mgl_triplot_xyzc(gr,nums,x,y,z,z,sch,opt);
@@ -683,7 +718,7 @@ long MGL_NO_EXPORT mgl_get_next(long k1,long n,long *,long *set,mglPoint *qq)
 	for(i=0;i<n;i++)
 	{
 		if(i==k1 || set[i]>0)	continue;
-		r = mgl_norm(qq[i]-qq[k1]);
+		r = mgl_anorm(qq[i]-qq[k1]);
 		if(r<rm)	{	rm=r;	j=i;	}
 	}
 	return j;
@@ -699,21 +734,23 @@ long MGL_NO_EXPORT mgl_crust(long n,mglPoint *pp,long **nn,mreal ff)
 		for(rm = FLT_MAX,j=0;j<n;j++)
 		{
 			if(i==j)	continue;
-			r = mgl_norm(pp[i]-pp[j]);
+			r = mgl_anorm(pp[i]-pp[j]);
 			if(rm>r)	rm = r;
 		}
 		rs += sqrt(rm);
 	}
 	rs *= ff/n;	rs = rs*rs;		// "average" distance
-	long ind[100], set[100], ii;	// indexes of "close" points, flag that it was added and its number
-	mglPoint qq[100];	// normalized point coordinates
+	const int nnum=100;
+	long *ind, *set, ii;	// indexes of "close" points, flag that it was added and its number
+	mglPoint *qq;	// normalized point coordinates
+	ind = new long[nnum];	set = new long[nnum];	qq = new mglPoint[nnum];
 	long k1,k2,k3,m=0;
 	for(i=0;i<n;i++)	// now the triangles will be found
 	{
-		memset(set,0,100*sizeof(long));
+		memset(set,0,nnum*sizeof(long));
 		for(ii=0,j=0;j<n;j++)	// find close vertexes
 		{
-			r = mgl_norm(pp[i]-pp[j]);
+			r = mgl_anorm(pp[i]-pp[j]);
 			if(r<=rs && j!=i)	{	ind[ii] = j;	ii++;	if(ii==99)	break;}
 		}
 		if(ii<3)	continue;	// nothing to do
@@ -732,6 +769,6 @@ long MGL_NO_EXPORT mgl_crust(long n,mglPoint *pp,long **nn,mreal ff)
 		}
 		m = mgl_insert_trig(i,ind[k1],ind[0],nn);
 	}
-	return m;
+	delete []set;	delete []ind;	delete []qq;	return m;
 }
 //-----------------------------------------------------------------------------

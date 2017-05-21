@@ -264,7 +264,7 @@ void iupdrvMenuInitClass(Iclass* ic)
   ic->UnMap = gtkMenuUnMapMethod;
 
   /* Used by iupdrvMenuGetMenuBarSize */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, NULL, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_DEFAULT);  /* use inheritance to retrieve standard fonts */
+  iupClassRegisterAttribute(ic, "FONT", NULL, NULL, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, NULL, NULL, IUPAF_DEFAULT);
 }
@@ -405,7 +405,7 @@ static int gtkItemMapMethod(Ihandle* ih)
   gtk_menu_shell_insert((GtkMenuShell*)ih->parent->handle, ih->handle, pos);
   gtk_widget_show(ih->handle);
 
-  iupUpdateStandardFontAttrib(ih);
+  iupUpdateFontAttrib(ih);
 
   return IUP_NOERROR;
 }
@@ -417,7 +417,7 @@ void iupdrvItemInitClass(Iclass* ic)
   ic->UnMap = iupdrvBaseUnMapMethod;
 
   /* Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, iupdrvSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);  /* use inheritance to retrieve standard fonts */
+  iupClassRegisterAttribute(ic, "FONT", NULL, iupdrvSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   /* Visual */
   iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, iupBaseSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
@@ -474,7 +474,7 @@ static int gtkSubmenuMapMethod(Ihandle* ih)
 
   g_signal_connect(G_OBJECT(ih->handle), "select", G_CALLBACK(gtkItemSelect), ih);
 
-  iupUpdateStandardFontAttrib(ih);
+  iupUpdateFontAttrib(ih);
 
   return IUP_NOERROR;
 }
@@ -486,7 +486,7 @@ void iupdrvSubmenuInitClass(Iclass* ic)
   ic->UnMap = iupdrvBaseUnMapMethod;
 
   /* Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, iupdrvSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);  /* use inheritance to retrieve standard fonts */
+  iupClassRegisterAttribute(ic, "FONT", NULL, iupdrvSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   /* Visual */
   iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, iupBaseSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);

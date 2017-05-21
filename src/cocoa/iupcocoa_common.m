@@ -28,6 +28,12 @@
 
 #include "iupcocoa_drv.h"
 
+
+#if __has_feature(objc_arc)
+#error "Cocoa backend for IUP does not use ARC. Compile with -fno-objc-arc"
+#endif
+
+
 const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
 
 
@@ -40,7 +46,17 @@ void iupCocoaAddToParent(Ihandle* ih)
 	{
 		NSView* the_view = (NSView*)child_handle;
 		
-		
+		// From David Phillip Oster:
+		/* 
+		 now, when you resize the window, you see the hidden content. This makes the subviews preserve their relative x,y offset from the top left of the window, instead of the Mac default of the bottom left. It probably isn't the right way to do it, since there's probably some iup property that is specifying somethign more complex.
+		 
+		 
+		 If I had set [the_view setAutoresizingMask:NSViewMinXMargin|NSViewWidthSizable|NSViewMaxXMargin];
+		 
+		 Then, as the window widens, that view widens along with it.
+		 */
+		[the_view setAutoresizingMask:NSViewMaxXMargin|NSViewMinYMargin];
+
 		
 		if([parent_native_handle isKindOfClass:[NSWindow class]])
 		{
@@ -48,6 +64,14 @@ void iupCocoaAddToParent(Ihandle* ih)
 			NSView* window_view = [parent_window contentView];
 			[window_view addSubview:the_view];
 		}
+		/*
+		else if([parent_native_handle isKindOfClass:[NSBox class]])
+		{
+			NSBox* parent_view = (NSBox*)parent_native_handle;
+			[[parent_view contentView] addSubview:the_view];
+
+		}
+		 */
 		else if([parent_native_handle isKindOfClass:[NSView class]])
 		{
 			NSView* parent_view = (NSView*)parent_native_handle;
@@ -73,13 +97,34 @@ void iupCocoaAddToParent(Ihandle* ih)
 	
 }
 
+void iupCocoaRemoveFromParent(Ihandle* ih)
+{
+	
+	id child_handle = ih->handle;
+	if([child_handle isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)child_handle;
+		[the_view removeFromSuperview];
+	}
+	else if([child_handle isKindOfClass:[CALayer class]])
+	{
+		CALayer* the_layer = (CALayer*)child_handle;
+		[the_layer removeFromSuperlayer];
+	}
+	else
+	{
+		NSCAssert(1, @"Unexpected type for widget");
+		@throw @"Unexpected type for widget";
+	}
+}
+
 int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height)
 {
 	// Do I want the full screen height or the visible height?
 	NSRect screen_rect = [[NSScreen mainScreen] frame];
 //	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
 	CGFloat inverted_height = screen_rect.size.height - iup_height;
-	return (int)(inverted_height+0.5);
+	return iupROUND(inverted_height);
 }
 
 int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height)
@@ -88,7 +133,7 @@ int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height)
 	NSRect screen_rect = [[NSScreen mainScreen] frame];
 //	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
 	CGFloat inverted_height = screen_rect.size.height - cartesian_height;
-	return (int)(inverted_height+0.5);
+	return iupROUND(inverted_height);
 }
 
 
@@ -104,17 +149,33 @@ void iupdrvReparent(Ihandle* ih)
 	
 }
 
-
 void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 {
 
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	NSView* parent_view = nil;
+	
+	int current_width = ih->currentwidth;
+	int current_height = ih->currentheight;
+	
 	if([parent_native_handle isKindOfClass:[NSWindow class]])
 	{
 		NSWindow* parent_window = (NSWindow*)parent_native_handle;
 		parent_view = [parent_window contentView];
 	}
+/* // Part of NSBox experiment
+	else if([parent_native_handle isKindOfClass:[NSBox class]])
+	{
+		NSBox* box_view = (NSBox*)parent_native_handle;
+		parent_view = [box_view contentView];
+		
+		CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([parent_view frame]);
+		CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([parent_view frame]);
+
+		current_width = current_width - diff_width;
+		current_height = current_height - diff_height;
+	}
+*/
 	else if([parent_native_handle isKindOfClass:[NSView class]])
 	{
 		parent_view = (NSView*)parent_native_handle;
@@ -140,8 +201,8 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	}
 	else
 	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-		@throw @"Unexpected type for parent widget";
+		NSCAssert(1, @"Unexpected type for child widget");
+		@throw @"Unexpected type for child widget";
 	}
 	
 	
@@ -157,6 +218,31 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	
 	NSRect parent_rect = [parent_view frame];
 
+#if 0 // experiment to try to handle NSBox directly instead of using cocoaFrameGetInnerNativeContainerHandleMethod. I think cocoaFrameGetInnerNativeContainerHandleMethod is better, but I haven't vetted everything.
+	if([parent_native_handle isKindOfClass:[NSBox class]])
+	{
+		NSBox* box_view = (NSBox*)parent_native_handle;
+		NSView* box_content_view = [box_view contentView];
+		
+		CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([box_content_view frame]);
+		CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([box_content_view frame]);
+
+		current_width = current_width - diff_width;
+		current_height = current_height - diff_height;
+		
+		NSRect the_rect = NSMakeRect(
+		ih->x,
+		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
+		parent_rect.size.height - ih->y - ih->currentheight,
+		current_width,
+		ih->currentheight
+	);
+	[the_view setFrame:the_rect];
+//	[the_view setBounds:the_rect];
+	}
+	else
+	{
+		
 	NSRect the_rect = NSMakeRect(
 		ih->x,
 		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
@@ -166,6 +252,46 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	);
 	[the_view setFrame:the_rect];
 //	[the_view setBounds:the_rect];
+	}
+#else
+	
+			
+	NSRect the_rect = NSMakeRect(
+		ih->x,
+		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
+		parent_rect.size.height - ih->y - ih->currentheight,
+		ih->currentwidth,
+		ih->currentheight
+	);
+//	the_rect.origin.y = the_rect.origin.y - 16.0*0.5; // I don't realy understand the logic of this offset, particularly the -1
+
+
+	// for padding
+	// drat, data is private and requires a per-widget header
+	{
+
+		char* padding_str = iupAttribGet(ih, "PADDING");
+		if((NULL != padding_str) && (padding_str[0] != '\0'))
+		{
+			int horiz_padding = 0;
+			int vert_padding = 0;
+			iupStrToIntInt(padding_str, &horiz_padding, &vert_padding, 'x');
+			
+			NSRect old_frame = the_rect;
+			NSRect new_frame;
+			new_frame.origin.x = old_frame.origin.x + (CGFloat)horiz_padding*0.5;
+			new_frame.origin.y = old_frame.origin.y + (CGFloat)vert_padding*0.5;
+			new_frame.size.width = old_frame.size.width - (CGFloat)horiz_padding;
+			new_frame.size.height = old_frame.size.height - (CGFloat)vert_padding;
+			
+			the_rect = new_frame;
+		}
+		
+	}
+
+//	NSLog(@"view %@, rect:%@", the_view, NSStringFromRect(the_rect));
+	[the_view setFrame:the_rect];
+#endif
 	
 	
 }
@@ -174,6 +300,8 @@ void iupdrvBaseUnMapMethod(Ihandle* ih)
 {
 	// Why do I need this when everything else has its own UnMap method?
 	NSLog(@"iupdrvBaseUnMapMethod not implemented. Might be leaking");
+	id the_handle = ih->handle;
+	[the_handle release];
 }
 
 void iupdrvDisplayUpdate(Ihandle *ih)
@@ -192,13 +320,13 @@ void iupdrvDisplayUpdate(Ihandle *ih)
 	}
 	else if([the_handle isKindOfClass:[CALayer class]])
 	{
-		NSCAssert(1, @"CALayer not implemented");
-		@throw @"CALayer not implemented";
+		CALayer* the_layer = (CALayer*)the_handle;
+		[the_layer setNeedsDisplay];
 	}
 	else
 	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-		@throw @"Unexpected type for parent widget";
+		NSCAssert(1, @"Unexpected type for widget");
+		@throw @"Unexpected type for widget";
 	}
 
 }
@@ -221,21 +349,60 @@ int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value)
 
 void iupdrvSetVisible(Ihandle* ih, int visible)
 {
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSWindow class]])
+	{
+		// NOT IMPLEMENTED
+
+	}
+	else if([the_object isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)the_object;
+		bool is_hidden = !(bool)visible;
+		[the_view setHidden:is_hidden];
+	}
+	
 	
 }
 
 int iupdrvIsVisible(Ihandle* ih)
 {
-	return 1;
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSWindow class]])
+	{
+		// NOT IMPLEMENTED
+		return 1;
+	}
+	else if([the_object isKindOfClass:[NSView class]])
+	{
+		NSView* the_view = (NSView*)the_object;
+		return [the_view isHidden];
+	}
+	else
+	{
+		return 1;
+	}
 }
 
 int iupdrvIsActive(Ihandle *ih)
 {
-  return 1;
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSControl class]])
+	{
+		NSControl* the_control = (NSControl*)the_object;
+		return [the_control isEnabled];
+	}
+	return 1;
 }
 
 void iupdrvSetActive(Ihandle* ih, int enable)
 {
+	id the_object = ih->handle;
+	if([the_object isKindOfClass:[NSControl class]])
+	{
+		NSControl* the_control = (NSControl*)the_object;
+		[the_control setEnabled:enable];
+	}
 }
 
 char* iupdrvBaseGetXAttrib(Ihandle *ih)
@@ -281,10 +448,6 @@ int iupdrvGetScrollbarSize(void)
   return 0;
 }
 
-void iupdrvDrawFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
-{
-
-}
 
 void iupdrvBaseRegisterCommonAttrib(Iclass* ic)
 {
@@ -312,12 +475,12 @@ void iupdrvClientToScreen(Ihandle* ih, int *x, int *y)
 
 void iupdrvPostRedraw(Ihandle *ih)
 {
-
+	iupdrvDisplayUpdate(ih);
 }
 
 void iupdrvRedrawNow(Ihandle *ih)
 {
-
+	iupdrvDisplayUpdate(ih);
 }
 void iupdrvSendKey(int key, int press)
 {

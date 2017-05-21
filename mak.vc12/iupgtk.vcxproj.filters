@@ -11,7 +11,10 @@
       <UniqueIdentifier>{7549ed4b-475b-4fa5-9a74-0aa5391f0741}</UniqueIdentifier>
     </Filter>
     <Filter Include="mac">
-      <UniqueIdentifier>{1d8bc635-3a14-473b-b707-2a401b094cdf}</UniqueIdentifier>
+      <UniqueIdentifier>{e200df8d-5de2-40e2-be3d-2511fe4afe0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="unix">
+      <UniqueIdentifier>{f091f1c7-e6f8-4466-a22a-e8b932cd4443}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -105,17 +108,29 @@
     <ClCompile Include="..\src\gtk\iupgtk_val.c">
       <Filter>src_controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_str.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_draw_cairo.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\gtk\iupmac_help.c">
       <Filter>mac</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gtk\iupmac_info.c">
       <Filter>mac</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_str.c">
-      <Filter>src</Filter>
+    <ClCompile Include="..\src\mot\iupunix_info.c">
+      <Filter>unix</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_draw_cairo.c">
-      <Filter>src</Filter>
+    <ClCompile Include="..\src\gtk\iupgtk_help.c">
+      <Filter>unix</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_calendar.c">
+      <Filter>src_controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\iup_datepick.c">
+      <Filter>src_controls</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

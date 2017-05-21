@@ -32,15 +32,35 @@
 #include "iupmot_color.h"
 
 
-void iupdrvFrameGetDecorOffset(int *x, int *y)
+void iupdrvFrameGetDecorOffset(Ihandle* ih, int *x, int *y)
 {
   *x = 2;
   *y = 2;
 }
 
-int iupdrvFrameHasClientOffset(void)
+int iupdrvFrameHasClientOffset(Ihandle* ih)
 {
   return 0;
+}
+
+void iupdrvFrameGetTitleHeight(Ihandle* ih, int *h)
+{
+  int charheight;
+  iupdrvFontGetCharSize(ih, NULL, &charheight);
+  *h = charheight;
+}
+
+void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h)
+{
+  *w = 5;
+  *h = 5;
+
+  if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
+  {
+    int title_height;
+    iupdrvFrameGetTitleHeight(ih, &title_height);
+    (*h) += title_height;
+  }
 }
 
 static int motFrameSetBgColorAttrib(Ihandle* ih, const char* value)
@@ -133,9 +153,9 @@ static int motFrameSetFgColorAttrib(Ihandle* ih, const char* value)
   return 0; 
 }
 
-static int motFrameSetStandardFontAttrib(Ihandle* ih, const char* value)
+static int motFrameSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetStandardFontAttrib(ih, value);
+  iupdrvSetFontAttrib(ih, value);
 
   if (ih->handle)
   {
@@ -278,7 +298,7 @@ void iupdrvFrameInitClass(Iclass* ic)
   /* Driver Dependent Attribute functions */
 
   /* Overwrite Common */
-  iupClassRegisterAttribute(ic, "STANDARDFONT", NULL, motFrameSetStandardFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NO_SAVE|IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "FONT", NULL, motFrameSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", iupFrameGetBgColorAttrib, motFrameSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);

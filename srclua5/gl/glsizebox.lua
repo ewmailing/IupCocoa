@@ -5,7 +5,7 @@ local ctrl = {
   nick = "glsizebox",
   funcname = "GLSizeBox",
   include = "iupglcontrols.h",
-  parent = iup.WIDGET,
+  parent = iup.BOX,
   subdir = "gl",
   creation = "I",
   callback = {
@@ -13,8 +13,8 @@ local ctrl = {
 }
 
 function ctrl.createElement(class, param)
-   return iup.GLSizeBox(param[1])
+   return iup.GLSizeBox()
 end
 
 iup.RegisterWidget(ctrl)
-iup.SetClass(ctrl, "iup widget")
+iup.SetClass(ctrl, "iupWidget")

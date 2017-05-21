@@ -32,8 +32,13 @@
 
 void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
 {
-  (*x) += 16;
-  if ((*y) < 16) (*y) = 16; /* minimum height */
+  /* LAYOUT_DECORATION_ESTIMATE */
+  int check_box = 16;
+  if (iupwinGetScreenRes() > 120)
+    check_box = 26;
+
+  (*x) += check_box;
+  if ((*y) < check_box) (*y) = check_box; /* minimum height */
 
   if (str && str[0]) /* add spacing between check box and text */
   {
@@ -97,7 +102,7 @@ static void winToggleUpdateImage(Ihandle* ih, int active, int check)
       winToggleSetBitmap(ih, name, 0);
     else
     {
-      /* if not defined then automaticaly create one based on IMAGE */
+      /* if not defined then automatically create one based on IMAGE */
       name = iupAttribGet(ih, "IMAGE");
       winToggleSetBitmap(ih, name, 1); /* make_inactive */
     }
@@ -112,7 +117,7 @@ static void winToggleUpdateImage(Ihandle* ih, int active, int check)
         winToggleSetBitmap(ih, name, 0);
       else
       {
-        /* if not defined then automaticaly create one based on IMAGE */
+        /* if not defined then automatically create one based on IMAGE */
         name = iupAttribGet(ih, "IMAGE");
         winToggleSetBitmap(ih, name, 0);
       }
@@ -199,13 +204,13 @@ static void winToggleDrawImage(Ihandle* ih, HDC hDC, int rect_width, int rect_he
   x += xpad;
   y += ypad;
 
-  if (itemState & ODS_SELECTED && !iupwin_comctl32ver6)
+  if (!iupwin_comctl32ver6 && itemState & ODS_SELECTED)
   {
-    if (iupAttribGet(ih, "_IUPWIN_PRESSED"))
+    if (iupAttribGet(ih, "_IUPWINTOG_PRESSED"))
     {
       x++;
       y++;
-      iupAttribSet(ih, "_IUPWIN_PRESSED", NULL);
+      iupAttribSet(ih, "_IUPWINTOG_PRESSED", NULL);
     }
   }
 
@@ -232,11 +237,11 @@ static void winToggleDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
 
   iupwinDrawParentBackground(ih, hDC, &drawitem->rcItem);
 
-  if (!iupwin_comctl32ver6)
-  {
-    if (drawitem->itemState&ODS_SELECTED)
-      iupAttribSet(ih, "_IUPWIN_PRESSED", "1");
-  }
+  if (!iupwin_comctl32ver6 && drawitem->itemState & ODS_SELECTED)
+    iupAttribSet(ih, "_IUPWINTOG_PRESSED", "1");
+
+  if (iupAttribGet(ih, "_IUPWINTOG_ENTERWIN"))
+    drawitem->itemState |= ODS_HOTLIGHT;
 
   check = winToggleGetCheck(ih);
   if (check)
@@ -246,13 +251,13 @@ static void winToggleDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
 
   if (!check && ih->data->flat)
   {
-    if (drawitem->itemState & ODS_HOTLIGHT || iupAttribGet(ih, "_IUPWINTOG_ENTERWIN"))
+    if (drawitem->itemState & ODS_HOTLIGHT)
       draw_border = 1;
     else
       draw_border = 0;
   }
   else
-    draw_border = 1; /* when checked, even if flat thr border is drawn */
+    draw_border = 1; /* when checked, even if flat the border is drawn */
 
   if (draw_border)
     iupwinDrawButtonBorder(ih->handle, hDC, &drawitem->rcItem, drawitem->itemState);
@@ -264,7 +269,7 @@ static void winToggleDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
       iupAttribGetBoolean(ih, "CANFOCUS"))
   {
     border--;
-    iupdrvDrawFocusRect(ih, hDC, border, border, width-2*border, height-2*border);
+    iupdrvPaintFocusRect(ih, hDC, border, border, width - 2 * border, height - 2 * border);
   }
 
   iupwinDrawDestroyBitmapDC(&bmpDC);
@@ -285,7 +290,7 @@ static int winToggleSetImageAttrib(Ihandle* ih, const char* value)
       iupdrvRedrawNow(ih);
     else
     {
-      int check = SendMessage(ih->handle, BM_GETCHECK, 0L, 0L);
+      int check = (int)SendMessage(ih->handle, BM_GETCHECK, 0L, 0L);
       winToggleUpdateImage(ih, winToggleIsActive(ih), check);
     }
     return 1;
@@ -305,7 +310,7 @@ static int winToggleSetImInactiveAttrib(Ihandle* ih, const char* value)
       iupdrvRedrawNow(ih);
     else
     {
-      int check = SendMessage(ih->handle, BM_GETCHECK, 0L, 0L);
+      int check = (int)SendMessage(ih->handle, BM_GETCHECK, 0L, 0L);
       winToggleUpdateImage(ih, winToggleIsActive(ih), check);
     }
     return 1;
@@ -325,7 +330,7 @@ static int winToggleSetImPressAttrib(Ihandle* ih, const char* value)
       iupdrvRedrawNow(ih);
     else
     {
-      int check = SendMessage(ih->handle, BM_GETCHECK, 0L, 0L);
+      int check = (int)SendMessage(ih->handle, BM_GETCHECK, 0L, 0L);
       winToggleUpdateImage(ih, winToggleIsActive(ih), check);
     }
     return 1;
@@ -349,7 +354,7 @@ static int winToggleSetValueAttrib(Ihandle* ih, const char* value)
     check = BST_UNCHECKED;
 
   /* This is necessary because Windows does not handle the radio state 
-     when a toggle is programatically changed. */
+     when a toggle is programmatically changed. */
   radio = iupRadioFindToggleParent(ih);
   if (radio)
   {
@@ -411,7 +416,7 @@ static int winToggleSetActiveAttrib(Ihandle* ih, const char* value)
     else
     {
       int active = iupStrBoolean(value);
-      int check = SendMessage(ih->handle, BM_GETCHECK, 0, 0L);
+      int check = (int)SendMessage(ih->handle, BM_GETCHECK, 0, 0L);
       if (active)
         iupAttribSet(ih, "_IUPWIN_ACTIVE", "YES");
       else
@@ -590,6 +595,8 @@ static int winToggleWmCommand(Ihandle* ih, WPARAM wp, LPARAM lp)
   switch (HIWORD(wp))
   {
   case BN_DOUBLECLICKED:
+    if (iupAttribGetBoolean(ih, "IGNOREDOUBLECLICK"))
+      return 0;
   case BN_CLICKED:
     {
       Ihandle *radio;
@@ -678,7 +685,7 @@ static int winToggleMapMethod(Ihandle* ih)
     return IUP_ERROR;
 
   if (radio)
-    ih->data->radio = 1;
+    ih->data->is_radio = 1;
 
   value = iupAttribGet(ih, "IMAGE");
   if (value)
@@ -704,7 +711,7 @@ static int winToggleMapMethod(Ihandle* ih)
   if (iupAttribGetBoolean(ih, "CANFOCUS"))
     dwStyle |= WS_TABSTOP;
 
-  if (radio)
+  if (ih->data->is_radio)
   {
     if (!ownerdraw)
       dwStyle |= BS_RADIOBUTTON;
@@ -714,6 +721,10 @@ static int winToggleMapMethod(Ihandle* ih)
       /* this is the first toggle in the radio, and then set it with VALUE=ON */
       iupAttribSet(ih, "VALUE","ON");
     }
+
+    /* make sure it has at least one name */
+    if (!iupAttribGetHandleName(ih))
+      iupAttribSetHandleName(ih);
   }
   else if (!ownerdraw)
   {

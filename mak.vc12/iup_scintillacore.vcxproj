@@ -40,10 +40,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\x64\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lib\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\lib\Debug_64\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\obj\Debug\iup_scintilla\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_x64\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\obj\Debug_64\$(ProjectName)\</IntDir>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
@@ -92,8 +92,15 @@
   <ItemGroup>
     <CustomBuildStep Include="..\include\iup_scintilla.h" />
     <ClInclude Include="..\include\iup_scintilla.h" />
+    <ClInclude Include="..\srcscintilla\include\ILexer.h" />
+    <ClInclude Include="..\srcscintilla\include\Platform.h" />
+    <ClInclude Include="..\srcscintilla\include\SciLexer.h" />
+    <ClInclude Include="..\srcscintilla\include\Scintilla.h" />
+    <ClInclude Include="..\srcscintilla\include\ScintillaWidget.h" />
+    <ClInclude Include="..\srcscintilla\include\Sci_Position.h" />
     <ClInclude Include="..\srcscintilla\iupsci.h" />
     <ClInclude Include="..\srcscintilla\lexlib\CharacterCategory.h" />
+    <ClInclude Include="..\srcscintilla\lexlib\StringCopy.h" />
     <ClInclude Include="..\srcscintilla\lexlib\SubStyles.h" />
     <ClInclude Include="..\srcscintilla\src\AutoComplete.h" />
     <ClInclude Include="..\srcscintilla\src\CallTip.h" />
@@ -116,6 +123,7 @@
     <ClInclude Include="..\srcscintilla\src\MarginView.h" />
     <ClInclude Include="..\srcscintilla\src\Partitioning.h" />
     <ClInclude Include="..\srcscintilla\src\PerLine.h" />
+    <ClInclude Include="..\srcscintilla\src\Position.h" />
     <ClInclude Include="..\srcscintilla\src\PositionCache.h" />
     <ClInclude Include="..\srcscintilla\src\RESearch.h" />
     <ClInclude Include="..\srcscintilla\src\RunStyles.h" />
@@ -160,12 +168,19 @@
     <ClCompile Include="..\srcscintilla\iupsci_text.c" />
     <ClCompile Include="..\srcscintilla\iupsci_whitespace.c" />
     <ClCompile Include="..\srcscintilla\iupsci_wordwrap.c" />
+    <ClCompile Include="..\srcscintilla\lexers\LexBatch.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexBibTeX.cxx" />
+    <ClCompile Include="..\srcscintilla\lexers\LexDiff.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexDMAP.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexDMIS.cxx" />
+    <ClCompile Include="..\srcscintilla\lexers\LexErrorList.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexHex.cxx" />
+    <ClCompile Include="..\srcscintilla\lexers\LexJSON.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexKVIrc.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexLaTeX.cxx" />
+    <ClCompile Include="..\srcscintilla\lexers\LexMake.cxx" />
+    <ClCompile Include="..\srcscintilla\lexers\LexNull.cxx" />
+    <ClCompile Include="..\srcscintilla\lexers\LexProps.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexRegistry.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexRust.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexSTTXT.cxx" />
@@ -252,7 +267,6 @@
     <ClCompile Include="..\srcscintilla\lexers\LexNsis.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexOpal.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexOScript.cxx" />
-    <ClCompile Include="..\srcscintilla\lexers\LexOthers.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexPascal.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexPB.cxx" />
     <ClCompile Include="..\srcscintilla\lexers\LexPerl.cxx" />

@@ -29,6 +29,8 @@
 
 #include "iupcocoa_drv.h"
 
+static const CGFloat kIupCocoaDefaultWidthNSButton = 1.0;
+static const CGFloat kIupCocoaDefaultHeightNSButton = 32.0;
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY";
@@ -81,6 +83,32 @@ static const void* IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_BUTTON_RECEIVE
 
 
 
+void iupdrvButtonAddBorders(int *x, int *y)
+{
+	NSLog(@"iupdrvButtonAddBorders in <%d, %d>", *x, *y);
+	
+	
+	if(*y < (int)kIupCocoaDefaultHeightNSButton)
+	{
+		*y = (int)kIupCocoaDefaultHeightNSButton;
+//		*y = (int)22;
+
+	}
+//	*x += 4; // a regular label seems to get 2 padding on each size
+//	*x += 36; // the difference between a label and push button is 36 in Interface Builder
+
+	*x += 27;
+	
+	/*
+	NSView* the_view = (NSView*)ih->handle;
+	NSRect view_frame = [the_view frame];
+	*x = view_frame.size.width;
+	*y = view_frame.size.height;
+	
+	*/
+	NSLog(@"iupdrvButtonAddBorders frame <%d, %d>", *x, *y);
+
+}
 
 static int cocoaButtonMapMethod(Ihandle* ih)
 {
@@ -183,6 +211,7 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	}
 #else
 
+	/*
 	static int woffset = 0;
 	static int hoffset = 0;
 	
@@ -190,8 +219,9 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	hoffset += 30;
 //	ih->data->type = 0;
 	
-//	NSButton* the_button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	NSButton* the_button = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
+	 NSButton* the_button = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
+	*/
+	NSButton* the_button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	
 	
 
@@ -239,10 +269,15 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	{
 		[the_button setButtonType:NSMomentaryLightButton];
 		[the_button setBezelStyle:NSRoundedBezelStyle];
+		
 
 		
 
 	}
+	
+	// Interface builder defaults to 13pt, but programmatic is smaller (12?). Setting the font fixes that difference.
+	[the_button setFont:[NSFont systemFontOfSize:0]];
+
 #endif
 //	[the_button setButtonType:NSMomentaryLightButton];
 
@@ -251,7 +286,17 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	if(value && *value!=0)
 	{
 		ih->data->type |= IUP_BUTTON_TEXT;
-		NSString* ns_string = [NSString stringWithUTF8String:value];
+		
+		char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
+		
+		// This will return nil if the string can't be converted.
+		NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
+		
+		if(stripped_str && stripped_str != value)
+		{
+			free(stripped_str);
+		}
+		
 		[the_button setTitle:ns_string];
 		if(ih->data->type & IUP_BUTTON_IMAGE)
 		{
@@ -316,16 +361,13 @@ static void cocoaButtonUnMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_button, IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 	[butten_receiver release];
 	
+	iupCocoaRemoveFromParent(ih);
+
 	[the_button release];
 	ih->handle = NULL;
 	
 }
 
-void iupdrvButtonAddBorders(int *x, int *y)
-{
-
-	
-}
 
 void iupdrvButtonInitClass(Iclass* ic)
 {

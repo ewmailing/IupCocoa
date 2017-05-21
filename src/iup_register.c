@@ -73,6 +73,17 @@ void iupRegisterClass(Iclass* ic)
   iupTableSet(iregister_table, ic->name, (void*)ic, IUPTABLE_POINTER);
 }
 
+void iupRegisterUpdateClasses(void)
+{
+  char* name = iupTableFirst(iregister_table);
+  while (name)
+  {
+    Iclass* ic = (Iclass*)iupTableGetCurr(iregister_table);
+    iupClassUpdate(ic);
+    name = iupTableNext(iregister_table);
+  }
+}
+
 
 /***************************************************************/
 
@@ -85,6 +96,8 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupFontDlgNewClass());
   iupRegisterClass(iupFileDlgNewClass());
   iupRegisterClass(iupProgressDlgNewClass());
+  iupRegisterClass(iupParamBoxNewClass());
+  iupRegisterClass(iupParamNewClass());
 
   iupRegisterClass(iupTimerNewClass());
   iupRegisterClass(iupImageNewClass());
@@ -119,6 +132,8 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupMultilineNewClass());
   iupRegisterClass(iupListNewClass());
   iupRegisterClass(iupFlatButtonNewClass());
+  iupRegisterClass(iupCalendarNewClass());
+  iupRegisterClass(iupDatePickNewClass());
 
   iupRegisterClass(iupProgressBarNewClass());
   iupRegisterClass(iupValNewClass());
@@ -130,5 +145,8 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupBackgroundBoxNewClass());
   iupRegisterClass(iupLinkNewClass());
   iupRegisterClass(iupGridBoxNewClass());
+  iupRegisterClass(iupAnimatedLabelNewClass());
+  iupRegisterClass(iupFlatFrameNewClass());
+  iupRegisterClass(iupFlatTabsNewClass());
 #endif
 }

@@ -17,4 +17,9 @@
       <UniqueIdentifier>{75c2ef43-b9cf-4259-b0ee-b93eac7bb388}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\srcscintilla\include\ScintillaWidget.h">
+      <Filter>Scintilla</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

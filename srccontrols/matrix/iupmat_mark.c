@@ -185,9 +185,11 @@ static void iMatrixMarkBlock(Ihandle* ih, int lin1, int col1, int lin2, int col2
   }
 }
 
-void iupMatrixMarkBlockEnd(Ihandle* ih, int lin2, int col2)
+void iupMatrixMarkBlockInc(Ihandle* ih, int lin2, int col2)
 {
-  /* called only when "shift" is pressed and MARKMULTIPLE=YES */
+  /* called only when "shift" is pressed or click and drag 
+     and MARKMULTIPLE=YES.
+     Called many times for each selection increase. */
   IFniii markedit_cb = NULL;
   IFnii mark_cb = NULL;
 
@@ -245,9 +247,11 @@ void iupMatrixMarkBlockReset(Ihandle* ih)
 
   ih->data->mark_full1 = 0;
   ih->data->mark_full2 = 0;
+
+  ih->data->mark_block = 0;
 }
 
-void iupMatrixMarkBlockBegin(Ihandle* ih, int ctrl, int lin1, int col1)
+void iupMatrixMarkBlockSet(Ihandle* ih, int ctrl, int lin1, int col1)
 {
   int mark = 1, mark_full_all, lin, col;
   IFniii markedit_cb = NULL;
@@ -327,6 +331,7 @@ void iupMatrixMarkBlockBegin(Ihandle* ih, int ctrl, int lin1, int col1)
 
   ih->data->mark_lin1 = lin1;
   ih->data->mark_col1 = col1;
+  ih->data->mark_block = 1;
 }
 
 static void iMatrixMarkAllLinCol(ImatLinColData *p, int mark)

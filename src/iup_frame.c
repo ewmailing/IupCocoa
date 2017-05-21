@@ -23,17 +23,16 @@
 int iupFrameGetTitleHeight(Ihandle* ih)
 {
   int charheight;
-  iupdrvFontGetCharSize(ih, NULL, &charheight);
+  iupdrvFrameGetTitleHeight(ih, &charheight);
   return charheight;
 }
 
-static void iFrameGetDecorSize(Ihandle* ih, int *width, int *height)
+static void iFrameGetDecorSize(Ihandle* ih, int *w, int *h)
 {
-  *width  = 5;
-  *height = 5;
-
-  if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
-    (*height) += iupFrameGetTitleHeight(ih);
+  int decorwidth, decorheight;
+  iupdrvFrameGetDecorSize(ih, &decorwidth, &decorheight);
+  *w = decorwidth;
+  *h = decorheight;
 }
 
 char* iupFrameGetBgColorAttrib(Ihandle* ih)
@@ -64,9 +63,9 @@ static char* iFrameGetClientOffsetAttrib(Ihandle* ih)
   /* In Windows the position of the child is still
   relative to the top-left corner of the frame.
   So we must manually add the decorations. */
-  if (!iupdrvFrameHasClientOffset())
+  if (!iupdrvFrameHasClientOffset(ih))
   {
-    iupdrvFrameGetDecorOffset(&dx, &dy);
+    iupdrvFrameGetDecorOffset(ih, &dx, &dy);
 
     if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
       dy += iupFrameGetTitleHeight(ih);
@@ -137,10 +136,10 @@ static void iFrameSetChildrenPositionMethod(Ihandle* ih, int x, int y)
     /* In Windows the position of the child is still
     relative to the top-left corner of the frame.
     So we must manually add the decorations. */
-    if (iupdrvFrameHasClientOffset())
+    if (iupdrvFrameHasClientOffset(ih))
     {
       int dx = 0, dy = 0;
-      iupdrvFrameGetDecorOffset(&dx, &dy);
+      iupdrvFrameGetDecorOffset(ih, &dx, &dy);
 
       if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
         dy += iupFrameGetTitleHeight(ih);

@@ -1,0 +1,17 @@
+
+Using static libraries:
+
+  gcc -o sample.exe sample.c -I../../../include -L../../../lib/mingw4_64 -liup -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lcomctl32
+
+Using dynamic libraries:
+
+  gcc -o sample.exe sample.c -I../../../include -L../../../lib/dllw4_64 -liup
+
+Using dynamic libraries with no console:
+
+  gcc -Wl,-subsystem,windows -o sample.exe sample.c -I../../../include -L../../../lib/dllw4_64 -liupstub -liup
+
+Adding a resource file:
+
+  windres -D TEC_64 -O coff -o iup.res ../../../etc/iup.rc
+  gcc -Wl,-subsystem,windows -o sample.exe sample.c iup.res -I../../../include -L../../../lib/dllw4_64 -liupstub -liup

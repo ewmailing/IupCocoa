@@ -1,6 +1,8 @@
 #ifndef _MGL_CONFIG_H_
 #define _MGL_CONFIG_H_
 
+#define MGL_VER2 	3.5	// minor version of MathGL 2.* (like 1.3 for v.2.1.3)
+
 #define MGL_USE_DOUBLE	1
 
 #ifdef WIN32	// a man ask to use built-in font under Windows
@@ -13,12 +15,14 @@
 #define MGL_SYS_NAN		0
 #define MGL_HAVE_TYPEOF	0
 #define MGL_HAVE_PTHREAD	0
+#define MGL_HAVE_PTHR_WIDGET	0
 #define MGL_HAVE_ATTRIBUTE	0
 #define MGL_HAVE_C99_COMPLEX	0
 #else
 #define MGL_HAVE_TYPEOF	0
 #define MGL_SYS_NAN		0
 #define MGL_HAVE_PTHREAD	0
+#define MGL_HAVE_PTHR_WIDGET	0
 #define MGL_HAVE_ATTRIBUTE	0
 #define MGL_HAVE_C99_COMPLEX	0
 #endif

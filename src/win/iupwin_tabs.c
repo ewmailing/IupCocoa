@@ -27,7 +27,7 @@
 #include "iup_image.h"
 #include "iup_array.h"
 #include "iup_assert.h"
-#include "iup_draw.h"
+#include "iup_drvdraw.h"
 #include "iup_childtree.h"
 
 #include "iupwin_drv.h"
@@ -46,7 +46,6 @@
 static void winTabsInitializeCloseImage(void)
 {
   Ihandle *image_close;
-  COLORREF bgcolor;
 
   unsigned char img_close[ITABS_CLOSE_SIZE * ITABS_CLOSE_SIZE] =
   {
@@ -71,8 +70,7 @@ static void winTabsInitializeCloseImage(void)
 
   image_close = IupImage(ITABS_CLOSE_SIZE, ITABS_CLOSE_SIZE, img_close);
   IupSetAttribute(image_close, "0", "BGCOLOR");
-  bgcolor = GetSysColor(COLOR_HIGHLIGHT);
-  IupSetRGB(image_close, "1", GetRValue(bgcolor), GetGValue(bgcolor), GetBValue(bgcolor));
+  IupSetStrAttribute(image_close, "1", IupGetGlobal("TXTHLCOLOR"));
   IupSetHandle("IMGCLOSEHIGH", image_close);
 }
 
@@ -316,8 +314,8 @@ void iupdrvTabsSetCurrentTab(Ihandle* ih, int pos)
   int p = winTabsPosFixToWin(ih, pos);
   if (p >= 0)
   {
-    int prev_pos = iupdrvTabsGetCurrentTab(ih);
-    HWND tab_container = winTabsGetPageWindow(ih, prev_pos);
+    int curr_pos = iupdrvTabsGetCurrentTab(ih);
+    HWND tab_container = winTabsGetPageWindow(ih, curr_pos);
     if (tab_container)
       ShowWindow(tab_container, SW_HIDE);
 
@@ -576,7 +574,7 @@ static void winTabsDeleteItem(Ihandle* ih, int p, HWND tab_container)
 /* winTabs - Sets and Gets Attrib                                           */
 /* ------------------------------------------------------------------------- */
 
-static int winTabsSetPaddingAttrib(Ihandle* ih, const char* value)
+static int winTabsSetTabPaddingAttrib(Ihandle* ih, const char* value)
 {
   iupStrToIntInt(value, &ih->data->horiz_padding, &ih->data->vert_padding, 'x');
 
@@ -827,13 +825,13 @@ static int winTabsWmNotify(Ihandle* ih, NMHDR* msg_info, int *result)
   {
     IFnnn cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
     int prev_pos = iupdrvTabsGetCurrentTab(ih);
-    iupAttribSetInt(ih, "_IUPTABS_PREV_CHILD_POS", prev_pos);
+    iupAttribSetInt(ih, "_IUPWINTABS_PREV_CHILD_POS", prev_pos);
 
     /* save the previous handle if callback exists */
     if (cb)
     {
       Ihandle* prev_child = IupGetChild(ih, prev_pos);
-      iupAttribSet(ih, "_IUPTABS_PREV_CHILD", (char*)prev_child);
+      iupAttribSet(ih, "_IUPWINTABS_PREV_CHILD", (char*)prev_child);
     }
 
     return 0;
@@ -843,19 +841,19 @@ static int winTabsWmNotify(Ihandle* ih, NMHDR* msg_info, int *result)
   {
     IFnnn cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
     int pos = iupdrvTabsGetCurrentTab(ih);
-    int prev_pos = iupAttribGetInt(ih, "_IUPTABS_PREV_CHILD_POS");
+    int prev_pos = iupAttribGetInt(ih, "_IUPWINTABS_PREV_CHILD_POS");
+
     HWND tab_container = winTabsGetPageWindow(ih, pos);
-    if (tab_container)
-      ShowWindow(tab_container, SW_SHOW);
-    tab_container = winTabsGetPageWindow(ih, prev_pos);
-    if (tab_container)
-      ShowWindow(tab_container, SW_HIDE);
+    HWND prev_tab_container = winTabsGetPageWindow(ih, prev_pos);
+
+    if (tab_container) ShowWindow(tab_container, SW_SHOW);   /* show new page, if any */
+    if (prev_tab_container) ShowWindow(prev_tab_container, SW_HIDE); /* hide previous page, if any */
 
     if (cb)
     {
       Ihandle* child = IupGetChild(ih, pos);
-      Ihandle* prev_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_PREV_CHILD");
-      iupAttribSet(ih, "_IUPTABS_PREV_CHILD", NULL);
+      Ihandle* prev_child = (Ihandle*)iupAttribGet(ih, "_IUPWINTABS_PREV_CHILD");
+      iupAttribSet(ih, "_IUPWINTABS_PREV_CHILD", NULL);
 
       /* avoid duplicate calls when a Tab is inside another Tab. */
       if (prev_child)
@@ -931,8 +929,8 @@ static int winTabsMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT *
       TCHITTESTINFO ht;
       int p, high_p, press_p;
 
-      ht.pt.x = (int)(short)LOWORD(lp);
-      ht.pt.y = (int)(short)HIWORD(lp);
+      ht.pt.x = GET_X_LPARAM(lp);
+      ht.pt.y = GET_Y_LPARAM(lp);
       p = (int)SendMessage(ih->handle, TCM_HITTEST, 0, (LPARAM)&ht);
 
       high_p = iupAttribGetInt(ih, "_IUPTABS_CLOSEHIGH");
@@ -970,8 +968,8 @@ static int winTabsMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT *
       TCHITTESTINFO ht;
       int p;
 
-      ht.pt.x = (int)(short)LOWORD(lp);
-      ht.pt.y = (int)(short)HIWORD(lp);
+      ht.pt.x = GET_X_LPARAM(lp);
+      ht.pt.y = GET_Y_LPARAM(lp);
       p = (int)SendMessage(ih->handle, TCM_HITTEST, 0, (LPARAM)&ht);
 
       if (p >= 0 && winTabsIsInsideCloseButton(ih, p))
@@ -1240,7 +1238,7 @@ static void winTabsDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
 
   /* If the item has the focus, draw the focus rectangle */
   if (drawitem->itemState & ODS_FOCUS)
-    iupdrvDrawFocusRect(ih, hDC, 0, 0, width, height);
+    iupdrvPaintFocusRect(ih, hDC, 0, 0, width, height);
 
   iupwinDrawDestroyBitmapDC(&bmpDC);
 }
@@ -1251,7 +1249,8 @@ static void winTabsDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
 
 static void winTabsChildAddedMethod(Ihandle* ih, Ihandle* child)
 {
-  if (IupGetName(child) == NULL)
+  /* make sure it has at least one name */
+  if (!iupAttribGetHandleName(child))
     iupAttribSetHandleName(child);
 
   if (ih->handle)
@@ -1278,6 +1277,7 @@ static void winTabsChildRemovedMethod(Ihandle* ih, Ihandle* child, int pos)
       int p = winTabsGetPageWindowPos(ih, tab_container);
 
       iupTabsCheckCurrentTab(ih, pos, 1);
+
       winTabsDeleteVisibleArrayItem(ih, pos);
       if (p != -1) winTabsDeleteItem(ih, p, tab_container);
 
@@ -1442,7 +1442,7 @@ void iupdrvTabsInitClass(Iclass* ic)
   iupClassRegisterAttributeId(ic, "TABTITLE", iupTabsGetTitleAttrib, winTabsSetTabTitleAttrib, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TABIMAGE", NULL, winTabsSetTabImageAttrib, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TABVISIBLE", iupTabsGetTabVisibleAttrib, winTabsSetTabVisibleAttrib, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "PADDING", iupTabsGetPaddingAttrib, winTabsSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TABPADDING", iupTabsGetTabPaddingAttrib, winTabsSetTabPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
 
   /* necessary because transparent background does not work when not using visual styles */
   if (!iupwin_comctl32ver6)  /* Used by iupdrvImageCreateImage */

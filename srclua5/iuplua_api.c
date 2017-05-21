@@ -190,7 +190,7 @@ static int GetAllNames(lua_State *L)
 
 static int GetAllAttributes(lua_State *L)
 {
-  int n, i, max_n = (int)luaL_optinteger(L, 1, 0);
+  int n, i, max_n = (int)luaL_optinteger(L, 2, 0);
   char **names;
   if (!max_n) max_n = IupGetAllAttributes(iuplua_checkihandle(L,1), NULL, 0);
   names = (char **) malloc (max_n * sizeof(char *));
@@ -389,6 +389,22 @@ static int Help(lua_State *L)
   return 0;
 }
 
+static int Execute(lua_State *L)
+{
+  const char *filename = luaL_checkstring(L, 1);
+  const char *parameters = luaL_optstring(L, 2, NULL);
+  IupExecute(filename, parameters);
+  return 0;
+}
+
+static int ExecuteWait(lua_State *L)
+{
+  const char *filename = luaL_checkstring(L, 1);
+  const char *parameters = luaL_optstring(L, 2, NULL);
+  IupExecuteWait(filename, parameters);
+  return 0;
+}
+
 static int Hide(lua_State *L)
 {
   Ihandle *ih = iuplua_checkihandle(L,1);
@@ -469,14 +485,6 @@ static int Unmap(lua_State *L)
   return 0;
 }
 
-static int MapFont(lua_State *L)
-{
-  const char *font = luaL_checkstring(L,1);
-  const char *nfont = IupMapFont(font);
-  lua_pushstring(L, nfont);
-  return 1;
-}
-
 static int Message(lua_State *L)
 {
   const char *title = luaL_checkstring(L,1);
@@ -505,9 +513,9 @@ static int ListDialog(lua_State *L)
   int i, ret;
 
   if (!marks && type==2)
-    luaL_argerror(L, 9, "invalid marks, must not be nil.");
+    luaL_argerror(L, 9, "Invalid marks, must not be nil.");
   if (marks && type==2 && size != iuplua_getn(L, 8))
-    luaL_argerror(L, 9, "invalid number of elements in the marks.");
+    luaL_argerror(L, 9, "Invalid number of elements in the marks.");
 
   ret = IupListDialog(type, luaL_checkstring(L, 2), 
                             size, 
@@ -537,15 +545,19 @@ static int ListDialog(lua_State *L)
 
 static int GetText(lua_State *L)
 {
-  char buffer[10240];
+  char* buffer;
   const char *title = luaL_checkstring(L,1);
   const char *text = luaL_checkstring(L,2);
-  iupStrCopyN(buffer, 10240, text);
-  if (IupGetText(title, buffer))
+  int maxsize = (int)luaL_optinteger(L, 3, 10240);
+  buffer = malloc(maxsize+1);
+  iupStrCopyN(buffer, maxsize, text);
+  if (IupGetText(title, buffer, maxsize))
   {
     lua_pushstring(L, buffer);
+    free(buffer);
     return 1;
   }
+  free(buffer);
   return 0;
 }
 
@@ -560,7 +572,7 @@ static int NextField(lua_State *L)
 static int PreviousField(lua_State *L)
 {
   Ihandle *h1 = iuplua_checkihandle(L,1);
-  Ihandle *h2 = IupNextField(h1);
+  Ihandle *h2 = IupPreviousField(h1);
   iuplua_pushihandle(L,h2);
   return 1;
 }
@@ -577,7 +589,7 @@ static int Popup(lua_State *L)
 static int cf_isprint(lua_State *L)
 {
   int value = (int)luaL_checkinteger(L, 1);
-  lua_pushinteger(L, iup_isprint(value));
+  lua_pushboolean(L, iup_isprint(value));
   return 1;
 }
 
@@ -1001,15 +1013,6 @@ static int StoreGlobal(lua_State *L)
   return 0;
 }
 
-static int UnMapFont (lua_State *L)
-{
-  const char *s = luaL_checkstring(L,1);
-  const char *n = IupUnMapFont(s);
-  lua_pushstring(L,n);
-  return 1;
-}
-
-
 /*****************************************************************************
 * iupluaapi_open                                                               *
 ****************************************************************************/
@@ -1048,6 +1051,8 @@ void iupluaapi_open(lua_State * L)
     {"GetLanguage", GetLanguage},
     {"GetName", GetName},
     {"Help", Help},
+    {"Execute", Execute},
+    {"ExecuteWait", ExecuteWait},
     {"Hide", Hide},
     {"Load", Load},
     {"LoadBuffer", LoadBuffer},
@@ -1060,7 +1065,6 @@ void iupluaapi_open(lua_State * L)
     {"MainLoopLevel", MainLoopLevel},
     {"Map", Map},
     {"Unmap", Unmap},
-    {"MapFont", MapFont},
     {"Message", Message},
     {"Alarm", Alarm},  
     {"ListDialog", ListDialog},
@@ -1108,7 +1112,6 @@ void iupluaapi_open(lua_State * L)
     {"ShowXY", ShowXY},
     {"StoreAttribute", StoreAttribute},
     {"StoreGlobal", StoreGlobal},
-    {"UnMapFont", UnMapFont},
     {"Scanf", iupluaScanf},
     {"isprint", cf_isprint},
     {"isxkey", cf_isxkey},
@@ -1134,7 +1137,6 @@ void iupluaapi_open(lua_State * L)
     {NULL, NULL},
   };
 
-  /* "iup" table is already at the top of the stack */
-  luaL_register(L, NULL, funcs);
+  /* iup table is already at the top of the stack */
+  iuplua_register_funcs(L, funcs);
 }
-

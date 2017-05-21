@@ -19,7 +19,11 @@
 
 #include "iupcocoa_drv.h"
 
+#import "IupAppDelegate.h"
+
+
 static NSAutoreleasePool* s_autoreleasePool = nil;
+static IupAppDelegate* s_appDelegate = nil;
 
 #if 0
 char* iupmacGetNativeWindowHandle(Ihandle* ih)
@@ -90,7 +94,18 @@ int iupdrvOpen(int *argc, char ***argv)
 	[window makeKeyAndOrderFront:nil];
 	 */
 //	[NSApp activateIgnoringOtherApps:YES];
+	if(nil == s_appDelegate)
+	{
+		s_appDelegate = [[IupAppDelegate alloc] init];
+	}
+	[NSApp setDelegate:s_appDelegate];
+
 	
+	// TODO: Is it possible to support 10.12 automatic window tabbing?
+	if([NSWindow respondsToSelector:@selector(setAllowsAutomaticWindowTabbing:)])
+	{
+		[NSWindow setAllowsAutomaticWindowTabbing:NO];
+	}
 	
 	
   IupSetGlobal("DRIVER", "MAC");
@@ -101,12 +116,23 @@ int iupdrvOpen(int *argc, char ***argv)
 
   IupSetGlobal("_IUP_RESET_GLOBALCOLORS", "YES");  /* will update the global colors when the first dialog is mapped */
 
+
+	// Not sure if this is the correct thing to do, but the IupTests have a check to for UTF8MODE. All the NSStrings in this implementation use UTF8String and the non-UTF8MODE tests crash.
+	
+	IupSetInt(NULL, "UTF8MODE", 1);
+
   return IUP_NOERROR;
 }
 
 void iupdrvClose(void)
 {
-
+	// My current understanding is that IUP will not clean up our application menu Ihandles. So we need to do it ourselves.
+	// By this point, IUP has already cleanup up all its pointers and our code is finally running.
+	iupCocoaMenuCleanupApplicationMenu();
+	
+	[s_appDelegate release];
+	s_appDelegate = nil;
+	
 	// Hmmm...there could a problem. Objects might get called to be Destroyed after the close.
 	// They shouldn't do this.
 	// But if it happens, maybe we either never drain and do a dispatch_once.

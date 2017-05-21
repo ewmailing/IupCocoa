@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------------
 local ctrl = {
   nick = "submenu",
-  parent = iup.WIDGET,
+  parent = iup.BOX,
   subdir = "elem",
   creation = "SI",
   callback = {
@@ -13,7 +13,7 @@ local ctrl = {
 } 
 
 function ctrl.createElement(class, param)
-  return iup.Submenu(param.title, param[1])
+  return iup.Submenu(param.title)
 end
    
 iup.RegisterWidget(ctrl)

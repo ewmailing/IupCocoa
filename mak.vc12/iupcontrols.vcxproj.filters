@@ -18,37 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\iupcb.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupcells.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupcolorbar.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\iupcontrols.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupdial.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupgauge.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupmask.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupmatrix.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iuptabs.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iuptree.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\iupval.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\srccontrols\iup_controls.h">
@@ -148,7 +118,6 @@
     <ClCompile Include="..\srccontrols\iup_controls.c" />
     <ClCompile Include="..\srccontrols\iup_dial.c" />
     <ClCompile Include="..\srccontrols\iup_gauge.c" />
-    <ClCompile Include="..\srccontrols\iup_oldmask.c" />
     <ClCompile Include="..\srccontrols\matrix\iupmat_ex.c">
       <Filter>matrix</Filter>
     </ClCompile>

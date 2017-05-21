@@ -21,17 +21,18 @@
 #include "iup_image.h"
 #include "iup_stdcontrols.h"
 #include "iup_register.h"
-#include "iup_draw.h"
+#include "iup_drvdraw.h"
 #include "iup_key.h"
 
 
 /* from IupRadio implementation */
 Ihandle *iupRadioFindToggleParent(Ihandle* ih_toggle);
 
-enum{IUP_IMGPOS_LEFT, IUP_IMGPOS_RIGHT, IUP_IMGPOS_TOP, IUP_IMGPOS_BOTTOM};
 
 struct _IcontrolData 
 {
+  iupCanvas canvas;  /* from IupCanvas (must reserve it) */
+
   /* attributes */
   int horiz_padding, vert_padding;  /* button margin */
   int spacing, img_position;        /* used when both text and image are displayed */
@@ -40,63 +41,13 @@ struct _IcontrolData
 
   /* aux */
   int has_focus,
-    highlight,
+    highlighted,
     pressed;
 };
 
 
 /****************************************************************/
 
-
-static void iFlatButtonDrawBorder(IdrawCanvas* dc, int xmin, int xmax, int ymin, int ymax, int border_width, const char* color, char* bgcolor, int active)
-{
-  unsigned char r = 0, g = 0, b = 0;
-
-  if (!color || border_width == 0 || xmin == xmax || ymin == ymax)
-    return;
-
-  if (xmin > xmax) { int _t = xmin; xmin = xmax; xmax = _t; }
-  if (ymin > ymax) { int _t = ymin; ymin = ymax; ymax = _t; }
-
-  iupStrToRGB(color, &r, &g, &b);
-  if (!active)
-  {
-    unsigned char bg_r = 0, bg_g = 0, bg_b = 0;
-    iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
-    iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-  }
-
-  iupDrawRectangle(dc, xmin, ymin, xmax, ymax, r, g, b, IUP_DRAW_STROKE);
-  while (border_width > 1)
-  {
-    border_width--;
-    iupDrawRectangle(dc, xmin + border_width, 
-                         ymin + border_width, 
-                         xmax - border_width, 
-                         ymax - border_width, r, g, b, IUP_DRAW_STROKE);
-  } 
-}
-
-static void iFlatButtonDrawBox(IdrawCanvas* dc, int xmin, int xmax, int ymin, int ymax, const char* color, char* bgcolor, int active)
-{
-  unsigned char r = 0, g = 0, b = 0;
-
-  if (!color || xmin == xmax || ymin == ymax)
-    return;
-
-  if (xmin > xmax) { int _t = xmin; xmin = xmax; xmax = _t; }
-  if (ymin > ymax) { int _t = ymin; ymin = ymax; ymax = _t; }
-
-  iupStrToRGB(color, &r, &g, &b);
-  if (!active)
-  {
-    unsigned char bg_r = 0, bg_g = 0, bg_b = 0;
-    iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
-    iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-  }
-
-  iupDrawRectangle(dc, xmin, ymin, xmax, ymax, r, g, b, IUP_DRAW_FILL);
-}
 
 static char* iFlatButtonMakeImageName(Ihandle* ih, const char* baseattrib, const char* state)
 {
@@ -106,9 +57,9 @@ static char* iFlatButtonMakeImageName(Ihandle* ih, const char* baseattrib, const
   return iupAttribGet(ih, attrib);
 }
 
-static const char* iFlatButtonGetImageName(Ihandle* ih, const char* baseattrib, const char* basename, int active, int *make_inactive)
+static const char* iFlatButtonGetImageName(Ihandle* ih, const char* baseattrib, const char* imagename, int active, int *make_inactive)
 {
-  const char* imagename = NULL;
+  const char* new_imagename = NULL;
 
   *make_inactive = 0;
 
@@ -117,191 +68,32 @@ static const char* iFlatButtonGetImageName(Ihandle* ih, const char* baseattrib, 
     if (active)
     {
       if (ih->data->pressed)
-        imagename = iFlatButtonMakeImageName(ih, baseattrib, "PRESS");
+        new_imagename = iFlatButtonMakeImageName(ih, baseattrib, "PRESS");
       else
       {
-        if (ih->data->highlight)
-          imagename = iFlatButtonMakeImageName(ih, baseattrib, "HIGHLIGHT");
+        if (ih->data->highlighted)
+          new_imagename = iFlatButtonMakeImageName(ih, baseattrib, "HIGHLIGHT");
       }
     }
     else
     {
-      imagename = iFlatButtonMakeImageName(ih, baseattrib, "INACTIVE");
-      if (!imagename)
+      new_imagename = iFlatButtonMakeImageName(ih, baseattrib, "INACTIVE");
+      if (!new_imagename)
         *make_inactive = 1;
     }
   }
 
-  if (imagename)
-    return imagename;
+  if (new_imagename)
+    return new_imagename;
   else
-    return basename;
+    return imagename;
 }
 
 static void iFlatButtonDrawImage(Ihandle* ih, IdrawCanvas* dc, int x, int y, const char* baseattrib, const char* imagename, int active)
 {
-  int img_w, img_h;
   int make_inactive;
   const char* name = iFlatButtonGetImageName(ih, baseattrib, imagename, active, &make_inactive);
-  iupDrawImage(dc, name, make_inactive, x, y, &img_w, &img_h);
-}
-
-void iFlatButtonDrawText(Ihandle* ih, IdrawCanvas* dc, int x, int y, const char* str, const char* color, const char* bgcolor, int active)
-{
-  unsigned char r = 0, g = 0, b = 0;
-
-  if (!color || !str || str[0] == 0)
-    return;
-
-  iupStrToRGB(color, &r, &g, &b);
-  if (!active)
-  {
-    unsigned char bg_r = 0, bg_g = 0, bg_b = 0;
-    iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
-    iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-  }
-
-  iupDrawText(dc, str, (int)strlen(str), x, y, r, g, b, IupGetAttribute(ih, "FONT"));
-}
-
-static void iFlatButtonGetIconPosition(Ihandle* ih, int icon_width, int icon_height, int *x, int *y, int width, int height)
-{
-  if (ih->data->horiz_alignment == IUP_ALIGN_ARIGHT)
-    *x = icon_width - (width + 2 * ih->data->horiz_padding);
-  else if (ih->data->horiz_alignment == IUP_ALIGN_ACENTER)
-    *x = (icon_width - (width + 2 * ih->data->horiz_padding)) / 2;
-  else  /* ALEFT */
-    *x = 0;
-
-  if (ih->data->vert_alignment == IUP_ALIGN_ABOTTOM)
-    *y = icon_height - (height + 2 * ih->data->vert_padding);
-  else if (ih->data->vert_alignment == IUP_ALIGN_ACENTER)
-    *y = (icon_height - (height + 2 * ih->data->vert_padding)) / 2;
-  else  /* ATOP */
-    *y = 0;
-
-  *x += ih->data->horiz_padding;
-  *y += ih->data->vert_padding;
-}
-
-static void iFlatButtonGetImageTextPosition(int x, int y, int img_position, int spacing,
-                                            int img_width, int img_height, int txt_width, int txt_height,
-                                            int *img_x, int *img_y, int *txt_x, int *txt_y)
-{
-  switch (img_position)
-  {
-  case IUP_IMGPOS_TOP:
-    *img_y = y;
-    *txt_y = y + img_height + spacing;
-    if (img_width > txt_width)
-    {
-      *img_x = x;
-      *txt_x = x + (img_width - txt_width) / 2;
-    }
-    else
-    {
-      *img_x = x + (txt_width - img_width) / 2;
-      *txt_x = x;
-    }
-    break;
-  case IUP_IMGPOS_BOTTOM:
-    *img_y = y + txt_height + spacing;
-    *txt_y = y;
-    if (img_width > txt_width)
-    {
-      *img_x = x;
-      *txt_x = x + (img_width - txt_width) / 2;
-    }
-    else
-    {
-      *img_x = x + (txt_width - img_width) / 2;
-      *txt_x = x;
-    }
-    break;
-  case IUP_IMGPOS_RIGHT:
-    *img_x = x + txt_width + spacing;
-    *txt_x = x;
-    if (img_height > txt_height)
-    {
-      *img_y = y;
-      *txt_y = y + (img_height - txt_height) / 2;
-    }
-    else
-    {
-      *img_y = y + (txt_height - img_height) / 2;
-      *txt_y = y;
-    }
-    break;
-  default: /* IUP_IMGPOS_LEFT (image at left of text) */
-    *img_x = x;
-    *txt_x = x + img_width + spacing;
-    if (img_height > txt_height)
-    {
-      *img_y = y;
-      *txt_y = y + (img_height - txt_height) / 2;
-    }
-    else
-    {
-      *img_y = y + (txt_height - img_height) / 2;
-      *txt_y = y;
-    }
-    break;
-  }
-}
-
-static void iFlatButtonDrawIcon(Ihandle* ih, IdrawCanvas* dc, int icon_x, int icon_y, int icon_width, int icon_height,
-                                const char *baseattrib, const char* imagename, const char* title, const char* fgcolor, const char* bgcolor, int active)
-{
-  int x, y, width, height;
-
-  if (imagename)
-  {
-    if (title)
-    {
-      int img_x, img_y, txt_x, txt_y;
-      int txt_width, txt_height;
-      int img_width, img_height;
-
-      iupdrvFontGetMultiLineStringSize(ih, title, &txt_width, &txt_height);
-      iupImageGetInfo(imagename, &img_width, &img_height, NULL);
-
-      if (ih->data->img_position == IUP_IMGPOS_RIGHT || ih->data->img_position == IUP_IMGPOS_LEFT)
-      {
-        width = img_width + txt_width + ih->data->spacing;
-        height = iupMAX(img_height, txt_height);
-      }
-      else
-      {
-        width = iupMAX(img_width, txt_width);
-        height = img_height + txt_height + ih->data->spacing;
-      }
-
-      iFlatButtonGetIconPosition(ih, icon_width, icon_height, &x, &y, width, height);
-
-      iFlatButtonGetImageTextPosition(x, y, ih->data->img_position, ih->data->spacing,
-                                      img_width, img_height, txt_width, txt_height,
-                                      &img_x, &img_y, &txt_x, &txt_y);
-
-      iFlatButtonDrawImage(ih, dc, img_x + icon_x, img_y + icon_y, baseattrib, imagename, active);
-      iFlatButtonDrawText(ih, dc, txt_x + icon_x, txt_y + icon_y, title, fgcolor, bgcolor, active);
-    }
-    else
-    {
-      iupImageGetInfo(imagename, &width, &height, NULL);
-
-      iFlatButtonGetIconPosition(ih, icon_width, icon_height, &x, &y, width, height);
-
-      iFlatButtonDrawImage(ih, dc, x + icon_x, y + icon_y, baseattrib, imagename, active);
-    }
-  }
-  else if (title)
-  {
-    iupdrvFontGetMultiLineStringSize(ih, title, &width, &height);
-
-    iFlatButtonGetIconPosition(ih, icon_width, icon_height, &x, &y, width, height);
-
-    iFlatButtonDrawText(ih, dc, x + icon_x, y + icon_y, title, fgcolor, bgcolor, active);
-  }
+  iupdrvDrawImage(dc, name, make_inactive, x, y);
 }
 
 static int iFlatButtonRedraw_CB(Ihandle* ih)
@@ -317,9 +109,10 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
   int border_width = ih->data->border_width;
   int draw_border = 0;
   int old_pressed = ih->data->pressed;
-  IdrawCanvas* dc = iupDrawCreateCanvas(ih);
-  
-  iupDrawParentBackground(dc);
+  IdrawCanvas* dc = iupdrvDrawCreateCanvas(ih);
+  int make_inactive = 0;
+
+  iupdrvDrawParentBackground(dc);
 
   if (!bgcolor)
     bgcolor = iupBaseNativeParentGetBgColorAttrib(ih);
@@ -335,7 +128,7 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
     if (!ih->data->pressed && (bgimage || image))
       ih->data->pressed = 1;
   }
-  else if (ih->data->highlight)
+  else if (ih->data->highlighted)
   {
     char* hlcolor = iupAttribGetStr(ih, "HLCOLOR");
     if (hlcolor)
@@ -348,7 +141,21 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
   if (draw_border)
   {
     char* bordercolor = iupAttribGetStr(ih, "BORDERCOLOR");
-    iFlatButtonDrawBorder(dc, 0, ih->currentwidth - 1, 
+    if (ih->data->pressed || selected)
+    {
+      char* presscolor = iupAttribGetStr(ih, "BORDERPSCOLOR");
+      if (presscolor)
+        bordercolor = presscolor;
+    }
+    else if (ih->data->highlighted)
+    {
+      char* hlcolor = iupAttribGetStr(ih, "BORDERHLCOLOR");
+      if (hlcolor)
+        bordercolor = hlcolor;
+    }
+
+
+    iupFlatDrawBorder(dc, 0, ih->currentwidth - 1, 
                               0, ih->currentheight - 1, 
                               border_width, bordercolor, bgcolor, active);
   }
@@ -357,24 +164,25 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
   if (bgimage)
     iFlatButtonDrawImage(ih, dc, border_width, border_width, "BACKIMAGE", bgimage, active);
   else
-    iFlatButtonDrawBox(dc, border_width, ih->currentwidth - 1 - border_width,
+    iupFlatDrawBox(dc, border_width, ih->currentwidth - 1 - border_width,
                            border_width, ih->currentheight - 1 - border_width,
                            bgcolor, NULL, 1);  /* always active */
 
-  iFlatButtonDrawIcon(ih, dc, border_width, border_width,
-                              ih->currentwidth - 2 * border_width, ih->currentheight - 2 * border_width,
-                              "IMAGE", image, title, fgcolor, bgcolor, active);
+  iupFlatDrawIcon(ih, dc, border_width, border_width,
+                  ih->currentwidth - 2 * border_width, ih->currentheight - 2 * border_width,
+                  ih->data->img_position, ih->data->spacing, ih->data->horiz_alignment, ih->data->vert_alignment, ih->data->horiz_padding, ih->data->vert_padding,
+                  iFlatButtonGetImageName(ih, "IMAGE", image, active, &make_inactive), make_inactive, title, fgcolor, bgcolor, active);
 
   if (fgimage)
     iFlatButtonDrawImage(ih, dc, border_width, border_width, "FRONTIMAGE", fgimage, active);
   else if (!image && !title)
   {
     int space = border_width + 2;
-    iFlatButtonDrawBorder(dc, space, ih->currentwidth - 1 - space,
+    iupFlatDrawBorder(dc, space, ih->currentwidth - 1 - space,
                               space, ih->currentheight - 1 - space,
                               1, "0 0 0", bgcolor, active);
     space++;
-    iFlatButtonDrawBox(dc, space, ih->currentwidth - 1 - space,
+    iupFlatDrawBox(dc, space, ih->currentwidth - 1 - space,
                            space, ih->currentheight - 1 - space,
                            fgcolor, bgcolor, active);
   }
@@ -384,11 +192,11 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
     ih->data->pressed = 0;
 
   if (ih->data->has_focus)
-    iupDrawFocusRect(dc, border_width, border_width, ih->currentwidth - 2 * border_width, ih->currentheight - 2 * border_width);
+    iupdrvDrawFocusRect(dc, border_width, border_width, ih->currentwidth - border_width, ih->currentheight - border_width);
 
-  iupDrawFlush(dc);
+  iupdrvDrawFlush(dc);
 
-  iupDrawKillCanvas(dc);
+  iupdrvDrawKillCanvas(dc);
 
   return IUP_DEFAULT;
 }
@@ -522,7 +330,7 @@ static int iFlatButtonEnterWindow_CB(Ihandle* ih)
       return IUP_DEFAULT;
   }
 
-  ih->data->highlight = 1;
+  ih->data->highlighted = 1;
   iupdrvRedrawNow(ih);
 
   return IUP_DEFAULT;
@@ -537,7 +345,7 @@ static int iFlatButtonLeaveWindow_CB(Ihandle* ih)
       return IUP_DEFAULT;
   }
 
-  ih->data->highlight = 0;
+  ih->data->highlighted = 0;
   iupdrvRedrawNow(ih);
 
   return IUP_DEFAULT;
@@ -560,19 +368,8 @@ static int iFlatButtonSetAlignmentAttrib(Ihandle* ih, const char* value)
 
   iupStrToStrStr(value, value1, value2, ':');
 
-  if (iupStrEqualNoCase(value1, "ARIGHT"))
-    ih->data->horiz_alignment = IUP_ALIGN_ARIGHT;
-  else if (iupStrEqualNoCase(value1, "ALEFT"))
-    ih->data->horiz_alignment = IUP_ALIGN_ALEFT;
-  else /* "ACENTER" */
-    ih->data->horiz_alignment = IUP_ALIGN_ACENTER;
-
-  if (iupStrEqualNoCase(value2, "ABOTTOM"))
-    ih->data->vert_alignment = IUP_ALIGN_ABOTTOM;
-  else if (iupStrEqualNoCase(value2, "ATOP"))
-    ih->data->vert_alignment = IUP_ALIGN_ATOP;
-  else /* "ACENTER" */
-    ih->data->vert_alignment = IUP_ALIGN_ACENTER;
+ ih->data->horiz_alignment = iupFlatGetHorizontalAlignment(value1);
+ ih->data->vert_alignment = iupFlatGetVerticalAlignment(value2);
 
   if (ih->handle)
     iupdrvRedrawNow(ih);
@@ -619,14 +416,7 @@ static char* iFlatButtonGetPaddingAttrib(Ihandle* ih)
 
 static int iFlatButtonSetImagePositionAttrib(Ihandle* ih, const char* value)
 {
-  if (iupStrEqualNoCase(value, "RIGHT"))
-    ih->data->img_position = IUP_IMGPOS_RIGHT;
-  else if (iupStrEqualNoCase(value, "BOTTOM"))
-    ih->data->img_position = IUP_IMGPOS_BOTTOM;
-  else if (iupStrEqualNoCase(value, "TOP"))
-    ih->data->img_position = IUP_IMGPOS_TOP;
-  else /* "LEFT" */
-    ih->data->img_position = IUP_IMGPOS_LEFT;
+  ih->data->img_position = iupFlatGetImagePosition(value);
 
   if (ih->handle)
     iupdrvRedrawNow(ih);
@@ -726,6 +516,21 @@ static char* iFlatButtonGetRadioAttrib(Ihandle* ih)
     return NULL;
 }
 
+static char* iFlatButtonGetHighlightedAttrib(Ihandle* ih)
+{
+  return iupStrReturnBoolean(ih->data->highlighted);
+}
+
+static char* iFlatButtonGetPressedAttrib(Ihandle* ih)
+{
+  return iupStrReturnBoolean(ih->data->pressed);
+}
+
+static char* iFlatButtonGetHasFocusAttrib(Ihandle* ih)
+{
+  return iupStrReturnBoolean(ih->data->has_focus);
+}
+
 
 /*****************************************************************************************/
 
@@ -774,6 +579,10 @@ static int iFlatButtonMapMethod(Ihandle* ih)
         /* this is the first toggle in the radio, and then set it with VALUE=ON */
         iupAttribSet(ih, "VALUE", "ON");
       }
+
+      /* make sure it has at least one name */
+      if (!iupAttribGetHandleName(ih))
+        iupAttribSetHandleName(ih);
     }
   }
   return IUP_NOERROR;
@@ -869,8 +678,14 @@ Iclass* iupFlatButtonNewClass(void)
   iupClassRegisterAttribute(ic, "ALIGNMENT", iFlatButtonGetAlignmentAttrib, iFlatButtonSetAlignmentAttrib, "ACENTER:ACENTER", NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "PADDING", iFlatButtonGetPaddingAttrib, iFlatButtonSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "SPACING", iFlatButtonGetSpacingAttrib, iFlatButtonSetSpacingAttrib, IUPAF_SAMEASSYSTEM, "2", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "IGNORERADIO", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "HIGHLIGHTED", iFlatButtonGetHighlightedAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "PRESSED", iFlatButtonGetPressedAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "HASFOCUS", iFlatButtonGetHasFocusAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "BORDERCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "50 150 255", IUPAF_DEFAULT);  /* inheritable */
+  iupClassRegisterAttribute(ic, "BORDERPSCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
+  iupClassRegisterAttribute(ic, "BORDERHLCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "BORDERWIDTH", iFlatButtonGetBorderWidthAttrib, iFlatButtonSetBorderWidthAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, NULL, "DLGFGCOLOR", NULL, IUPAF_NOT_MAPPED);  /* force the new default value */
   iupClassRegisterAttribute(ic, "BGCOLOR", iFlatButtonGetBgColorAttrib, iFlatButtonSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);

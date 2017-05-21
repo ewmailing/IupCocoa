@@ -30,8 +30,8 @@ int iupMatrixMarkCellGet(Ihandle* ih, int lin, int col, IFnii mark_cb);
 int iupMatrixColumnIsMarked(Ihandle* ih, int col);
 int iupMatrixLineIsMarked  (Ihandle* ih, int lin);
 
-void iupMatrixMarkBlockEnd(Ihandle* ih, int lin2, int col2);
-void iupMatrixMarkBlockBegin(Ihandle* ih, int ctrl, int lin1, int col1);
+void iupMatrixMarkBlockSet(Ihandle* ih, int ctrl, int lin1, int col1);
+void iupMatrixMarkBlockInc(Ihandle* ih, int lin2, int col2);
 void iupMatrixMarkBlockReset(Ihandle* ih);
 
 

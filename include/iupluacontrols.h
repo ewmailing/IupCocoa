@@ -17,7 +17,6 @@ int iupcontrolslua_open (void);
 
 #ifdef LUA_TNONE  /* Lua 5 */
 int iupcontrolslua_open (lua_State * L);
-int iupcontrolslua_close(lua_State * L);
 #endif
 
 #ifdef __cplusplus

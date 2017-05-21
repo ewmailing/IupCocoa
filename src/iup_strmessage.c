@@ -18,6 +18,7 @@
 #include "iup_str.h"
 #include "iup_strmessage.h"
 #include "iup_table.h"
+#include "iup_register.h"
 
 
 static void iStrMessageRegisterInternal(int lng, int utf8mode);
@@ -103,7 +104,6 @@ typedef struct _IstdMessage
   const char* lng_str[ISRTMSG_NUM_LNG];
 } IstdMessage;
 
-static int istrmessage_lng = 0;
 
 /* When seeing this file assuming ISO8859-1 encoding, lng=1 will appear correct.
    When seeing this file assuming UTF-8 encoding, lng=2 will appear correct. */
@@ -124,6 +124,7 @@ static IstdMessage iStdMessages[] =
   {"IUP_SELECTDIR", {"Select Directory", "Selecionar Diretório", "Selecionar DiretÃ³rio", NULL}},
   {"IUP_OK", {"OK", "OK", NULL, NULL}},
   {"IUP_CANCEL", {"Cancel", "Cancelar", NULL, NULL}},
+  {"IUP_RETRY", {"Retry", "Tentar Novamente", NULL, NULL}},
   {"IUP_APPLY", {"Apply", "Aplicar", NULL, NULL}},
   {"IUP_RESET", {"Reset", "Reinicializar", NULL, NULL}},
   {"IUP_GETCOLOR", {"Color Selection", "Seleção de Cor", "SeleÃ§Ã£o de Cor", NULL}},
@@ -156,11 +157,13 @@ static void iStrMessageRegisterInternal(int lng, int utf8mode)
       IupSetLanguageString(messages->name, messages->lng_str[lng]);
     messages++;
   }
-  istrmessage_lng = lng;
 }
+
 
 void iupStrMessageUpdateLanguage(const char* language)
 {
+  /* called after the global attribute is changed */
+
   int lng = 0;  /* ENGLISH */
   int utf8mode = IupGetInt(NULL, "UTF8MODE");
   if (iupStrEqualNoCase(language, "PORTUGUESE"))
@@ -170,6 +173,7 @@ void iupStrMessageUpdateLanguage(const char* language)
     else
       lng = 1;
   }
-  if (lng != istrmessage_lng)
-    iStrMessageRegisterInternal(lng, utf8mode);
+
+  iStrMessageRegisterInternal(lng, utf8mode);
+  iupRegisterUpdateClasses();
 }

@@ -8,7 +8,6 @@
 #include <lauxlib.h>
 
 #include "iup.h"
-#include "iupcontrols.h"
 
 #include "iuplua.h"
 #include "il.h"
@@ -25,10 +24,10 @@
 /* iup.TREEREFTABLE[object at pos] = ref */
 static void tree_settableref(lua_State *L, int pos, int ref)
 {
-  lua_getglobal(L, iuplua_getglobaltable());
+  iuplua_get_env(L);
   lua_pushstring(L, "TREEREFTABLE");
   lua_gettable(L, -2);
-  lua_remove(L, -2); /* remove "iup" from stack */
+  lua_remove(L, -2); /* remove iup table from stack */
 
   lua_pushvalue(L, pos);
   if(ref == LUA_NOREF)
@@ -42,10 +41,10 @@ static void tree_settableref(lua_State *L, int pos, int ref)
 /* ref = iup.TREEREFTABLE[object at pos] */
 static int tree_gettableref(lua_State *L, int pos)
 {
-  lua_getglobal(L, iuplua_getglobaltable());
+  iuplua_get_env(L);
   lua_pushstring(L, "TREEREFTABLE");
   lua_gettable(L, -2);
-  lua_remove(L, -2); /* remove "iup" from stack */
+  lua_remove(L, -2); /* remove iup table from stack */
 
   lua_pushvalue(L, pos);
   lua_gettable(L, -2);
@@ -100,7 +99,7 @@ static int TreeGetId(lua_State *L)
 static int TreeGetUserId(lua_State *L)
 {  
   Ihandle *ih = iuplua_checkihandle(L,1);
-  int id = luaL_checkinteger(L,2);
+  int id = (int)luaL_checkinteger(L,2);
   tree_push_userid(L, IupTreeGetUserId(ih, id));
   return 1;
 }
@@ -108,7 +107,7 @@ static int TreeGetUserId(lua_State *L)
 static int TreeSetUserId(lua_State *L)
 {  
   Ihandle *ih = iuplua_checkihandle(L,1);
-  int id = luaL_checkinteger(L,2);
+  int id = (int)luaL_checkinteger(L, 2);
   int ref = (int)IupTreeGetUserId(ih, id);
   if (ref != 0) /* userid is not NULL */
   {

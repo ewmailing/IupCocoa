@@ -44,14 +44,17 @@ void IupPlotAddStrSamples(Ihandle* ih, int ds_index, const char** x, double* y, 
 void IupPlotGetSample(Ihandle* ih, int ds_index, int sample_index, double *x, double *y);
 void IupPlotGetSampleStr(Ihandle* ih, int ds_index, int sample_index, const char* *x, double *y);
 int  IupPlotGetSampleSelection(Ihandle* ih, int ds_index, int sample_index);
+double IupPlotGetSampleExtra(Ihandle* ih, int ds_index, int sample_index);
 void IupPlotSetSample(Ihandle* ih, int ds_index, int sample_index, double x, double y);
 void IupPlotSetSampleStr(Ihandle* ih, int ds_index, int sample_index, const char* x, double y);
 void IupPlotSetSampleSelection(Ihandle* ih, int ds_index, int sample_index, int selected);
+void IupPlotSetSampleExtra(Ihandle* ih, int ds_index, int sample_index, double extra);
 
 void IupPlotTransform(Ihandle* ih, double x, double y, double *cnv_x, double *cnv_y);
 void IupPlotTransformTo(Ihandle* ih, double cnv_x, double cnv_y, double *x, double *y);
 
 int  IupPlotFindSample(Ihandle* ih, double cnv_x, double cnv_y, int *ds_index, int *sample_index);
+int  IupPlotFindSegment(Ihandle* ih, double cnv_x, double cnv_y, int *ds_index, int *sample_index1, int *sample_index2);
 
 struct _cdCanvas;
 

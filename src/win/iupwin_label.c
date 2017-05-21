@@ -304,6 +304,16 @@ static int winLabelMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT 
       iupwinButtonUp(ih, msg, wp, lp);
       break;
     }
+  case WM_MOUSEMOVE:
+  {
+    if (iupwinMouseMove(ih, msg, wp, lp))
+    {
+      /* refresh the cursor, it could have been changed in MOTION_CB */
+      iupwinRefreshCursor(ih);
+    }
+
+    break; /* let iupwinBaseMsgProc process enter/leavewin */
+  }
   case WM_NCCALCSIZE:
     {
       if (wp == TRUE)
@@ -311,6 +321,16 @@ static int winLabelMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT 
         *result = WVR_HREDRAW|WVR_VREDRAW;
         return 1;
       }
+      break;
+    }
+  case WM_NCHITTEST:
+    {
+      if (iupAttribGetBoolean(ih, "HTTRANSPARENT"))
+      {
+        *result = HTTRANSPARENT;
+        return 1;
+      }
+
       break;
     }
   }
@@ -395,6 +415,9 @@ void iupdrvLabelInitClass(Iclass* ic)
   /* IupLabel Windows and GTK only */
   iupClassRegisterAttribute(ic, "WORDWRAP", NULL, winLabelSetWordWrapAttrib, NULL, NULL, IUPAF_DEFAULT);
   iupClassRegisterAttribute(ic, "ELLIPSIS", NULL, winLabelSetEllipsisAttrib, NULL, NULL, IUPAF_DEFAULT);
+
+  /* IupLabel Windows only */
+  iupClassRegisterAttribute(ic, "HTTRANSPARENT", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 
   /* Not Supported */
   iupClassRegisterAttribute(ic, "MARKUP", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);

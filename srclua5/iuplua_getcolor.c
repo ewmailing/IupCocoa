@@ -1,5 +1,5 @@
 /** \file
- * \brief IupGetColor bindig to Lua 5.
+ * \brief IupGetColor binding to Lua 5.
  *
  * See Copyright Notice in "iup.h"
  */
@@ -17,8 +17,8 @@
  
 static int GetColor(lua_State *L)
 {
-  int x = luaL_checkinteger(L,1);
-  int y = luaL_checkinteger(L,2);
+  int x = (int)luaL_checkinteger(L,1);
+  int y = (int)luaL_checkinteger(L, 2);
   unsigned char r = (unsigned char) luaL_optnumber(L,3,0);
   unsigned char g = (unsigned char) luaL_optnumber(L,4,0);
   unsigned char b = (unsigned char) luaL_optnumber(L,5,0);

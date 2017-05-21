@@ -38,7 +38,8 @@ static int winButtonGetBorder(void)
 
 void iupdrvButtonAddBorders(int *x, int *y)
 {
-  int border_size = winButtonGetBorder()*2;
+  /* LAYOUT_DECORATION_ESTIMATE */
+  int border_size = winButtonGetBorder() * 2;
   (*x) += border_size;
   (*y) += border_size;
 }
@@ -230,7 +231,7 @@ static void winButtonDrawImageText(Ihandle* ih, HDC hDC, int rect_width, int rec
   }
 
   if (ih->data->horiz_alignment == IUP_ALIGN_ACENTER)
-    style |= DT_CENTER;  /* let DrawText do the internal horizontal alignment, usefull for multiple lines */
+    style |= DT_CENTER;  /* let DrawText do the internal horizontal alignment, useful for multiple lines */
   else if (ih->data->horiz_alignment == IUP_ALIGN_ARIGHT)
     style |= DT_RIGHT;
 
@@ -295,7 +296,7 @@ static void winButtonDrawText(Ihandle* ih, HDC hDC, int rect_width, int rect_hei
     y = winButtonCalcAlignPosY(ih->data->vert_alignment, rect_height, height, ypad, shift);
 
     if (ih->data->horiz_alignment == IUP_ALIGN_ACENTER)
-      style |= DT_CENTER;  /* let DrawText do the internal horizontal alignment, usefull for multiple lines */
+      style |= DT_CENTER;  /* let DrawText do the internal horizontal alignment, useful for multiple lines */
     else if (ih->data->horiz_alignment == IUP_ALIGN_ARIGHT)
       style |= DT_RIGHT;
 
@@ -319,6 +320,7 @@ static void winButtonDrawText(Ihandle* ih, HDC hDC, int rect_width, int rect_hei
 
 static void winButtonDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
 { 
+  int has_border = 1;
   HDC hDC;
   iupwinBitmapDC bmpDC;
   int border, draw_border;
@@ -337,11 +339,17 @@ static void winButtonDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
   if (iupAttribGet(ih, "_IUPWINBUT_SELECTED"))
     drawitem->itemState |= ODS_SELECTED;
 
+  if (iupAttribGet(ih, "_IUPWINBUT_ENTERWIN"))
+    drawitem->itemState |= ODS_HOTLIGHT;
+
   border = winButtonGetBorder();
 
-  if (ih->data->type&IUP_BUTTON_IMAGE && 
-      iupAttribGet(ih, "IMPRESS") && 
+  if (ih->data->type & IUP_BUTTON_IMAGE &&
+      iupAttribGet(ih, "IMPRESS") &&
       !iupAttribGetBoolean(ih, "IMPRESSBORDER"))
+    has_border = 0;
+
+  if (!has_border)
   {
     draw_border = 0;
   }
@@ -349,7 +357,7 @@ static void winButtonDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
   {
     if (iupAttribGetBoolean(ih, "FLAT"))
     {
-      if (drawitem->itemState & ODS_HOTLIGHT || iupAttribGet(ih, "_IUPWINBUT_ENTERWIN"))
+      if (drawitem->itemState & ODS_HOTLIGHT)
         draw_border = 1;
       else
         draw_border = 0;
@@ -373,7 +381,7 @@ static void winButtonDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
       iupAttribGetBoolean(ih, "CANFOCUS"))
   {
     border--;
-    iupdrvDrawFocusRect(ih, hDC, border, border, width-2*border, height-2*border);
+    iupdrvPaintFocusRect(ih, hDC, border, border, width - 2 * border, height - 2 * border);
   }
 
   iupwinDrawDestroyBitmapDC(&bmpDC);
@@ -564,7 +572,10 @@ static int winButtonMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT
       iupwinButtonUp(ih, msg, wp, lp);
       
       if (!iupObjectCheck(ih))
-        break;
+      {
+        *result = 0;
+        return 1;
+      }
 
       if (msg==WM_LBUTTONUP)
       {
@@ -606,29 +617,25 @@ static int winButtonMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT
     }
     break;
   case WM_MOUSELEAVE:
-    if (!iupwin_comctl32ver6 && iupAttribGetBoolean(ih, "FLAT"))
-    {
-      iupAttribSet(ih, "_IUPWINBUT_ENTERWIN", NULL);
-      iupdrvRedrawNow(ih);
-    }
-    if (iupAttribGet(ih, "_IUPWINBUT_SELECTED"))
-    {
-      iupAttribSet(ih, "_IUPWINBUT_SELECTED", NULL);
-      iupdrvRedrawNow(ih);
-    }
+    iupAttribSet(ih, "_IUPWINBUT_SELECTED", NULL);
+    iupAttribSet(ih, "_IUPWINBUT_ENTERWIN", NULL);
+    iupdrvRedrawNow(ih);
     break;
   case WM_MOUSEMOVE:
-    if (!iupwin_comctl32ver6 && iupAttribGetBoolean(ih, "FLAT"))
+    if ((!iupwin_comctl32ver6 && iupAttribGetBoolean(ih, "FLAT")) ||
+        !iupAttribGetBoolean(ih, "CANFOCUS"))
     {
       if (!iupAttribGet(ih, "_IUPWINBUT_ENTERWIN"))
       {
-        /* this will not affect the process in iupwinBaseMsgProc*/
+        if (!iupAttribGetBoolean(ih, "CANFOCUS") && LOWORD(wp) & MK_LBUTTON)
+          iupAttribSet(ih, "_IUPWINBUT_SELECTED", "1");
+
+        /* this will not affect the process in iupwinBaseMsgProc */
 
         /* must be called so WM_MOUSELEAVE will be called */
         iupwinTrackMouseLeave(ih);
 
         iupAttribSet(ih, "_IUPWINBUT_ENTERWIN", "1");
-
         iupdrvRedrawNow(ih);
       }
     }
@@ -666,21 +673,26 @@ static int winButtonWmCommand(Ihandle* ih, WPARAM wp, LPARAM lp)
   case BN_DOUBLECLICKED:
   case BN_CLICKED:
     {
-      Icallback cb = IupGetCallback(ih, "ACTION");
-      if (cb)
+      /* BN_CLICKED will NOT be notified when not receiving the focus, but sometimes it does, 
+         so we added a test here also */
+      if (iupAttribGetBoolean(ih, "CANFOCUS"))
       {
-        /* to avoid double calls when pressing enter and a dialog is displayed */
-        if (!iupAttribGet(ih, "_IUPBUT_INSIDE_ACTION"))  
+        Icallback cb = IupGetCallback(ih, "ACTION");
+        if (cb)
         {
-          int ret;
-          iupAttribSet(ih, "_IUPBUT_INSIDE_ACTION", "1");
+          /* to avoid double calls when pressing enter and a dialog is displayed */
+          if (!iupAttribGet(ih, "_IUPBUT_INSIDE_ACTION"))  
+          {
+            int ret;
+            iupAttribSet(ih, "_IUPBUT_INSIDE_ACTION", "1");
 
-          ret = cb(ih);
-          if (ret == IUP_CLOSE)
-            IupExitLoop();
+            ret = cb(ih);
+            if (ret == IUP_CLOSE)
+              IupExitLoop();
 
-          if (ret!=IUP_IGNORE && iupObjectCheck(ih))
-            iupAttribSet(ih, "_IUPBUT_INSIDE_ACTION", NULL);
+            if (ret!=IUP_IGNORE && iupObjectCheck(ih))
+              iupAttribSet(ih, "_IUPBUT_INSIDE_ACTION", NULL);
+          }
         }
       }
     }
