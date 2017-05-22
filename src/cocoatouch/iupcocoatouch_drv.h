@@ -19,7 +19,7 @@ UIWindow* cocoaTouchFindCurrentWindow();
 UIViewController* cocoaTouchFindCurrentRootViewController();
 UINavigationController* cocoaTouchFindCurrentRootNavigationViewController();
 
-UIColor *iupCocoaTouchToNativeColor(char *inColor);
+UIColor *iupCocoaTouchToNativeColor(const char *inColor);
 char *iupCocoaTouchColorFromNative(UIColor *color);
 	
 void iupCocoaTouchAddToParent(Ihandle* ih);

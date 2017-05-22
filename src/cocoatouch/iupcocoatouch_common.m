@@ -161,7 +161,7 @@ void iupCocoaTouchRemoveFromParent(Ihandle* ih)
 	}
 }
 
-UIColor *iupCocoaTouchToNativeColor(char *iColor)
+UIColor *iupCocoaTouchToNativeColor(const char *iColor)
 {
 	unsigned char r, g, b, a;
 	if (iupStrToRGBA(iColor, &r, &g, &b, &a))
