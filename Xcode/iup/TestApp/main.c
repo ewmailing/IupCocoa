@@ -556,6 +556,18 @@ static int time_cb(void)
 	IupSetfAttribute(progressbar2, "VALUE", "%g", (double)value);
 	return IUP_DEFAULT;
 }
+
+void ProgressbarTest2(void)
+{
+	Ihandle* pb1 = IupProgressBar();
+	IupSetAttribute(pb1, "ORIENTATION", "VERTICAL");
+	IupSetAttribute(pb1, "EXPAND", "YES");
+
+	Ihandle* dlg = IupDialog(pb1);
+	IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
+
+	
+}
 void ProgressbarTest(void)
 {
 	Ihandle *dlg, *vbox, *hbox;
@@ -1459,7 +1471,16 @@ static int OnQuitMenuCallback(Ihandle* the_object)
 void AppMenuTest()
 {
 	Ihandle* label1 = IupLabel("Main menu test");
+
+	//	Ihandle* label1 = IupText(NULL);
+//	IupSetStrAttribute(label1, "VALUE", "Main menu test");
+
+//	Ihandle* frame = IupFrame(label1);
+	
+//	Ihandle* vb = IupVbox(label1, NULL);
 	Ihandle* dialog = IupDialog(label1);
+//	Ihandle* dialog = IupDialog(vb);
+//	Ihandle* dialog = IupDialog(frame);
 
 	
 
@@ -1551,8 +1572,9 @@ void IupEntryPoint()
 {
 //	GridTest();
 //	ListAndModalWindowTest();
-//	ListTextButtonLabelTest();
-	AppMenuTest();
+	ListTextButtonLabelTest();
+//	AppMenuTest();
+//	ProgressbarTest2();
 }
 
 int main(int argc, char* argv[])
