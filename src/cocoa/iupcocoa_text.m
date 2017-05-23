@@ -32,6 +32,34 @@
 #include "iupcocoa_drv.h"
 
 
+typedef enum
+{
+	IupCocoaTextSubType_UNKNOWN = -1,
+	IUPCOCOATEXTSUBTYPE_FIELD,
+	IUPCOCOATEXTSUBTYPE_VIEW,
+	IUPCOCOATEXTSUBTYPE_STEPPER,
+} IupCocoaTextSubType;
+
+/*
+ Each IUP list subtype requires a completely different Cocoa native widget.
+ This function provides a consistent and centralized way to distinguish which subtype we need.
+ */
+static IupCocoaTextSubType cocoaTextGetSubType(Ihandle* ih)
+{
+	if(ih->data->is_multiline)
+	{
+		return IUPCOCOATEXTSUBTYPE_VIEW;
+	}
+	else if(iupAttribGetBoolean(ih, "SPIN"))
+	{
+		return IUPCOCOATEXTSUBTYPE_STEPPER;
+	}
+	else
+	{
+		return IUPCOCOATEXTSUBTYPE_FIELD;
+	}
+	return IupCocoaTextSubType_UNKNOWN;
+}
 
 static NSView* cocoaProgressBarGetRootView(Ihandle* ih)
 {
@@ -57,6 +85,23 @@ static NSTextView* cocoaTextGetTextView(Ihandle* ih)
 	NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
 	return text_view;
 }
+
+static NSTextView* cocoaTextGetStepperView(Ihandle* ih)
+{
+	NSTextField* root_container_view = (NSView*)ih->handle;
+	NSStepper* stepper_view = [[root_container_view subviews] lastObject];
+	NSCAssert([stepper_view isKindOfClass:[NSStepper class]], @"Expected NSStepper");
+	return stepper_view;
+}
+
+static NSTextView* cocoaTextGetStepperTextField(Ihandle* ih)
+{
+	NSView* root_container_view = (NSView*)ih->handle;
+	NSTextField* text_field = [[root_container_view subviews] firstObject];
+	NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+	return text_field;
+}
+
 
 // can be either TextField or TextView
 static NSView* cocoaProgressBarGetTextWidget(Ihandle* ih)
@@ -146,23 +191,38 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 		ns_string = [NSString stringWithUTF8String:value];
 	}
 	
-	
-	if(ih->data->is_multiline)
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
-		
-		NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string];
-		[[text_view textStorage] setAttributedString:attributed_string];
-		[attributed_string release];
-	}
-	else
-	{
-		NSTextField* text_field = cocoaTextGetTextField(ih);
-		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
-		[text_field setStringValue:ns_string];
-	}
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+			
+			NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string];
+			[[text_view textStorage] setAttributedString:attributed_string];
+			[attributed_string release];
 
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+			[text_field setStringValue:ns_string];
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
 	return 0;
 }
 
@@ -170,25 +230,37 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 {
 	char* value;
 	
-	if(ih->data->is_multiline)
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
-
-		NSString* ns_string = [[text_view textStorage] string];
-		value = iupStrReturnStr([ns_string UTF8String]);
-
-		
-
-	}
-	else
-	{
-		NSTextField* text_field = cocoaTextGetTextField(ih);
-		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
-		
-		NSString* ns_string = [text_field stringValue];
-		value = iupStrReturnStr([ns_string UTF8String]);
-	
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+			
+			NSString* ns_string = [[text_view textStorage] string];
+			value = iupStrReturnStr([ns_string UTF8String]);
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+			
+			NSString* ns_string = [text_field stringValue];
+			value = iupStrReturnStr([ns_string UTF8String]);
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
 	}
 	
 	if(NULL == value)
@@ -213,13 +285,34 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 		ns_string = [NSString stringWithUTF8String:value];
 	}
 	
-	if(!ih->data->is_multiline)
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextField* text_field = cocoaTextGetTextField(ih);
-		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
-		[text_field setPlaceholderString:ns_string];
-		return  1;
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+			[text_field setPlaceholderString:ns_string];
+
+			return  1;
+			
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
 	}
+	
 
 	return 0;
 }
@@ -228,32 +321,67 @@ static int cocoaTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 {
 	BOOL is_editable = (BOOL)iupStrBoolean(value);
 	
-	if(ih->data->is_multiline)
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		[text_view setEditable:is_editable];
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			[text_view setEditable:is_editable];
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			[text_field setEditable:is_editable];
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
 	}
-	else
-	{
-		NSTextField* text_field = cocoaTextGetTextField(ih);
-		[text_field setEditable:is_editable];
-	}
+	
 	return 0;
 }
 
 static char* cocoaTextGetReadOnlyAttrib(Ihandle* ih)
 {
 	int is_editable;
-	if(ih->data->is_multiline)
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		is_editable = [text_view isEditable];
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			is_editable = [text_view isEditable];
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			is_editable = [text_field isEditable];
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
 	}
-	else
-	{
-		NSTextField* text_field = cocoaTextGetTextField(ih);
-		is_editable = [text_field isEditable];
-	}
+
 	return iupStrReturnBoolean(!is_editable);
 }
 
@@ -533,6 +661,28 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	{
 		// TODO: NSStepper
 		
+//		NSView* container_view = [[NSView alloc] initWithFrame:NSZeroRect];
+		NSView* container_view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 27)];
+
+		NSRect stepper_rect = NSMakeRect(0, 0, 19, 27);
+		NSStepper* stepper_view = [[NSStepper alloc] initWithFrame:stepper_rect];
+//		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
+		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200-19, 22)];
+
+		
+		[container_view addSubview:text_field];
+		[text_field addSubview:stepper_view];
+		
+		[stepper_view release];
+		[text_field release];
+		
+		[container_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+		[text_field setAutoresizingMask:(NSViewWidthSizable)];
+
+		
+		
+		the_view = container_view;
+
 		/*
 			gtk_spin_button_set_numeric((GtkSpinButton*)ih->handle, FALSE);
 			gtk_spin_button_set_digits((GtkSpinButton*)ih->handle, 0);
