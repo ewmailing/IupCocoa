@@ -24,7 +24,7 @@
 
 #include "iupcocoatouch_drv.h"
 
-@interface MarqueeDelegate : NSObject <CALayerDelegate>
+@interface IUPProgressBarMarqueeDelegate : NSObject <CALayerDelegate>
 
 @property (unsafe_unretained) UIProgressView* progressView;
 @property (readonly) CGFloat slugWidth;
@@ -32,7 +32,7 @@
 
 @end
 
-@implementation MarqueeDelegate
+@implementation IUPProgressBarMarqueeDelegate
 
 - (CGFloat)slugWidth
 {
@@ -123,7 +123,7 @@
 @property (unsafe_unretained) NSTimer* animationTimer;
 @property CGFloat baseClassZPositionMin;
 @property CGFloat baseClassZPositionMax;
-@property (strong) MarqueeDelegate* marqueeDelegate;
+@property (strong) IUPProgressBarMarqueeDelegate* marqueeDelegate;
 
 @end
 
@@ -210,7 +210,7 @@
         }
     }
 
-    self.marqueeDelegate = [MarqueeDelegate new];
+    self.marqueeDelegate = [IUPProgressBarMarqueeDelegate new];
     self.marqueeDelegate.progressView = self;
 
     CALayer* marqueeLayer = [[CALayer alloc] init];
