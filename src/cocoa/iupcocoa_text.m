@@ -86,35 +86,22 @@ static NSTextView* cocoaTextGetTextView(Ihandle* ih)
 	return text_view;
 }
 
-static NSTextView* cocoaTextGetStepperView(Ihandle* ih)
+static NSStepper* cocoaTextGetStepperView(Ihandle* ih)
 {
-	NSTextField* root_container_view = (NSView*)ih->handle;
-	NSStepper* stepper_view = [[root_container_view subviews] lastObject];
+	NSStackView* root_container_view = (NSStackView*)ih->handle;
+	NSStepper* stepper_view = [[root_container_view views] lastObject];
 	NSCAssert([stepper_view isKindOfClass:[NSStepper class]], @"Expected NSStepper");
 	return stepper_view;
 }
 
 static NSTextView* cocoaTextGetStepperTextField(Ihandle* ih)
 {
-	NSView* root_container_view = (NSView*)ih->handle;
-	NSTextField* text_field = [[root_container_view subviews] firstObject];
+	NSStackView* root_container_view = (NSStackView*)ih->handle;
+	NSTextField* text_field = [[root_container_view views] firstObject];
 	NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 	return text_field;
 }
 
-
-// can be either TextField or TextView
-static NSView* cocoaProgressBarGetTextWidget(Ihandle* ih)
-{
-	if(ih->data->is_multiline)
-	{
-		return cocoaTextGetTextView(ih);
-	}
-	else
-	{
-		return cocoaTextGetTextField(ih);
-	}
-}
 
 
 void iupdrvTextAddSpin(int *w, int h)
@@ -662,16 +649,22 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		// TODO: NSStepper
 		
 //		NSView* container_view = [[NSView alloc] initWithFrame:NSZeroRect];
-		NSView* container_view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 27)];
-
+//		NSView* container_view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 27)];
+		NSStackView* container_view = [[NSStackView alloc] initWithFrame:NSZeroRect];
+		[container_view setSpacing:4.0];
+		
 		NSRect stepper_rect = NSMakeRect(0, 0, 19, 27);
 		NSStepper* stepper_view = [[NSStepper alloc] initWithFrame:stepper_rect];
-//		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
-		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200-19, 22)];
+		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
+//		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200-19, 22)];
 
 		
-		[container_view addSubview:text_field];
-		[text_field addSubview:stepper_view];
+//		[container_view addSubview:text_field];
+//		[text_field addSubview:stepper_view];
+
+		[container_view addView:text_field inGravity:NSStackViewGravityLeading];
+		[container_view addView:stepper_view inGravity:NSStackViewGravityTrailing];
+
 		
 		[stepper_view release];
 		[text_field release];
@@ -700,6 +693,10 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		 */
 		/* formatting is never supported when MULTILINE=NO */
 		ih->data->has_formatting = 0;
+		
+		// We must not allow IUP to EXPAND the height of the NSTextField so unset the bit flag if it is set.
+		ih->expand = ih->expand & ~IUP_EXPAND_HEIGHT;
+		
 	}
 	else
 	{
