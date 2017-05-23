@@ -212,6 +212,9 @@
 		00E3A8FC1B609B8700BEC175 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		00E3A90B1B609B8800BEC175 /* TestAppTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A90A1B609B8800BEC175 /* TestAppTests.m */; };
 		00E3A9121B609BA600BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
+		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
+		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
+		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -453,6 +456,8 @@
 		00E3A9041B609B8700BEC175 /* TestAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A9091B609B8800BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A90A1B609B8800BEC175 /* TestAppTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestAppTests.m; sourceTree = "<group>"; };
+		6310AB2D1ED21CE70075B168 /* ImageApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6310AB301ED21DFF0075B168 /* TestImage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TestImage.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -484,6 +489,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6310AB261ED21CE70075B168 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6310AB271ED21CE70075B168 /* iup.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -519,6 +532,7 @@
 				00E3A5F81B60578300BEC175 /* iupTests.xctest */,
 				00E3A8F21B609B8700BEC175 /* TestApp.app */,
 				00E3A9041B609B8700BEC175 /* TestAppTests.xctest */,
+				6310AB2D1ED21CE70075B168 /* ImageApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -810,6 +824,7 @@
 			children = (
 				00E3A8F51B609B8700BEC175 /* Info.plist */,
 				00E3A8F91B609B8700BEC175 /* main.c */,
+				6310AB301ED21DFF0075B168 /* TestImage.c */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -994,6 +1009,23 @@
 			productReference = 00E3A9041B609B8700BEC175 /* TestAppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		6310AB231ED21CE70075B168 /* ImageApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6310AB2A1ED21CE70075B168 /* Build configuration list for PBXNativeTarget "ImageApp" */;
+			buildPhases = (
+				6310AB241ED21CE70075B168 /* Sources */,
+				6310AB261ED21CE70075B168 /* Frameworks */,
+				6310AB281ED21CE70075B168 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ImageApp;
+			productName = TestApp;
+			productReference = 6310AB2D1ED21CE70075B168 /* ImageApp.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1035,6 +1067,7 @@
 				00E3A5F71B60578300BEC175 /* iupTests */,
 				00E3A8F11B609B8700BEC175 /* TestApp */,
 				00E3A9031B609B8700BEC175 /* TestAppTests */,
+				6310AB231ED21CE70075B168 /* ImageApp */,
 			);
 		};
 /* End PBXProject section */
@@ -1070,6 +1103,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6310AB281ED21CE70075B168 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6310AB291ED21CE70075B168 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1219,6 +1260,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				00E3A90B1B609B8800BEC175 /* TestAppTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6310AB241ED21CE70075B168 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6310AB311ED21DFF0075B168 /* TestImage.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1489,6 +1538,34 @@
 			};
 			name = Release;
 		};
+		6310AB2B1ED21CE70075B168 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = TestApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		6310AB2C1ED21CE70075B168 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TestApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1533,6 +1610,15 @@
 			buildConfigurations = (
 				00E3A9101B609B8800BEC175 /* Debug */,
 				00E3A9111B609B8800BEC175 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6310AB2A1ED21CE70075B168 /* Build configuration list for PBXNativeTarget "ImageApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6310AB2B1ED21CE70075B168 /* Debug */,
+				6310AB2C1ED21CE70075B168 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -77,11 +77,12 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 			{
 				ns_string = @"";
 			}
-			// This will throw an exception for a nil string.
-			[the_label setStringValue:ns_string];
-			// I don't think I want sizeToFit because IUP sets a bunch of sizes, plus the wordwrap stuff might screw this up.
-//			[the_label sizeToFit];
-			
+			// NSImageCells don't accept a stringValue
+			id cell = [the_label respondsToSelector:@selector(cell)] ? [the_label cell] : nil;
+			if (![cell isKindOfClass:[NSImageCell class]]) {
+                // This will throw an exception for a nil string.
+                [the_label setStringValue:ns_string];
+ 			}
 			// I think I need to call this. I noticed in another program, when I suddenly set a long string, it seems to use the prior layout. This forces a relayout.
 			IupRefresh(ih);
 			

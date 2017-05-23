@@ -284,13 +284,25 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 		
 		[the_toggle setButtonType:NSSwitchButton];
 //		[the_toggle setBezelStyle:NSRoundedBezelStyle];
-		
-		
-		
 	}
+    value = iupAttribGet(ih, "TITLE");
+    if(value && *value!=0)
+    {
+        char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
+        
+        // This will return nil if the string can't be converted.
+        NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
+        
+        if(stripped_str && stripped_str != value)
+        {
+            free(stripped_str);
+        }
+        
+        [the_toggle setTitle:ns_string];
+
+    }
 
 	//	[the_toggle setToggleType:NSMomentaryLightButton];
-	
 
 
 
