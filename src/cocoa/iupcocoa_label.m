@@ -164,6 +164,8 @@ static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
 				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
 				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentCenter];
+				return 0;
+
 			}
 			return 1;
 		}
