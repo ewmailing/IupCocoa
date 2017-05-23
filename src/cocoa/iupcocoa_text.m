@@ -33,6 +33,44 @@
 
 
 
+static NSView* cocoaProgressBarGetRootView(Ihandle* ih)
+{
+	NSView* root_container_view = (NSView*)ih->handle;
+	NSCAssert([root_container_view isKindOfClass:[NSView class]], @"Expected NSView");
+	return root_container_view;
+}
+
+
+// This is the intermediate transform view
+static NSTextField* cocoaTextGetTextField(Ihandle* ih)
+{
+	NSTextField* root_container_view = (NSTextField*)ih->handle;
+	NSCAssert([root_container_view isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+	return root_container_view;
+}
+
+static NSTextView* cocoaTextGetTextView(Ihandle* ih)
+{
+	NSScrollView* root_container_view = (NSScrollView*)cocoaProgressBarGetRootView(ih);
+	NSCAssert([root_container_view isKindOfClass:[NSScrollView class]], @"Expected NSScrollView");
+	NSTextView* text_view = [root_container_view documentView];
+	NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+	return text_view;
+}
+
+// can be either TextField or TextView
+static NSView* cocoaProgressBarGetTextWidget(Ihandle* ih)
+{
+	if(ih->data->is_multiline)
+	{
+		return cocoaTextGetTextView(ih);
+	}
+	else
+	{
+		return cocoaTextGetTextField(ih);
+	}
+}
+
 
 void iupdrvTextAddSpin(int *w, int h)
 {
@@ -111,7 +149,7 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 	
 	if(ih->data->is_multiline)
 	{
-		NSTextView* text_view = (NSTextView*)ih->handle;
+		NSTextView* text_view = cocoaTextGetTextView(ih);
 		NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
 		
 		NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string];
@@ -120,7 +158,7 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 	}
 	else
 	{
-		NSTextField* text_field = (NSTextField*)ih->handle;
+		NSTextField* text_field = cocoaTextGetTextField(ih);
 		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 		[text_field setStringValue:ns_string];
 	}
@@ -134,7 +172,7 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 	
 	if(ih->data->is_multiline)
 	{
-		NSTextView* text_view = (NSTextView*)ih->handle;
+		NSTextView* text_view = cocoaTextGetTextView(ih);
 		NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
 
 		NSString* ns_string = [[text_view textStorage] string];
@@ -145,7 +183,7 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 	}
 	else
 	{
-		NSTextField* text_field = (NSTextField*)ih->handle;
+		NSTextField* text_field = cocoaTextGetTextField(ih);
 		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 		
 		NSString* ns_string = [text_field stringValue];
@@ -177,7 +215,7 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 	
 	if(!ih->data->is_multiline)
 	{
-		NSTextField* text_field = (NSTextField*)ih->handle;
+		NSTextField* text_field = cocoaTextGetTextField(ih);
 		NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 		[text_field setPlaceholderString:ns_string];
 		return  1;
@@ -236,11 +274,11 @@ static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
 	NSRect the_rect;
 	id child_handle = ih->handle;
 	NSView* the_view = nil;
-	if([child_handle isKindOfClass:[NSTextField class]])
+	if(!ih->data->is_multiline)
 	{
-		the_view = (NSView*)child_handle;
+//		the_view = (NSView*)child_handle;
 		
-		NSTextField* text_field = (NSTextField*)child_handle;
+//		NSTextField* text_field = (NSTextField*)child_handle;
 
 
 		CGFloat current_width = (CGFloat)ih->currentwidth;
@@ -310,9 +348,9 @@ static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
 		}
 		
 	}
-	else if([child_handle isKindOfClass:[NSTextView class]])
+	else
 	{
-		NSTextView* text_view = (NSTextView*)child_handle;
+//		NSTextView* text_view = (NSTextView*)child_handle;
 		
 		
 		the_rect = NSMakeRect(
@@ -347,11 +385,7 @@ static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
 		}
 
 	}
-	else
-	{
-		NSCAssert(1, @"Unexpected type for child widget");
-		@throw @"Unexpected type for child widget";
-	}
+
 	
 	
 	//	iupgtkNativeContainerMove((GtkWidget*)parent, widget, x, y);
@@ -386,14 +420,45 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	
 	if (ih->data->is_multiline)
 	{
-//		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSZeroRect];
-		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400)];
-		the_view = text_view;
+		// We need to put the textview in a scrollview
+		// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextUILayer/Tasks/TextInScrollView.html
+
+		NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
+		NSSize scrollview_content_size = [scroll_view contentSize];
+		
+		[scroll_view setBorderType:NSNoBorder];
+		[scroll_view setHasVerticalScroller:YES];
+		[scroll_view setHasHorizontalScroller:NO];
+		[scroll_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+		
+		
+		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSZeroRect];
+//		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400)];
+
+		
+		text_view = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, scrollview_content_size.width, scrollview_content_size.height)];
+
+		[text_view setMinSize:NSMakeSize(0.0, 0.0)];
+		[text_view setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+		[text_view setVerticallyResizable:YES];
+		[text_view setHorizontallyResizable:NO];
+//		[text_view setAutoresizingMask:NSViewWidthSizable];
+//		[[text_view textContainer] setContainerSize:NSMakeSize(scrollview_content_size.width, FLT_MAX)];
+//		[[text_view textContainer] setWidthTracksTextView:YES];
+		
+		
+		[scroll_view setDocumentView:text_view];
+		[text_view release];
+
+
+		
+		
+		the_view = scroll_view;
+		
+
 		
 
 		int wordwrap = 0;
-		
-
 
 		
 		/* formatting is always supported when MULTILINE=YES */
@@ -405,15 +470,28 @@ static int cocoaTextMapMethod(Ihandle* ih)
 			ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scroolbar */
 			
 			
+			[[text_view enclosingScrollView] setHasHorizontalScroller:NO];
+			[text_view setHorizontallyResizable:YES];
+			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+			[[text_view textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+			[[text_view textContainer] setWidthTracksTextView:YES];
 
 		}
 		else
 		{
+			/*
 			NSSize layout_size = [text_view maxSize];
 			layout_size.width = layout_size.height;
 			[text_view setMaxSize:layout_size];
 			[[text_view textContainer] setWidthTracksTextView:NO];
 			[[text_view textContainer] setContainerSize:layout_size];
+			*/
+			
+			[[text_view enclosingScrollView] setHasHorizontalScroller:YES];
+			[text_view setHorizontallyResizable:NO];
+			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+//			[[text_view textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+//			[[text_view textContainer] setWidthTracksTextView:YES];
 			
 		}
 		
