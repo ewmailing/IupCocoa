@@ -224,6 +224,39 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 	return 0;
 }
 
+static int cocoaTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
+{
+	BOOL is_editable = (BOOL)iupStrBoolean(value);
+	
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		[text_view setEditable:is_editable];
+	}
+	else
+	{
+		NSTextField* text_field = cocoaTextGetTextField(ih);
+		[text_field setEditable:is_editable];
+	}
+	return 0;
+}
+
+static char* cocoaTextGetReadOnlyAttrib(Ihandle* ih)
+{
+	int is_editable;
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		is_editable = [text_view isEditable];
+	}
+	else
+	{
+		NSTextField* text_field = cocoaTextGetTextField(ih);
+		is_editable = [text_field isEditable];
+	}
+	return iupStrReturnBoolean(!is_editable);
+}
+
 // Need to override because the position offsets are wrong otherwise.
 static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
 {
@@ -712,7 +745,10 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "CARETPOS", gtkTextGetCaretPosAttrib, gtkTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "INSERT", NULL, gtkTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "APPEND", NULL, gtkTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "READONLY", gtkTextGetReadOnlyAttrib, gtkTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
+#endif
+	
+  iupClassRegisterAttribute(ic, "READONLY", cocoaTextGetReadOnlyAttrib, cocoaTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
+#if 0
   iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, gtkTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, gtkTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, gtkTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
