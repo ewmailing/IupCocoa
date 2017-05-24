@@ -65,18 +65,36 @@ static NSView* cocoaProgressBarGetRootView(Ihandle* ih)
 // This is the intermediate transform view
 static NSView* cocoaProgressBarGetTransformView(Ihandle* ih)
 {
-	NSView* root_container_view = cocoaProgressBarGetRootView(ih);
-	NSView* intermediate_transform_view = [[root_container_view subviews] firstObject];
-	NSCAssert([intermediate_transform_view isKindOfClass:[NSView class]], @"Expected NSView");
-	return intermediate_transform_view;
+	if(iupStrEqualNoCase(iupAttribGetStr(ih, "ORIENTATION"), "VERTICAL"))
+	{
+		NSView* root_container_view = cocoaProgressBarGetRootView(ih);
+		NSView* intermediate_transform_view = [[root_container_view subviews] firstObject];
+		NSCAssert([intermediate_transform_view isKindOfClass:[NSView class]], @"Expected NSView");
+		return intermediate_transform_view;
+	}
+	else
+	{
+		NSView* root_container_view = (NSView*)ih->handle;
+		NSCAssert([root_container_view isKindOfClass:[NSView class]], @"Expected NSView");
+		return root_container_view;
+	}
 }
 
 static NSProgressIndicator* cocoaProgressBarGetProgressIndicator(Ihandle* ih)
 {
-	NSView* intermediate_transform_view = cocoaProgressBarGetTransformView(ih);
-	NSProgressIndicator* progress_bar = [[intermediate_transform_view subviews] firstObject];
-	NSCAssert([progress_bar isKindOfClass:[NSProgressIndicator class]], @"Expected NSProgressIndicator");
-	return progress_bar;
+	if(iupStrEqualNoCase(iupAttribGetStr(ih, "ORIENTATION"), "VERTICAL"))
+	{
+		NSView* intermediate_transform_view = cocoaProgressBarGetTransformView(ih);
+		NSProgressIndicator* progress_bar = [[intermediate_transform_view subviews] firstObject];
+		NSCAssert([progress_bar isKindOfClass:[NSProgressIndicator class]], @"Expected NSProgressIndicator");
+		return progress_bar;
+	}
+	else
+	{
+		NSProgressIndicator* root_container_view = (NSProgressIndicator*)ih->handle;
+		NSCAssert([root_container_view isKindOfClass:[NSProgressIndicator class]], @"Expected NSProgressIndicator");
+		return root_container_view;
+	}
 }
 
 
@@ -194,18 +212,10 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 //	NSRect initial_rect = NSMakeRect(0, 0, 200, 20);
 	NSRect initial_rect = NSMakeRect(0, 0, initial_width, initial_height);
 
-	int max_dim = iupMAX(initial_width, initial_height);
-	// The container views must be large enough to hold the progressbar in either direction.
-	NSRect container_rect = NSMakeRect(0, 0, max_dim, max_dim);
-	
-	NSView* container_view = [[NSView alloc] initWithFrame:container_rect];
-	NSView* transform_view = [[NSView alloc] initWithFrame:container_rect];
-	NSProgressIndicator* progress_indicator = [[NSProgressIndicator alloc] initWithFrame:initial_rect];
 
-	[container_view addSubview:transform_view];
-	[transform_view addSubview:progress_indicator];
-	[transform_view release];
-	[progress_indicator release];
+	NSProgressIndicator* progress_indicator = [[NSProgressIndicator alloc] initWithFrame:initial_rect];
+	NSView* container_view = nil;
+
 	
 
 	// Warning: Saw a claim that threaded animation breaks vertical
@@ -219,6 +229,21 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	// Vertical mode is completely broken. This appears to be a Mac bug.
 	if (iupStrEqualNoCase(iupAttribGetStr(ih, "ORIENTATION"), "VERTICAL"))
 	{
+		
+		int max_dim = iupMAX(initial_width, initial_height);
+		// The container views must be large enough to hold the progressbar in either direction.
+		NSRect container_rect = NSMakeRect(0, 0, max_dim, max_dim);
+		
+		container_view = [[NSView alloc] initWithFrame:container_rect];
+		NSView* transform_view = [[NSView alloc] initWithFrame:container_rect];
+		
+		[container_view addSubview:transform_view];
+		[transform_view addSubview:progress_indicator];
+		[transform_view release];
+		[progress_indicator release];
+		
+		
+		
 		NSRect widget_frame = [container_view frame];
 		NSSize widget_size = widget_frame.size;
 		
@@ -239,7 +264,7 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 //		[container_view setWantsLayer:YES];
 
 		// We must not allow IUP to EXPAND the width of the NSProgressIndicator so unset the bit flag if it is set.
-		ih->expand = ih->expand & ~IUP_EXPAND_HEIGHT;
+		ih->expand = ih->expand & ~IUP_EXPAND_WIDTH;
 
 		// Autosizing breaks vertical. We can't support EXPAND right now :(
 		// And setting the frame on the progress indicator also breaks vertical so we can't manually resize either.
@@ -253,17 +278,21 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	{
 //		[progress_indicator setWantsLayer:NO];
 
+		
+		container_view = progress_indicator;
+		
+		
 		// Autosizing breaks vertical
 		//	[transform_view setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
 		//	[progress_indicator setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
-		[transform_view setAutoresizingMask:(NSViewWidthSizable)];
+		//[transform_view setAutoresizingMask:(NSViewWidthSizable)];
 		[progress_indicator setAutoresizingMask:(NSViewWidthSizable)];
 	
 		
 		// We must not allow IUP to EXPAND the height of the NSProgressIndicator so unset the bit flag if it is set.
 		// Mac fixes the thickness to 6 pixels. Expanding causes the progress bar to become uncentered in the container view.
 		// TODO: Maybe we should remove the container view for just the horizontal.
-		ih->expand = ih->expand & ~IUP_EXPAND_WIDTH;
+		ih->expand = ih->expand & ~IUP_EXPAND_HEIGHT;
 
 		
 	}
