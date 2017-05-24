@@ -22,49 +22,51 @@
 
 
 
-IdrawCanvas* iupDrawCreateCanvas(Ihandle* ih)
-{
 
-	return NULL;
-}
-
-void iupDrawKillCanvas(IdrawCanvas* dc)
+struct _IdrawCanvas
 {
+	Ihandle* ih;
+	
+	CGContextRef cgContext;
 
 	
-}
+	int w, h;
+	int draw_focus;
+	int focus_x1;
+	int focus_y1;
+	int focus_x2;
+	int focus_y2;
+};
 
-void iupDrawUpdateSize(IdrawCanvas* dc)
+IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih)
 {
-
+	IdrawCanvas* dc = calloc(1, sizeof(IdrawCanvas));
+	
+	dc->ih = ih;
+	dc->cgContext = (CGContextRef)IupGetAttribute(ih, "DRAWABLE");
+	NSCAssert(dc->cgContext != NULL, @"CGContextRef should not be NULL");
+	// should I retain it?
+	CGContextRetain(dc->cgContext);
+	
+//	gdk_drawable_get_size(dc->wnd, &dc->w, &dc->h);
+	
+//	dc->pixmap = gdk_pixmap_new(dc->wnd, dc->w, dc->h, gdk_drawable_get_depth(dc->wnd));
+	
+	return dc;
 }
+
+void iupdrvDrawKillCanvas(IdrawCanvas* dc)
+{
+	CGContextRelease(dc->cgContext);
+	free(dc);
+}
+
+
 
 //void iupdrvDrawFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h);
 
-void iupDrawFlush(IdrawCanvas* dc)
-{
 
-}
 
-void iupDrawGetSize(IdrawCanvas* dc, int *w, int *h)
-{
-//	if (w) *w = dc->w;
-//	if (h) *h = dc->h;
-}
-
-void iupDrawParentBackground(IdrawCanvas* dc)
-{
-
-}
-
-void iupDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
-{
-
-}
-
-void iupDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
-{
-}
 
 void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, unsigned char r, unsigned char g, unsigned char b, int style)
 {
@@ -76,32 +78,6 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r,
 
 }
 
-void iupDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
-{
-
-}
-
-void iupDrawResetClip(IdrawCanvas* dc)
-{
-}
-
-void iupDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, unsigned char r, unsigned char g, unsigned char b, const char* font)
-{
-
-}
-
-void iupDrawImage(IdrawCanvas* dc, const char* name, int make_inactive, int x, int y, int *img_w, int *img_h)
-{
-}
-
-void iupDrawSelectRect(IdrawCanvas* dc, int x, int y, int w, int h)
-{
-
-}
-
-void iupDrawFocusRect(IdrawCanvas* dc, int x, int y, int w, int h)
-{
-}
 
 
 
@@ -128,43 +104,110 @@ void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, un
 void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
 }
-IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih)
+
+static CGColorRef coregraphicsCreateAutoreleasedColor(unsigned char r, unsigned char g, unsigned char b, unsigned a)
 {
-#if 0
-	IdrawCanvas* dc = calloc(1, sizeof(IdrawCanvas));
+	// What color space should I be using?
+	//	CGColorSpaceRef color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 	
-	dc->ih = ih;
-	dc->wnd = (GdkWindow*)IupGetAttribute(ih, "DRAWABLE");
-	dc->gc = gdk_gc_new(dc->wnd);
-	
-	gdk_drawable_get_size(dc->wnd, &dc->w, &dc->h);
-	
-	dc->pixmap = gdk_pixmap_new(dc->wnd, dc->w, dc->h, gdk_drawable_get_depth(dc->wnd));
-	dc->pixmap_gc = gdk_gc_new(dc->pixmap);
-	
-	return dc;
-#endif
-	return NULL;
+	CGFloat inv_byte = 1.0/255.0;
+	CGColorRef the_color = CGColorCreateGenericRGB(r*inv_byte, g*inv_byte, b*inv_byte, a*inv_byte);
+	// Requires 10.9, 7.0
+	CFAutorelease(the_color);
+	return the_color;
 }
+
 void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
 {
+	CGContextRef cg_context = dc->cgContext;
+	
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
+	CGContextSetStrokeColorWithColor(cg_context, the_color);
+
+
+	if((IUP_DRAW_STROKE == style) || (IUP_DRAW_FILL==style))
+	{
+		CGContextSetLineDash(cg_context, 0, NULL, 0);
+	}
+	else
+	{
+		if(IUP_DRAW_STROKE_DASH == style)
+		{
+			CGFloat dashes[2] = { 6.0, 2.0 };
+			CGContextSetLineDash(cg_context, 0, dashes, 2);
+		}
+		else // DOTS
+		{
+			CGFloat dots[2] = { 2.0, 2.0 };
+			CGContextSetLineDash(cg_context, 0, dots, 2);
+		}
+	}
+
+	CGContextMoveToPoint(cg_context, (CGFloat)x1, (CGFloat)y1);
+	CGContextAddLineToPoint(cg_context, (CGFloat)x2, (CGFloat)y2);
+	CGContextStrokePath(cg_context);
 }
+
 void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
 }
-void iupdrvDrawKillCanvas(IdrawCanvas* dc)
-{
-}
+
 void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
 {
+	CGContextRef cg_context = dc->cgContext;
+	
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
+	
+	CGRect the_rectangle = CGRectMake(x1, y1, x2-x1, y2-y1);
+	CGContextAddRect(cg_context, the_rectangle);
+	
+	if(IUP_DRAW_FILL == style)
+	{
+		CGContextSetFillColorWithColor(cg_context, the_color);
+		CGContextFillRect(cg_context, the_rectangle);
+	}
+	else
+	{
+		CGContextSetStrokeColorWithColor(cg_context, the_color);
+		CGContextStrokePath(cg_context);
+	}
 }
+
 void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h)
 {
+	char* draw_size_str = IupGetAttribute(dc->ih, "DRAWSIZE");
+
+	
+	iupStrToIntInt(draw_size_str, w, h, 'x');
+
+	
 	/*
   if (w) *w = dc->w;
   if (h) *h = dc->h;
 	 */
+	
 }
+
+void iupdrvDrawUpdateSize(IdrawCanvas* dc)
+{
+/*
+	int w, h;
+	gdk_drawable_get_size(dc->wnd, &w, &h);
+	
+	if (w != dc->w || h != dc->h)
+	{
+		dc->w = w;
+		dc->h = h;
+		
+		g_object_unref(dc->pixmap_gc);
+		g_object_unref(dc->pixmap);
+		
+		dc->pixmap = gdk_pixmap_new(dc->wnd, dc->w, dc->h, gdk_drawable_get_depth(dc->wnd));
+		dc->pixmap_gc = gdk_gc_new(dc->pixmap);
+	}
+*/
+}
+
 void iupdrvDrawFlush(IdrawCanvas* dc)
 {
 }
