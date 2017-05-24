@@ -121,10 +121,10 @@ static int btn_caret_cb (Ihandle* ih)
 static int btn_readonly_cb (Ihandle* ih)
 {
 	Ihandle *opt = IupGetHandle("text2multi");
-	//if (IupGetInt(opt, "VALUE"))
-	//  text2multiline(ih, "READONLY");
-	//else
-	//  multiline2text(ih, "READONLY");
+	if (IupGetInt(opt, "VALUE"))
+	  text2multiline(ih, "READONLY");
+	else
+	  multiline2text(ih, "READONLY");
 	if (IupGetInt(opt, "VALUE"))
 		text2multiline(ih, "COUNT");
 	else
@@ -471,10 +471,23 @@ void TextTest(void)
 	lbl = IupLabel("&Multiline:");
 	IupSetAttribute(lbl, "PADDING", "2x2");
 	
+	
+	
+	Ihandle* spinner = IupText(NULL);
+	  IupSetAttribute(spinner, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(spinner, "SPIN", "YES");
+	Ihandle* spinner2 = IupText(NULL);
+	
+//	IupSetAttribute(spinner2, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(spinner2, "SPIN", "YES");
+	
 	/* Creates dlg */
 	dlg = IupDialog(IupVbox(lbl,
 							mltline,
 							IupHbox (text, opt, NULL),
+							spinner,
+							spinner2,
+
 							IupHbox (btn_append, btn_insert, btn_caret, btn_readonly, btn_selection, NULL),
 							IupHbox (btn_selectedtext, btn_nc, btn_value, btn_tabsize, btn_clip, btn_key, NULL),
 							IupHbox (btn_def_enter, btn_def_esc, btn_active, btn_remformat, btn_overwrite, NULL),
@@ -1572,9 +1585,10 @@ void IupEntryPoint()
 {
 //	GridTest();
 //	ListAndModalWindowTest();
-	ListTextButtonLabelTest();
+//	ListTextButtonLabelTest();
 //	AppMenuTest();
 //	ProgressbarTest2();
+	TextTest();
 }
 
 int main(int argc, char* argv[])

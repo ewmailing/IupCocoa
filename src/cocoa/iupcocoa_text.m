@@ -5,6 +5,7 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,6 +31,11 @@
 #include "iup_childtree.h"
 
 #include "iupcocoa_drv.h"
+#import "IUPTextSpinnerFilesOwner.h"
+
+// the point of this is we have a unique memory address for an identifier
+static const void* IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY";
+
 
 
 typedef enum
@@ -63,13 +69,36 @@ static IupCocoaTextSubType cocoaTextGetSubType(Ihandle* ih)
 
 static NSView* cocoaProgressBarGetRootView(Ihandle* ih)
 {
-	NSView* root_container_view = (NSView*)ih->handle;
-	NSCAssert([root_container_view isKindOfClass:[NSView class]], @"Expected NSView");
-	return root_container_view;
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSView* root_container_view = (NSView*)ih->handle;
+			NSCAssert([root_container_view isKindOfClass:[NSView class]], @"Expected NSView");
+			return root_container_view;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSView* root_container_view = (NSView*)ih->handle;
+			NSCAssert([root_container_view isKindOfClass:[NSView class]], @"Expected NSView");
+			return root_container_view;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSStackView* root_container_view = (NSView*)ih->handle;
+			NSCAssert([root_container_view isKindOfClass:[NSStackView class]], @"Expected NSStackView");
+			return root_container_view;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	return nil;
 }
 
 
-// This is the intermediate transform view
 static NSTextField* cocoaTextGetTextField(Ihandle* ih)
 {
 	NSTextField* root_container_view = (NSTextField*)ih->handle;
@@ -88,18 +117,30 @@ static NSTextView* cocoaTextGetTextView(Ihandle* ih)
 
 static NSStepper* cocoaTextGetStepperView(Ihandle* ih)
 {
+#if 0
 	NSStackView* root_container_view = (NSStackView*)ih->handle;
 	NSStepper* stepper_view = [[root_container_view views] lastObject];
 	NSCAssert([stepper_view isKindOfClass:[NSStepper class]], @"Expected NSStepper");
 	return stepper_view;
+#else
+	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
+	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerFilesOwner class]], @"Expected IUPTextSpinnerFilesOwner");
+	return [spinner_container stepperView];
+#endif
 }
 
 static NSTextView* cocoaTextGetStepperTextField(Ihandle* ih)
 {
+#if 0
 	NSStackView* root_container_view = (NSStackView*)ih->handle;
 	NSTextField* text_field = [[root_container_view views] firstObject];
 	NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 	return text_field;
+#else
+	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
+	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerFilesOwner class]], @"Expected IUPTextSpinnerFilesOwner");
+	return [spinner_container textField];
+#endif
 }
 
 
@@ -647,7 +688,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	else if(iupAttribGetBoolean(ih, "SPIN"))
 	{
 		// TODO: NSStepper
-		
+
+#if 0
 //		NSView* container_view = [[NSView alloc] initWithFrame:NSZeroRect];
 //		NSView* container_view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 27)];
 		NSStackView* container_view = [[NSStackView alloc] initWithFrame:NSZeroRect];
@@ -664,17 +706,73 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		[container_view addView:text_field inGravity:NSStackViewGravityLeading];
 		[container_view addView:stepper_view inGravity:NSStackViewGravityTrailing];
-
-		
 		[stepper_view release];
 		[text_field release];
 		
 		[container_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 		[text_field setAutoresizingMask:(NSViewWidthSizable)];
+		
+		the_view = container_view;
+
+#else
+
+		// The NIB file has setup the NSStackView and also the Cocoa Bindings to connect the textfield and stepper.
+		
+		NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
+		NSNib* text_spinner_nib = [[NSNib alloc] initWithNibNamed:@"IupTextSpinner" bundle:framework_bundle];
+
+
+		NSArray* top_level_objects = nil;
+		IUPTextSpinnerFilesOwner* files_owner = [[IUPTextSpinnerFilesOwner alloc] init];
+		IUPTextSpinnerContainer* text_spinner_container = [[IUPTextSpinnerContainer alloc] init];
+
+		// We can either fish out the objects we want (and retain them) in the top_level_objects,
+		// or for my convenience, I made a File's Owner object and wired up all the major elements so I can retrive them easily.
+		[text_spinner_nib instantiateWithOwner:files_owner topLevelObjects:&top_level_objects];
+
+		
+		/*
+		Messy: There are multiple objects including an NSObject and NSObjectController in the NIB.
+		I originally thought about making a NSObject subclass which holds all the components and make it the ih->handle.
+		But a non-NSView as the ih->handle breaks an implicit assumption used by the common core.
+		So instead, we'll make the NSStackView the root container object for the ih->handle.
+		But we will still make a NSObject subclass that holds the remaining components.
+		We will use setAssociatedObject to keep these objects connected, while avoiding the need to subclass NSStackView just to hold this property.
+		*/
+		NSStackView* stack_view = [files_owner stackView];
+		NSStepper* stepper_view = [files_owner stepperView];
+		NSTextField* text_field = [files_owner textField];
+
+		[text_spinner_container setStepperView:stepper_view];
+		[text_spinner_container setTextField:text_field];
+		[text_spinner_container setStepperObject:[files_owner stepperObject]];
+		[text_spinner_container setStepperObjectController:[files_owner stepperObjectController]];
+
+		// We're going to use OBJC_ASSOCIATION_RETAIN because I do believe it will do the right thing for us.
+		objc_setAssociatedObject(stack_view, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY, (id)text_spinner_container, OBJC_ASSOCIATION_RETAIN);
+
+		
+		the_view = [stack_view retain];
+		
+		[text_spinner_container release];
+		[files_owner release];
+		[top_level_objects release];
+		[text_spinner_nib release];
+		
+		
+		
+		[stepper_view setValueWraps:(BOOL)iupAttribGetBoolean(ih, "SPINWRAP")];
+		
+		if (!iupAttribGetBoolean(ih, "SPINAUTO"))
+		{
+//			g_signal_connect(G_OBJECT(ih->handle), "input", G_CALLBACK(gtkTextSpinInput), ih);
+//			iupAttribSet(ih, "_IUPGTK_SPIN_NOAUTO", "1");
+		}
+#endif
+		
 
 		
 		
-		the_view = container_view;
 
 		/*
 			gtk_spin_button_set_numeric((GtkSpinButton*)ih->handle, FALSE);

@@ -212,6 +212,9 @@
 		00E3A8FC1B609B8700BEC175 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		00E3A90B1B609B8800BEC175 /* TestAppTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A90A1B609B8800BEC175 /* TestAppTests.m */; };
 		00E3A9121B609BA600BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
+		00E8D72B1ED4E68200773764 /* IupTextSpinner.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00E8D7291ED4E68200773764 /* IupTextSpinner.xib */; };
+		00E8D72E1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */; };
+		00E8D72F1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */; };
 		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
@@ -456,6 +459,9 @@
 		00E3A9041B609B8700BEC175 /* TestAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A9091B609B8800BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A90A1B609B8800BEC175 /* TestAppTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestAppTests.m; sourceTree = "<group>"; };
+		00E8D72A1ED4E68200773764 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/IupTextSpinner.xib; sourceTree = "<group>"; };
+		00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUPTextSpinnerFilesOwner.h; sourceTree = "<group>"; };
+		00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IUPTextSpinnerFilesOwner.m; sourceTree = "<group>"; };
 		6310AB2D1ED21CE70075B168 /* ImageApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310AB301ED21DFF0075B168 /* TestImage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TestImage.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -506,6 +512,7 @@
 		005DCB9F1EBD659500A66253 /* xib */ = {
 			isa = PBXGroup;
 			children = (
+				00E8D7291ED4E68200773764 /* IupTextSpinner.xib */,
 				005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */,
 				005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */,
 				005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */,
@@ -806,6 +813,8 @@
 				00E3A8A91B605A7500BEC175 /* iupcocoa_val.m */,
 				0070FB981E0E0B79009A8631 /* IupAppDelegate.h */,
 				0070FB991E0E0B79009A8631 /* IupAppDelegate.m */,
+				00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */,
+				00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */,
 			);
 			path = cocoa;
 			sourceTree = "<group>";
@@ -917,6 +926,7 @@
 				00E3A7DD1B60583600BEC175 /* iup_toggle.h in Headers */,
 				00E3A7871B60583600BEC175 /* iup_dialog.h in Headers */,
 				00E3A78B1B60583600BEC175 /* iup_drv.h in Headers */,
+				00E8D72E1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h in Headers */,
 				002CC4CF1EA2416B0007C8E7 /* iup_drvdraw.h in Headers */,
 				00E3A87C1B60595300BEC175 /* iupglcontrols.h in Headers */,
 				00E3A7A61B60583600BEC175 /* iup_layout.h in Headers */,
@@ -1079,6 +1089,7 @@
 			files = (
 				005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */,
 				005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */,
+				00E8D72B1ED4E68200773764 /* IupTextSpinner.xib in Resources */,
 				00E3A76C1B60583600BEC175 /* iup.def in Resources */,
 				005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */,
 			);
@@ -1158,6 +1169,7 @@
 				00E3A8C01B605FB300BEC175 /* iupcocoa_open.m in Sources */,
 				00E3A7E11B60583600BEC175 /* iup_val.c in Sources */,
 				00E3A8D31B608ED900BEC175 /* iupcocoa_colordlg.m in Sources */,
+				00E8D72F1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m in Sources */,
 				00E3A7C21B60583600BEC175 /* iup_progressbar.c in Sources */,
 				00E3A7841B60583600BEC175 /* iup_config.c in Sources */,
 				00E3A7B41B60583600BEC175 /* iup_maskparse.c in Sources */,
@@ -1309,6 +1321,14 @@
 				005DCBAD1EBDD27300A66253 /* Base */,
 			);
 			name = CanonicalWindowMenu.xib;
+			sourceTree = "<group>";
+		};
+		00E8D7291ED4E68200773764 /* IupTextSpinner.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				00E8D72A1ED4E68200773764 /* Base */,
+			);
+			name = IupTextSpinner.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
