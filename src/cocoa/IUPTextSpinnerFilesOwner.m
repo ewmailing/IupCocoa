@@ -12,6 +12,7 @@
 
 
 @implementation IUPStepperObject
+@synthesize stepperValue = stepperValue;
 @end
 
 

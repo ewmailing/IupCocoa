@@ -340,6 +340,13 @@ static int motion_cb(Ihandle *ih,int x,int y,char* status)
 	return IUP_DEFAULT;
 }
 
+static int spin_cb(Ihandle* ih, int pos)
+{
+	printf("spin_cb %d\n", pos);
+	return IUP_DEFAULT;
+	
+}
+
 void TextTest(void)
 {
 	int formatting = 0;
@@ -480,7 +487,8 @@ void TextTest(void)
 	
 //	IupSetAttribute(spinner2, "EXPAND", "HORIZONTAL");
 	IupSetAttribute(spinner2, "SPIN", "YES");
-	
+	IupSetCallback(spinner2, "SPIN_CB", (Icallback) spin_cb);
+
 	/* Creates dlg */
 	dlg = IupDialog(IupVbox(lbl,
 							mltline,

@@ -35,6 +35,10 @@
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY";
+static const void* IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY";
+
+
+
 
 
 
@@ -142,6 +146,57 @@ static NSTextView* cocoaTextGetStepperTextField(Ihandle* ih)
 	return [spinner_container textField];
 #endif
 }
+
+static IUPStepperObject* cocoaTextGetStepperObject(Ihandle* ih)
+{
+
+	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
+	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerContainer class]], @"Expected IUPTextSpinnerContainer");
+	return [spinner_container stepperObject];
+}
+
+
+
+// NOTE: This callback is unfinished. Need to understand SPIN_CB rules better.
+@interface IupCocoaTextSpinnerDelegate : NSObject
+@end
+
+@implementation IupCocoaTextSpinnerDelegate
+- (void) controlTextDidEndEditing:(NSNotification*)the_notification
+{
+	IFni callback_function;
+	NSTextField* text_field = [the_notification object];
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
+	
+	NSLog(@"controlTextDidEndEditing: %@", [the_notification userInfo]);
+	
+	callback_function = IupGetCallback(ih, "SPIN_CB");
+	if(callback_function)
+	{
+		int current_value = [text_field intValue];
+		
+		int ret_val = callback_function(ih, current_value);
+		
+//		if(IUP_IGNORE == ret_val)
+		{
+			IUPStepperObject* stepper_object = cocoaTextGetStepperObject(ih);
+			NSInteger old_value = [stepper_object stepperValue];
+			NSLog(@"old_value: %d", old_value);
+
+		}
+//		else
+		{
+			
+		}
+	}
+	
+	
+}
+- (IBAction) mySpinnerClickAction:(id)the_sender
+{
+	NSLog(@"mySpinnerClickAction");
+}
+@end
 
 
 
@@ -747,9 +802,15 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[text_spinner_container setTextField:text_field];
 		[text_spinner_container setStepperObject:[files_owner stepperObject]];
 		[text_spinner_container setStepperObjectController:[files_owner stepperObjectController]];
+		
+		// can't turn off decimals in IB, so do it here.
+		{
+			NSNumberFormatter* number_formatter = [text_field formatter];
+			[number_formatter setMaximumFractionDigits:0];
+		}
 
 		// We're going to use OBJC_ASSOCIATION_RETAIN because I do believe it will do the right thing for us.
-		objc_setAssociatedObject(stack_view, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY, (id)text_spinner_container, OBJC_ASSOCIATION_RETAIN);
+		objc_setAssociatedObject(stack_view, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY, (id)text_spinner_container, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
 		
 		the_view = [stack_view retain];
@@ -763,10 +824,40 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		
 		[stepper_view setValueWraps:(BOOL)iupAttribGetBoolean(ih, "SPINWRAP")];
 		
-		if (!iupAttribGetBoolean(ih, "SPINAUTO"))
+		
+		/*
+		// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
+		objc_setAssociatedObject(the_toggle, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+		// I also need to track the memory of the buttion action receiver.
+		// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
+		// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
+		// This is generally not good Cocoa as Toggles don't retain their receivers, but this seems like the best option.
+		// Be careful of retain cycles.
+		IupCocoaToggleReceiver* toggle_receiver = [[IupCocoaToggleReceiver alloc] init];
+		[the_toggle setTarget:toggle_receiver];
+		[the_toggle setAction:@selector(myToggleClickAction:)];
+		// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
+		// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
+		// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
+		objc_setAssociatedObject(the_toggle, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, (id)toggle_receiver, OBJC_ASSOCIATION_ASSIGN);
+*/
+		IupCocoaTextSpinnerDelegate* text_spinner_delegate = [[IupCocoaTextSpinnerDelegate alloc] init];
+//		[stepper_view setDelegate:text_spinner_delegate];
+		[text_field setDelegate:text_spinner_delegate];
+
+		[stepper_view setTarget:text_spinner_delegate];
+		[stepper_view setAction:@selector(mySpinnerClickAction:)];
+		
+
+		objc_setAssociatedObject(stepper_view, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+		objc_setAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+		// putting on the stackview just for storage. it doesn't really matter which object holds it
+		objc_setAssociatedObject(stack_view, IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY, (id)text_spinner_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		[text_spinner_delegate release];
+		
+		if(!iupAttribGetBoolean(ih, "SPINAUTO"))
 		{
-//			g_signal_connect(G_OBJECT(ih->handle), "input", G_CALLBACK(gtkTextSpinInput), ih);
-//			iupAttribSet(ih, "_IUPGTK_SPIN_NOAUTO", "1");
+			// disconnect the bindings
 		}
 #endif
 		
