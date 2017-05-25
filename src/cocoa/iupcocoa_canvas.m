@@ -58,7 +58,11 @@
 	// Obtain the Quartz context from the current NSGraphicsContext at the time the view's
 	// drawRect method is called. This context is only appropriate for drawing in this invocation
 	// of the drawRect method.
-	CGContextRef cg_context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+	// Interesting: graphicsPort is deprecated in 10.10
+	// CGContextRef cg_context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+	// Use [[NSGraphicsContext currentContext] CGContext] in 10.10+
+	CGContextRef cg_context = [[NSGraphicsContext currentContext] CGContext];
+	
 	CGContextSaveGState(cg_context);
 
 	// IUP has inverted y-coordinates compared to Cocoa (which uses Cartesian like OpenGL and your math books)
@@ -90,17 +94,32 @@ static NSView* cocoaCanvasGetRootView(Ihandle* ih)
 
 static NSScrollView* cocoaCanvasGetScrollView(Ihandle* ih)
 {
-	NSScrollView* scroll_view = (NSScrollView*)ih->handle;
-	NSCAssert([scroll_view isKindOfClass:[NSScrollView class]], @"Expected NSScrollView");
-	return scroll_view;
+	if(iupAttribGetBoolean(ih, "_IUPCOCOA_CANVAS_HAS_SCROLLBAR"))
+	{
+		NSScrollView* scroll_view = (NSScrollView*)ih->handle;
+		NSCAssert([scroll_view isKindOfClass:[NSScrollView class]], @"Expected NSScrollView");
+		return scroll_view;
+	}
+	else
+	{
+		return nil;
+	}
 }
 
 static IupCocoaCanvasView* cocoaCanvasGetCanvasView(Ihandle* ih)
 {
-	NSScrollView* scroll_view = cocoaCanvasGetScrollView(ih);
-	IupCocoaCanvasView* canvas_view = (IupCocoaCanvasView*)[scroll_view documentView];
-	NSCAssert([canvas_view isKindOfClass:[IupCocoaCanvasView class]], @"Expected IupCocoaCanvasView");
-	return canvas_view;
+	if(iupAttribGetBoolean(ih, "_IUPCOCOA_CANVAS_HAS_SCROLLBAR"))
+	{
+		NSScrollView* scroll_view = cocoaCanvasGetScrollView(ih);
+		IupCocoaCanvasView* canvas_view = (IupCocoaCanvasView*)[scroll_view documentView];
+		NSCAssert([canvas_view isKindOfClass:[IupCocoaCanvasView class]], @"Expected IupCocoaCanvasView");
+		return canvas_view;
+	}
+	else
+	{
+		IupCocoaCanvasView* canvas_view = (IupCocoaCanvasView*)ih->handle;
+		return canvas_view;
+	}
 }
 
 
@@ -111,7 +130,10 @@ static char* cocoaCanvasGetDrawableAttrib(Ihandle* ih)
 	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
 	CGContextRef cg_context = NULL;
 	[canvas_view lockFocus];
-	cg_context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+	// Interesting: graphicsPort is deprecated in 10.10
+	// cg_context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+	// Use [[NSGraphicsContext currentContext] CGContext] in 10.10+
+	cg_context = [[NSGraphicsContext currentContext] CGContext];
 	[canvas_view unlockFocus];
 	
 	return (char*)cg_context;
@@ -133,18 +155,29 @@ static char* cocoaCanvasGetDrawSizeAttrib(Ihandle *ih)
 
 static int cocoaCanvasMapMethod(Ihandle* ih)
 {
+	NSView* root_view = nil;
 	IupCocoaCanvasView* canvas_view = [[IupCocoaCanvasView alloc] initWithFrame:NSZeroRect ih:ih];
-	NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-	[scroll_view setDocumentView:canvas_view];
-	[canvas_view release];
-	[scroll_view setHasVerticalScroller:YES];
 	
-	[scroll_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-	[canvas_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-
+	if(iupAttribGetBoolean(ih, "SPIN"))
+	{
+		NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
+		[scroll_view setDocumentView:canvas_view];
+		[canvas_view release];
+		[scroll_view setHasVerticalScroller:YES];
+	
+		[scroll_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+		[canvas_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+		
+		root_view = scroll_view;
+		iupAttribSet(ih, "_IUPCOCOA_CANVAS_HAS_SCROLLBAR", "1");
+	}
+	else
+	{
+		root_view = canvas_view;
+	}
 	
 	
-	ih->handle = scroll_view;
+	ih->handle = root_view;
 
 	
 	
