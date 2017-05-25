@@ -38,6 +38,41 @@ struct _IdrawCanvas
 	int focus_y2;
 };
 
+static CGColorRef coregraphicsCreateAutoreleasedColor(unsigned char r, unsigned char g, unsigned char b, unsigned a)
+{
+	// What color space should I be using?
+	//	CGColorSpaceRef color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+	
+	CGFloat inv_byte = 1.0/255.0;
+	CGColorRef the_color = CGColorCreateGenericRGB(r*inv_byte, g*inv_byte, b*inv_byte, a*inv_byte);
+	// Requires 10.9, 7.0
+	CFAutorelease(the_color);
+	return the_color;
+}
+
+static void coregraphicsSetLineStyle(IdrawCanvas* dc, int style)
+{
+	CGContextRef cg_context = dc->cgContext;
+
+	if((IUP_DRAW_STROKE == style) || (IUP_DRAW_FILL==style))
+	{
+		CGContextSetLineDash(cg_context, 0, NULL, 0);
+	}
+	else
+	{
+		if(IUP_DRAW_STROKE_DASH == style)
+		{
+			CGFloat dashes[2] = { 6.0, 2.0 };
+			CGContextSetLineDash(cg_context, 0, dashes, 2);
+		}
+		else // DOTS
+		{
+			CGFloat dots[2] = { 2.0, 2.0 };
+			CGContextSetLineDash(cg_context, 0, dots, 2);
+		}
+	}
+}
+
 IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih)
 {
 	IdrawCanvas* dc = calloc(1, sizeof(IdrawCanvas));
@@ -63,19 +98,102 @@ void iupdrvDrawKillCanvas(IdrawCanvas* dc)
 
 
 
-//void iupdrvDrawFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h);
-
-
 
 
 void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, unsigned char r, unsigned char g, unsigned char b, int style)
 {
+	CGContextRef cg_context = dc->cgContext;
+	
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
+	
+	CGRect the_rectangle = CGRectMake(x1, y1, x2-x1+1, y2-y1+1);
+	CGContextAddRect(cg_context, the_rectangle);
+	
+	if(IUP_DRAW_FILL == style)
+	{
+		CGContextSetFillColorWithColor(cg_context, the_color);
+	}
+	else
+	{
+		CGContextSetStrokeColorWithColor(cg_context, the_color);
+		coregraphicsSetLineStyle(dc, style);
+	}
+	
+	
 
+	CGFloat w = x2-x1+1;
+	CGFloat h = y2-y1+1;
+	CGFloat xc = x1 + w/2;
+	CGFloat yc = y1 + h/2;
+	
+	if (w == h)
+	{
+		CGContextAddArc(cg_context, xc, yc, 0.5*w, a1, a2, 1);
+		if(IUP_DRAW_FILL == style)
+		{
+			CGContextFillPath(cg_context);
+		}
+		else
+		{
+			CGContextStrokePath(cg_context);
+		}
+	}
+	else  /* Ellipse: change the scale to create from the circle */
+	{
+		/* save to use the local transform */
+		CGContextSaveGState(cg_context);
+		
+		CGContextTranslateCTM(cg_context, xc, yc);
+		CGContextScaleCTM(cg_context, w/h, 1.0);
+		CGContextTranslateCTM(cg_context, -xc, -yc);
+	
+		CGContextAddArc(cg_context, xc, yc, 0.5*h, a1, a2, 1);
+		
+		if(IUP_DRAW_FILL == style)
+		{
+			CGContextFillPath(cg_context);
+		}
+		else
+		{
+			CGContextStrokePath(cg_context);
+		}
+		
+		/* restore from local */
+		CGContextRestoreGState(cg_context);
+	}
 }
 
 void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r, unsigned char g, unsigned char b, int style)
 {
-
+	CGContextRef cg_context = dc->cgContext;
+	
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
+	
+	if(IUP_DRAW_FILL == style)
+	{
+		CGContextSetFillColorWithColor(cg_context, the_color);
+	}
+	else
+	{
+		CGContextSetStrokeColorWithColor(cg_context, the_color);
+		coregraphicsSetLineStyle(dc, style);
+	}
+	
+	CGContextMoveToPoint(cg_context, (CGFloat)points[0], (CGFloat)points[1]);
+	
+	for(int i=0; i<count; i++)
+	{
+		CGContextAddLineToPoint(cg_context, (CGFloat)points[2*i], (CGFloat)points[2*i+1]);
+	}
+	
+	if(IUP_DRAW_FILL == style)
+	{
+		CGContextFillPath(cg_context);
+	}
+	else
+	{
+		CGContextStrokePath(cg_context);
+	}
 }
 
 
@@ -105,43 +223,13 @@ void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
 }
 
-static CGColorRef coregraphicsCreateAutoreleasedColor(unsigned char r, unsigned char g, unsigned char b, unsigned a)
-{
-	// What color space should I be using?
-	//	CGColorSpaceRef color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-	
-	CGFloat inv_byte = 1.0/255.0;
-	CGColorRef the_color = CGColorCreateGenericRGB(r*inv_byte, g*inv_byte, b*inv_byte, a*inv_byte);
-	// Requires 10.9, 7.0
-	CFAutorelease(the_color);
-	return the_color;
-}
-
 void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
 {
 	CGContextRef cg_context = dc->cgContext;
 	
 	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
 	CGContextSetStrokeColorWithColor(cg_context, the_color);
-
-
-	if((IUP_DRAW_STROKE == style) || (IUP_DRAW_FILL==style))
-	{
-		CGContextSetLineDash(cg_context, 0, NULL, 0);
-	}
-	else
-	{
-		if(IUP_DRAW_STROKE_DASH == style)
-		{
-			CGFloat dashes[2] = { 6.0, 2.0 };
-			CGContextSetLineDash(cg_context, 0, dashes, 2);
-		}
-		else // DOTS
-		{
-			CGFloat dots[2] = { 2.0, 2.0 };
-			CGContextSetLineDash(cg_context, 0, dots, 2);
-		}
-	}
+	coregraphicsSetLineStyle(dc, style);
 
 	CGContextMoveToPoint(cg_context, (CGFloat)x1, (CGFloat)y1);
 	CGContextAddLineToPoint(cg_context, (CGFloat)x2, (CGFloat)y2);
@@ -158,17 +246,22 @@ void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsign
 	
 	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
 	
-	CGRect the_rectangle = CGRectMake(x1, y1, x2-x1, y2-y1);
-	CGContextAddRect(cg_context, the_rectangle);
-	
 	if(IUP_DRAW_FILL == style)
 	{
+		CGRect the_rectangle = CGRectMake(x1, y1, x2-x1, y2-y1);
+		CGContextAddRect(cg_context, the_rectangle);
+		
 		CGContextSetFillColorWithColor(cg_context, the_color);
 		CGContextFillRect(cg_context, the_rectangle);
 	}
 	else
 	{
+		// The other implementations make the line rect +1
+		CGRect the_rectangle = CGRectMake(x1, y1, x2-x1+1, y2-y1+1);
+		CGContextAddRect(cg_context, the_rectangle);
+		
 		CGContextSetStrokeColorWithColor(cg_context, the_color);
+		coregraphicsSetLineStyle(dc, style);
 		CGContextStrokePath(cg_context);
 	}
 }
