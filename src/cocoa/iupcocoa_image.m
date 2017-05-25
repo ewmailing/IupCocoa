@@ -516,20 +516,58 @@ void* iupdrvImageCreateMask(Ihandle *ih)
 
 void* iupdrvImageLoad(const char* name, int type)
 {
+	if(!name || (name[0] == '\0'))
+	{
+		return NULL;
+	}
   //int iup2mac[3] = {IMAGE_BITMAP, IMAGE_ICON, IMAGE_CURSOR};
-  NSImage *image;
-  NSString *path = [[NSString alloc] initWithUTF8String:name];
-  image = [[NSImage alloc] initWithContentsOfFile: path];
-	[path release];
+	NSImage* the_image = nil;
+	NSString* bundle_path = [[NSBundle mainBundle] bundlePath];
+
+	NSString* ns_name = [NSString stringWithUTF8String:name];
 	
-  NSBitmapImageRep *rep = [[image representations] objectAtIndex: 0];
-  // If you think you might get something other than a bitmap image representation,
-  // check for it here.
+	// Problem: The path either must be absolute, or it must be in the application bundle.
+	// TODO: We could also try to look elsewhere if we choose to, but beware of Sandboxing.
+	// Do we need to worry about images embedded in the IUP frameworks? (I think not because they are compiled into code.)
+	
+	// First, just try what was given. This could be an absolute path or current working directory.
+	the_image = [[NSImage alloc] initWithContentsOfFile:ns_name];
+	if(nil == the_image)
+	{
+		// Next, let's try the app bundle
+		NSString* resource_path = [[NSBundle mainBundle] resourcePath];
+		NSString* the_path = [resource_path stringByAppendingPathComponent:ns_name];
+		the_image = [[NSImage alloc] initWithContentsOfFile:the_path];
 
-  NSSize size = NSMakeSize ([rep pixelsWide], [rep pixelsHigh]);
-  [image setSize: size];
 
-	return (void*)image;
+	}
+	// if that still failed, let's try the directory where the app bundle resides.
+	// NOTE: Nobody should ship an app like this, but this is mainly for the Iup testing directory
+	if(nil == the_image)
+	{
+		NSString* bundle_path = [[NSBundle mainBundle] bundlePath];
+		// Chop off the Foo.app part
+		bundle_path = [bundle_path stringByDeletingLastPathComponent];
+		
+		NSString* the_path = [bundle_path stringByAppendingPathComponent:ns_name];
+		the_image = [[NSImage alloc] initWithContentsOfFile:the_path];
+	}
+	
+	
+	// giving up
+	if(nil == the_image)
+	{
+		return NULL;
+	}
+	
+	NSBitmapImageRep* bitmap_rep = [[the_image representations] objectAtIndex:0];
+	// If you think you might get something other than a bitmap image representation,
+	// check for it here.
+
+	NSSize image_size = NSMakeSize([bitmap_rep pixelsWide], [bitmap_rep pixelsHigh]);
+	[the_image setSize:image_size];
+
+	return (void*)the_image;
 	
 }
 
