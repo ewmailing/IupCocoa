@@ -83,6 +83,9 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
                 // This will throw an exception for a nil string.
                 [the_label setStringValue:ns_string];
  			}
+			[the_label setNeedsDisplay:YES];
+			[the_label updateCell:[the_label cell]];
+
 			// I think I need to call this. I noticed in another program, when I suddenly set a long string, it seems to use the prior layout. This forces a relayout.
 			IupRefresh(ih);
 			
@@ -115,6 +118,7 @@ static char* cocoaLabelGetTitleAttrib(Ihandle* ih)
 
 static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 {
+	return 0;
 	if(ih->data->type != IUP_LABEL_SEP_HORIZ && ih->data->type != IUP_LABEL_SEP_VERT)
 	{
 		if(ih->data->type == IUP_LABEL_TEXT)
@@ -151,23 +155,23 @@ static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
 				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
 				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentBottom];
-				return 0;
 			}
 			else if (iupStrEqualNoCase(value2, "ATOP"))
 			{
 				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
 				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
 				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentTop];
-				return 0;
 			}
 			else  /* ACENTER (default) */
 			{
 				NSCAssert([[the_label cell] isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
 				IUPCocoaVerticalAlignmentTextFieldCell* vertical_alignment_cell = (IUPCocoaVerticalAlignmentTextFieldCell*)[the_label cell];
 				[vertical_alignment_cell setAlignmentMode:IUPTextVerticalAlignmentCenter];
-				return 0;
 
 			}
+			[the_label setNeedsDisplay:YES];
+			[the_label updateCell:[the_label cell]];
+
 			return 1;
 		}
 		else if(ih->data->type == IUP_LABEL_IMAGE)
@@ -319,10 +323,132 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 				
 			}
 		}
+		[the_label setNeedsDisplay:YES];
+		[the_label updateCell:[the_label cell]];
 		return 1;
 	}
 	return 0;
 }
+
+
+/*
+This is a terrible workaround for a Mac bug.
+In creating our own subclass for NSTextFieldCell to provide vertical alignment, 
+we have hit a Mac bug.
+When we first create a multi-line word-wrapped label that is top-aligned,
+Mac seems to draw it in the wrong place.
+Even though our overrides in our subclass are producing the correct values,
+on the very initial creation, the cell is positioned too low (about midway).
+Calling setNeedsDisplay:YES, updateCell:, and all sorts of things to trigger a redraw/relayout do nothing.
+It almost feels like that Mac is caching the image and some other place in the renderer is putting it in the wrong position
+because the parts I tried overriding in the cell subclass seem to be producing all the correct values.
+The one thing that seems to fix the position is clicking on the label after it has been displayed.
+And when I click on it, nothing in I can see in the Cell, e.g. drawInteriorWithFrame get triggered, which is another reason it feels like it is some deferred Mac rendering bug.
+So, as a workaround, we need to simulate a mouse-click on the label when first displayed to force Mac to draw it in the correct place.
+Simulating the mouse-click caused its own problems.
+mouseDown: warns that the parameter needs to be non-nil. However, in my attempts to create a proper NSEvent to pass,
+I discovered that I would only sometimes correct the bug, and other times, the call seems to enter an event loop and never returns and never creates a window.
+Or sometimes nothing would happen at all.
+I discovered calling performSelector:withObject:afterDelay with some delay increased chances of it working.
+However, using a debugger/breakpoints would frequently break things.
+Eventually, I tried just passing nil as the events, and everything worked, and without needing a delay.
+*/
+ 
+ 
+#import <Carbon/Carbon.h>
+
+
+static void fixInitialVerticalAlignment(Ihandle* ih)
+{
+	if (ih->data->type == IUP_LABEL_TEXT)
+	{
+		NSTextField* the_label = (NSTextField*)ih->handle;
+		// Note: We might be able to get away with any kind of NSControl
+		NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+		
+		//		[[the_label cell] performClick:nil];
+		//		[the_label  performClick:nil];
+		
+		NSPoint click_location = [the_label frame].origin;
+		
+		NSWindow* the_window = [the_label window];
+		//		click_location = [the_window convertScreenToBase:click_location];
+		click_location = [the_label convertPoint:click_location toView:nil];
+		
+		NSInteger window_id = [the_window windowNumber];
+		NSGraphicsContext* graphics_context = [NSGraphicsContext currentContext];
+		NSEvent* mouseDownEvent = [NSEvent mouseEventWithType:NSLeftMouseDown location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context eventNumber: 0 clickCount:1 pressure:0];
+		NSEvent* mouseUpEvent = [NSEvent mouseEventWithType:NSLeftMouseUp location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context eventNumber: 0 clickCount:1 pressure:0];
+		
+		/*
+		 NSEvent* keyDownEvent = [NSEvent keyEventWithType:NSEventTypeKeyDown location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context characters:@"a" charactersIgnoringModifiers:@"" isARepeat:NO keyCode:20];
+		 NSEvent* keyUpEvent = [NSEvent keyEventWithType:NSEventTypeKeyUp location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context characters:@"a" charactersIgnoringModifiers:@"" isARepeat:NO keyCode:20];
+		 
+		 
+		 
+		 
+		 
+		 [the_label keyDown:keyDownEvent];
+		 [the_label keyUp:keyUpEvent];
+		 */
+		//	[the_label mouseDown:mouseDownEvent];
+		//	[the_label mouseDown:mouseUpEvent];
+		[the_label mouseDown:nil];
+		[the_label mouseUp:nil];
+//		NSRange selected_range = [[the_label currentEditor] selectedRange];
+//		[[the_label currentEditor] setSelectedRange:NSMakeRange(selected_range.length, 0)];
+
+	}
+	
+}
+
+
+@implementation NSTextField (IupCocoaFixIt)
+
+
+- (void) fixInitialVerticalAlignment:(id)the_object
+{
+	NSTextField* the_label = (NSTextField*)the_object;
+	// Note: We might be able to get away with any kind of NSControl
+	NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+	
+	//		[[the_label cell] performClick:nil];
+	//		[the_label  performClick:nil];
+	
+	NSPoint click_location = [the_label frame].origin;
+	
+	NSWindow* the_window = [the_label window];
+	//		click_location = [the_window convertScreenToBase:click_location];
+	click_location = [the_label convertPoint:click_location toView:nil];
+	
+	NSInteger window_id = [the_window windowNumber];
+	NSGraphicsContext* graphics_context = [NSGraphicsContext currentContext];
+	NSEvent* mouseDownEvent = [NSEvent mouseEventWithType:NSLeftMouseDown location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context eventNumber: 0 clickCount:1 pressure:0];
+	NSEvent* mouseUpEvent = [NSEvent mouseEventWithType:NSLeftMouseUp location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context eventNumber: 0 clickCount:1 pressure:0];
+	
+	/*
+	NSEvent* keyDownEvent = [NSEvent keyEventWithType:NSEventTypeKeyDown location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context characters:@"a" charactersIgnoringModifiers:@"" isARepeat:NO keyCode:20];
+	NSEvent* keyUpEvent = [NSEvent keyEventWithType:NSEventTypeKeyUp location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context characters:@"a" charactersIgnoringModifiers:@"" isARepeat:NO keyCode:20];
+
+
+
+
+	
+	[the_label keyDown:keyDownEvent];
+	[the_label keyUp:keyUpEvent];
+	 */
+	// Ugh: Sending generated events only some times works for me. I think it only works if the window is fully created and active.
+	// Otherwise the process seems to get stuck never creating the window.
+//	[the_label mouseDown:mouseDownEvent];
+//	[the_label mouseUp:mouseUpEvent];
+	// I know the API says non-nil, but this is the only thing that seems to work.
+	[the_label mouseDown:nil];
+	[the_label mouseUp:nil];
+	//		NSRange selected_range = [[the_label currentEditor] selectedRange];
+	//		[[the_label currentEditor] setSelectedRange:NSMakeRange(selected_range.length, 0)];
+}
+
+@end
 
 // Warning: The pre-10.10 behavior never behaved well. Maybe it should be removed.
 static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
@@ -333,7 +459,31 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 		// Note: We might be able to get away with any kind of NSControl
 		NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 
+		
+		/*
+		[[the_label cell] setScrollable:YES];
+		[[the_label cell] setWraps:NO];
+		
+		[[the_label cell] setScrollable:NO];
+		[[the_label cell] setWraps:YES];
+		
+		[the_label setSelectable:NO];
+		[the_label setSelectable:YES];
+		
+		[the_label setBezeled:YES];
+		[the_label setBordered:YES];
+		//			[the_label setDrawsBackground:NO];
+		[the_label setDrawsBackground:NO]; // sometimes helpful for debugging layout issues
+		NSString* str_value = [the_label stringValue];
+		[the_label setStringValue:@"blah"]; // sometimes helpful for debugging layout issues
 
+		[the_label setStringValue:str_value];
+		 */
+	//	[the_label selectText:nil];
+//		[the_label mouseDown:nil];
+		
+		return 1;
+		
 
 		if(iupStrBoolean(value))
 		{
@@ -510,16 +660,22 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			the_label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 //			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
 
-			
+#if 1
 			IUPCocoaVerticalAlignmentTextFieldCell* textfield_cell = [[IUPCocoaVerticalAlignmentTextFieldCell alloc] initTextCell:@""];
 			[the_label setCell:textfield_cell];
 			[textfield_cell release];
+			//[textfield_cell setScrollable:NO];
 			
+//			[textfield_cell performClick:nil];
+			
+//			[textfield_cell setAlignmentMode:IUPTextVerticalAlignmentTop];
+			
+#endif
 			
 			
 			[the_label setBezeled:NO];
-			[the_label setDrawsBackground:NO];
-//			[the_label setDrawsBackground:YES]; // sometimes helpful for debugging layout issues
+//			[the_label setDrawsBackground:NO];
+			[the_label setDrawsBackground:YES]; // sometimes helpful for debugging layout issues
 			[the_label setEditable:NO];
 //			[the_label setSelectable:NO];
 			// TODO: FEATURE: I think this is really convenient for users so it should be the default
@@ -569,6 +725,13 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 //			[the_label setLineBreakMode:NSLineBreakByWordWrapping];
 #endif
 			
+			[the_label setNeedsDisplay:YES];
+			[the_label updateCell:[the_label cell]];
+			
+			IupSetInt(ih, "_FIRST_SHOW_FIX", 1);
+
+			[the_label performSelector:@selector(fixInitialVerticalAlignment:) withObject:the_label afterDelay:0.0];
+
 		}
 	}
 	
@@ -598,6 +761,8 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 		iupAttribSet(ih, "DROPFILESTARGET", "YES");
 	}
 	
+//	fixInitialVerticalAlignment(ih);
+	
 	return IUP_NOERROR;
 }
 
@@ -611,6 +776,45 @@ static void cocoaLabelUnMapMethod(Ihandle* ih)
 
 }
 
+int cocoaLabelSetRasterSizeAttrib(Ihandle* ih, const char* value)
+{
+	iupBaseSetRasterSizeAttrib(ih, value);
+	if (ih->data->type == IUP_LABEL_TEXT)
+	{
+		NSTextField* the_label = (NSTextField*)ih->handle;
+		// Note: We might be able to get away with any kind of NSControl
+		NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+		
+
+		[the_label setNeedsDisplay:YES];
+		[the_label updateCell:[the_label cell]];
+	}
+	return 0;
+}
+
+#include "iup_classbase.h"
+
+void cocoaLabelLayoutUpdate(Ihandle *ih)
+{
+	iupdrvBaseLayoutUpdateMethod(ih);
+	
+	int needs_first_shown_vertical_align_fix = IupGetInt(ih, "_FIRST_SHOW_FIX");
+
+	if(needs_first_shown_vertical_align_fix)
+	{
+		NSTextField* the_label = (NSTextField*)ih->handle;
+		// Note: We might be able to get away with any kind of NSControl
+		NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+		
+
+//		[the_label performSelector:@selector(fixInitialVerticalAlignment:) withObject:the_label afterDelay:0.0];
+
+		
+		//fixInitialVerticalAlignment(ih);
+		IupSetInt(ih, "_FIRST_SHOW_FIX", 0);
+
+	}
+}
 
 void iupdrvLabelInitClass(Iclass* ic)
 {
@@ -618,6 +822,7 @@ void iupdrvLabelInitClass(Iclass* ic)
   ic->Map = cocoaLabelMapMethod;
 	ic->UnMap = cocoaLabelUnMapMethod;
 	
+	ic->LayoutUpdate = cocoaLabelLayoutUpdate;
 
 #if 0
 
@@ -654,4 +859,11 @@ void iupdrvLabelInitClass(Iclass* ic)
   /* IupLabel GTK only */
   iupClassRegisterAttribute(ic, "MARKUP", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);
 #endif
+	
+//	iupClassRegisterAttribute(ic, "SIZE", iupBaseGetSizeAttrib, iupBaseSetSizeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "RASTERSIZE", iupBaseGetRasterSizeAttrib, cocoaLabelSetRasterSizeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+
+
+	
+
 }
