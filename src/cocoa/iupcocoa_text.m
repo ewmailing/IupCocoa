@@ -38,7 +38,13 @@ static const void* IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY = "IUP_COCOA_TEXT_SPI
 static const void* IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY";
 
 
-
+#if __APPLE__
+	#define USE_NSSTACKVIEW_TEXTFIELD_CONTAINER 1
+#else // Intended for GNUStep because it lacks NSStackView
+	// USE_CONTAINERVIEW_TEXTFIELD_CONTAINER was intended to try to build an equivalent to the NSStackView approach using the old autoresizingMask, but I can't get it to work correctly in the complicated IupGrid situtation.
+	// The default fallback case is actually better than this container approach.
+//	#define USE_CONTAINERVIEW_TEXTFIELD_CONTAINER 1
+#endif
 
 
 
@@ -105,9 +111,22 @@ static NSView* cocoaProgressBarGetRootView(Ihandle* ih)
 
 static NSTextField* cocoaTextGetTextField(Ihandle* ih)
 {
+#ifdef USE_NSSTACKVIEW_TEXTFIELD_CONTAINER
+	NSStackView* root_container_view = (NSStackView*)ih->handle;
+	NSTextField* text_field = [[root_container_view views] firstObject];
+	NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+	return text_field;
+#elif defined(USE_CONTAINERVIEW_TEXTFIELD_CONTAINER)
+	NSView* root_container_view = (NSView*)ih->handle;
+	NSTextField* text_field = [[root_container_view subviews] firstObject];
+	NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+	return text_field;
+#else
 	NSTextField* root_container_view = (NSTextField*)ih->handle;
 	NSCAssert([root_container_view isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 	return root_container_view;
+#endif
+
 }
 
 static NSTextView* cocoaTextGetTextView(Ihandle* ih)
@@ -890,8 +909,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	else
 	{
 		NSTextField* text_field;
-		
-		
+
 		// IMPORTANT: Secure text fields are not togglable in Cocoa
 		// It might be fakeable, however, since this is security related, mucking with it is ill-advised.
 		// Also Mac App Store may reject ill-advised things.
@@ -916,16 +934,31 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		// We must not allow IUP to EXPAND the height of the NSTextField so unset the bit flag if it is set.
 		ih->expand = ih->expand & ~IUP_EXPAND_HEIGHT;
 		
-		the_view = text_field;
-
-
-		
 		/* formatting is never supported when MULTILINE=NO */
 		ih->data->has_formatting = 0;
 		
 		
-//		[text_field sizeToFit];
+#ifdef USE_NSSTACKVIEW_TEXTFIELD_CONTAINER
+		NSStackView* stack_view = [[NSStackView alloc] initWithFrame:NSZeroRect];
+		[stack_view setOrientation:NSUserInterfaceLayoutOrientationVertical];
+		[stack_view setAlignment:NSLayoutAttributeCenterX];
+		[stack_view setDistribution:NSStackViewDistributionEqualCentering]; // requires 10.11. In a complicated IB test, I needed this to keep the widget vertically centerd. But in practice, I'm not sure if this is needed. Maybe we can use respondsToSelector if 10.9/10.10 compat is needed.
+		[stack_view addView:text_field inGravity:NSStackViewGravityCenter];
+		[text_field release];
+		the_view = stack_view;
+#elif defined(USE_CONTAINERVIEW_TEXTFIELD_CONTAINER)
+		NSView* container_view = [[NSView alloc] initWithFrame:NSZeroRect];
+		[container_view setAutoresizingMask:NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin|NSViewMaxYMargin|NSViewWidthSizable|NSViewHeightSizable];
+		[text_field setAutoresizingMask:NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin|NSViewMaxYMargin|NSViewWidthSizable];
 
+		[container_view addSubview:text_field];
+		[text_field release];
+		the_view = container_view;
+#else
+		the_view = text_field;
+
+#endif
+		
 
 	}
 	
