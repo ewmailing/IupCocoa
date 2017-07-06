@@ -77,7 +77,7 @@ static IupCocoaTextSubType cocoaTextGetSubType(Ihandle* ih)
 	return IupCocoaTextSubType_UNKNOWN;
 }
 
-static NSView* cocoaProgressBarGetRootView(Ihandle* ih)
+static NSView* cocoaTextGetRootView(Ihandle* ih)
 {
 	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
 	switch(sub_type)
@@ -131,7 +131,7 @@ static NSTextField* cocoaTextGetTextField(Ihandle* ih)
 
 static NSTextView* cocoaTextGetTextView(Ihandle* ih)
 {
-	NSScrollView* root_container_view = (NSScrollView*)cocoaProgressBarGetRootView(ih);
+	NSScrollView* root_container_view = (NSScrollView*)cocoaTextGetRootView(ih);
 	NSCAssert([root_container_view isKindOfClass:[NSScrollView class]], @"Expected NSScrollView");
 	NSTextView* text_view = [root_container_view documentView];
 	NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");

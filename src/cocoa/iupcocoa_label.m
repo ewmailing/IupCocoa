@@ -99,6 +99,27 @@
 
 
 
+static NSView* cocoaLabelGetRootView(Ihandle* ih)
+{
+	NSView* root_container_view = (NSView*)ih->handle;
+	return root_container_view;
+}
+
+static NSTextField* cocoaLabelGetTextField(Ihandle* ih)
+{
+	NSTextField* text_field = (NSTextField*)cocoaLabelGetRootView(ih);
+	NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+	return text_field;
+}
+
+static NSImageView* cocoaLabelGetImageView(Ihandle* ih)
+{
+	NSView* root_container_view = cocoaLabelGetRootView(ih);
+	NSCAssert([root_container_view isKindOfClass:[NSImageView class]], @"Expected NSImageView");
+	return (NSImageView*)root_container_view;	
+}
+
+
 
 static int cocoaLabelSetPaddingAttrib(Ihandle* ih, const char* value)
 {
@@ -121,7 +142,7 @@ static int cocoaLabelSetPaddingAttrib(Ihandle* ih, const char* value)
 
 static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
-	id the_label = ih->handle;
+	NSTextField* the_label = cocoaLabelGetTextField(ih);
 	if(the_label)
 	{
 		// This could be a NSTextField, some kind of image, or something else.
@@ -164,7 +185,7 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 
 static char* cocoaLabelGetTitleAttrib(Ihandle* ih)
 {
-	id the_label = ih->handle;
+	NSTextField* the_label = cocoaLabelGetTextField(ih);
 	if(the_label)
 	{
 		// This could be a NSTextField, some kind of image, or something else.
@@ -188,7 +209,8 @@ static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 	{
 		if(ih->data->type == IUP_LABEL_TEXT)
 		{
-			NSTextField* the_label = (NSTextField*)ih->handle;
+			NSTextField* the_label = cocoaLabelGetTextField(ih);
+
 			// Note: We might be able to get away with any kind of NSControl
 			NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 
@@ -239,7 +261,7 @@ static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 		}
 		else if(ih->data->type == IUP_LABEL_IMAGE)
 		{
-			NSImageView* the_label = (NSImageView*)ih->handle;
+			NSImageView* the_label = cocoaLabelGetImageView(ih);
 			// Note: We might be able to get away with any kind of NSControl
 			NSCAssert([the_label isKindOfClass:[NSImageView class]], @"Expected NSImageView");
 			
@@ -307,7 +329,7 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 {
 	if (ih->data->type == IUP_LABEL_TEXT)
 	{
-		NSTextField* the_label = (NSTextField*)ih->handle;
+		NSTextField* the_label = cocoaLabelGetTextField(ih);
 		// Note: We might be able to get away with any kind of NSControl
 		NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 		if(iupStrBoolean(value))
@@ -397,7 +419,7 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 {
 	if (ih->data->type == IUP_LABEL_TEXT)
 	{
-		NSTextField* the_label = (NSTextField*)ih->handle;
+		NSTextField* the_label = cocoaLabelGetTextField(ih);
 		// Note: We might be able to get away with any kind of NSControl
 		NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 
