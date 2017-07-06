@@ -184,7 +184,6 @@ static char* cocoaLabelGetTitleAttrib(Ihandle* ih)
 
 static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 {
-	return 0;
 	if(ih->data->type != IUP_LABEL_SEP_HORIZ && ih->data->type != IUP_LABEL_SEP_VERT)
 	{
 		if(ih->data->type == IUP_LABEL_TEXT)
