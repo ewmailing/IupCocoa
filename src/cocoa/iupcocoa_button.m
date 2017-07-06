@@ -110,106 +110,48 @@ void iupdrvButtonAddBorders(int *x, int *y)
 
 }
 
-static int cocoaButtonMapMethod(Ihandle* ih)
+static int cocoaButtonSetTitleAttrib(Ihandle* ih, const char* value)
 {
-	char* value;
-#if 0
-	int impress;
-	
-	value = iupAttribGet(ih, "IMAGE");
-	if (value)
-	{
-		ih->data->type = IUP_BUTTON_IMAGE;
-		
-		value = iupAttribGet(ih, "TITLE");
-		if (value && *value!=0)
-		{
-			ih->data->type |= IUP_BUTTON_TEXT;
-		}
-	}
-	else
-	{
-		ih->data->type = IUP_BUTTON_TEXT;
-	}
-		
-	if (ih->data->type == IUP_BUTTON_IMAGE &&
-		iupAttribGet(ih, "IMPRESS") &&
-		!iupAttribGetBoolean(ih, "IMPRESSBORDER"))
-	{
+	id the_button = ih->handle;
 
-		
-	}
-	else
+	if (ih->data->type & IUP_BUTTON_TEXT)  /* text or both */
 	{
-//		ih->handle = gtk_button_new();
-	}
-	
-	
-	
-	if (!ih->handle)
-	{
-		return IUP_ERROR;
-	}
-	
-	if (ih->data->type & IUP_BUTTON_IMAGE)
-	{
-	/*
-		if (!iupAttribGet(ih, "_IUPGTK_EVENTBOX"))
+		if(value && *value!=0)
 		{
-			gtk_button_set_image((GtkButton*)ih->handle, gtk_image_new());
+			char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
 			
-			if (ih->data->type & IUP_BUTTON_TEXT)
+			// This will return nil if the string can't be converted.
+			NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
+			
+			if(stripped_str && stripped_str != value)
 			{
-				GtkSettings* settings = gtk_widget_get_settings(ih->handle);
-				g_object_set(settings, "gtk-button-images", (int)TRUE, NULL);
-				
-				gtk_button_set_label((GtkButton*)ih->handle, iupgtkStrConvertToSystem(iupAttribGet(ih, "TITLE")));
-				
-
-	 
+				free(stripped_str);
 			}
-		}
-*/
-	}
-	else
-	{
-		char* title = iupAttribGet(ih, "TITLE");
-		if (!title)
-		{
-			if (iupAttribGet(ih, "BGCOLOR"))
+			
+			[the_button setTitle:ns_string];
+			
+			if(ih->data->type & IUP_BUTTON_IMAGE)
 			{
-				
+				// TODO: FEATURE: Cocoa allows text to be placed in different positions
+				// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Button/Tasks/SettingButtonImage.html
+				[the_button setImagePosition:NSImageLeft];
 			}
 			else
 			{
-//				gtk_button_set_label((GtkButton*)ih->handle, "");
+				//			[the_button setImagePosition:NSNoImage];
+				
 			}
-		}
-		else
-		{
-//			gtk_button_set_label((GtkButton*)ih->handle, iupgtkStrConvertToSystem(title));
+			
+			return 1;
 		}
 	}
 	
-	/* add to the parent, all GTK controls must call this. */
-//	iupgtkAddToParent(ih);
-	
-	if (!iupAttribGetBoolean(ih, "CANFOCUS"))
-	{
-//		iupgtkSetCanFocus(ih->handle, 0);
-	}
-	
-	value = iupAttribGet(ih, "IMPRESS");
-	impress = (ih->data->type & IUP_BUTTON_IMAGE && value)? 1: 0;
-	if (!impress && iupAttribGetBoolean(ih, "FLAT"))
-	{
+	return 0;
+}
 
-	}
-	else
-	{
-
-	}
-#else
+static int cocoaButtonMapMethod(Ihandle* ih)
+{
+	char* value;
 
 	/*
 	static int woffset = 0;
@@ -222,16 +164,44 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	 NSButton* the_button = [[NSButton alloc] initWithFrame:NSMakeRect(woffset, hoffset, 0, 0)];
 	*/
 	NSButton* the_button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	
+	// I seem to be getting a default "Button" title for image button.
+	[the_button setTitle:@""];
 	
 
-	
-
-#if 1
 	value = iupAttribGet(ih, "IMAGE");
-	if(value && *value!=0)
+	if(value)
 	{
-		ih->data->type |= IUP_BUTTON_IMAGE;
+		ih->data->type = IUP_BUTTON_IMAGE;
+		
+		const char* title = iupAttribGet(ih, "TITLE");
+		if (title && *title!=0)
+		{
+			ih->data->type |= IUP_BUTTON_TEXT;
+			
+			
+			char* stripped_str = iupStrProcessMnemonic(title, NULL, 0);   /* remove & */
+			
+			// This will return nil if the string can't be converted.
+			NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
+			
+			if(stripped_str && stripped_str != title)
+			{
+				free(stripped_str);
+			}
+			
+			[the_button setTitle:ns_string];
+
+			// TODO: FEATURE: Cocoa allows text to be placed in different positions
+			// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Button/Tasks/SettingButtonImage.html
+			[the_button setImagePosition:NSImageLeft];
+
+		}
+		else
+		{
+			// Explicitly set to NSImageOnly, otherwise expanding the image button does it in a off-centered way.
+			[the_button setImagePosition:NSImageOnly];
+		}
+		
 		
 		[the_button setButtonType:NSMomentaryChangeButton];
 
@@ -255,7 +225,6 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 			
 		the_bitmap = iupImageGetImage(value, ih, make_inactive);
 		[the_button setImage:the_bitmap];
-        [the_button setImagePosition:NSImageLeft];
 		
 		
 		value = iupAttribGet(ih, "IMPRESS");
@@ -264,12 +233,14 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 			the_bitmap = iupImageGetImage(value, ih, make_inactive);
 			[the_button setAlternateImage:the_bitmap];
 		}
+		
 	}
 	else
 	{
 		[the_button setButtonType:NSMomentaryLightButton];
 		[the_button setBezelStyle:NSRoundedBezelStyle];
 		
+		ih->data->type = IUP_BUTTON_TEXT;
 
 		
 
@@ -278,42 +249,11 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	// Interface builder defaults to 13pt, but programmatic is smaller (12?). Setting the font fixes that difference.
 	[the_button setFont:[NSFont systemFontOfSize:0]];
 
-#endif
 //	[the_button setButtonType:NSMomentaryLightButton];
 
-#if 1
-	value = iupAttribGet(ih, "TITLE");
-	if(value && *value!=0)
-	{
-		ih->data->type |= IUP_BUTTON_TEXT;
-		
-		char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
-		
-		// This will return nil if the string can't be converted.
-		NSString* ns_string = [NSString stringWithUTF8String:stripped_str];
-		
-		if(stripped_str && stripped_str != value)
-		{
-			free(stripped_str);
-		}
-		
-		[the_button setTitle:ns_string];
-		if(ih->data->type & IUP_BUTTON_IMAGE)
-		{
-			// TODO: FEATURE: Cocoa allows text to be placed in different positions
-			// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Button/Tasks/SettingButtonImage.html
-			[the_button setImagePosition:NSImageLeft];
-		}
-		else
-		{
-//			[the_button setImagePosition:NSNoImage];
-			
-		}
 
-	}
-#endif
 	
-	[the_button sizeToFit];
+//	[the_button sizeToFit];
 	
 	
 	
@@ -339,7 +279,6 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	iupCocoaAddToParent(ih);
 
 	
-#endif
 	
 	
 
@@ -392,8 +331,11 @@ void iupdrvButtonInitClass(Iclass* ic)
 	
 	/* Special */
 	iupClassRegisterAttribute(ic, "FGCOLOR", NULL, gtkButtonSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
-	iupClassRegisterAttribute(ic, "TITLE", NULL, gtkButtonSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-	
+#endif
+
+	iupClassRegisterAttribute(ic, "TITLE", NULL, cocoaButtonSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
+#if 0
 	/* IupButton only */
 	iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkButtonSetAlignmentAttrib, "ACENTER:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
 	iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkButtonSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
