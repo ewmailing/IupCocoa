@@ -8,12 +8,39 @@
 
 @implementation IUPCocoaVerticalAlignmentTextFieldCell
 @synthesize alignmentMode = alignmentMode;
+@synthesize useWordWrap = useWordWrap;
+@synthesize useEllipsis = useEllipsis;
 
 - (NSRect) titleRectForBounds:(NSRect)cell_frame
 {
 	NSAttributedString* attributed_string = [self attributedStringValue];
-	NSSize string_size = [attributed_string size];
-	CGFloat string_height = string_size.height;
+	//	NSSize string_size = [attributed_string size];
+	
+	NSSize string_bounding_size = cell_frame.size;
+	
+	NSStringDrawingOptions string_draw_options = NSStringDrawingUsesLineFragmentOrigin;
+	
+	if(NO == [self useWordWrap])
+	{
+		string_bounding_size.width = CGFLOAT_MAX;
+	}
+	if([self useEllipsis])
+	{
+		string_draw_options |= NSStringDrawingTruncatesLastVisibleLine;
+		
+	}
+	
+	// 10.11+
+	/*
+	CGRect rect = [myLabel.text boundingRectWithSize:CGSizeMake(myLabel.frame.size.width, CGFLOAT_MAX)
+											 options:NSStringDrawingUsesLineFragmentOrigin
+										  attributes:@{NSFontAttributeName: myLabel.font}
+											 context:nil];
+	*/
+	// Deprecated in 10.11.
+	// TODO: Allow for font change (needs 10.11 API)
+	NSRect string_rect = [attributed_string boundingRectWithSize:string_bounding_size options:string_draw_options];
+	CGFloat string_height = string_rect.size.height;
 	
 	NSRect title_rect = [super titleRectForBounds:cell_frame];
 	

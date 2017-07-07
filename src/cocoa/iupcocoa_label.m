@@ -32,72 +32,6 @@
 #import "IUPCocoaVerticalAlignmentTextFieldCell.h"
 
 
-/*
- This is a terrible workaround for a Mac bug.
- In creating our own subclass for NSTextFieldCell to provide vertical alignment,
- we have hit a Mac bug.
- When we first create a multi-line word-wrapped label that is top-aligned,
- Mac seems to draw it in the wrong place.
- Even though our overrides in our subclass are producing the correct values,
- on the very initial creation, the cell is positioned too low (about midway).
- Calling setNeedsDisplay:YES, updateCell:, performClick: and all sorts of things to trigger a redraw/relayout do nothing.
- It almost feels like that Mac is caching the image and some other place in the renderer is putting it in the wrong position
- because the parts I tried overriding in the cell subclass seem to be producing all the correct values.
- The one thing that seems to fix the position is clicking on the label after it has been displayed.
- And when I click on it, nothing in I can see in the Cell, e.g. drawInteriorWithFrame get triggered, which is another reason it feels like it is some deferred Mac rendering bug.
- So, as a workaround, we need to simulate a mouse-click on the label when first displayed to force Mac to draw it in the correct place.
- Simulating the mouse-click caused its own problems.
- mouseDown: warns that the parameter needs to be non-nil. However, in my attempts to create a proper NSEvent to pass,
- I discovered that I would only sometimes correct the bug, and other times, the call seems to enter an event loop and never returns and never creates a window.
- Or sometimes nothing would happen at all.
- I discovered calling performSelector:withObject:afterDelay with some delay increased chances of it working.
- However, using a debugger/breakpoints would frequently break things.
- Eventually, I tried just passing nil as the events, and everything worked. I still seem to need a delay, unless I override the LayoutUpdate and then manually run the fix the very first time I encounter a new widget.
- */
-
-
-@implementation NSTextField (IupCocoaLabelBugWorkaround)
-
-- (void) fixInitialVerticalAlignment:(id)the_object
-{
-	NSTextField* the_label = (NSTextField*)the_object;
-	// Note: We might be able to get away with any kind of NSControl
-	NSCAssert([the_label isKindOfClass:[NSTextField class]], @"Expected NSTextField");
-	
-	//		[[the_label cell] performClick:nil];
-	//		[the_label  performClick:nil];
-	
-#if 0
-	NSPoint click_location = [the_label frame].origin;
-	
-	NSWindow* the_window = [the_label window];
-	//		click_location = [the_window convertScreenToBase:click_location];
-	click_location = [the_label convertPoint:click_location toView:nil];
-	
-	NSInteger window_id = [the_window windowNumber];
-	NSGraphicsContext* graphics_context = [NSGraphicsContext currentContext];
-	NSEvent* mouseDownEvent = [NSEvent mouseEventWithType:NSLeftMouseDown location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context eventNumber: 0 clickCount:1 pressure:0];
-	NSEvent* mouseUpEvent = [NSEvent mouseEventWithType:NSLeftMouseUp location:click_location modifierFlags:0 timestamp:GetCurrentEventTime() windowNumber:window_id context:graphics_context eventNumber: 0 clickCount:1 pressure:0];
-	
-	
-	// Ugh: Sending generated events only some times works for me. I think it only works if the window is fully created and active.
-	// Otherwise the process seems to get stuck never creating the window.
-	[the_label mouseDown:mouseDownEvent];
-	[the_label mouseUp:mouseUpEvent];
-#else
-	
-	// I know the API says non-nil, but this is the only thing that seems to work.
-	[the_label mouseDown:nil];
-	[the_label mouseUp:nil];
-#endif
-	//		NSRange selected_range = [[the_label currentEditor] selectedRange];
-	//		[[the_label currentEditor] setSelectedRange:NSMakeRange(selected_range.length, 0)];
-}
-
-@end
-
-
-
 
 static NSView* cocoaLabelGetRootView(Ihandle* ih)
 {
@@ -116,7 +50,7 @@ static NSImageView* cocoaLabelGetImageView(Ihandle* ih)
 {
 	NSView* root_container_view = cocoaLabelGetRootView(ih);
 	NSCAssert([root_container_view isKindOfClass:[NSImageView class]], @"Expected NSImageView");
-	return (NSImageView*)root_container_view;	
+	return (NSImageView*)root_container_view;
 }
 
 
@@ -338,6 +272,10 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 			if([the_label respondsToSelector:@selector(setLineBreakMode:)])
 			{
 				[the_label setLineBreakMode:NSLineBreakByWordWrapping];
+				IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+				NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+				[vertical_cell setUseWordWrap:YES];
+				[vertical_cell setUseEllipsis:NO];
 			}
 			else
 			{
@@ -352,6 +290,13 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 					[[the_label cell] setWraps:YES];
 					[[the_label cell] setLineBreakMode:NSLineBreakByTruncatingTail];
 					[[the_label cell] setTruncatesLastVisibleLine:YES];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:YES];
+					[vertical_cell setUseEllipsis:YES];
+
+					
 				}
 				else
 				{
@@ -361,6 +306,11 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 					[[the_label cell] setWraps:YES];
 					[[the_label cell] setLineBreakMode:NSLineBreakByWordWrapping];
 					[[the_label cell] setTruncatesLastVisibleLine:NO];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:YES];
+					[vertical_cell setUseEllipsis:NO];
 				}
 				
 			}
@@ -376,10 +326,20 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 				if(iupStrBoolean(ellipsis_state))
 				{
 					[the_label setLineBreakMode:NSLineBreakByTruncatingTail];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:NO];
+					[vertical_cell setUseEllipsis:YES];
 				}
 				else
 				{
 					[the_label setLineBreakMode:NSLineBreakByClipping];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:NO];
+					[vertical_cell setUseEllipsis:NO];
 				}
 			}
 			else
@@ -395,6 +355,11 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 					[[the_label cell] setWraps:YES];
 					[[the_label cell] setLineBreakMode:NSLineBreakByWordWrapping];
 					[[the_label cell] setTruncatesLastVisibleLine:YES];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:NO];
+					[vertical_cell setUseEllipsis:YES];
 				}
 				else
 				{
@@ -404,6 +369,12 @@ static int cocoaLabelSetWordWrapAttrib(Ihandle* ih, const char* value)
 					[[the_label cell] setWraps:NO];
 					[[the_label cell] setLineBreakMode:NSLineBreakByClipping];
 					[[the_label cell] setTruncatesLastVisibleLine:NO];
+
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:NO];
+					[vertical_cell setUseEllipsis:NO];
+
 				}
 				
 			}
@@ -432,6 +403,11 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 				// Wrapping and ellipsis are mutually exclusive
 				// TODO: Expose different ellipsis modes to public API
 				[the_label setLineBreakMode:NSLineBreakByTruncatingTail];
+				
+				IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+				NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+				[vertical_cell setUseWordWrap:NO];
+				[vertical_cell setUseEllipsis:YES];
 
 			}
 			else
@@ -443,6 +419,11 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 				[[the_label cell] setWraps:YES];
 				[[the_label cell] setLineBreakMode:NSLineBreakByWordWrapping];
 				[[the_label cell] setTruncatesLastVisibleLine:YES];
+				
+				IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+				NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+				[vertical_cell setUseWordWrap:YES];
+				[vertical_cell setUseEllipsis:YES];
 				
 			}
 		}
@@ -457,10 +438,20 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 				if(iupStrBoolean(wordwrap_state))
 				{
 					[the_label setLineBreakMode:NSLineBreakByWordWrapping];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:YES];
+					[vertical_cell setUseEllipsis:NO];
 				}
 				else
 				{
 					[the_label setLineBreakMode:NSLineBreakByClipping];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:NO];
+					[vertical_cell setUseEllipsis:NO];
 				}
 				
 			}
@@ -476,6 +467,11 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 					[[the_label cell] setWraps:YES];
 					[[the_label cell] setLineBreakMode:NSLineBreakByWordWrapping];
 					[[the_label cell] setTruncatesLastVisibleLine:YES];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:YES];
+					[vertical_cell setUseEllipsis:NO];
 				}
 				else
 				{
@@ -485,6 +481,11 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 					[[the_label cell] setWraps:NO];
 					[[the_label cell] setLineBreakMode:NSLineBreakByClipping];
 					[[the_label cell] setTruncatesLastVisibleLine:NO];
+					
+					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
+					NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
+					[vertical_cell setUseWordWrap:NO];
+					[vertical_cell setUseEllipsis:NO];
 				}
 								
 			}
@@ -618,7 +619,9 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			[the_label setEditable:NO];
 //			[the_label setSelectable:NO];
 			// TODO: FEATURE: I think this is really convenient for users so it should be the default
-			[the_label setSelectable:YES];
+			// FIXME: APPLE BUG: setSelectable:YES completely breaks using our vertical alignment cell subclass.
+			// When clicking the text, the text will snap to a wrong position and stay there.
+//			[the_label setSelectable:YES];
 			
 //			NSFont* the_font = [the_label font];
 //			NSLog(@"font %@", the_font);
@@ -664,7 +667,6 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 //			[the_label setLineBreakMode:NSLineBreakByWordWrapping];
 #endif
 			
-			[the_label performSelector:@selector(fixInitialVerticalAlignment:) withObject:the_label afterDelay:0.0];
 
 		}
 	}
@@ -694,8 +696,6 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 	{
 		iupAttribSet(ih, "DROPFILESTARGET", "YES");
 	}
-	
-//	fixInitialVerticalAlignment(ih);
 	
 	return IUP_NOERROR;
 }
