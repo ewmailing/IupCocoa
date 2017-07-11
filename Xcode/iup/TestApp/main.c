@@ -535,6 +535,127 @@ void TextTest(void)
 	IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
 	IupSetFocus(mltline);
 }
+
+
+
+
+void SizeTestLabel(void)
+{
+	Ihandle* the_label = IupLabel("The Label");
+
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(the_label);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+
+void SizeTestTextField(void)
+{
+	Ihandle* text_field = IupText(NULL);
+		//  IupSetAttribute(text, "VALUE", "Single Line Text");
+	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(text_field);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+void SizeTestButton(void)
+{
+	Ihandle* the_button = IupButton("The Button", NULL);
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(the_button);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+
+void LayoutTestGrid2(void)
+{
+	Ihandle* the_label = IupLabel("The Label");
+	Ihandle* text_field = IupText(NULL);
+	
+	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
+
+	//  IupSetAttribute(text, "VALUE", "Single Line Text");
+	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+
+	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
+	IupSetAttribute(text_field, "ALIGNMENT", "ALEFT:ACENTER");
+
+	
+	Ihandle* grid_box = IupGridBox(NULL);
+	
+	IupSetAttribute(grid_box, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(grid_box, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(grid_box, "NUMDIV", 2);
+//	IupSetInt(grid_box, "NUMDIV", 3);
+	IupSetInt(grid_box, "SIZECOL", 1);
+//	IupSetInt(grid_box, "SIZECOL", 2);
+	
+	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
+	
+	IupAppend(grid_box, the_label);
+	IupAppend(grid_box, text_field);
+
+//	IupAppend(grid_box, button_select);
+	
+	
+
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(grid_box);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+
+void LayoutTestGrid3(void)
+{
+	Ihandle* the_label = IupLabel("The Label");
+	Ihandle* text_field = IupText(NULL);
+	Ihandle* the_button = IupButton("The Button", NULL);
+	
+	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
+	
+	//  IupSetAttribute(text, "VALUE", "Single Line Text");
+	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+	
+	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
+	IupSetAttribute(text_field, "ALIGNMENT", "ALEFT:ACENTER");
+	IupSetAttribute(the_button, "ALIGNMENT", "ARIGHT:ACENTER");
+
+	
+	Ihandle* grid_box = IupGridBox(NULL);
+	
+	IupSetAttribute(grid_box, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(grid_box, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(grid_box, "NUMDIV", 3);
+	IupSetInt(grid_box, "SIZECOL", 2);
+	
+	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
+	
+	IupAppend(grid_box, the_label);
+	IupAppend(grid_box, text_field);
+	
+	IupAppend(grid_box, the_button);
+	
+	
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(grid_box);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+
 /*
  #ifndef BIG_TEST
  int main(int argc, char* argv[])
@@ -1589,6 +1710,51 @@ void AppMenuTest()
 
 }
 
+static int FixIt(Ihandle *ih,int but,int pressed,int x,int y,char* status)
+{
+	
+	Ihandle* label_description = (Ihandle*)IupGetAttribute(ih, "labelDescription");
+		IupSetAttribute(label_description, "ELLIPSIS", "YES");
+
+	//IupRedraw(label_description, 0);
+	return IUP_DEFAULT;
+}
+
+void LabelSizeTest()
+{
+	Ihandle* label_description = NULL;
+label_description = IupLabel(
+//	"The Blurrr SDK could not be found.\nPlease do not move this application from its original location in the SDK.\n(This is how Blurrr can remain installer-free.)\nIf you must proceed, you may enter the path to the Blurrr SDK as an unsupported hack."
+
+	"The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog."
+	);
+	
+	IupSetAttribute(label_description, "WORDWRAP", "YES");
+	//	IupSetAttribute(label_description, "EXPAND", "YES");
+	IupSetAttribute(label_description, "RASTERSIZE", "200x60");
+	
+	
+//	Ihandle* button_fix = IupButton("Fix it", (const char*)FixIt);
+	Ihandle* button_fix = IupButton("Fix it", NULL);
+	IupSetCallback(button_fix, "ACTION", (Icallback)FixIt);
+
+	IupSetAttribute(button_fix, "labelDescription", (const char*)label_description);
+
+	
+	Ihandle* vbox_for_all = IupVbox(
+									label_description,
+									button_fix,
+									NULL
+									);
+	
+	
+//	Ihandle* dialog = IupDialog(label_description);
+	Ihandle* dialog = IupDialog(vbox_for_all);
+	IupShow(dialog);
+
+	
+}
+
 void IupEntryPoint()
 {
 //	GridTest();
@@ -1597,6 +1763,14 @@ void IupEntryPoint()
 //	AppMenuTest();
 //	ProgressbarTest2();
 	TextTest();
+	
+	SizeTestLabel();
+	SizeTestTextField();
+	SizeTestButton();
+	LayoutTestGrid2();
+	LayoutTestGrid3();
+
+//	LabelSizeTest();
 }
 
 int main(int argc, char* argv[])
