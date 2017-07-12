@@ -659,7 +659,7 @@ void LayoutTestGrid2LabelText(void)
 
 
 
-void LayoutTestGrid3LabelLabelButton(void)
+void LayoutTestGrid3LabelTextButton(void)
 {
 	Ihandle* the_label = IupLabel("The Label:");
 	Ihandle* text_field = IupText(NULL);
@@ -667,8 +667,10 @@ void LayoutTestGrid3LabelLabelButton(void)
 	
 	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
 	
-	//  IupSetAttribute(text, "VALUE", "Single Line Text");
+	IupSetAttribute(text_field, "VALUE", "The quick brown fox jumped over the lazy dog.");
 	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+	IupSetInt(text_field, "VISIBLECOLUMNS", 10);
+
 	
 	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
 	IupSetAttribute(text_field, "ALIGNMENT", "ALEFT:ACENTER");
@@ -698,18 +700,15 @@ void LayoutTestGrid3LabelLabelButton(void)
 	
 }
 
-void LayoutTestGrid3LabelTextButton(void)
+void LayoutTestGrid3LabelLabelButton(void)
 {
 	Ihandle* the_label = IupLabel("The Label:");
-	Ihandle* the_label2 = IupLabel("Hello World");
+	Ihandle* the_label2 = IupLabel("The quick brown fox jumped over the lazy dog.");
 	Ihandle* the_button = IupButton("The Button", NULL);
 	
 	
 	
 	IupSetAttribute(the_label2, "EXPAND", "HORIZONTAL");
-	
-	//  IupSetAttribute(the_label2, "VALUE", "Single Line Text");
-	IupSetAttribute(the_label2, "CUEBANNER", "Enter text here");
 	
 	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
 	IupSetAttribute(the_label2, "ALIGNMENT", "ALEFT:ACENTER");
@@ -1846,17 +1845,19 @@ void IupEntryPoint()
 //	ListTextButtonLabelTest();
 //	AppMenuTest();
 //	ProgressbarTest2();
-	TextTest();
-	
+//	TextTest();
+
+	/*
 	SizeTestLabel();
 	SizeTestTextField();
 	SizeTestButton();
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
 	LayoutTestGrid3LabelLabelButton();
+	 */
 	LayoutTestGrid3LabelTextButton();
 
-	LabelSizeTest();
+//	LabelSizeTest();
 }
 
 int main(int argc, char* argv[])

@@ -1024,6 +1024,8 @@ static void cocoaTextUnMapMethod(Ihandle* ih)
 }
 
 
+// We need to override iTextComputeNaturalSizeMethod because the metrics only compute the raw string size and not the textbox area around it.
+// On Mac, using the standard computation, we only see 3 'WWWW' instead of 5, presumably because the widget is including whitespace area for the surrounding box.
 static void cocoaTextComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
 {
 	int natural_w = 0,
@@ -1031,11 +1033,24 @@ static void cocoaTextComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *
 	visiblecolumns = iupAttribGetInt(ih, "VISIBLECOLUMNS"),
 	visiblelines = iupAttribGetInt(ih, "VISIBLELINES");
 	(void)children_expand; /* unset if not a container */
+	int single_char_width;
 	
 	/* Since the contents can be changed by the user, the size can not be dependent on it. */
 	iupdrvFontGetCharSize(ih, NULL, &natural_h);  /* one line height */
 	natural_w = iupdrvFontGetStringWidth(ih, "WWWWWWWWWW");
+
+	// Cocoa adjustment here: Let's make the width slightly bigger.
+	// Since we see 3 out of 5 WWW's, let's pad with two more character widths.
+	single_char_width = natural_w / 10;
+
+	
 	natural_w = (visiblecolumns*natural_w)/10;
+	
+	
+	// Cocoa adjustment here
+	natural_w += (single_char_width * 2);
+	
+	
 	if (ih->data->is_multiline)
 	{
 		natural_h = visiblelines*natural_h;
@@ -1089,7 +1104,7 @@ void iupdrvTextInitClass(Iclass* ic)
 	ic->UnMap = cocoaTextUnMapMethod;
 
 //	ic->LayoutUpdate = cocoaTextLayoutUpdateMethod;
-//	ic->ComputeNaturalSize = cocoaTextComputeNaturalSizeMethod;
+	ic->ComputeNaturalSize = cocoaTextComputeNaturalSizeMethod;
 
 #if 0
 
