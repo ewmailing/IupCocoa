@@ -13,6 +13,7 @@ extern "C" {
 
 
 void iupdrvLabelInitClass(Iclass* ic);
+void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y);
 
 char* iupLabelGetPaddingAttrib(Ihandle* ih);
 int iupLabelGetTypeBeforeMap(Ihandle* ih);

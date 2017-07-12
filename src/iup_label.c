@@ -120,12 +120,19 @@ static void iLabelComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *chi
   (void)children_expand; /* unset if not a container */
 
   if (type == IUP_LABEL_SEP_HORIZ)
+  {
     natural_h = 2;
+    iupdrvLabelAddBorders(ih, &natural_w, &natural_h);
+  }
   else if (type == IUP_LABEL_SEP_VERT)
+  {
     natural_w = 2;
+    iupdrvLabelAddBorders(ih, &natural_w, &natural_h);
+  }
   else if (type == IUP_LABEL_IMAGE)
   {
     iupImageGetInfo(iupAttribGet(ih, "IMAGE"), &natural_w, &natural_h, NULL);
+    iupdrvLabelAddBorders(ih, &natural_w, &natural_h);
 
     natural_w += 2*ih->data->horiz_padding;
     natural_h += 2*ih->data->vert_padding;
@@ -138,6 +145,7 @@ static void iLabelComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *chi
     iupdrvFontGetMultiLineStringSize(ih, str, &natural_w, &natural_h);
     if (str && str!=title) free(str);
 
+    iupdrvLabelAddBorders(ih, &natural_w, &natural_h);
     natural_w += 2*ih->data->horiz_padding;
     natural_h += 2*ih->data->vert_padding;
   }
