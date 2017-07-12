@@ -27,6 +27,12 @@
 
 #include "iupgtk_drv.h"
 
+void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
+{
+  (void)ih;
+  (void)x;
+  (void)y;
+}
 
 static int gtkLabelSetBgColorAttrib(Ihandle* ih, const char* value)
 {

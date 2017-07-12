@@ -30,6 +30,13 @@
 
 #define UNIMPLEMENTED printf("%s (%s %d) UNIMPLEMENTED\n",__func__,__FILE__,__LINE__);
 
+void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
+{
+  (void)ih;
+  (void)x;
+  (void)y;
+}
+
 static int beLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
   if (ih->data->type == IUP_LABEL_TEXT) {
