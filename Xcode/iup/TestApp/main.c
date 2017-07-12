@@ -576,18 +576,19 @@ void SizeTestButton(void)
 }
 
 
-void LayoutTestGrid2(void)
+void LayoutTestGrid2Label(void)
 {
-	Ihandle* the_label = IupLabel("The Label");
-	Ihandle* text_field = IupText(NULL);
-	
-	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
+	Ihandle* the_label = IupLabel("The Label:");
+	Ihandle* the_label2 = IupLabel("Hello World");
 
-	//  IupSetAttribute(text, "VALUE", "Single Line Text");
-	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+	
+	IupSetAttribute(the_label2, "EXPAND", "HORIZONTAL");
+
+	//  IupSetAttribute(the_label2, "VALUE", "Single Line Text");
+	IupSetAttribute(the_label2, "CUEBANNER", "Enter text here");
 
 	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
-	IupSetAttribute(text_field, "ALIGNMENT", "ALEFT:ACENTER");
+	IupSetAttribute(the_label2, "ALIGNMENT", "ALEFT:ACENTER");
 
 	
 	Ihandle* grid_box = IupGridBox(NULL);
@@ -602,7 +603,7 @@ void LayoutTestGrid2(void)
 	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
 	
 	IupAppend(grid_box, the_label);
-	IupAppend(grid_box, text_field);
+	IupAppend(grid_box, the_label2);
 
 //	IupAppend(grid_box, button_select);
 	
@@ -616,9 +617,51 @@ void LayoutTestGrid2(void)
 }
 
 
-void LayoutTestGrid3(void)
+void LayoutTestGrid2LabelText(void)
 {
-	Ihandle* the_label = IupLabel("The Label");
+	Ihandle* the_label = IupLabel("The Label:");
+	Ihandle* text_field = IupText(NULL);
+	
+	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
+	
+	//  IupSetAttribute(text, "VALUE", "Single Line Text");
+	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+	
+	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
+	IupSetAttribute(text_field, "ALIGNMENT", "ALEFT:ACENTER");
+	
+	
+	Ihandle* grid_box = IupGridBox(NULL);
+	
+	IupSetAttribute(grid_box, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(grid_box, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(grid_box, "NUMDIV", 2);
+	//	IupSetInt(grid_box, "NUMDIV", 3);
+	IupSetInt(grid_box, "SIZECOL", 1);
+	//	IupSetInt(grid_box, "SIZECOL", 2);
+	
+	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
+	
+	IupAppend(grid_box, the_label);
+	IupAppend(grid_box, text_field);
+	
+	//	IupAppend(grid_box, button_select);
+	
+	
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(grid_box);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+
+
+
+void LayoutTestGrid3LabelLabelButton(void)
+{
+	Ihandle* the_label = IupLabel("The Label:");
 	Ihandle* text_field = IupText(NULL);
 	Ihandle* the_button = IupButton("The Button", NULL);
 	
@@ -643,6 +686,47 @@ void LayoutTestGrid3(void)
 	
 	IupAppend(grid_box, the_label);
 	IupAppend(grid_box, text_field);
+	
+	IupAppend(grid_box, the_button);
+	
+	
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(grid_box);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+void LayoutTestGrid3LabelTextButton(void)
+{
+	Ihandle* the_label = IupLabel("The Label:");
+	Ihandle* the_label2 = IupLabel("Hello World");
+	Ihandle* the_button = IupButton("The Button", NULL);
+	
+	
+	
+	IupSetAttribute(the_label2, "EXPAND", "HORIZONTAL");
+	
+	//  IupSetAttribute(the_label2, "VALUE", "Single Line Text");
+	IupSetAttribute(the_label2, "CUEBANNER", "Enter text here");
+	
+	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
+	IupSetAttribute(the_label2, "ALIGNMENT", "ALEFT:ACENTER");
+	IupSetAttribute(the_button, "ALIGNMENT", "ARIGHT:ACENTER");
+	
+	
+	Ihandle* grid_box = IupGridBox(NULL);
+	
+	IupSetAttribute(grid_box, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(grid_box, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(grid_box, "NUMDIV", 3);
+	IupSetInt(grid_box, "SIZECOL", 2);
+	
+	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
+	
+	IupAppend(grid_box, the_label);
+	IupAppend(grid_box, the_label2);
 	
 	IupAppend(grid_box, the_button);
 	
@@ -1767,10 +1851,12 @@ void IupEntryPoint()
 	SizeTestLabel();
 	SizeTestTextField();
 	SizeTestButton();
-	LayoutTestGrid2();
-	LayoutTestGrid3();
+	LayoutTestGrid2Label();
+	LayoutTestGrid2LabelText();
+	LayoutTestGrid3LabelLabelButton();
+	LayoutTestGrid3LabelTextButton();
 
-//	LabelSizeTest();
+	LabelSizeTest();
 }
 
 int main(int argc, char* argv[])
