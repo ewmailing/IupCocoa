@@ -149,6 +149,36 @@ static int cocoaButtonSetTitleAttrib(Ihandle* ih, const char* value)
 	return 0;
 }
 
+
+// The reason we need a custom layout is because the button is being positioned too high compared to other widgets.
+// I think the reason is because the NSButton has both a lot of invisible padding (officially 32 high, but only about 22 visible)
+// and I think some of that padding is not completely centered.
+// So when putting a button next to a label or textfield, the button looks too high up compared to standard Cocoa/IB layout.
+void cocoaButtonLayoutUpdateMethod(Ihandle *ih)
+{
+	
+	NSView* parent_view = nil;
+	NSView* child_view = nil;
+	
+	parent_view = iupCocoaCommonBaseLayoutGetParentView(ih);
+	child_view = iupCocoaCommonBaseLayoutGetChildView(ih);
+	
+	NSRect parent_rect = [parent_view frame];
+	
+	NSRect child_rect = iupCocoaCommonBaseLayoutComputeChildFrameRectFromParentRect(ih, parent_rect);
+
+	
+	// Experimentally, it looks like I just need to shift 1 pixel down to make it look right.
+	child_rect.origin.y = child_rect.origin.y - 1.0;
+	
+	
+	[child_view setFrame:child_rect];
+	
+	
+	
+}
+
+
 static int cocoaButtonMapMethod(Ihandle* ih)
 {
 	char* value;
@@ -314,9 +344,9 @@ void iupdrvButtonInitClass(Iclass* ic)
 	ic->Map = cocoaButtonMapMethod;
 	ic->UnMap = cocoaButtonUnMapMethod;
 	
-#if 0
 
-	ic->LayoutUpdate = gtkButtonLayoutUpdateMethod;
+	ic->LayoutUpdate = cocoaButtonLayoutUpdateMethod;
+#if 0
 	
 	/* Driver Dependent Attribute functions */
 	

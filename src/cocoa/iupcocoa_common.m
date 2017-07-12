@@ -149,33 +149,32 @@ void iupdrvReparent(Ihandle* ih)
 	
 }
 
-void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
-{
 
+// If you change these, make sure to update any overrides that copy/paste this pattern (e.g. cocoaButtonLayoutUpdateMethod)
+// TODO: Consider CALayer
+NSView* iupCocoaCommonBaseLayoutGetParentView(Ihandle* ih)
+{
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	NSView* parent_view = nil;
-	
-	int current_width = ih->currentwidth;
-	int current_height = ih->currentheight;
 	
 	if([parent_native_handle isKindOfClass:[NSWindow class]])
 	{
 		NSWindow* parent_window = (NSWindow*)parent_native_handle;
 		parent_view = [parent_window contentView];
 	}
-/* // Part of NSBox experiment
-	else if([parent_native_handle isKindOfClass:[NSBox class]])
-	{
+	/* // Part of NSBox experiment
+	 else if([parent_native_handle isKindOfClass:[NSBox class]])
+	 {
 		NSBox* box_view = (NSBox*)parent_native_handle;
 		parent_view = [box_view contentView];
 		
 		CGFloat diff_width = NSWidth([box_view frame]) - NSWidth([parent_view frame]);
 		CGFloat diff_height = NSHeight([box_view frame]) - NSHeight([parent_view frame]);
-
+	 
 		current_width = current_width - diff_width;
 		current_height = current_height - diff_height;
-	}
-*/
+	 }
+	 */
 	else if([parent_native_handle isKindOfClass:[NSView class]])
 	{
 		parent_view = (NSView*)parent_native_handle;
@@ -186,8 +185,13 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 		@throw @"Unexpected type for parent widget";
 	}
 	
-	
-	
+	return parent_view;
+}
+
+// If you change these, make sure to update any overrides that copy/paste this pattern (e.g. cocoaButtonLayoutUpdateMethod)
+// TODO: Consider CALayer
+NSView* iupCocoaCommonBaseLayoutGetChildView(Ihandle* ih)
+{
 	id child_handle = ih->handle;
 	NSView* the_view = nil;
 	if([child_handle isKindOfClass:[NSView class]])
@@ -204,21 +208,72 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 		NSCAssert(1, @"Unexpected type for child widget");
 		@throw @"Unexpected type for child widget";
 	}
+	return the_view;
+}
+
+// If you change these, make sure to update any overrides that copy/paste this pattern (e.g. cocoaButtonLayoutUpdateMethod)
+NSRect iupCocoaCommonBaseLayoutComputeChildFrameRectFromParentRect(Ihandle* ih, NSRect parent_rect)
+{
+
+	NSRect the_rect = NSMakeRect(
+		ih->x,
+		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
+		parent_rect.size.height - ih->y - ih->currentheight,
+		ih->currentwidth,
+		ih->currentheight
+	);
+//	the_rect.origin.y = the_rect.origin.y - 16.0*0.5; // I don't realy understand the logic of this offset, particularly the -1
+
+
+	// for padding
+	// drat, data is private and requires a per-widget header
+	{
+
+		char* padding_str = iupAttribGet(ih, "PADDING");
+		if((NULL != padding_str) && (padding_str[0] != '\0'))
+		{
+			int horiz_padding = 0;
+			int vert_padding = 0;
+			iupStrToIntInt(padding_str, &horiz_padding, &vert_padding, 'x');
+			
+			NSRect old_frame = the_rect;
+			NSRect new_frame;
+			new_frame.origin.x = old_frame.origin.x + (CGFloat)horiz_padding*0.5;
+			new_frame.origin.y = old_frame.origin.y + (CGFloat)vert_padding*0.5;
+			new_frame.size.width = old_frame.size.width - (CGFloat)horiz_padding;
+			new_frame.size.height = old_frame.size.height - (CGFloat)vert_padding;
+			
+			the_rect = new_frame;
+		}
+		
+	}
+
+//	NSLog(@"view %@, rect:%@", the_view, NSStringFromRect(the_rect));
+	return the_rect;
+
+}
+
+// If you change these, make sure to update any overrides that copy/paste this pattern (e.g. cocoaButtonLayoutUpdateMethod)
+void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
+{
+
+	NSView* parent_view = nil;
+	NSView* child_view = nil;
+	
+	parent_view = iupCocoaCommonBaseLayoutGetParentView(ih);
+	child_view = iupCocoaCommonBaseLayoutGetChildView(ih);
 	
 	
-//	iupgtkNativeContainerMove((GtkWidget*)parent, widget, x, y);
-
-//	iupgtkSetPosSize(GTK_CONTAINER(parent), widget, ih->x, ih->y, ih->currentwidth, ih->currentheight);
-
-	/*
-	CGSize fitting_size = [the_view fittingSize];
-	ih->currentwidth = fitting_size.width;
-	ih->currentheight = fitting_size.height;
-*/
+	
 	
 	NSRect parent_rect = [parent_view frame];
 
+	
+/*
 #if 0 // experiment to try to handle NSBox directly instead of using cocoaFrameGetInnerNativeContainerHandleMethod. I think cocoaFrameGetInnerNativeContainerHandleMethod is better, but I haven't vetted everything.
+	int current_width = ih->currentwidth;
+	int current_height = ih->currentheight;
+
 	if([parent_native_handle isKindOfClass:[NSBox class]])
 	{
 		NSBox* box_view = (NSBox*)parent_native_handle;
@@ -290,9 +345,14 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	}
 
 //	NSLog(@"view %@, rect:%@", the_view, NSStringFromRect(the_rect));
-	[the_view setFrame:the_rect];
+	[child_view setFrame:the_rect];
 #endif
+*/
 	
+	NSRect child_rect = iupCocoaCommonBaseLayoutComputeChildFrameRectFromParentRect(ih, parent_rect);
+	[child_view setFrame:child_rect];
+	
+
 	
 }
 

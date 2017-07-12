@@ -17,7 +17,12 @@ extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 	
 void iupCocoaAddToParent(Ihandle* ih);
 void iupCocoaRemoveFromParent(Ihandle* ih);
-
+	
+NSView* iupCocoaCommonBaseLayoutGetParentView(Ihandle* ih);
+NSView* iupCocoaCommonBaseLayoutGetChildView(Ihandle* ih);
+NSRect iupCocoaCommonBaseLayoutComputeChildFrameRectFromParentRect(Ihandle* ih, NSRect parent_rect);
+	
+	
 	// Cocoa is in Cartesian (a.k.a. math book, aka OpenGL coordinates, aka y increases upwards), but Iup is y increases downwards.
 int iupCocoaComputeCartesianScreenHeightFromIup(int iup_height);
 int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height);
