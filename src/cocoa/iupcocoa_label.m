@@ -407,8 +407,9 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 			{
 				// Wrapping and ellipsis are mutually exclusive
 				// TODO: Expose different ellipsis modes to public API
+				[the_label setUsesSingleLineMode:YES];
 				[the_label setLineBreakMode:NSLineBreakByTruncatingTail];
-				
+
 				IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
 				NSCAssert([vertical_cell isKindOfClass:[IUPCocoaVerticalAlignmentTextFieldCell class]], @"Expected IUPCocoaVerticalAlignmentTextFieldCell");
 				[vertical_cell setUseWordWrap:NO];
@@ -418,7 +419,6 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 			else
 			{
 				// Ellipsis only seem to appear when multiline is enabled
-				[the_label setUsesSingleLineMode:NO];
 				[[the_label cell] setScrollable:NO];
 				
 				[[the_label cell] setWraps:YES];
@@ -442,6 +442,7 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 				char* wordwrap_state = iupAttribGet(ih, "WORDWRAP");
 				if(iupStrBoolean(wordwrap_state))
 				{
+					[the_label setUsesSingleLineMode:NO];
 					[the_label setLineBreakMode:NSLineBreakByWordWrapping];
 					
 					IUPCocoaVerticalAlignmentTextFieldCell* vertical_cell = [the_label cell];
@@ -466,7 +467,6 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 				char* wordwrap_state = iupAttribGet(ih, "WORDWRAP");
 				if(iupStrBoolean(wordwrap_state))
 				{
-					[the_label setUsesSingleLineMode:NO];
 					[[the_label cell] setScrollable:NO];
 					
 					[[the_label cell] setWraps:YES];
@@ -480,7 +480,6 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 				}
 				else
 				{
-					[the_label setUsesSingleLineMode:YES];
 					[[the_label cell] setScrollable:YES];
 					
 					[[the_label cell] setWraps:NO];
