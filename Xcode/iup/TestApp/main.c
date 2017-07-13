@@ -541,7 +541,12 @@ void TextTest(void)
 
 void SizeTestLabel(void)
 {
-	Ihandle* the_label = IupLabel("The Label");
+	Ihandle* the_label = IupLabel("The quick brown fox jumped over the lazy dog.");
+	IupSetAttribute(the_label, "ELLIPSIS", "YES");
+	IupSetAttribute(the_label, "EXPAND", "YES");
+//	IupSetAttribute(the_label, "SHRINK", "YES");
+	IupSetAttribute(the_label, "RASTERSIZE", "60x17");
+//	IupSetAttribute(the_label, "PADDING", "8x8");
 
 	/* Creates dlg */
 	Ihandle* the_dialog = IupDialog(the_label);
@@ -579,13 +584,17 @@ void SizeTestButton(void)
 void LayoutTestGrid2Label(void)
 {
 	Ihandle* the_label = IupLabel("The Label:");
-	Ihandle* the_label2 = IupLabel("Hello World");
+	Ihandle* the_label2 = IupLabel("The quick brown fox jumped over the lazy dog.");
 
 	
 	IupSetAttribute(the_label2, "EXPAND", "HORIZONTAL");
+//	IupSetAttribute(the_label2, "SHRINK", "HORIZONTAL");
+
+	IupSetAttribute(the_label2, "ELLIPSIS", "YES");
+//	IupSetAttribute(the_label2, "MINSIZE", "80x17");
 
 	//  IupSetAttribute(the_label2, "VALUE", "Single Line Text");
-	IupSetAttribute(the_label2, "CUEBANNER", "Enter text here");
+//	IupSetAttribute(the_label2, "CUEBANNER", "Enter text here");
 
 	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
 	IupSetAttribute(the_label2, "ALIGNMENT", "ALEFT:ACENTER");
@@ -658,7 +667,6 @@ void LayoutTestGrid2LabelText(void)
 
 
 
-
 void LayoutTestGrid3LabelTextButton(void)
 {
 	Ihandle* the_label = IupLabel("The Label:");
@@ -700,15 +708,29 @@ void LayoutTestGrid3LabelTextButton(void)
 	
 }
 
+static int change_string_callback(Ihandle* ih)
+{
+	Ihandle* the_label2 = (Ihandle*)IupGetAttribute(ih, "MY_USER_DATA");
+	IupSetAttribute(the_label2, "TITLE", "The quick brown fox jumped over the lazy dog.");
+
+	return IUP_DEFAULT;
+}
+
 void LayoutTestGrid3LabelLabelButton(void)
 {
 	Ihandle* the_label = IupLabel("The Label:");
-	Ihandle* the_label2 = IupLabel("The quick brown fox jumped over the lazy dog.");
-	Ihandle* the_button = IupButton("The Button", NULL);
-	
-	
+	Ihandle* the_label2 = IupLabel("Hello World");
+	Ihandle* the_button = IupButton("The Button", "change_string_callback");
+
+	IupSetCallback(the_button, "ACTION", (Icallback)change_string_callback);
+	IupSetAttribute(the_button, "MY_USER_DATA", (const char*)the_label2);
 	
 	IupSetAttribute(the_label2, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(the_label2, "ELLIPSIS", "YES");
+
+//	IupSetAttribute(the_label2, "PADDING", "8x8");
+//	IupSetAttribute(the_label2, "MINSIZE", "80x17");
+
 	
 	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
 	IupSetAttribute(the_label2, "ALIGNMENT", "ALEFT:ACENTER");
@@ -1845,16 +1867,17 @@ void IupEntryPoint()
 //	ListTextButtonLabelTest();
 //	AppMenuTest();
 //	ProgressbarTest2();
-//	TextTest();
+	TextTest();
 
-	/*
+	
 	SizeTestLabel();
 	SizeTestTextField();
 	SizeTestButton();
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
-	LayoutTestGrid3LabelLabelButton();
-	 */
+
+	 LayoutTestGrid3LabelLabelButton();
+	 
 	LayoutTestGrid3LabelTextButton();
 
 //	LabelSizeTest();
