@@ -708,7 +708,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 //		[text_view setAutoresizingMask:NSViewWidthSizable];
 //		[[text_view textContainer] setContainerSize:NSMakeSize(scrollview_content_size.width, FLT_MAX)];
 //		[[text_view textContainer] setWidthTracksTextView:YES];
-		
+		// Needed to allow things like Cmd-E (put in search buffer), Cmd-G (find next), and the standard Find panel. Even if you don't want the standard find panel, a broken cmd-e/cmd-g is bad.
+		[text_view setUsesFindPanel:YES];
 		
 		[scroll_view setDocumentView:text_view];
 		[text_view release];
