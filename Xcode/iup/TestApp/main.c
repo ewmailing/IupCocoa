@@ -708,6 +708,51 @@ void LayoutTestGrid3LabelTextButton(void)
 	
 }
 
+
+void LayoutTestGrid3LabelTextButtonInFrame(void)
+{
+	Ihandle* the_label = IupLabel("The Label:");
+	Ihandle* text_field = IupText(NULL);
+	Ihandle* the_button = IupButton("The Button", NULL);
+	
+	IupSetAttribute(text_field, "EXPAND", "HORIZONTAL");
+	
+	IupSetAttribute(text_field, "VALUE", "The quick brown fox jumped over the lazy dog.");
+	IupSetAttribute(text_field, "CUEBANNER", "Enter text here");
+	IupSetInt(text_field, "VISIBLECOLUMNS", 10);
+	
+	
+	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
+	IupSetAttribute(text_field, "ALIGNMENT", "ALEFT:ACENTER");
+	IupSetAttribute(the_button, "ALIGNMENT", "ARIGHT:ACENTER");
+	
+	
+	Ihandle* grid_box = IupGridBox(NULL);
+	
+	IupSetAttribute(grid_box, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(grid_box, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(grid_box, "NUMDIV", 3);
+	IupSetInt(grid_box, "SIZECOL", 2);
+	
+	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
+	
+	IupAppend(grid_box, the_label);
+	IupAppend(grid_box, text_field);
+	
+	IupAppend(grid_box, the_button);
+	
+	
+	Ihandle* container_frame = IupFrame(grid_box);
+
+	
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(container_frame);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
 static int change_string_callback(Ihandle* ih)
 {
 	Ihandle* the_label2 = (Ihandle*)IupGetAttribute(ih, "MY_USER_DATA");
@@ -759,6 +804,54 @@ void LayoutTestGrid3LabelLabelButton(void)
 	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
 	
 }
+
+
+void LayoutTestGrid3LabelLabelButtonInFrame(void)
+{
+	Ihandle* the_label = IupLabel("The Label:");
+	Ihandle* the_label2 = IupLabel("The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog.");
+	Ihandle* the_button = IupButton("The Button", "change_string_callback");
+	
+	IupSetCallback(the_button, "ACTION", (Icallback)change_string_callback);
+	IupSetAttribute(the_button, "MY_USER_DATA", (const char*)the_label2);
+	
+	IupSetAttribute(the_label2, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(the_label2, "ELLIPSIS", "YES");
+	
+	//	IupSetAttribute(the_label2, "PADDING", "8x8");
+	//	IupSetAttribute(the_label2, "MINSIZE", "80x17");
+	
+	
+	IupSetAttribute(the_label, "ALIGNMENT", "ARIGHT:ACENTER");
+	IupSetAttribute(the_label2, "ALIGNMENT", "ALEFT:ACENTER");
+	IupSetAttribute(the_button, "ALIGNMENT", "ARIGHT:ACENTER");
+	
+	
+	Ihandle* grid_box = IupGridBox(NULL);
+	
+	IupSetAttribute(grid_box, "ORIENTATION", "HORIZONTAL");
+	IupSetAttribute(grid_box, "ALIGNMENTLIN", "ACENTER");
+	IupSetInt(grid_box, "NUMDIV", 3);
+	IupSetInt(grid_box, "SIZECOL", 2);
+	
+	IupSetAttribute(grid_box, "HOMOGENEOUSLIN", "YES");
+	
+	IupAppend(grid_box, the_label);
+	IupAppend(grid_box, the_label2);
+	
+	IupAppend(grid_box, the_button);
+	
+	Ihandle* container_frame = IupFrame(grid_box);
+
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(container_frame);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
+
 
 
 /*
@@ -1860,6 +1953,33 @@ label_description = IupLabel(
 	
 }
 
+void TextViewTest()
+{
+	Ihandle* text_display = IupText(NULL);
+	IupSetAttribute(text_display, "MULTILINE", "YES");
+	IupSetAttribute(text_display, "READONLY", "YES");
+	IupSetAttribute(text_display, "EXPAND", "YES");
+	IupSetAttribute(text_display, "VISIBLECOLUMNS", "40");
+	IupSetAttribute(text_display, "VISIBLELINES", "4");
+	//			IupSetAttribute(text_display, "PADDING", "10x10");
+	IupSetAttribute(text_display, "SCROLLBAR", "YES");
+	IupSetAttribute(text_display, "WORDWRAP", "YES");
+	
+//	IupSetAttribute(text_display, "SHRINK", "YES");
+
+	//			IupSetAttribute(text_display, "RASTERSIZE", "640x480");
+	IupSetStrAttribute(text_display, "VALUE", "The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog.");
+	
+	
+
+	Ihandle* dialog_display = IupDialog(text_display);
+//	IupPopup(dialog_display, IUP_CURRENT, IUP_CURRENT);
+	IupSetAttribute(dialog_display, "SHRINK", "YES");
+
+	IupShow(dialog_display);
+
+}
+
 void IupEntryPoint()
 {
 //	GridTest();
@@ -1867,20 +1987,27 @@ void IupEntryPoint()
 //	ListTextButtonLabelTest();
 //	AppMenuTest();
 //	ProgressbarTest2();
-	TextTest();
-
 	
+//	TextTest();
+
+/*
 	SizeTestLabel();
 	SizeTestTextField();
 	SizeTestButton();
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
 
-	 LayoutTestGrid3LabelLabelButton();
-	 
 	LayoutTestGrid3LabelTextButton();
+ LayoutTestGrid3LabelTextButtonInFrame();
+ 
+*/
+	LayoutTestGrid3LabelLabelButton();
+	LayoutTestGrid3LabelLabelButtonInFrame();
 
 //	LabelSizeTest();
+	
+//	TextViewTest();
+	
 }
 
 int main(int argc, char* argv[])

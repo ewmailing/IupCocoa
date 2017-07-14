@@ -225,14 +225,24 @@ void iupdrvTextAddSpin(int *w, int h)
 	
 }
 
+// FIXME: We need the Ihandle* ih
 void iupdrvTextAddBorders(int *x, int *y)
 {
+	
+	// if(ih->data->is_multiline)
+
+	
+	
 //	*y = *y+10;
 //	*x = *x+4;
 	// NSTextField is all guess work about how to scale for any font size.
 	// Throw away ih->currentheight because it will EXPAND it.
 	// But for the standard font, we get fontheight=16 and we want the height to be 22
-	int font_height = 16;
+
+	
+//	int font_height = 16;
+	int font_height = *y;
+	
 //	iupdrvFontGetCharSize(ih, NULL, &font_height);
 	const CGFloat HEIGHT_PADDING = 6.0;
 	
@@ -734,6 +744,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 			ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scroolbar */
 			
 			
+//			[[text_view enclosingScrollView] setHasHorizontalScroller:YES];
 			[[text_view enclosingScrollView] setHasHorizontalScroller:NO];
 			[text_view setHorizontallyResizable:YES];
 			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
@@ -1021,7 +1032,6 @@ static void cocoaTextUnMapMethod(Ihandle* ih)
 	iupCocoaRemoveFromParent(ih);
 	[the_view release];
 	ih->handle = NULL;
-	
 }
 
 
@@ -1033,6 +1043,7 @@ static void cocoaTextComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *
 	natural_h = 0,
 	visiblecolumns = iupAttribGetInt(ih, "VISIBLECOLUMNS"),
 	visiblelines = iupAttribGetInt(ih, "VISIBLELINES");
+	NSLog(@"visiblelines %d", visiblelines);
 	(void)children_expand; /* unset if not a container */
 	int single_char_width;
 	
