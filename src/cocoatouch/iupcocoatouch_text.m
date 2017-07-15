@@ -34,13 +34,13 @@
 
 
 
-void iupdrvTextAddSpin(int *w, int h)
+void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
 
 	
 }
 
-void iupdrvTextAddBorders(int *x, int *y)
+void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 {
 
 	

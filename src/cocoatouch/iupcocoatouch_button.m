@@ -267,7 +267,7 @@ static void cocoaTouchButtonUnMapMethod(Ihandle* ih)
 #endif
 }
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
 
 	
