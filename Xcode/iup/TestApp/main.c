@@ -1999,14 +1999,14 @@ void IupEntryPoint()
 //	AppMenuTest();
 //	ProgressbarTest2();
 	
-//	TextTest();
+	TextTest();
 
-	SizeTestToggle();
 
 /*
 	SizeTestLabel();
 	SizeTestTextField();
 	SizeTestButton();
+	SizeTestToggle();
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
 
@@ -2015,6 +2015,7 @@ void IupEntryPoint()
 
  LayoutTestGrid3LabelLabelButton();
 	LayoutTestGrid3LabelLabelButtonInFrame();
+	LayoutTestGrid3LabelTextButton();
 
 */
 
@@ -2047,7 +2048,7 @@ int main(int argc, char* argv[])
 	IupDestroy(config_file);
 	config_file = NULL;
 	
-#if 0 // new ENTRY_POINT callback
+#if 1 // new ENTRY_POINT callback
 	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
 	
 	IupMainLoop();
