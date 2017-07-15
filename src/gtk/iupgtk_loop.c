@@ -65,6 +65,17 @@ int IupMainLoopLevel(void)
 
 int IupMainLoop(void)
 {
+  static int has_done_entry = 0;
+  if (0 == has_done_entry)
+  {
+	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
+	if (NULL != entry_callback)
+	{
+      entry_callback();
+	}
+	has_done_entry = 1;
+  }
+
   gtk_main();
   return IUP_NOERROR;
 }
