@@ -1029,8 +1029,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		// We can either fish out the objects we want (and retain them) in the top_level_objects,
 		// or for my convenience, I made a File's Owner object and wired up all the major elements so I can retrive them easily.
+		// Note: top_level_objects must be explicitly retained if I want to keep it around. (I don't need to keep it around so I don't retain it.))
 		[text_spinner_nib instantiateWithOwner:files_owner topLevelObjects:&top_level_objects];
-
 		
 		/*
 		Messy: There are multiple objects including an NSObject and NSObjectController in the NIB.
@@ -1063,7 +1063,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		
 		[text_spinner_container release];
 		[files_owner release];
-		[top_level_objects release];
+		// do not release top_level_objects because instantiateWithOwner did not retain (is is essentially autoreleased);
 		[text_spinner_nib release];
 		
 		

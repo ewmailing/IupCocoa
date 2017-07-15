@@ -507,7 +507,7 @@ void TextTest(void)
 	IupSetAttributeHandle(dlg, "DEFAULTENTER", btn_def_enter);
 	IupSetAttributeHandle(dlg, "DEFAULTESC", btn_def_esc);
 	IupSetAttribute(dlg, "SHRINK", "YES");
-	
+
 	if (formatting)          /* just to make easier to comment this section */
 	{
 		IupMap(dlg);
@@ -2028,7 +2028,7 @@ void IupEntryPoint()
 int main(int argc, char* argv[])
 {
 	int ret_val;
-	IupOpen(0, NULL);
+	IupOpen(&argc, &argv);
 	
 	Ihandle* config_file = IupConfig();
 	IupSetStrAttribute(config_file, "APP_NAME", "TestApp");
