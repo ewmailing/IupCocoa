@@ -905,7 +905,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[scroll_view setBorderType:NSNoBorder];
 		[scroll_view setHasVerticalScroller:YES];
 		[scroll_view setHasHorizontalScroller:NO];
-		[scroll_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+//		[scroll_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
 		
 		
 		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSZeroRect];
@@ -918,7 +918,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[text_view setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 		[text_view setVerticallyResizable:YES];
 		[text_view setHorizontallyResizable:NO];
-//		[text_view setAutoresizingMask:NSViewWidthSizable];
+		// This NSViewWidthSizable I still need despite disabling the others. Otherwise using SHRINK with horizontal scrollbars continues to grow and never shrink.
+		[text_view setAutoresizingMask:NSViewWidthSizable];
 //		[[text_view textContainer] setContainerSize:NSMakeSize(scrollview_content_size.width, FLT_MAX)];
 //		[[text_view textContainer] setWidthTracksTextView:YES];
 		// Needed to allow things like Cmd-E (put in search buffer), Cmd-G (find next), and the standard Find panel. Even if you don't want the standard find panel, a broken cmd-e/cmd-g is bad.
@@ -950,7 +951,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 //			[[text_view enclosingScrollView] setHasHorizontalScroller:YES];
 			[[text_view enclosingScrollView] setHasHorizontalScroller:NO];
 			[text_view setHorizontallyResizable:YES];
-			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+//			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 			[[text_view textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 			[[text_view textContainer] setWidthTracksTextView:YES];
 
@@ -967,7 +968,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 			
 			[[text_view enclosingScrollView] setHasHorizontalScroller:YES];
 			[text_view setHorizontallyResizable:NO];
-			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+//			[text_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 //			[[text_view textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 //			[[text_view textContainer] setWidthTracksTextView:YES];
 			
@@ -1009,8 +1010,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[stepper_view release];
 		[text_field release];
 		
-		[container_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-		[text_field setAutoresizingMask:(NSViewWidthSizable)];
+//		[container_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+//		[text_field setAutoresizingMask:(NSViewWidthSizable)];
 		
 		the_view = container_view;
 
@@ -1181,6 +1182,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		the_view = stack_view;
 #elif defined(USE_CONTAINERVIEW_TEXTFIELD_CONTAINER)
 		NSView* container_view = [[NSView alloc] initWithFrame:NSZeroRect];
+		// Warning: This gets clobbered by AddParent
 		[container_view setAutoresizingMask:NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin|NSViewMaxYMargin|NSViewWidthSizable|NSViewHeightSizable];
 		[text_field setAutoresizingMask:NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin|NSViewMaxYMargin|NSViewWidthSizable];
 

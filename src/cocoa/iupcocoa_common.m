@@ -56,7 +56,9 @@ void iupCocoaAddToParent(Ihandle* ih)
 		 Then, as the window widens, that view widens along with it.
 		 */
 		NSAutoresizingMaskOptions current_mask = [the_view autoresizingMask];
+		current_mask = current_mask & (NSViewWidthSizable | NSViewHeightSizable); // Preserve Sizable flags if set
 		[the_view setAutoresizingMask:current_mask|NSViewMaxXMargin|NSViewMinYMargin];
+//		[the_view setAutoresizingMask:NSViewMaxXMargin|NSViewMinYMargin];
 
 		
 		if([parent_native_handle isKindOfClass:[NSWindow class]])
