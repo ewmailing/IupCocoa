@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 
-void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y);  /* reuse button borders */
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
 
 void iupdrvToggleInitClass(Iclass* ic);
 void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str);

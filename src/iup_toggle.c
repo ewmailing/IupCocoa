@@ -76,7 +76,7 @@ static void iToggleComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *ch
     iupImageGetInfo(iupAttribGet(ih, "IMAGE"), &natural_w, &natural_h, NULL);
 
     /* even when IMPRESS is set, must compute the borders space */
-    iupdrvButtonAddBorders(ih, &natural_w, &natural_h);
+    iupdrvToggleAddBorders(ih, &natural_w, &natural_h);
 
     natural_w += 2*ih->data->horiz_padding;
     natural_h += 2*ih->data->vert_padding;

@@ -29,6 +29,7 @@
 #include "iup_image.h"
 #include "iup_key.h"
 #include "iup_toggle.h"
+#include "iup_button.h" /* reuses iupdrvButtonAddBorders */
 
 #include "iupgtk_drv.h"
 
@@ -52,6 +53,11 @@ static GtkWidget* gtk_button_get_image(GtkButton *button)
 #define IUP_TOGGLE_BOX 16
 #endif
 #endif
+
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
+{
+  iupdrvButtonAddBorders(ih, x, y);
+}
 
 void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {

@@ -22,6 +22,7 @@
 #include "iup_dialog.h"
 #include "iup_str.h"
 #include "iup_toggle.h"
+#include "iup_button.h" /* reuses iupdrvButtonAddBorders */
 #include "iup_drv.h"
 #include "iup_image.h"
 #include "iup_key.h"
@@ -29,6 +30,11 @@
 #include "iupmot_drv.h"
 #include "iupmot_color.h"
 
+
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
+{
+  iupdrvButtonAddBorders(ih, x, y);
+}
 
 void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
