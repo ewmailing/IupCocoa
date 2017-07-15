@@ -35,7 +35,7 @@
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY";
-static const void* IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY";
+static const void* IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY = "IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY";
 
 
 #if __APPLE__
@@ -176,8 +176,192 @@ static IUPStepperObject* cocoaTextGetStepperObject(Ihandle* ih)
 
 
 
+// This is shared between IupCocoaTextField & IupCocoaSecureTextField
+static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_range, NSString* replacement_string)
+{
+	if(ih->data->disable_callbacks)
+	{
+		return YES;
+	}
+	
+	
+	IFnis action_cb = (IFnis)IupGetCallback(ih, "ACTION");
+	int ret_val;
+	
+	if(NULL != action_cb)
+	{
+		
+		// FIXME: Converting to UTF8String may break the start/end ranges
+		int start_pos = (int)change_range.location;
+		// FIXME: I don't know what end_pos is. I thought I needed to subtract 1, but not doing so makes things work
+//		int end_pos = (int)(start_pos + change_range.length - 1);
+		int end_pos = (int)(start_pos + change_range.length);
+		
+		if(end_pos < start_pos)
+		{
+			end_pos = start_pos;
+		}
+		
+		// Note: I'm assuming we're always in UTF8 mode
+		
+		//int iupEditCallActionCb(Ihandle* ih, IFnis cb, const char* insert_value, int start, int end, void *mask, int nc, int remove_dir, int utf8)
+		// FIXME: remove_direction???: 1 backwards, 0 forwards, -1???. I don't know what this means.
+		const char* c_str = [replacement_string UTF8String];
+		
+		// I think iupEditCallActionCb assumes a delete is NULL for the insert_value and "" will break it.
+		if(0 == strlen(c_str))
+		{
+			c_str = NULL;
+		}
+		
+		ret_val = iupEditCallActionCb(ih, action_cb, c_str, start_pos, end_pos, ih->data->mask, ih->data->nc, 1, YES);
+
+		// FIXME: I don't understand the documentation return value rules.
+		if(0 == ret_val)
+		{
+			return YES;
+		}
+		else if(-1 != ret_val)
+		{
+			return NO;
+		}
+		
+	}
+	return YES;
+}
+
+@interface IupCocoaTextField : NSTextField
+@end
+
+@implementation IupCocoaTextField
+
+/*
+- (void) controlTextDidBeginEditing:(NSNotification*)notification
+{
+}
+
+- (void) controlTextDidEndEditing:(NSNotification*)notification
+{
+}
+*/
+
+// I'm in dangerous territory here and could break things like undo
+// http://www.cocoabuilder.com/archive/cocoa/309009-equivalent-of-uitextfield-textfield-shouldchangecharactersinrange-replacementstring-for-nstextfield.html
+// Also, I'm not sure if this is public or private API. If the latter, we need to remove it.
+- (BOOL) textView:(NSTextView*)text_view shouldChangeTextInRange:(NSRange)change_range replacementString:(NSString*)replacement_string
+{
+//	NSLog(@"textView shouldChangeTextInRange replacement: %@", replacement_string);
+	
+	BOOL ret_flag;
+	if([super textView:text_view shouldChangeTextInRange:change_range replacementString:replacement_string])
+	{
+		id the_delegate = [self delegate];
+		if([the_delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementString:)])
+		{
+			ret_flag = [the_delegate textView:text_view shouldChangeTextInRange:change_range replacementString:replacement_string];
+			if(NO == ret_flag)
+			{
+				// If something returned NO, I don't think a user callback can do anything.
+				return NO;
+			}
+		}
+	}
+	else
+	{
+		// If something returned NO, I don't think a user callback can do anything.
+		return NO;
+	}
+	
+	
+	NSTextField* text_field = self;
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
+	
+	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+}
+
+@end
+
+
+@interface IupCocoaSecureTextField : NSSecureTextField
+@end
+
+@implementation IupCocoaSecureTextField
+
+/*
+ - (void) controlTextDidBeginEditing:(NSNotification*)notification
+ {
+ }
+ 
+ - (void) controlTextDidEndEditing:(NSNotification*)notification
+ {
+ }
+ */
+
+// I'm in dangerous territory here and could break things like undo
+// http://www.cocoabuilder.com/archive/cocoa/309009-equivalent-of-uitextfield-textfield-shouldchangecharactersinrange-replacementstring-for-nstextfield.html
+// Also, I'm not sure if this is public or private API. If the latter, we need to remove it.
+- (BOOL) textView:(NSTextView*)text_view shouldChangeTextInRange:(NSRange)change_range replacementString:(NSString*)replacement_string
+{
+	//	NSLog(@"textView shouldChangeTextInRange replacement: %@", replacement_string);
+	
+	BOOL ret_flag;
+	if([super textView:text_view shouldChangeTextInRange:change_range replacementString:replacement_string])
+	{
+		id the_delegate = [self delegate];
+		if([the_delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementString:)])
+		{
+			ret_flag = [the_delegate textView:text_view shouldChangeTextInRange:change_range replacementString:replacement_string];
+			if(NO == ret_flag)
+			{
+				// If something returned NO, I don't think a user callback can do anything.
+				return NO;
+			}
+		}
+	}
+	else
+	{
+		// If something returned NO, I don't think a user callback can do anything.
+		return NO;
+	}
+	
+	
+	NSTextField* text_field = self;
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
+	
+	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+}
+
+@end
+
+@interface IupCocoaTextFieldDelegate : NSObject <NSControlTextEditingDelegate>
+@end
+
+@implementation IupCocoaTextFieldDelegate
+// We could have reused textView:shouldChangeTextInRange:replacementString:, but I have multiple concerns we may not be able to keep it.
+// So we use this for the VALUECHANGED_CB
+- (void) controlTextDidChange:(NSNotification*)the_notification
+{
+	NSTextField* text_field = [the_notification object];
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
+//	NSLog(@"controlTextDidChange: stringValue == %@", [text_field stringValue]);
+
+	if(ih->data->disable_callbacks)
+	{
+		return;
+	}
+	
+	IFn value_changed_callback = (IFn)IupGetCallback(ih, "VALUECHANGED_CB");
+	if(NULL != value_changed_callback)
+	{
+		int ret_val = value_changed_callback(ih);
+		(void)ret_val;
+	}
+}
+
+@end
+
 // NOTE: This callback is unfinished. Need to understand SPIN_CB rules better.
-@interface IupCocoaTextSpinnerDelegate : NSObject
+@interface IupCocoaTextSpinnerDelegate : IupCocoaTextFieldDelegate
 @end
 
 @implementation IupCocoaTextSpinnerDelegate
@@ -788,7 +972,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		
 		NSRect stepper_rect = NSMakeRect(0, 0, 19, 27);
 		NSStepper* stepper_view = [[NSStepper alloc] initWithFrame:stepper_rect];
-		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
+		IupCocoaTextField* text_field = [[IupCocoaTextField alloc] initWithFrame:NSZeroRect];
 //		NSTextField* text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200-19, 22)];
 
 		
@@ -887,8 +1071,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		objc_setAssociatedObject(stepper_view, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 		objc_setAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
-		// putting on the stackview just for storage. it doesn't really matter which object holds it
-		objc_setAssociatedObject(stack_view, IUP_COCOA_TEXT_SPINNERCALLBACKDELEGATE_OBJ_KEY, (id)text_spinner_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		// putting on the text_field just for storage. This is to make it consistent with the regular NSTextField (non-spinner) case.
+		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY, (id)text_spinner_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		[text_spinner_delegate release];
 		
 		if(!iupAttribGetBoolean(ih, "SPINAUTO"))
@@ -933,7 +1117,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		if(iupAttribGetBoolean(ih, "PASSWORD"))
 		{
 
-			text_field = [[NSSecureTextField alloc] initWithFrame:NSZeroRect];
+			text_field = [[IupCocoaSecureTextField alloc] initWithFrame:NSZeroRect];
 			//text_field = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 140, 40)];
 			[text_field setFont:[NSFont systemFontOfSize:0.0]];
 
@@ -942,11 +1126,18 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		{
 			
 			//text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
-			text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(50, 50, 140, 40)];
+			text_field = [[IupCocoaTextField alloc] initWithFrame:NSMakeRect(50, 50, 140, 40)];
 			[text_field setFont:[NSFont systemFontOfSize:0.0]];
 
 			
 		}
+		
+		IupCocoaTextFieldDelegate* text_field_delegate = [[IupCocoaTextFieldDelegate alloc] init];
+		[text_field setDelegate:text_field_delegate];
+		objc_setAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY, (id)text_field_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		[text_field_delegate release];
+
 		
 		// We must not allow IUP to EXPAND the height of the NSTextField so unset the bit flag if it is set.
 		ih->expand = ih->expand & ~IUP_EXPAND_HEIGHT;
