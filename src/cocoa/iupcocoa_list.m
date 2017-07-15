@@ -471,7 +471,7 @@ void iupdrvListAddItemSpace(Ihandle* ih, int* h)
 
 void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 {
-	NSLog(@"iupdrvListAddBorders <%d, %d>", *x, *y);
+//	NSLog(@"iupdrvListAddBorders <%d, %d>", *x, *y);
 #if 0
   int border_size = 2*10;
   (*x) += border_size;

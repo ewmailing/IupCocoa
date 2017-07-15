@@ -645,7 +645,7 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
-	NSLog(@"border=%d, caption%d, menu=%d", *border, *caption, *menu);
+//	NSLog(@"border=%d, caption%d, menu=%d", *border, *caption, *menu);
 	NSWindow* the_window = (NSWindow*)ih->handle;
 
 	

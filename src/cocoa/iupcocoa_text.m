@@ -1251,7 +1251,6 @@ static void cocoaTextComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *
 	natural_h = 0,
 	visiblecolumns = iupAttribGetInt(ih, "VISIBLECOLUMNS"),
 	visiblelines = iupAttribGetInt(ih, "VISIBLELINES");
-	NSLog(@"visiblelines %d", visiblelines);
 	(void)children_expand; /* unset if not a container */
 	int single_char_width;
 	
