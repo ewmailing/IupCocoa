@@ -29,12 +29,12 @@
 #include "iup_image.h"
 #include "iup_key.h"
 #include "iup_toggle.h"
-#include "iup_button.h" /* reuses iupdrvButtonAddBorders */
 
 #include "iuphaiku_drv.h"
 
-
-void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
+/* reuses iupdrvButtonAddBorders */
+extern void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y);
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y)
 {
   iupdrvButtonAddBorders(ih, x, y);
 }
