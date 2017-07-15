@@ -505,13 +505,14 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 	}
   }
 #else
+	// WARNING: I discovered this can be called before Map, hence we have no nativehandle. Thus cocoaListGetBaseWidget will return nil.
 	
 	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
 	switch(sub_type)
 	{
 		case IUPCOCOALISTSUBTYPE_DROPDOWN:
 		{
-			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+//			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
 			// Heights are fixed in Interface Builder. You generally aren't supposed to mess with the widget heights or font sizes.
 			if(*y < (int)kIupCocoaDefaultHeightNSPopUpButton)
 			{
@@ -524,7 +525,7 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 		}
 		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
-			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+//			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
 			// Heights are fixed in Interface Builder. You generally aren't supposed to mess with the widget heights or font sizes.
 			if(*y < (int)kIupCocoaDefaultHeightNSComboBox)
 			{
@@ -538,6 +539,8 @@ void iupdrvListAddBorders(Ihandle* ih, int *x, int *y)
 		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
 		case IUPCOCOALISTSUBTYPE_SINGLELIST:
 		{
+			// FIXME: cocoaListGetBaseWidget might return nil. Could using NIBs help get us a valie tablie view to get rowHeight and other things?
+			
 			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
 			
 
