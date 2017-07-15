@@ -149,7 +149,7 @@ static void iButtonComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *ch
     has_border = 0;
 
   if (has_border)
-    iupdrvButtonAddBorders(&natural_w, &natural_h);
+    iupdrvButtonAddBorders(ih, &natural_w, &natural_h);
 
   natural_w += 2*ih->data->horiz_padding;
   natural_h += 2*ih->data->vert_padding;

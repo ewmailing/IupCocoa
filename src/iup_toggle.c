@@ -76,7 +76,7 @@ static void iToggleComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *ch
     iupImageGetInfo(iupAttribGet(ih, "IMAGE"), &natural_w, &natural_h, NULL);
 
     /* even when IMPRESS is set, must compute the borders space */
-    iupdrvButtonAddBorders(&natural_w, &natural_h);
+    iupdrvToggleAddBorders(ih, &natural_w, &natural_h);
 
     natural_w += 2*ih->data->horiz_padding;
     natural_h += 2*ih->data->vert_padding;
@@ -88,7 +88,7 @@ static void iToggleComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *ch
     char* str = iupStrProcessMnemonic(title, NULL, 0);   /* remove & */
     iupdrvFontGetMultiLineStringSize(ih, str, &natural_w, &natural_h);
 
-    iupdrvToggleAddCheckBox(&natural_w, &natural_h, str);
+    iupdrvToggleAddCheckBox(ih, &natural_w, &natural_h, str);
 
     if (str && str != title) free(str);
   }

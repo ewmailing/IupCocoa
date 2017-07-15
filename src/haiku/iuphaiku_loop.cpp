@@ -42,6 +42,17 @@ static bool isRunning = false;
 
 int IupMainLoop(void)
 {
+  static int has_done_entry = 0;
+  if (0 == has_done_entry)
+  {
+	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
+	if (NULL != entry_callback)
+	{
+      entry_callback();
+	}
+	has_done_entry = 1;
+  }
+
   // This is called for the main window (and we start the application), but
   // also for all modal dialogs. We can only start the application once, so
   // when this function gets called again it should instead wait for the

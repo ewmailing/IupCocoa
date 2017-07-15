@@ -503,10 +503,10 @@ static void iTextComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *chil
 
   /* compute the borders space */
   if (iupAttribGetBoolean(ih, "BORDER"))
-    iupdrvTextAddBorders(&natural_w, &natural_h);
+    iupdrvTextAddBorders(ih, &natural_w, &natural_h);
 
   if (iupAttribGetBoolean(ih, "SPIN"))
-    iupdrvTextAddSpin(&natural_w, natural_h);
+    iupdrvTextAddSpin(ih, &natural_w, natural_h);
 
   natural_w += 2*ih->data->horiz_padding;
   natural_h += 2*ih->data->vert_padding;
