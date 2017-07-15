@@ -112,19 +112,22 @@ static const void* IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY = "IUP_COCOA_TOGGLE_RECEIVE
 
 @end
 
-
-void iupdrvToggleAddBorders(int *x, int *y)
+// This only gets called for images
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y)
 {
-	
-	
 }
 
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
+	// Includes padding between box and text
+	*x += 20;
 	
-	
+	// Add a little more for border padding because iupdrvToggleAddBorders only calls for images
+	*x += 4;
+	*y += 4;
+
 }
 
 

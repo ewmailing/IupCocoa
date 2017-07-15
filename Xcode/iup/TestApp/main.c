@@ -581,6 +581,17 @@ void SizeTestButton(void)
 }
 
 
+void SizeTestToggle(void)
+{
+	Ihandle* the_button = IupToggle("The Toggle", NULL);
+	
+	/* Creates dlg */
+	Ihandle* the_dialog = IupDialog(the_button);
+	/* Shows dlg in the center of the screen */
+	IupShowXY(the_dialog, IUP_CENTER, IUP_CENTER);
+	
+}
+
 void LayoutTestGrid2Label(void)
 {
 	Ihandle* the_label = IupLabel("The Label:");
@@ -1990,6 +2001,8 @@ void IupEntryPoint()
 	
 //	TextTest();
 
+	SizeTestToggle();
+
 /*
 	SizeTestLabel();
 	SizeTestTextField();
@@ -1999,10 +2012,11 @@ void IupEntryPoint()
 
 	LayoutTestGrid3LabelTextButton();
  LayoutTestGrid3LabelTextButtonInFrame();
- 
-*/
-	LayoutTestGrid3LabelLabelButton();
+
+ LayoutTestGrid3LabelLabelButton();
 	LayoutTestGrid3LabelLabelButtonInFrame();
+
+*/
 
 //	LabelSizeTest();
 	

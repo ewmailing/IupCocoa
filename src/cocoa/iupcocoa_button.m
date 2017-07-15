@@ -83,7 +83,7 @@ static const void* IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_BUTTON_RECEIVE
 
 
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
 	NSLog(@"iupdrvButtonAddBorders in <%d, %d>", *x, *y);
 	

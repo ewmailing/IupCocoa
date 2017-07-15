@@ -219,15 +219,20 @@ static IUPStepperObject* cocoaTextGetStepperObject(Ihandle* ih)
 
 
 
-void iupdrvTextAddSpin(int *w, int h)
+void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
 
 	
 }
 
-// FIXME: We need the Ihandle* ih
-void iupdrvTextAddBorders(int *x, int *y)
+void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 {
+	// TODO: Originally, we wanted to lock down the height for NSTextFields so Iup wouldn't try to grow it.
+	// This broke multiline NSTextView's.
+	// We needed the Ihandle* to distinguish, but the API did not provide it.
+	// We've since changed the API to get this.
+	// However, we also employed NSStackView to prevent the NSTextField from increasing its height.
+	// This code seems to work for now, but probably should be heavily tested under more conditions.
 	
 	// if(ih->data->is_multiline)
 
@@ -1074,10 +1079,10 @@ static void cocoaTextComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *
 	
 	/* compute the borders space */
 	if (iupAttribGetBoolean(ih, "BORDER"))
-		iupdrvTextAddBorders(&natural_w, &natural_h);
+		iupdrvTextAddBorders(ih, &natural_w, &natural_h);
 	
 	if (iupAttribGetBoolean(ih, "SPIN"))
-		iupdrvTextAddSpin(&natural_w, natural_h);
+		iupdrvTextAddSpin(ih, &natural_w, natural_h);
 	
 	natural_w += 2*ih->data->horiz_padding;
 	natural_h += 2*ih->data->vert_padding;
