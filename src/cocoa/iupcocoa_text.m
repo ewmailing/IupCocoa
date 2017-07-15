@@ -35,7 +35,7 @@
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY = "IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY";
-static const void* IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY = "IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY";
+static const void* IUP_COCOA_TEXT_DELEGATE_OBJ_KEY = "IUP_COCOA_TEXT_DELEGATE_OBJ_KEY";
 
 
 #if __APPLE__
@@ -361,6 +361,7 @@ static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_ra
 @end
 
 // NOTE: This callback is unfinished. Need to understand SPIN_CB rules better.
+// Inherit from IupCocoaTextFieldDelegate to get VALUECHANGED_CB
 @interface IupCocoaTextSpinnerDelegate : IupCocoaTextFieldDelegate
 @end
 
@@ -402,6 +403,19 @@ static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_ra
 @end
 
 
+// Inherit from IupCocoaTextFieldDelegate to get VALUECHANGED_CB
+@interface IupCocoaTextViewDelegate : IupCocoaTextFieldDelegate <NSTextViewDelegate>
+@end
+
+@implementation IupCocoaTextViewDelegate
+
+- (BOOL) textView:(NSTextView*)text_view shouldChangeTextInRange:(NSRange)change_range replacementString:(NSString*)replacement_string
+{
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_view, IHANDLE_ASSOCIATED_OBJ_KEY);
+	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+}
+
+@end
 
 void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
@@ -959,6 +973,17 @@ static int cocoaTextMapMethod(Ihandle* ih)
 			
 		}
 		
+		
+		IupCocoaTextViewDelegate* text_view_delegate = [[IupCocoaTextViewDelegate alloc] init];
+		[text_view setDelegate:text_view_delegate];
+		objc_setAssociatedObject(text_view, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+		// putting on the text_field just for storage. This is to make it consistent with the regular NSTextField (non-spinner) case.
+		objc_setAssociatedObject(text_view, IUP_COCOA_TEXT_DELEGATE_OBJ_KEY, (id)text_view_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		[text_view_delegate release];
+		
+		
+		
+		
 	}
 	else if(iupAttribGetBoolean(ih, "SPIN"))
 	{
@@ -1072,7 +1097,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		objc_setAssociatedObject(stepper_view, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 		objc_setAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 		// putting on the text_field just for storage. This is to make it consistent with the regular NSTextField (non-spinner) case.
-		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY, (id)text_spinner_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_DELEGATE_OBJ_KEY, (id)text_spinner_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		[text_spinner_delegate release];
 		
 		if(!iupAttribGetBoolean(ih, "SPINAUTO"))
@@ -1135,7 +1160,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		IupCocoaTextFieldDelegate* text_field_delegate = [[IupCocoaTextFieldDelegate alloc] init];
 		[text_field setDelegate:text_field_delegate];
 		objc_setAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
-		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_FIELD_AND_SPINNER_DELEGATE_OBJ_KEY, (id)text_field_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_DELEGATE_OBJ_KEY, (id)text_field_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		[text_field_delegate release];
 
 		
@@ -1177,23 +1202,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	
 	ih->handle = the_view;
 	
-#if 0
-	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
-	objc_setAssociatedObject(the_toggle, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
-	// I also need to track the memory of the buttion action receiver.
-	// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
-	// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
-	// This is generally not good Cocoa as Toggles don't retain their receivers, but this seems like the best option.
-	// Be careful of retain cycles.
-	IupCocoaToggleReceiver* toggle_receiver = [[IupCocoaToggleReceiver alloc] init];
-	[the_toggle setTarget:toggle_receiver];
-	[the_toggle setAction:@selector(myToggleClickAction:)];
-	// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
-	// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
-	// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
-	objc_setAssociatedObject(the_toggle, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, (id)toggle_receiver, OBJC_ASSOCIATION_ASSIGN);
-	
-#endif
+
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
@@ -1225,6 +1234,9 @@ static void cocoaTextUnMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_view, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
 	[text_receiver release];
 	*/
+	
+	// Because we used retain for the delegates, they should automatically release
+	
 	iupCocoaRemoveFromParent(ih);
 	[the_view release];
 	ih->handle = NULL;
