@@ -305,8 +305,8 @@ static void cocoaDialogEndModal(Ihandle* ih)
 	}
 #endif
 	
-	NSLog(@"resize current_ih:<%d,%d>, target:<%f,%f>", ih->currentwidth, ih->currentheight, frame_size.width, frame_size.height);
-	NSLog(@"resize current_win:<%f,%f>", [the_sender frame].size.width, [the_sender frame].size.height);
+//	NSLog(@"resize current_ih:<%d,%d>, target:<%f,%f>", ih->currentwidth, ih->currentheight, frame_size.width, frame_size.height);
+//	NSLog(@"resize current_win:<%f,%f>", [the_sender frame].size.width, [the_sender frame].size.height);
 
 //	iupdrvDialogGetSize(ih, NULL, &(ih->currentwidth), &(ih->currentheight));
 

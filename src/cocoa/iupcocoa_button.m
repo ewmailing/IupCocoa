@@ -85,7 +85,7 @@ static const void* IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY = "IUP_COCOA_BUTTON_RECEIVE
 
 void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
-	NSLog(@"iupdrvButtonAddBorders in <%d, %d>", *x, *y);
+//	NSLog(@"iupdrvButtonAddBorders in <%d, %d>", *x, *y);
 	
 	
 	if(*y < (int)kIupCocoaDefaultHeightNSButton)
@@ -106,7 +106,7 @@ void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 	*y = view_frame.size.height;
 	
 	*/
-	NSLog(@"iupdrvButtonAddBorders frame <%d, %d>", *x, *y);
+//	NSLog(@"iupdrvButtonAddBorders frame <%d, %d>", *x, *y);
 
 }
 
