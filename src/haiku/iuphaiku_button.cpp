@@ -58,10 +58,11 @@ class IUPButton: public BButton
 	BBitmap* fBitmap;
 };
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
   // TODO can we use BControlLook here ?
   int border_size = 2*7+1; /* borders are not symetric */
+  (void)ih;  
   (*x) += border_size;
   (*y) += border_size;
 }

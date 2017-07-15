@@ -22,6 +22,7 @@
 #include "iup_dialog.h"
 #include "iup_str.h"
 #include "iup_toggle.h"
+#include "iup_button.h" /* reuses iupdrvButtonAddBorders */
 #include "iup_drv.h"
 #include "iup_image.h"
 #include "iup_key.h"
@@ -30,9 +31,15 @@
 #include "iupmot_color.h"
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
+{
+  iupdrvButtonAddBorders(ih, x, y);
+}
+
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
   int check_box = 15;  /* See XmNindicatorSize */
+  (void)ih;
 
   /* has margins too */
   (*x) += 3 + check_box + 3;

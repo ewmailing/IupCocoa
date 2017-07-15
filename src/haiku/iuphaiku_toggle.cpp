@@ -29,12 +29,19 @@
 #include "iup_image.h"
 #include "iup_key.h"
 #include "iup_toggle.h"
+#include "iup_button.h" /* reuses iupdrvButtonAddBorders */
 
 #include "iuphaiku_drv.h"
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y)
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
 {
+  iupdrvButtonAddBorders(ih, x, y);
+}
+
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y)
+{
+  (void)ih; 
 #ifdef HILDON
   (*x) += 30+4;
   if ((*y) < 30) (*y) = 30; /* minimum height */

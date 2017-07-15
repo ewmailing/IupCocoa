@@ -20,6 +20,7 @@
 #include "iup_attrib.h"
 #include "iup_str.h"
 #include "iup_toggle.h"
+#include "iup_button.h" /* reuses iupdrvButtonAddBorders */
 #include "iup_drv.h"
 #include "iup_image.h"
 
@@ -29,11 +30,16 @@
 #include "iupwin_str.h"
 
 
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y);
+{
+  iupdrvButtonAddBorders(ih, x, y);
+}
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   int check_box = 16;
+  (void)ih;
   if (iupwinGetScreenRes() > 120)
     check_box = 26;
 

@@ -36,10 +36,11 @@ static int winButtonGetBorder(void)
   return 4;
 }
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   int border_size = winButtonGetBorder() * 2;
+  (void)ih;
   (*x) += border_size;
   (*y) += border_size;
 }
