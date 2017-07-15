@@ -36,18 +36,20 @@
 #define PANGO_WEIGHT_SEMIBOLD 600
 #endif
 
-void iupdrvTextAddSpin(int *w, int h)
+void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
   int spin_size = 16;
   *w += spin_size;
   (void)h;
+  (void)ih;
 }
 
-void iupdrvTextAddBorders(int *x, int *y)
+void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 {
   int border_size = 2*5;
   (*x) += border_size;
   (*y) += border_size;
+  (void)ih;
 }
 
 void iupdrvTextConvertLinColToPos(Ihandle* ih, int lin, int col, int *pos)

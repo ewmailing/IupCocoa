@@ -13,7 +13,7 @@ extern "C" {
 
 
 void iupdrvButtonInitClass(Iclass* ic);
-void iupdrvButtonAddBorders(int *x, int *y);
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y);
 
 char* iupButtonGetPaddingAttrib(Ihandle* ih);
 

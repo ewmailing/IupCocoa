@@ -30,10 +30,11 @@
 
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   int check_box = 16;
+  (void)ih;
   if (iupwinGetScreenRes() > 120)
     check_box = 26;
 

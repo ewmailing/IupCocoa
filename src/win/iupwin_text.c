@@ -80,17 +80,19 @@
 #define WM_IUPCARET WM_APP+1   /* Custom IUP message */
 
 
-void iupdrvTextAddSpin(int *w, int h)
+void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
   *w += h;
+  (void)ih;  
 }
 
-void iupdrvTextAddBorders(int *w, int *h)
+void iupdrvTextAddBorders(Ihandle* ih, int *w, int *h)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   int border_size = 2 * 3;
   (*w) += border_size;
   (*h) += border_size;
+  (void)ih;  
 }
 
 static void winTextParseParagraphFormat(Ihandle* formattag, PARAFORMAT2 *paraformat, int convert2twips)

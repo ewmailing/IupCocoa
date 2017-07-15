@@ -33,8 +33,9 @@
 #include "iuphaiku_drv.h"
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y)
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y)
 {
+  (void)ih; 
 #ifdef HILDON
   (*x) += 30+4;
   if ((*y) < 30) (*y) = 30; /* minimum height */

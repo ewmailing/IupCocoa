@@ -30,9 +30,10 @@
 #include "iupmot_color.h"
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
   int check_box = 15;  /* See XmNindicatorSize */
+  (void)ih;
 
   /* has margins too */
   (*x) += 3 + check_box + 3;
