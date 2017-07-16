@@ -13,33 +13,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
-
-//extern void IupEntry();
-
-/*
- ** {========================================================================
- ** This is an implementation to fake dlopen with static libraries for iOS.
- ** It requires static linking of the module (and making sure the symbols are
- ** not stripped.
- ** dlopen is not used to avoid trouble with Apple.
- ** dlsym(RTLD_DEFAULT) is used to find the symbol in the application binary.
- ** To the caller, it looks like require successfully loaded the module.
- ** =========================================================================
- */
-
-
-#include <dlfcn.h>
-
-/*
- ** Scary: Looks like Apple moved the definition of RTLD_DEFAULT behind #ifdefs
- ** which are not defined in the default case for 8.1.
- ** So I'm copying the definition and hoping Apple didn't cripple the backend.
- */
-#ifndef RTLD_DEFAULT
-#define RTLD_DEFAULT    ((void *) -2)   /* Use default search algorithm. */
-#endif
-
-
+#include "iup_loop.h"
 
 
 @implementation IupAppDelegate
@@ -59,18 +33,7 @@
 	
 	
 	// Invoke the IupEntry callback function to start the user code.
-	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-	
-	// If no entry point has been defined, we can try to fallback and use dsym to look up a hardcoded function name.
-	if(NULL == entry_callback)
-	{
-		entry_callback = (IFentry)dlsym(RTLD_DEFAULT, "IupEntryPoint");
-	}
-
-	if(NULL != entry_callback)
-	{
-		entry_callback();
-	}
+	iupLoopCallEntryCb();
 	
 	return YES;
 }
@@ -97,9 +60,13 @@
 	// Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
 }
 
+// Note: This will almost never be called
 - (void) applicationWillTerminate:(UIApplication*)the_application
 {
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+
+	// Reminder: Users should not rely on this being called
+	iupLoopCallExitCb();
 }
 
 // This is intended to allow us to use multiple UIWindows in the future.

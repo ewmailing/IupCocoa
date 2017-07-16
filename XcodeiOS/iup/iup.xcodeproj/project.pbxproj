@@ -13,6 +13,7 @@
 		002CC4E21EA2D1740007C8E7 /* iup_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4DC1EA2D1740007C8E7 /* iup_draw.c */; };
 		002CC4E31EA2D1740007C8E7 /* iup_flatframe.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4DE1EA2D1740007C8E7 /* iup_flatframe.c */; };
 		002CC4E41EA2D1740007C8E7 /* iup_flattabs.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4DF1EA2D1740007C8E7 /* iup_flattabs.c */; };
+		0052B9481F1B0C490036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9461F1B0C490036F199 /* iup_loop.c */; };
 		0070FA761E025CEE009A8631 /* iupcocoatouch_button.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F93B1E025CED009A8631 /* iupcocoatouch_button.m */; };
 		0070FA771E025CEE009A8631 /* iupcocoatouch_canvas.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F93C1E025CED009A8631 /* iupcocoatouch_canvas.m */; };
 		0070FA781E025CEE009A8631 /* iupcocoatouch_clipboard.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F93D1E025CED009A8631 /* iupcocoatouch_clipboard.m */; };
@@ -198,6 +199,8 @@
 		002CC4DF1EA2D1740007C8E7 /* iup_flattabs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flattabs.c; sourceTree = "<group>"; };
 		002CC4E51EA2D1980007C8E7 /* iup_plus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_plus.h; sourceTree = "<group>"; };
 		002CC4E61EA2D1980007C8E7 /* iupdraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupdraw.h; sourceTree = "<group>"; };
+		0052B9461F1B0C490036F199 /* iup_loop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_loop.c; sourceTree = "<group>"; };
+		0052B9471F1B0C490036F199 /* iup_loop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_loop.h; sourceTree = "<group>"; };
 		0070F8FE1E025C88009A8631 /* libiup.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libiup.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		0070F90B1E025CD1009A8631 /* iup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup.h; sourceTree = "<group>"; };
 		0070F90C1E025CD1009A8631 /* iup_class_cbs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = iup_class_cbs.hpp; sourceTree = "<group>"; };
@@ -642,6 +645,8 @@
 				0070F9E71E025CED009A8631 /* iup_link.c */,
 				0070F9E81E025CED009A8631 /* iup_list.c */,
 				0070F9E91E025CED009A8631 /* iup_list.h */,
+				0052B9461F1B0C490036F199 /* iup_loop.c */,
+				0052B9471F1B0C490036F199 /* iup_loop.h */,
 				0070F9EA1E025CED009A8631 /* iup_mask.c */,
 				0070F9EB1E025CED009A8631 /* iup_mask.h */,
 				0070F9EC1E025CED009A8631 /* iup_maskmatch.c */,
@@ -1027,6 +1032,7 @@
 				0070FAFB1E025CEE009A8631 /* iup_image.c in Sources */,
 				0070FB131E025CEE009A8631 /* iup_register.c in Sources */,
 				0070FAE21E025CEE009A8631 /* iup_callback.c in Sources */,
+				0052B9481F1B0C490036F199 /* iup_loop.c in Sources */,
 				0070FAF61E025CEE009A8631 /* iup_func.c in Sources */,
 				0070FADD1E025CEE009A8631 /* iup_assert.c in Sources */,
 				0070FA871E025CEE009A8631 /* iupcocoatouch_loop.m in Sources */,
