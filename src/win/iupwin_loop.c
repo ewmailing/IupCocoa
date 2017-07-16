@@ -16,6 +16,7 @@
 #include "iup_object.h"
 #include "iup_attrib.h"
 #include "iup_str.h"
+#include "iup_loop.h"
 
 #include "iupwin_drv.h"
 #include "iupwin_handle.h"
@@ -73,12 +74,8 @@ int IupMainLoop(void)
 
   if (0 == has_done_entry)
   {
-	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-	if (NULL != entry_callback)
-	{
-      entry_callback();
-	}
-	has_done_entry = 1;
+    iupLoopCallEntryCb();
+    has_done_entry = 1;
   }
 
   win_main_loop++;
@@ -123,6 +120,13 @@ int IupMainLoop(void)
   } while (ret);
 
   win_main_loop--;
+
+
+  if (0 == win_main_loop)
+  {
+	iupLoopCallExitCb();
+  }
+
   return IUP_NOERROR;
 }
 
