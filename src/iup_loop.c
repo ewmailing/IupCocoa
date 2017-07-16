@@ -9,16 +9,16 @@
 void iupLoopCallEntryCb(void)
 {
   IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-  if (NULL != entry_callback)
+  if (entry_callback)
   {
     entry_callback();
   }
 }
 
-void iupLoopCallExitCb(void);
+void iupLoopCallExitCb(void)
 {
   IFentry exit_callback = (IFentry)IupGetFunction("EXIT_CB");
-  if (NULL != exit_callback)
+  if (exit_callback)
   {
     exit_callback();
   }
