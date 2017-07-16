@@ -13,6 +13,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 #define UNIMPLEMENTED printf("%s (%s %d) UNIMPLEMENTED\n",__func__,__FILE__,__LINE__);
 
@@ -42,17 +43,6 @@ static bool isRunning = false;
 
 int IupMainLoop(void)
 {
-  static int has_done_entry = 0;
-  if (0 == has_done_entry)
-  {
-	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-	if (NULL != entry_callback)
-	{
-      entry_callback();
-	}
-	has_done_entry = 1;
-  }
-
   // This is called for the main window (and we start the application), but
   // also for all modal dialogs. We can only start the application once, so
   // when this function gets called again it should instead wait for the
@@ -60,8 +50,10 @@ int IupMainLoop(void)
   // TODO how do we manage the callback from setIdleFunction ?
   if(!isRunning)
   {
+    iupLoopCallEntryCb();
 	isRunning = true;
     be_app->Run();
+    iupLoopCallExitCb();
   } else {
 	// FIXME not so good design here. We're locking the calling thread (likely
 	// a BWindow) which means it will not be able to receive any messages as

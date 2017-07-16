@@ -11,6 +11,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 
 /* local variables */
@@ -68,15 +69,16 @@ int IupMainLoop(void)
   static int has_done_entry = 0;
   if (0 == has_done_entry)
   {
-	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-	if (NULL != entry_callback)
-	{
-      entry_callback();
-	}
+    iupLoopCallEntryCb();
 	has_done_entry = 1;
   }
 
   gtk_main();
+
+  if( 0 == gtk_main_level())
+  {
+    iupLoopCallExitCb();
+  }
   return IUP_NOERROR;
 }
 
