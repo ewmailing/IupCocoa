@@ -349,6 +349,8 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_link.c
 	${CMAKE_SOURCE_DIR}/src/iup_list.c
 	${CMAKE_SOURCE_DIR}/src/iup_list.h
+	${CMAKE_SOURCE_DIR}/src/iup_loop.c
+	${CMAKE_SOURCE_DIR}/src/iup_loop.h
 	${CMAKE_SOURCE_DIR}/src/iup_mask.c
 	${CMAKE_SOURCE_DIR}/src/iup_mask.h
 	${CMAKE_SOURCE_DIR}/src/iup_maskmatch.c
@@ -1029,8 +1031,10 @@ function(BUILD_IUPIMGLIB_TEST exe_name source_list)
 endfunction()
 
 
+BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
 BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
 BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c")
+BUILD_IUP_TEST(tree "${CMAKE_SOURCE_DIR}/html/examples/tests/tree.c")
 
 # Things with dependencies on iupimglib
 #BUILD_IUPIMGLIB_TEST(bigtest "${CMAKE_SOURCE_DIR}/html/examples/tests/bigtest.c")
