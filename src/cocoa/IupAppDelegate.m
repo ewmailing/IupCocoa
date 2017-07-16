@@ -10,6 +10,7 @@
 #include <dlfcn.h>
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 @implementation IupAppDelegate
 
@@ -17,34 +18,19 @@
 - (void) applicationDidFinishLaunching:(NSNotification*)a_notification
 {
 	// Invoke the IupEntry callback function to start the user code.
-	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-	
-	// If no entry point has been defined, we can try to fallback and use dsym to look up a hardcoded function name.
-	// Oops: There is a bug here. Testing legacy behavior where I have the function defined, but don't set the ENTRY_POINT still causes this to be invoked.
-	/*
-	if(NULL == entry_callback)
-	{
-		entry_callback = (IFentry)dlsym(RTLD_DEFAULT, "IupEntryPoint");
-	}
-	*/
-	
-	if(NULL != entry_callback)
-	{
-		entry_callback();
-	}
+	iupLoopCallEntryCb();
 	
 }
 
+// Drat: Due to the way IupExitLoop() can be called to quit a program,
+// applicationWillTerminate: is not guaranteed to be invoked depending on the quit.
+// Put common shutdown stuff in IupMainLoop() instead.
+/*
 - (void) applicationWillTerminate:(NSNotification*)a_notification
 {
 	// Invoke the IupEntry callback function to start the user code.
-	IFentry exit_callback = (IFentry)IupGetFunction("EXIT_CB");
-	
-	
-	if(NULL != exit_callback)
-	{
-		exit_callback();
-	}
+	iupLoopCallExitCb();
 }
+*/
 
 @end

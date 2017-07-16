@@ -11,7 +11,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
-
+#include "iup_loop.h"
 
 static IFidle mac_idle_cb = NULL;
 static int mac_main_loop = 0;
@@ -26,7 +26,12 @@ void IupExitLoop(void)
 {
 	if([NSApp isRunning])
 	{
-		if(mac_main_loop == 0)
+		// This is trickier than it should be...
+		// If IUP triggered the exit by calling IupExitLoop (via IUP_CLOSE directive)
+		// then this branch is taken and we need to call [NSApp stop:nil] to quit.
+		// But if the user quits naturally, e.g. Quit menu,
+		// then applicationWillTerminate is invoked and [NSApp isRunning] is false, and the else case hits instead.
+		if(mac_main_loop <= 1)
 		{
 			//  [NSApp terminate:nil];
 			[NSApp stop:nil];
@@ -39,6 +44,7 @@ void IupExitLoop(void)
 	}
 	else
 	{
+		// This path could be invoked when the application is quit normally (e.g. Quit menu).
 		mac_main_loop--;
 
 	}
@@ -60,12 +66,23 @@ int IupMainLoop(void)
 {
 	if(![NSApp isRunning])
 	{
+		mac_main_loop++;
 		[NSApp run];
+		// [NSApp run] blocks until the event loop is stopped
+		mac_main_loop--;
+
 	}
 	else
 	{
 		NSLog(@"IupMainLoop called again");
 		mac_main_loop++;
+	}
+	
+	// Unfortunately, applicationWillTerminate: will not always be called depending how the quit was invoked.
+	// This seems to be our only central code path. So let's try to guard against calling the exit callback too often.
+	if(0 == mac_main_loop)
+	{
+		iupLoopCallExitCb();
 	}
 	return IUP_NOERROR;
 

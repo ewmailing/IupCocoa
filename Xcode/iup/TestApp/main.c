@@ -2025,6 +2025,13 @@ void IupEntryPoint()
 	
 }
 
+void IupExitPoint()
+{
+	fprintf(stderr, "IupExitPoint\n");
+	IupClose();
+
+}
+
 int main(int argc, char* argv[])
 {
 	int ret_val;
@@ -2050,6 +2057,7 @@ int main(int argc, char* argv[])
 	
 #if 1 // new ENTRY_POINT callback
 	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
 	
 	IupMainLoop();
 	
