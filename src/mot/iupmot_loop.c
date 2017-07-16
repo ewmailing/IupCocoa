@@ -10,6 +10,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 #include "iupmot_drv.h"
 
@@ -77,12 +78,8 @@ int IupMainLoop(void)
   static int has_done_entry = 0;
   if (0 == has_done_entry)
   {
-	IFentry entry_callback = (IFentry)IupGetFunction("ENTRY_POINT");
-	if (NULL != entry_callback)
-	{
-      entry_callback();
-	}
-	has_done_entry = 1;
+    iupLoopCallEntryCb();
+    has_done_entry = 1;
   }
 
   mot_mainloop++;
@@ -96,6 +93,11 @@ int IupMainLoop(void)
 
   mot_exitmainloop = 0;
   mot_mainloop--;
+
+  if(0 == mot_mainloop)
+  {
+    iupLoopCallExitCb();
+  }
   return IUP_NOERROR;
 }
 
