@@ -349,6 +349,8 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_link.c
 	${CMAKE_SOURCE_DIR}/src/iup_list.c
 	${CMAKE_SOURCE_DIR}/src/iup_list.h
+	${CMAKE_SOURCE_DIR}/src/iup_loop.c
+	${CMAKE_SOURCE_DIR}/src/iup_loop.h
 	${CMAKE_SOURCE_DIR}/src/iup_mask.c
 	${CMAKE_SOURCE_DIR}/src/iup_mask.h
 	${CMAKE_SOURCE_DIR}/src/iup_maskmatch.c
