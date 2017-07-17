@@ -981,6 +981,23 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 			last_cascade_point = new_cascade_point;
 			
 		}
+		else
+		{
+			NSLog(@"did not find keywindow for cascade calculation");
+			
+			//   new_cascade_point = [the_window cascadeTopLeftFromPoint:last_cascade_point];
+			new_cascade_point = [the_window cascadeTopLeftFromPoint:last_cascade_point];
+			IupSetInt(ih, "_FIRST_WINDOW", 0);
+			
+			new_cascade_point = [the_window cascadeTopLeftFromPoint:last_cascade_point];
+			//ih->x = cascade_point.x;
+			//ih->y = iupCocoaComputeIupScreenHeightFromCartesian(cascade_point.y);
+			IupSetInt(ih, "CASCADE_X", last_cascade_point.x);
+			//	IupSetInt(ih, "CASCADE_Y", iupCocoaComputeIupScreenHeightFromCartesian(last_cascade_point.y));
+			IupSetInt(ih, "CASCADE_Y", last_cascade_point.y);
+			last_cascade_point = new_cascade_point;
+
+		}
 		
 	}
 	
