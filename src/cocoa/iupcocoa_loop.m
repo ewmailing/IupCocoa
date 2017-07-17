@@ -11,7 +11,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
-#include "iup_loop.h"
+#include "iupcocoa_drv.h"
 
 static IFidle mac_idle_cb = NULL;
 static int mac_main_loop = 0;
@@ -79,10 +79,10 @@ int IupMainLoop(void)
 	}
 	
 	// Unfortunately, applicationWillTerminate: will not always be called depending how the quit was invoked.
-	// This seems to be our only central code path. So let's try to guard against calling the exit callback too often.
+	// Let's try to guard against calling the exit callback too often.
 	if(0 == mac_main_loop)
 	{
-		iupLoopCallExitCb();
+		iupCocoaCommonLoopCallExitCb();
 	}
 	return IUP_NOERROR;
 

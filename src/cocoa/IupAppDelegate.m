@@ -11,6 +11,7 @@
 #include "iup.h"
 #include "iupcbs.h"
 #include "iup_loop.h"
+#include "iupcocoa_drv.h"
 
 @implementation IupAppDelegate
 
@@ -24,13 +25,13 @@
 
 // Drat: Due to the way IupExitLoop() can be called to quit a program,
 // applicationWillTerminate: is not guaranteed to be invoked depending on the quit.
-// Put common shutdown stuff in IupMainLoop() instead.
-/*
+// It seems that this will be called when using Cmd-Q (Menu quit)
+// But this will not be called when you use IUP_CLOSE or close the last window (IUP will automatically shutdown. We do not use applicationShouldTerminateAfterLastWindowClosed: because of that.)
 - (void) applicationWillTerminate:(NSNotification*)a_notification
 {
 	// Invoke the IupEntry callback function to start the user code.
-	iupLoopCallExitCb();
+	iupCocoaCommonLoopCallExitCb();
 }
-*/
+
 
 @end

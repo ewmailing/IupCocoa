@@ -24,6 +24,7 @@
 #include "iup_focus.h"
 #include "iup_key.h"
 #include "iup_image.h"
+#include "iup_loop.h"
 #include "iup_drv.h"
 
 #include "iupcocoa_drv.h"
@@ -139,6 +140,19 @@ int iupCocoaComputeIupScreenHeightFromCartesian(int cartesian_height)
 	return iupROUND(inverted_height);
 }
 
+void iupCocoaCommonLoopCallExitCb()
+{
+	static BOOL has_called_exit_cb = NO;
+	if(NO == has_called_exit_cb)
+	{
+		has_called_exit_cb = YES;
+		iupLoopCallExitCb();
+	}
+	else
+	{
+		NSLog(@"Warning: iupCocoaCommonLoopCallExitCb has been called too many times");
+	}
+}
 
 
 void iupdrvActivate(Ihandle* ih)

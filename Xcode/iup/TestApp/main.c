@@ -1991,8 +1991,17 @@ void TextViewTest()
 
 }
 
+void IupExitPoint()
+{
+	fprintf(stderr, "IupExitPoint\n");
+	IupClose();
+	
+}
+
 void IupEntryPoint()
 {
+	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
+
 //	GridTest();
 //	ListAndModalWindowTest();
 //	ListTextButtonLabelTest();
@@ -2009,7 +2018,7 @@ void IupEntryPoint()
 	SizeTestToggle();
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
-
+*/
 	LayoutTestGrid3LabelTextButton();
  LayoutTestGrid3LabelTextButtonInFrame();
 
@@ -2017,7 +2026,7 @@ void IupEntryPoint()
 	LayoutTestGrid3LabelLabelButtonInFrame();
 	LayoutTestGrid3LabelTextButton();
 
-*/
+
 
 //	LabelSizeTest();
 	
@@ -2025,12 +2034,7 @@ void IupEntryPoint()
 	
 }
 
-void IupExitPoint()
-{
-	fprintf(stderr, "IupExitPoint\n");
-	IupClose();
 
-}
 
 int main(int argc, char* argv[])
 {
@@ -2057,7 +2061,6 @@ int main(int argc, char* argv[])
 	
 #if 1 // new ENTRY_POINT callback
 	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
-	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
 	
 	IupMainLoop();
 	
