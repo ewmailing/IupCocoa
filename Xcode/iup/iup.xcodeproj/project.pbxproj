@@ -22,6 +22,7 @@
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
 		0052B9441F1AFD820036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9421F1AFD820036F199 /* iup_loop.c */; };
 		0052B9451F1AFD820036F199 /* iup_loop.h in Headers */ = {isa = PBXBuildFile; fileRef = 0052B9431F1AFD820036F199 /* iup_loop.h */; };
+		0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */; };
 		005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */; };
 		005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */; };
@@ -239,6 +240,19 @@
 			remoteInfo = TestApp;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0052B9491F1D6BD00036F199 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUPCocoaVerticalAlignmentTextFieldCell.h; sourceTree = "<group>"; };
@@ -1001,6 +1015,7 @@
 				00E3A8EE1B609B8700BEC175 /* Sources */,
 				00E3A8EF1B609B8700BEC175 /* Frameworks */,
 				00E3A8F01B609B8700BEC175 /* Resources */,
+				0052B9491F1D6BD00036F199 /* CopyFiles */,
 			);
 			buildRules = (
 			);
