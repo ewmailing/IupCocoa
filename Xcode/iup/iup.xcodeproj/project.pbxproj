@@ -23,7 +23,7 @@
 		0052B9441F1AFD820036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9421F1AFD820036F199 /* iup_loop.c */; };
 		0052B9451F1AFD820036F199 /* iup_loop.h in Headers */ = {isa = PBXBuildFile; fileRef = 0052B9431F1AFD820036F199 /* iup_loop.h */; };
 		0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */; };
+		005DCBA51EBD659600A66253 /* IupMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBA21EBD659500A66253 /* IupMainMenu.xib */; };
 		005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */; };
 		005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */; };
 		0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0070FB981E0E0B79009A8631 /* IupAppDelegate.h */; };
@@ -270,7 +270,7 @@
 		00346C3F1B6880140045148B /* iupcocoa_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_info.m; sourceTree = "<group>"; };
 		0052B9421F1AFD820036F199 /* iup_loop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_loop.c; sourceTree = "<group>"; };
 		0052B9431F1AFD820036F199 /* iup_loop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_loop.h; sourceTree = "<group>"; };
-		005DCBA31EBD659500A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalMainMenu.xib; sourceTree = "<group>"; };
+		005DCBA31EBD659500A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/IupMainMenu.xib; sourceTree = "<group>"; };
 		005DCBAB1EBDD27300A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalServiceMenu.xib; sourceTree = "<group>"; };
 		005DCBAD1EBDD27300A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/CanonicalWindowMenu.xib; sourceTree = "<group>"; };
 		0070FB981E0E0B79009A8631 /* IupAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegate.h; sourceTree = "<group>"; };
@@ -535,7 +535,7 @@
 				00E8D7291ED4E68200773764 /* IupTextSpinner.xib */,
 				005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */,
 				005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */,
-				005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */,
+				005DCBA21EBD659500A66253 /* IupMainMenu.xib */,
 				0031556E1ED6A89500D116CA /* IupOutlineView.xib */,
 			);
 			path = xib;
@@ -1117,7 +1117,7 @@
 				00E8D72B1ED4E68200773764 /* IupTextSpinner.xib in Resources */,
 				00E3A76C1B60583600BEC175 /* iup.def in Resources */,
 				003155701ED6A89500D116CA /* IupOutlineView.xib in Resources */,
-				005DCBA51EBD659600A66253 /* CanonicalMainMenu.xib in Resources */,
+				005DCBA51EBD659600A66253 /* IupMainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1334,12 +1334,12 @@
 			name = IupOutlineView.xib;
 			sourceTree = "<group>";
 		};
-		005DCBA21EBD659500A66253 /* CanonicalMainMenu.xib */ = {
+		005DCBA21EBD659500A66253 /* IupMainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				005DCBA31EBD659500A66253 /* Base */,
 			);
-			name = CanonicalMainMenu.xib;
+			name = IupMainMenu.xib;
 			sourceTree = "<group>";
 		};
 		005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */ = {

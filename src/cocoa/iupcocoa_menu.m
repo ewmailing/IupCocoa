@@ -247,8 +247,22 @@ static void cocoaCreateDefaultApplicationMenu()
 	[menu_bar addItem:window_menu_category];
 	[menu_bar addItem:help_menu_category];
 #else
-	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
-	NSNib* main_menu_nib = [[[NSNib alloc] initWithNibNamed:@"CanonicalMainMenu" bundle:framework_bundle] autorelease];
+	
+	NSNib* main_menu_nib = nil;
+
+	// If the user supplies a MainMenu.xib in their own application bundle, allow the user to override our default one.
+
+	// initWithNibNamed will throw an exception if not found. I could catch the exception, but I would rather avoid the whole exception mechanism if possible.
+	// I've read claims we only need to check for nib (and not also xib) since these are always supposed to be compiled to nib.
+	if([[NSBundle mainBundle] pathForResource:@"MainMenu" ofType:@"nib"] != nil)
+	{
+		main_menu_nib = [[[NSNib alloc] initWithNibNamed:@"MainMenu" bundle:nil] autorelease];
+	}
+	else
+	{
+		NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
+		main_menu_nib = [[[NSNib alloc] initWithNibNamed:@"IupMainMenu" bundle:framework_bundle] autorelease];
+	}
 
 	NSMenu* menu_bar = nil;
 
