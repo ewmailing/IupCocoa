@@ -397,7 +397,7 @@ static void gtkButtonLayoutUpdateMethod(Ihandle *ih)
     if (frame && GTK_IS_FRAME(frame))
     {
       int x = 0, y = 0;
-      iupdrvButtonAddBorders(&x, &y);
+      iupdrvButtonAddBorders(ih, &x, &y);
       if (ih->currentwidth - x > 0 && ih->currentheight - y > 0)
         gtk_widget_set_size_request(frame, ih->currentwidth-x, ih->currentheight-y);
     }
