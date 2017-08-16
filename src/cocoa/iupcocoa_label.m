@@ -502,6 +502,58 @@ static int cocoaLabelSetEllipsisAttrib(Ihandle* ih, const char* value)
 }
 
 
+static int cocoaLabelSetImageAttrib(Ihandle* ih, const char* value)
+{
+	
+	if(ih->data->type == IUP_LABEL_IMAGE)
+	{
+		NSImageView* image_view = cocoaLabelGetImageView(ih);
+		if(nil == image_view)
+		{
+			return 0;
+		}
+		
+		char* name;
+		int make_inactive = 0;
+		
+		if (iupdrvIsActive(ih))
+		{
+			make_inactive = 0;
+		}
+		else
+		{
+			name = iupAttribGet(ih, "IMINACTIVE");
+			if (!name)
+			{
+				make_inactive = 1;
+			}
+		}
+		
+		
+		id the_bitmap;
+		the_bitmap = iupImageGetImage(value, ih, make_inactive);
+		int width;
+		int height;
+		int bpp;
+		
+		iupdrvImageGetInfo(the_bitmap, &width, &height, &bpp);
+		
+		// FIXME: What if the width and height change? Do we change it or leave it alone?
+		NSSize new_size = NSMakeSize(width, height);
+		NSRect the_frame = [image_view frame];
+		the_frame.size = new_size;
+		[image_view setFrame:the_frame];
+
+		[image_view setImage:the_bitmap];
+		
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 static int cocoaLabelMapMethod(Ihandle* ih)
 {
 	char* value;
@@ -740,9 +792,7 @@ void iupdrvLabelInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "TITLE", cocoaLabelGetTitleAttrib, cocoaLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   /* IupLabel only */
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, cocoaLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
-#if 0
-  iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#endif
+  iupClassRegisterAttribute(ic, "IMAGE", NULL, cocoaLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "PADDING", iupLabelGetPaddingAttrib, cocoaLabelSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
 #if 0
   /* IupLabel GTK and Motif only */
