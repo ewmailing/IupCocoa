@@ -104,6 +104,8 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 	  // ???
 	  [open_panel setCanChooseFiles:NO];
 
+	  // Symlinks automatically get resolved by Cocoa which can be nice, but this differs from the other implementions. So try to shut if off.
+	  [open_panel setResolvesAliases:NO];
 	  file_panel = open_panel;
 	  
 
