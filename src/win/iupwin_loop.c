@@ -74,8 +74,8 @@ int IupMainLoop(void)
 
   if (0 == has_done_entry)
   {
-    iupLoopCallEntryCb();
-    has_done_entry = 1;
+	  has_done_entry = 1;
+	  iupLoopCallEntryCb();
   }
 
   win_main_loop++;
