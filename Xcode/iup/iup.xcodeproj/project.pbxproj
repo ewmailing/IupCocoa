@@ -16,7 +16,7 @@
 		002CC4D01EA2416B0007C8E7 /* iup_flatframe.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4CA1EA2416B0007C8E7 /* iup_flatframe.c */; };
 		002CC4D11EA2416B0007C8E7 /* iup_flattabs.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4CB1EA2416B0007C8E7 /* iup_flattabs.c */; };
 		002CC4D41EA241E90007C8E7 /* iup_plus.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4D21EA241E90007C8E7 /* iup_plus.h */; };
-		002CC4D51EA241E90007C8E7 /* iupdraw.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4D31EA241E90007C8E7 /* iupdraw.h */; };
+		002CC4D51EA241E90007C8E7 /* iupdraw.h in Headers */ = {isa = PBXBuildFile; fileRef = 002CC4D31EA241E90007C8E7 /* iupdraw.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		002CC4D71EA24A850007C8E7 /* iupcocoa_calendar.m in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */; };
 		003155701ED6A89500D116CA /* IupOutlineView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0031556E1ED6A89500D116CA /* IupOutlineView.xib */; };
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
@@ -157,7 +157,7 @@
 		00E3A86C1B60595300BEC175 /* iup_mglplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83E1B60595300BEC175 /* iup_mglplot.h */; };
 		00E3A86D1B60595300BEC175 /* iup_plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A83F1B60595300BEC175 /* iup_plot.h */; };
 		00E3A86F1B60595300BEC175 /* iup_scintilla.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8411B60595300BEC175 /* iup_scintilla.h */; };
-		00E3A8721B60595300BEC175 /* iupcbs.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8441B60595300BEC175 /* iupcbs.h */; };
+		00E3A8721B60595300BEC175 /* iupcbs.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8441B60595300BEC175 /* iupcbs.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A8751B60595300BEC175 /* iupcontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8471B60595300BEC175 /* iupcontrols.h */; };
 		00E3A8761B60595300BEC175 /* iupdef.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8481B60595300BEC175 /* iupdef.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A87B1B60595300BEC175 /* iupgl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84D1B60595300BEC175 /* iupgl.h */; };
