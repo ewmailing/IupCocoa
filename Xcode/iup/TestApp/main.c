@@ -4,6 +4,8 @@
 #include "iupkey.h"
 #include "iup_config.h"
 
+extern void DoLocalizedMessageBox(void);
+
 Ihandle* g_someLabel1 = NULL;
 
 static int DoSomething(Ihandle* button_object)
@@ -538,14 +540,13 @@ void TextTest(void)
 
 
 
-
 void SizeTestLabel(void)
 {
 	Ihandle* the_label = IupLabel("The quick brown fox jumped over the lazy dog.");
-	IupSetAttribute(the_label, "ELLIPSIS", "YES");
-	IupSetAttribute(the_label, "EXPAND", "YES");
+//	IupSetAttribute(the_label, "ELLIPSIS", "YES");
+//	IupSetAttribute(the_label, "EXPAND", "YES");
 //	IupSetAttribute(the_label, "SHRINK", "YES");
-	IupSetAttribute(the_label, "RASTERSIZE", "60x17");
+//	IupSetAttribute(the_label, "RASTERSIZE", "60x17");
 //	IupSetAttribute(the_label, "PADDING", "8x8");
 
 	/* Creates dlg */
@@ -2008,8 +2009,9 @@ void IupEntryPoint()
 //	AppMenuTest();
 //	ProgressbarTest2();
 	
-	TextTest();
+	//TextTest();
 
+//	DoLocalizedMessageBox();
 
 /*
 	SizeTestLabel();
@@ -2019,6 +2021,7 @@ void IupEntryPoint()
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
 */
+
 	LayoutTestGrid3LabelTextButton();
  LayoutTestGrid3LabelTextButtonInFrame();
 
