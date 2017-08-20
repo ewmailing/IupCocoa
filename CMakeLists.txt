@@ -199,6 +199,8 @@ ELSEIF(IUP_OPTION_MOTIF)
 
 ELSEIF(IUP_OPTION_WIN32)
 	SET(IUP_USE_WIN32 1)
+	# Needed for UTF8MODE on Windows
+	OPTION(IUP_OPTION_USE_UNICODE "Comple with Unidode" ON)
 ELSE()
 	MESSAGE(FATAL_ERROR "Unsupported platform backend")
 
@@ -784,8 +786,15 @@ ELSEIF(IUP_USE_WIN32)
 		ole32 comdlg32 comctl32 gdi32
 	)	
 
+	# FIXME: The other build systems pass -DNOTREEVIEW, but searching the codebase, it seems to only exist in one place and it is to #undef NOTREEVIEW. Maybe this flag can be removed.
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -D_WIN32_WINNT=0x0501 -D_WIN32_IE=0x0600 -DWINVER=0x0501 -DNOTREEVIEW")
 	SET(IUPIMGLIB_C_FLAGS "${IUP_C_FLAGS} -D_WIN32_WINNT=0x0501 -D_WIN32_IE=0x0600 -DWINVER=0x0501 -DNOTREEVIEW")
+	IF(IUP_OPTION_USE_UNICODE)
+		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DUNICODE")
+		# FIXME: Should check if other libraries use the UNICODE flag
+		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DUNICODE")	
+	ENDIF()
+	
 
 	IF(MSVC)
 		ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
