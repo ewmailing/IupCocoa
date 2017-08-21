@@ -70,7 +70,9 @@ int IupMainLoop(void)
 {
   MSG msg;
   int ret;
+  int return_code = IUP_NOERROR;
   static int has_done_entry = 0;
+  static int has_done_exit = 0;
 
   if (0 == has_done_entry)
   {
@@ -89,16 +91,18 @@ int IupMainLoop(void)
       {
         if (winLoopProcessMessage(&msg) == IUP_CLOSE)
         {
-          win_main_loop--;
-          return IUP_CLOSE;
+          // win_main_loop will be decremented at the end of this function;
+          return_code = IUP_CLOSE;
+          break;
         }
       }
       else
       {
         if (winLoopCallIdle() == IUP_CLOSE)
         {
-          win_main_loop--;
-          return IUP_CLOSE;
+          // win_main_loop will be decremented at the end of this function;
+          return_code = IUP_CLOSE;
+          break;
         }
       }
     }
@@ -107,14 +111,16 @@ int IupMainLoop(void)
       ret = GetMessage(&msg, NULL, 0, 0);
       if (ret == -1) /* error */
       {
-        win_main_loop--;
-        return IUP_ERROR;
+        // win_main_loop will be decremented at the end of this function;
+        return_code = IUP_ERROR;
+        break;
       }
       if (ret == 0 || /* WM_QUIT */
           winLoopProcessMessage(&msg) == IUP_CLOSE)  /* ret != 0 */
       {
-        win_main_loop--;
-        return IUP_NOERROR;
+        // win_main_loop will be decremented at the end of this function;
+        return_code = IUP_NOERROR;
+        break;
       }
     }
   } while (ret);
@@ -122,12 +128,13 @@ int IupMainLoop(void)
   win_main_loop--;
 
 
-  if (0 == win_main_loop)
+  if ((0 == win_main_loop) && (0 == has_done_exit))
   {
-	iupLoopCallExitCb();
+    has_done_exit = 1;
+    iupLoopCallExitCb();
   }
 
-  return IUP_NOERROR;
+  return return_code;
 }
 
 int IupLoopStepWait(void)
