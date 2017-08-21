@@ -74,13 +74,13 @@ int IupMainLoop(void)
   static int has_done_entry = 0;
   static int has_done_exit = 0;
 
+  win_main_loop++;
+
   if (0 == has_done_entry)
   {
 	  has_done_entry = 1;
 	  iupLoopCallEntryCb();
   }
-
-  win_main_loop++;
 
   do 
   {
