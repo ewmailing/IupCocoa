@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup attrib Attribute Environment 
  * \par
  * When attributes are not stored at the control  
@@ -44,7 +46,7 @@ int iupAttribIsIhandle(Ihandle* ih, const char *name);
  * Only generic pointers and constant strings can be set as value. \n
  * It ignores children.
  * \ingroup attrib */
-void iupAttribSet(Ihandle* ih, const char* name, const char* value);
+IUP_EXPORTI void iupAttribSet(Ihandle* ih, const char* name, const char* value);
 
 /** Sets the attribute only in the hash table as a string. \n 
  * The string is internally duplicated. \n
