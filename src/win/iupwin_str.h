@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 
 void iupwinStrSetUTF8Mode(int utf8mode);
 void iupwinStrSetUTF8ModeFile(int utf8mode);
@@ -25,8 +27,8 @@ char* iupwinStrFromSystemFilename(const TCHAR* str);
 
 void iupwinStrRelease(void);
 
-WCHAR* iupwinStrChar2Wide(const char* str);
-char* iupwinStrWide2Char(const WCHAR* wstr);
+IUP_EXPORTI WCHAR* iupwinStrChar2Wide(const char* str);
+IUP_EXPORTI char* iupwinStrWide2Char(const WCHAR* wstr);
 
 void iupwinStrCopy(TCHAR* dst_wstr, const char* src_str, int max_size);
 
