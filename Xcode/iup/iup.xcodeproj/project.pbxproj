@@ -42,6 +42,8 @@
 		00BE4F8F1F4C96E2002B7C86 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00BE4F931F4C9721002B7C86 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00BE4F941F4C9721002B7C86 /* iupweb.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		00BE4F961F4CAB9A002B7C86 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */; };
+		00BE4F981F4CABE8002B7C86 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
@@ -310,6 +312,8 @@
 		00BE4F781F4C967F002B7C86 /* webbrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = webbrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00BE4F881F4C9680002B7C86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00BE4F8C1F4C96BD002B7C86 /* webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = webbrowser.c; path = ../../../html/examples/tests/webbrowser.c; sourceTree = "<group>"; };
+		00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A5F81B60578300BEC175 /* iupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -545,6 +549,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00BE4F981F4CABE8002B7C86 /* SystemConfiguration.framework in Frameworks */,
+				00BE4F961F4CAB9A002B7C86 /* QuartzCore.framework in Frameworks */,
 				00E3A8BE1B605D0B00BEC175 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -609,6 +615,8 @@
 		00BE4F691F4C7CCB002B7C86 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */,
+				00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */,
 				00BE4F6A1F4C7CCC002B7C86 /* WebKit.framework */,
 			);
 			name = Frameworks;
@@ -1636,8 +1644,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_MODULES_AUTOLINK = NO;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
@@ -1681,8 +1690,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_MODULES_AUTOLINK = NO;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;

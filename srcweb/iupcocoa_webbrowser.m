@@ -34,9 +34,7 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 
 
 @interface IupCocoaWebViewDelegate : NSObject <WebPolicyDelegate, WebFrameLoadDelegate, WebUIDelegate>
-{
-	Ihandle* _ih;
-}
+
 @property(nonatomic, assign) Ihandle* ihandle;
 @end
 
@@ -83,6 +81,15 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 		// Might be useful
 		// [[the_error localizedDescription] UTF8String]
 		// [the_error code]
+	
+//		NSLog(@"webView:didFailLoadWithError:forFrame: %@", the_error);
+
+		// In testing, I get error 999 a lot.
+		// "It actually means that another request is made before the previous request is completed."
+		// https://stackoverflow.com/questions/30024244/webview-didfailloadwitherror-error-code-999
+		// Maybe we should suppresss.
+		// TODO: Introduce API to pass error code and error string.
+		
 		const char* failed_url = [[[the_error userInfo] valueForKey:NSURLErrorFailingURLStringErrorKey] UTF8String];
 		cb(ih, (char*)failed_url);
 	}
@@ -140,34 +147,37 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 /*********************************************************************************************/
 
 
-#if 0
-struct _IcontrolData 
-{
-  int sb;    /* scrollbar configuration, valid only after map, use iupBaseGetScrollbar before map */
-};
 
-static char* cocoaWebBrowserGetItemHistoryAttrib(Ihandle* ih, int id)
+static char* cocoaWebBrowserGetItemHistoryAttrib(Ihandle* ih, int index)
 {
-  WebKitWebBackForwardList *back_forward_list = webkit_web_view_get_back_forward_list ((WebKitWebView*)ih->handle);
-  WebKitWebHistoryItem* item = webkit_web_back_forward_list_get_nth_item(back_forward_list, id);
-  if (item)
-    return iupStrReturnStr(webkit_web_history_item_get_uri(item));
-  else
+	/* Negative values represent steps backward while positive values represent steps forward. */
+	WebView* web_view = (WebView*)ih->handle;
+	WebBackForwardList* back_forward_list = [web_view backForwardList];
+	WebHistoryItem* history_item = [back_forward_list itemAtIndex:index];
+	if(nil != history_item)
+	{
+		const char* c_url = [[history_item URLString] UTF8String];
+		return iupStrReturnStr(c_url);
+	}
+
     return NULL;
 }
 
 static char* cocoaWebBrowserGetForwardCountAttrib(Ihandle* ih)
 {
-  WebKitWebBackForwardList *back_forward_list = webkit_web_view_get_back_forward_list ((WebKitWebView*)ih->handle);
-  return iupStrReturnInt(webkit_web_back_forward_list_get_forward_length(back_forward_list));
+	WebView* web_view = (WebView*)ih->handle;
+	WebBackForwardList* back_forward_list = [web_view backForwardList];
+	int item_count = [back_forward_list forwardListCount];
+	return iupStrReturnInt(item_count);
 }
 
 static char* cocoaWebBrowserGetBackCountAttrib(Ihandle* ih)
 {
-  WebKitWebBackForwardList *back_forward_list = webkit_web_view_get_back_forward_list ((WebKitWebView*)ih->handle);
-  return iupStrReturnInt(webkit_web_back_forward_list_get_back_length(back_forward_list));
+	WebView* web_view = (WebView*)ih->handle;
+	WebBackForwardList* back_forward_list = [web_view backForwardList];
+	int item_count = [back_forward_list backListCount];
+	return iupStrReturnInt(item_count);
 }
-#endif
 
 static int cocoaWebBrowserSetHTMLAttrib(Ihandle* ih, const char* value)
 {
@@ -180,29 +190,47 @@ static int cocoaWebBrowserSetHTMLAttrib(Ihandle* ih, const char* value)
 	return 0; /* do not store value in hash table */
 }
 
-#if 0
 
 static int cocoaWebBrowserSetCopyAttrib(Ihandle* ih, const char* value)
 {
-  webkit_web_view_copy_clipboard((WebKitWebView*)ih->handle);
-  (void)value;
-  return 0;
+	(void)value;
+
+	WebView* web_view = (WebView*)ih->handle;
+	// use the responder chain. WebView provides a custom implementation.
+	[web_view copy:nil];
+
+/*
+	DOMRange* dom_range = [web_view selectedDOMRange];
+	NSPasteboard* paste_board = [NSPasteboard generalPasteboard];
+
+	[paste_board setData:[[dom_range webArchive] data] forType:WebArchivePboardType];
+*/
+	
+	return 0;
 }
 
 static int cocoaWebBrowserSetSelectAllAttrib(Ihandle* ih, const char* value)
 {
-  webkit_web_view_select_all((WebKitWebView*)ih->handle);
-  (void)value;
-  return 0;
+	(void)value;
+	WebView* web_view = (WebView*)ih->handle;
+	// use the responder chain. WebView provides a custom implementation.
+	[web_view selectAll:nil];
+	return 0;
 }
 
 static int cocoaWebBrowserSetPrintAttrib(Ihandle* ih, const char* value)
 {
-  WebKitWebFrame* frame = webkit_web_view_get_main_frame((WebKitWebView*)ih->handle);
-  webkit_web_frame_print(frame);
-  (void)value;
-  return 0;
+	(void)value;
+	WebView* web_view = (WebView*)ih->handle;
+	WebFrameView* frame_view = [[web_view mainFrame] frameView];
+	// Use documentView to print whole document instead of visible
+	NSPrintOperation* print_operation = [NSPrintOperation printOperationWithView:[frame_view documentView]];
+	NSWindow* parent_window = [web_view window];
+	[print_operation runOperationModalForWindow:parent_window delegate:nil didRunSelector:nil contextInfo:nil];
+	
+	return 0;
 }
+#if 0
 
 static int cocoaWebBrowserSetZoomAttrib(Ihandle* ih, const char* value)
 {
@@ -417,15 +445,17 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "HTML", NULL, cocoaWebBrowserSetHTMLAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "STATUS", cocoaWebBrowserGetStatusAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+#endif
   iupClassRegisterAttribute(ic, "COPY", NULL, cocoaWebBrowserSetCopyAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTALL", NULL, cocoaWebBrowserSetSelectAllAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+#if 0
   iupClassRegisterAttribute(ic, "ZOOM", cocoaWebBrowserGetZoomAttrib, cocoaWebBrowserSetZoomAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+#endif
   iupClassRegisterAttribute(ic, "PRINT", NULL, cocoaWebBrowserSetPrintAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "BACKCOUNT", cocoaWebBrowserGetBackCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORWARDCOUNT", cocoaWebBrowserGetForwardCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "ITEMHISTORY",  cocoaWebBrowserGetItemHistoryAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-#endif
 
   return ic;
 }
