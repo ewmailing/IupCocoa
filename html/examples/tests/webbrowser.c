@@ -177,7 +177,7 @@ void WebBrowserTest(void)
 int main(int argc, char* argv[])
 {
   IupOpen(&argc, &argv);
-  IupControlsOpen();      
+//  IupControlsOpen();      
 
   WebBrowserTest();
 
