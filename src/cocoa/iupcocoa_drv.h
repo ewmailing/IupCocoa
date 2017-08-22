@@ -11,12 +11,15 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
+
 // the point of this is we have a unique memory address for an identifier
 extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 
 	
-void iupCocoaAddToParent(Ihandle* ih);
-void iupCocoaRemoveFromParent(Ihandle* ih);
+IUP_EXPORTI void iupCocoaAddToParent(Ihandle* ih);
+IUP_EXPORTI void iupCocoaRemoveFromParent(Ihandle* ih);
 	
 NSView* iupCocoaCommonBaseLayoutGetParentView(Ihandle* ih);
 NSView* iupCocoaCommonBaseLayoutGetChildView(Ihandle* ih);

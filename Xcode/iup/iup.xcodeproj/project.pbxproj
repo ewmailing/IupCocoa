@@ -29,6 +29,19 @@
 		0070FB9A1E0E0B79009A8631 /* IupAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0070FB981E0E0B79009A8631 /* IupAppDelegate.h */; };
 		0070FB9B1E0E0B79009A8631 /* IupAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB991E0E0B79009A8631 /* IupAppDelegate.m */; };
 		00ADF34F1F45AECD00F91890 /* Encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 00ADF34E1F45AECD00F91890 /* Encoding.c */; };
+		00BE4EEE1F4BF35C002B7C86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A8BD1B605D0B00BEC175 /* Cocoa.framework */; };
+		00BE4F641F4BF479002B7C86 /* iupweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8681B60595300BEC175 /* iupweb.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00BE4F661F4BF48F002B7C86 /* iup_webbrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BE4F521F4BF40F002B7C86 /* iup_webbrowser.h */; };
+		00BE4F6B1F4C7CCC002B7C86 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F6A1F4C7CCC002B7C86 /* WebKit.framework */; };
+		00BE4F6F1F4C7CFE002B7C86 /* iupcocoa_webbrowser.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BE4F671F4C75A8002B7C86 /* iupcocoa_webbrowser.m */; };
+		00BE4F701F4C7D03002B7C86 /* iup_webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE4F511F4BF40F002B7C86 /* iup_webbrowser.c */; };
+		00BE4F711F4C9564002B7C86 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
+		00BE4F731F4C95E4002B7C86 /* iup_export.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BE4F721F4C95E4002B7C86 /* iup_export.h */; };
+		00BE4F8D1F4C96BD002B7C86 /* webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE4F8C1F4C96BD002B7C86 /* webbrowser.c */; };
+		00BE4F8E1F4C96DF002B7C86 /* iupweb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */; };
+		00BE4F8F1F4C96E2002B7C86 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
+		00BE4F931F4C9721002B7C86 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		00BE4F941F4C9721002B7C86 /* iupweb.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
@@ -180,7 +193,6 @@
 		00E3A88E1B60595300BEC175 /* iupmatrixex.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8601B60595300BEC175 /* iupmatrixex.h */; };
 		00E3A88F1B60595300BEC175 /* iupole.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8611B60595300BEC175 /* iupole.h */; };
 		00E3A8941B60595300BEC175 /* iuptuio.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8661B60595300BEC175 /* iuptuio.h */; };
-		00E3A8961B60595300BEC175 /* iupweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8681B60595300BEC175 /* iupweb.h */; };
 		00E3A8BC1B605CE500BEC175 /* iupcocoa_loop.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A41B605A7500BEC175 /* iupcocoa_loop.m */; };
 		00E3A8BE1B605D0B00BEC175 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A8BD1B605D0B00BEC175 /* Cocoa.framework */; };
 		00E3A8C01B605FB300BEC175 /* iupcocoa_open.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A61B605A7500BEC175 /* iupcocoa_open.m */; };
@@ -253,6 +265,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00BE4F921F4C9706002B7C86 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				00BE4F931F4C9721002B7C86 /* iup.framework in CopyFiles */,
+				00BE4F941F4C9721002B7C86 /* iupweb.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -277,6 +300,16 @@
 		0070FB981E0E0B79009A8631 /* IupAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegate.h; sourceTree = "<group>"; };
 		0070FB991E0E0B79009A8631 /* IupAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupAppDelegate.m; sourceTree = "<group>"; };
 		00ADF34E1F45AECD00F91890 /* Encoding.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Encoding.c; sourceTree = "<group>"; };
+		00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iupweb.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		00BE4F4C1F4BF35D002B7C86 /* iupweb-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "iupweb-Info.plist"; path = "/Users/ewing/Source/GIT/IupMac/iup315/Xcode/iup/iupweb-Info.plist"; sourceTree = "<absolute>"; };
+		00BE4F511F4BF40F002B7C86 /* iup_webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_webbrowser.c; sourceTree = "<group>"; };
+		00BE4F521F4BF40F002B7C86 /* iup_webbrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_webbrowser.h; sourceTree = "<group>"; };
+		00BE4F671F4C75A8002B7C86 /* iupcocoa_webbrowser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_webbrowser.m; sourceTree = "<group>"; };
+		00BE4F6A1F4C7CCC002B7C86 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		00BE4F721F4C95E4002B7C86 /* iup_export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_export.h; sourceTree = "<group>"; };
+		00BE4F781F4C967F002B7C86 /* webbrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = webbrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00BE4F881F4C9680002B7C86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00BE4F8C1F4C96BD002B7C86 /* webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = webbrowser.c; path = ../../../html/examples/tests/webbrowser.c; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A5F81B60578300BEC175 /* iupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -489,6 +522,25 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		00BE4EED1F4BF35C002B7C86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00BE4F711F4C9564002B7C86 /* iup.framework in Frameworks */,
+				00BE4F6B1F4C7CCC002B7C86 /* WebKit.framework in Frameworks */,
+				00BE4EEE1F4BF35C002B7C86 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00BE4F751F4C967F002B7C86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00BE4F8F1F4C96E2002B7C86 /* iup.framework in Frameworks */,
+				00BE4F8E1F4C96DF002B7C86 /* iupweb.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A5E91B60578300BEC175 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -543,6 +595,34 @@
 			path = xib;
 			sourceTree = "<group>";
 		};
+		00BE4F4D1F4BF40F002B7C86 /* srcweb */ = {
+			isa = PBXGroup;
+			children = (
+				00BE4F671F4C75A8002B7C86 /* iupcocoa_webbrowser.m */,
+				00BE4F511F4BF40F002B7C86 /* iup_webbrowser.c */,
+				00BE4F521F4BF40F002B7C86 /* iup_webbrowser.h */,
+			);
+			name = srcweb;
+			path = ../../../srcweb;
+			sourceTree = "<group>";
+		};
+		00BE4F691F4C7CCB002B7C86 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				00BE4F6A1F4C7CCC002B7C86 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		00BE4F791F4C967F002B7C86 /* webbrowser */ = {
+			isa = PBXGroup;
+			children = (
+				00BE4F8C1F4C96BD002B7C86 /* webbrowser.c */,
+				00BE4F881F4C9680002B7C86 /* Info.plist */,
+			);
+			path = webbrowser;
+			sourceTree = "<group>";
+		};
 		00E3A5E31B60578200BEC175 = {
 			isa = PBXGroup;
 			children = (
@@ -551,7 +631,10 @@
 				00E3A5FC1B60578300BEC175 /* iupTests */,
 				00E3A8F31B609B8700BEC175 /* TestApp */,
 				00E3A9071B609B8800BEC175 /* TestAppTests */,
+				00BE4F791F4C967F002B7C86 /* webbrowser */,
 				00E3A5EE1B60578300BEC175 /* Products */,
+				00BE4F4C1F4BF35D002B7C86 /* iupweb-Info.plist */,
+				00BE4F691F4C7CCB002B7C86 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -563,6 +646,8 @@
 				00E3A8F21B609B8700BEC175 /* TestApp.app */,
 				00E3A9041B609B8700BEC175 /* TestAppTests.xctest */,
 				6310AB2D1ED21CE70075B168 /* ImageApp.app */,
+				00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */,
+				00BE4F781F4C967F002B7C86 /* webbrowser.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -570,6 +655,7 @@
 		00E3A5EF1B60578300BEC175 /* iup */ = {
 			isa = PBXGroup;
 			children = (
+				00BE4F4D1F4BF40F002B7C86 /* srcweb */,
 				00E3A83A1B60595300BEC175 /* include */,
 				00E3A60B1B60583500BEC175 /* src */,
 				00E3A5F01B60578300BEC175 /* Supporting Files */,
@@ -649,6 +735,7 @@
 				00E3A6751B60583600BEC175 /* iup_drvfont.h */,
 				00E3A6761B60583600BEC175 /* iup_drvinfo.h */,
 				00E3A6771B60583600BEC175 /* iup_expander.c */,
+				00BE4F721F4C95E4002B7C86 /* iup_export.h */,
 				00E3A6781B60583600BEC175 /* iup_filedlg.c */,
 				00E3A6791B60583600BEC175 /* iup_fill.c */,
 				00E3A67A1B60583600BEC175 /* iup_flatbutton.c */,
@@ -884,6 +971,15 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		00BE4EEF1F4BF35C002B7C86 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00BE4F641F4BF479002B7C86 /* iupweb.h in Headers */,
+				00BE4F661F4BF48F002B7C86 /* iup_webbrowser.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A5EA1B60578300BEC175 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -938,7 +1034,6 @@
 				00E3A77F1B60583600BEC175 /* iup_class.h in Headers */,
 				00E3A8881B60595300BEC175 /* iupluamatrixex.h in Headers */,
 				00E3A8721B60595300BEC175 /* iupcbs.h in Headers */,
-				00E3A8961B60595300BEC175 /* iupweb.h in Headers */,
 				00E3A88E1B60595300BEC175 /* iupmatrixex.h in Headers */,
 				00E3A7AF1B60583600BEC175 /* iup_list.h in Headers */,
 				00E3A7BA1B60583600BEC175 /* iup_names.h in Headers */,
@@ -958,6 +1053,7 @@
 				00E3A87C1B60595300BEC175 /* iupglcontrols.h in Headers */,
 				00E3A7A61B60583600BEC175 /* iup_layout.h in Headers */,
 				00E3A7A41B60583600BEC175 /* iup_label.h in Headers */,
+				00BE4F731F4C95E4002B7C86 /* iup_export.h in Headers */,
 				00E3A7C81B60583600BEC175 /* iup_register.h in Headers */,
 				00E3A86B1B60595300BEC175 /* iup_config.h in Headers */,
 				00E3A7CF1B60583600BEC175 /* iup_stdcontrols.h in Headers */,
@@ -975,6 +1071,42 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		00BE4E761F4BF35C002B7C86 /* iupweb */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00BE4F481F4BF35C002B7C86 /* Build configuration list for PBXNativeTarget "iupweb" */;
+			buildPhases = (
+				00BE4E771F4BF35C002B7C86 /* Sources */,
+				00BE4EED1F4BF35C002B7C86 /* Frameworks */,
+				00BE4EEF1F4BF35C002B7C86 /* Headers */,
+				00BE4F411F4BF35C002B7C86 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iupweb;
+			productName = iup;
+			productReference = 00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		00BE4F771F4C967F002B7C86 /* webbrowser */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00BE4F891F4C9680002B7C86 /* Build configuration list for PBXNativeTarget "webbrowser" */;
+			buildPhases = (
+				00BE4F741F4C967F002B7C86 /* Sources */,
+				00BE4F751F4C967F002B7C86 /* Frameworks */,
+				00BE4F761F4C967F002B7C86 /* Resources */,
+				00BE4F921F4C9706002B7C86 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = webbrowser;
+			productName = webbrowser;
+			productReference = 00BE4F781F4C967F002B7C86 /* webbrowser.app */;
+			productType = "com.apple.product-type.application";
+		};
 		00E3A5EC1B60578300BEC175 /* iup */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E3A6031B60578300BEC175 /* Build configuration list for PBXNativeTarget "iup" */;
@@ -1073,6 +1205,10 @@
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = "Tecgraf, PUC-Rio, Brazil";
 				TargetAttributes = {
+					00BE4F771F4C967F002B7C86 = {
+						CreatedOnToolsVersion = 8.3.3;
+						ProvisioningStyle = Automatic;
+					};
 					00E3A5EC1B60578300BEC175 = {
 						CreatedOnToolsVersion = 6.4;
 					};
@@ -1106,11 +1242,27 @@
 				00E3A8F11B609B8700BEC175 /* TestApp */,
 				00E3A9031B609B8700BEC175 /* TestAppTests */,
 				6310AB231ED21CE70075B168 /* ImageApp */,
+				00BE4E761F4BF35C002B7C86 /* iupweb */,
+				00BE4F771F4C967F002B7C86 /* webbrowser */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		00BE4F411F4BF35C002B7C86 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00BE4F761F4C967F002B7C86 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A5EB1B60578300BEC175 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1157,6 +1309,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		00BE4E771F4BF35C002B7C86 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00BE4F701F4C7D03002B7C86 /* iup_webbrowser.c in Sources */,
+				00BE4F6F1F4C7CFE002B7C86 /* iupcocoa_webbrowser.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00BE4F741F4C967F002B7C86 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00BE4F8D1F4C96BD002B7C86 /* webbrowser.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00E3A5E81B60578300BEC175 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1373,6 +1542,94 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		00BE4F491F4BF35C002B7C86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					IUPWEB_BUILD_LIBRARY,
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				INFOPLIST_FILE = "iupweb-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		00BE4F4A1F4BF35C002B7C86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					IUPWEB_BUILD_LIBRARY,
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				INFOPLIST_FILE = "iupweb-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		00BE4F8A1F4C9680002B7C86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = NO;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_TESTABILITY = YES;
+				INFOPLIST_FILE = webbrowser/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = "br.puc-rio.tecgraf.webbrowser";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		00BE4F8B1F4C9680002B7C86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = NO;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = webbrowser/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = "br.puc-rio.tecgraf.webbrowser";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		00E3A6011B60578300BEC175 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1628,6 +1885,23 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		00BE4F481F4BF35C002B7C86 /* Build configuration list for PBXNativeTarget "iupweb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00BE4F491F4BF35C002B7C86 /* Debug */,
+				00BE4F4A1F4BF35C002B7C86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00BE4F891F4C9680002B7C86 /* Build configuration list for PBXNativeTarget "webbrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00BE4F8A1F4C9680002B7C86 /* Debug */,
+				00BE4F8B1F4C9680002B7C86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		00E3A5E71B60578300BEC175 /* Build configuration list for PBXProject "iup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
