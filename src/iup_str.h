@@ -55,7 +55,7 @@ int iupStrEqualNoCasePartial(const char* str1, const char* str2);
 /** Returns 1 if the string is "YES" or "ON". \n
  * Returns 0 otherwise (including NULL or empty).
  * \ingroup str */
-int iupStrBoolean(const char* str);
+IUP_EXPORTI int iupStrBoolean(const char* str);
 
 /** Returns 1 if the string is "NO" or "OFF". \n
  * Returns 0 otherwise (including NULL or empty). \n
@@ -169,7 +169,7 @@ IUP_EXPORTI char* iupStrReturnStr(const char* str);
 
 /** Returns a boolean value (as YES or NO) in a string.
  * \ingroup str */
-char* iupStrReturnBoolean(int i);
+IUP_EXPORTI char* iupStrReturnBoolean(int i);
 
 /** Returns a checked value (as ON, OFF or NOTDEF (-1)) in a string.
  * \ingroup str */
