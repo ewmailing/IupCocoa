@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
 
 /** \defgroup register Class Registration
  * \par
@@ -22,7 +23,7 @@ extern "C" {
 
 /** Returns a class instance from a class name. The class name must be previously registered using \ref iupRegisterClass.
  * \ingroup register */
-Iclass* iupRegisterFindClass(const char* name);
+IUP_EXPORTI Iclass* iupRegisterFindClass(const char* name);
 
 /** Register a class.
  * \ingroup register */
