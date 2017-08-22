@@ -165,6 +165,7 @@ ELSEIF(IUP_OPTION_COCOATOUCH)
 ELSEIF(IUP_OPTION_GTK2)
 	SET(IUP_USE_GTK2 1)
 
+	MESSAGE("option gtk2")
 	# NOTE: This has limited effect since I already ran these for the Option selections on Unix.
 	# This is here only for people who select this on the platforms where GTK is non-native (Mac, Windows)
 	find_package(GTK2 2.0 REQUIRED COMPONENTS gtk)
@@ -173,9 +174,12 @@ ELSEIF(IUP_OPTION_GTK2)
 		MESSAGE(FATAL_ERROR "GTK2 dependencies not found")
 	endif()
 
+	pkg_check_modules(WEBKIT QUIET webkit-1.0)
+
 ELSEIF(IUP_OPTION_GTK3)
 	SET(IUP_USE_GTK3 1)
 
+	MESSAGE("option gtk3")
 	# NOTE: This has limited effect since I already ran these for the Option selections on Unix.
 	# This is here only for people who select this on the platforms where GTK is non-native (Mac, Windows)
 	# Use the package PkgConfig to detect GTK+ headers/library files
@@ -185,6 +189,8 @@ ELSEIF(IUP_OPTION_GTK3)
 	if(NOT GTK3_FOUND)
 		MESSAGE(FATAL_ERROR "GTK3 dependencies not found")
 	endif()
+
+	pkg_check_modules(WEBKIT QUIET webkit-1.0)
 
 ELSEIF(IUP_OPTION_MOTIF)
 	SET(IUP_USE_MOTIF 1)
@@ -219,6 +225,7 @@ endif()
 
 SET(IUP_C_FLAGS "")
 SET(IUPIMGLIB_C_FLAGS "")
+SET(IUPWEB_C_FLAGS "")
 SET(IUPEXE_C_FLAGS "")
 SET(IUPEXE_LINK_FLAGS "")
 
@@ -226,9 +233,9 @@ SET(IUPEXE_LINK_FLAGS "")
 # We can then reuse them for other platforms too.
 IF(IUP_USE_EMSCRIPTEN)
 	# we always need to set this when building a libray with Emscripten
-	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
+	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL -DIUPWEB_BUILD_LIBRARY")
 	# we always need to set this when using an Emscripten built library, otherwise symbols get stripped.
-	SET(IUPEXE_C_FLAGS "${IUPEXE_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
+	SET(IUPEXE_C_FLAGS "${IUPEXE_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL -DIUPWEB_BUILD_LIBRARY")
 
 	# Without this, all executables only generate .js files without the html wrapper.
 	SET(CMAKE_EXECUTABLE_SUFFIX ".html")
@@ -242,15 +249,18 @@ ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
 	IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -fvisibility=hidden")
+		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -fvisibility=hidden")
 	ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -fvisibility=hidden")
+		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -fvisibility=hidden")
 	ENDIF()
 	
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
 		
 	# Yes, IUP_BUILD_LIBRARY and not IUPIMG_BUILD_LIBRARY because the header is in iup.h
 	SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
+	SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -DIUPWEB_BUILD_LIBRARY")
 
 ENDIF()
 
@@ -269,10 +279,14 @@ SET(IUP_PUBLIC_HEADERS
 	${CMAKE_SOURCE_DIR}/include/iup.h
 	${CMAKE_SOURCE_DIR}/include/iupcbs.h
 	${CMAKE_SOURCE_DIR}/include/iupdef.h
+	${CMAKE_SOURCE_DIR}/include/iupdraw.h
 	${CMAKE_SOURCE_DIR}/include/iupkey.h
 	${CMAKE_SOURCE_DIR}/include/iup_config.h
 )
 SET(IUPIMGLIB_PUBLIC_HEADERS
+)
+SET(IUPWEB_PUBLIC_HEADERS
+	${CMAKE_SOURCE_DIR}/include/iupweb.h
 )
 
 SET(IUP_COMMON_SOURCE_FILES 
@@ -411,6 +425,9 @@ SET(IUPIMGLIB_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/srcimglib/iup_image_library.c
 	${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_circleprogress.c
 )
+SET(IUPWEB_COMMON_SOURCE_FILES 
+	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.c
+)
 
 SET(IUP_LINK_LIBRARIES "")
 SET(IUP_SOURCE_FILES ${IUP_COMMON_SOURCE_FILES})
@@ -419,6 +436,12 @@ SET(IUP_FOREIGN_SOURCE_FILES "")
 SET(IUPIMGLIB_LINK_LIBRARIES "iup")
 SET(IUPIMGLIB_SOURCE_FILES ${IUPIMGLIB_COMMON_SOURCE_FILES})
 SET(IUPIMGLIB_FOREIGN_SOURCE_FILES "")
+
+SET(IUPWEB_LINK_LIBRARIES "iup")
+SET(IUPWEB_SOURCE_FILES ${IUPWEB_COMMON_SOURCE_FILES})
+SET(IUPWEB_FOREIGN_SOURCE_FILES "")
+
+SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
 
 IF(IUP_USE_EMSCRIPTEN)
 
@@ -493,6 +516,20 @@ IF(IUP_USE_EMSCRIPTEN)
 	)
 
 
+	SET(IUPWEB_EMSCRIPTEN_SOURCE_FILES
+		# TODO:
+	)
+	SET(IUPWEB_EMSCRIPTEN_FOREIGN_SOURCE_FILES 
+	)
+
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_EMSCRIPTEN_SOURCE_FILES}
+	)
+	LIST(APPEND IUPWEB_FOREIGN_SOURCE_FILES
+		${IUPWEB_EMSCRIPTEN_FOREIGN_SOURCE_FILES}
+	)
+
+	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
 
 
 ELSEIF(IUP_USE_ANDROID)
@@ -560,6 +597,16 @@ ELSEIF(IUP_USE_ANDROID)
 	LIST(APPEND IUPIMGLIB_SOURCE_FILES
 		${IUPIMGLIB_ANDROID_SOURCE_FILES}
 	)
+
+
+	SET(IUPWEB_ANDROID_SOURCE_FILES
+		# TODO:
+	)
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_ANDROID_SOURCE_FILES}
+	)
+
+	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
 
 ELSEIF(IUP_USE_COCOATOUCH)
 
@@ -636,6 +683,15 @@ ELSEIF(IUP_USE_COCOATOUCH)
 	)
 
 
+	SET(IUPWEB_COCOATOUCH_SOURCE_FILES
+		# TODO:
+	)
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_COCOATOUCH_SOURCE_FILES}
+	)
+
+	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+
 ELSEIF(IUP_USE_COCOA)
 
 	SET(IUP_COCOA_SOURCE_FILES 
@@ -711,6 +767,14 @@ ELSEIF(IUP_USE_COCOA)
 		${IUPIMGLIB_COCOA_SOURCE_FILES}
 	)
 
+	SET(IUPWEB_COCOA_SOURCE_FILES
+		# TODO:
+	)
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_COCOA_SOURCE_FILES}
+	)
+
+	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
 
 ELSEIF(IUP_USE_WIN32)
 
@@ -785,6 +849,10 @@ ELSEIF(IUP_USE_WIN32)
 	LIST(APPEND IUP_LINK_LIBRARIES 
 		ole32 comdlg32 comctl32 gdi32
 	)	
+	# Use explicit names instead
+	LIST(APPEND IUPWEB_LINK_LIBRARIES 
+		iupole comsuppw
+	)
 
 	# FIXME: The other build systems pass -DNOTREEVIEW, but searching the codebase, it seems to only exist in one place and it is to #undef NOTREEVIEW. Maybe this flag can be removed.
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -D_WIN32_WINNT=0x0501 -D_WIN32_IE=0x0600 -DWINVER=0x0501 -DNOTREEVIEW")
@@ -798,6 +866,9 @@ ELSEIF(IUP_USE_WIN32)
 
 	IF(MSVC)
 		ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
+		SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
+	ELSE()
+		SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
 	ENDIF()
 
 	SET(IUPIMGLIB_WIN32_SOURCE_FILES
@@ -808,6 +879,13 @@ ELSEIF(IUP_USE_WIN32)
 	)
 	LIST(APPEND IUPIMGLIB_SOURCE_FILES
 		${IUPIMGLIB_WIN32_SOURCE_FILES}
+	)
+
+	SET(IUPWEB_WIN32_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srcweb/iupwin_webbrowser.cpp
+	)
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_WIN32_SOURCE_FILES}
 	)
 
 
@@ -875,6 +953,23 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 	)
 
 
+	SET(IUPWEB_GTK_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srcweb/iupgtk_webbrowser.c
+	)
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_GTK_SOURCE_FILES}
+	)
+
+	IF(WEBKIT_FOUND)
+		SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
+		INCLUDE_DIRECTORIES(${WEBKIT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src/gtk)
+		LIST(APPEND IUPWEB_LINK_LIBRARIES 
+			${WEBKIT_LIBRARIES}
+		)
+	ELSE()
+		SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	ENDIF()
+
 
 	# These files are platform specific for the GTK backend
 	IF(APPLE)
@@ -904,6 +999,9 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		LIST(APPEND IUP_LINK_LIBRARIES 
 			${GTK2_LIBRARIES}
 		)
+		LIST(APPEND IUPWEB_LINK_LIBRARIES 
+			${GTK2_LIBRARIES}
+		)
 
 	ELSEIF(IUP_USE_GTK3)
 		LIST(APPEND IUP_SOURCE_FILES
@@ -911,6 +1009,9 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		)
 		INCLUDE_DIRECTORIES(${GTK3_INCLUDE_DIRS})
 		LIST(APPEND IUP_LINK_LIBRARIES 
+			${GTK3_LIBRARIES}
+		)
+		LIST(APPEND IUPWEB_LINK_LIBRARIES 
 			${GTK3_LIBRARIES}
 		)
 		
@@ -979,6 +1080,14 @@ ELSEIF(IUP_USE_MOTIF)
 		${IUPIMGLIB_MOTIF_SOURCE_FILES}
 	)
 
+	SET(IUPWEB_MOTIF_SOURCE_FILES
+	)
+	LIST(APPEND IUPWEB_SOURCE_FILES
+		${IUPWEB_MOTIF_SOURCE_FILES}
+	)
+
+	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+
 ELSE()
 	MESSAGE(FATAL_ERROR "Unhandled platform backend")
 
@@ -992,6 +1101,12 @@ INCLUDE_DIRECTORIES(
 HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUP_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUP_FOREIGN_SOURCE_FILES}" "${IUP_LINK_LIBRARIES}" "${IUP_C_FLAGS}" "br.pucrio.tecgraf.iup")
 
 HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMGLIB_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.pucrio.tecgraf.iup")
+
+if(IUP_SHOULD_BUILD_IUPWEB)
+	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.pucrio.tecgraf.iupweb")
+else()
+	MESSAGE("Not building iupweb")
+endif()
 
 
 # Decided to put everything in this CMakeLists.txt to make keeping in sync easier since this isn't official.
@@ -1039,6 +1154,29 @@ function(BUILD_IUPIMGLIB_TEST exe_name source_list)
 
 endfunction()
 
+function(BUILD_IUPWEB_TEST exe_name source_list)
+	set(_should_exclude_from_all "")
+	if(NOT IUP_BUILD_TESTS)
+		set(_should_exclude_from_all 1)
+	endif()
+	
+	if(IUP_SHOULD_BUILD_IUPWEB)
+		HELPER_CREATE_EXECUTABLE(${exe_name} 
+			"${source_list}"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupweb;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			"${_should_exclude_from_all}"
+		)
+	endif()
+
+	# This adds the current test to the aggregate target for tests
+	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+
+endfunction()
+
 
 BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
 BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
@@ -1052,6 +1190,8 @@ BUILD_IUPIMGLIB_TEST(flatbutton "${CMAKE_SOURCE_DIR}/html/examples/tests/flatbut
 BUILD_IUPIMGLIB_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
 # depends on cdlib
 #BUILD_IUPIMGLIB_TEST(matrix_cbs "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix_cbs.c")
+
+BUILD_IUPWEB_TEST(webbrowser "${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 

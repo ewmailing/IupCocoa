@@ -8,6 +8,7 @@
 #define __IUP_CLASS_H
 
 #include "iup_table.h"
+#include "iup_export.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -193,7 +194,7 @@ struct Iclass_
  * If parent is specified then a new instance of the parent class is created
  * and set as the actual parent class.
  * \ingroup iclass */
-Iclass* iupClassNew(Iclass* ic_parent);
+IUP_EXPORTI Iclass* iupClassNew(Iclass* ic_parent);
 
 /** Release the memory allocated by the class.
  *  Calls the \ref Iclass::Release method. \n
@@ -288,7 +289,7 @@ typedef enum _IattribFlags{
  * If an attribute is not inheritable or not a string then it MUST be registered.
  * Internal attributes (starting with "_IUP") can never be registered.
  * \ingroup iclass */
-void iupClassRegisterAttribute(Iclass* ic, const char* name, 
+IUP_EXPORTI void iupClassRegisterAttribute(Iclass* ic, const char* name, 
                                            IattribGetFunc get, 
                                            IattribSetFunc set, 
                                            const char* default_value, 
@@ -297,7 +298,7 @@ void iupClassRegisterAttribute(Iclass* ic, const char* name,
 
 /** Same as \ref iupClassRegisterAttribute for attributes with Ids.
  * \ingroup iclass */
-void iupClassRegisterAttributeId(Iclass* ic, const char* name, 
+IUP_EXPORTI void iupClassRegisterAttributeId(Iclass* ic, const char* name, 
                                            IattribGetIdFunc get, 
                                            IattribSetIdFunc set, 
                                            int flags);
@@ -349,7 +350,7 @@ void iupClassRegisterReplaceAttribFlags(Iclass* ic, const char* name, int _flags
  * but a different return value can be specified using one of the above parameters, 
  * after all parameters using "=" to separate it from them.
  * \ingroup iclass */
-void iupClassRegisterCallback(Iclass* ic, const char* name, const char* format);
+IUP_EXPORTI void iupClassRegisterCallback(Iclass* ic, const char* name, const char* format);
 
 /** Returns the format of the parameters of a registered callback. 
  * If NULL then the default callback definition is assumed.

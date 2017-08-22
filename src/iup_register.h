@@ -26,7 +26,7 @@ Iclass* iupRegisterFindClass(const char* name);
 
 /** Register a class.
  * \ingroup register */
-void iupRegisterClass(Iclass* ic);
+IUP_EXPORTI void iupRegisterClass(Iclass* ic);
                                      
                                      
 /* Register the internal classes. Called only from IupOpen. */

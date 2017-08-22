@@ -11,16 +11,18 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 #define iupCOLORDoubleTO8(_x) ((unsigned char)(_x*255))  /* 1.0*255 = 255 */
 #define iupCOLOR8ToDouble(_x) ((double)_x/255.0)
 
 
 
 /* common */
-gboolean iupgtkEnterLeaveEvent(GtkWidget *widget, GdkEventCrossing *evt, Ihandle* ih);
+IUP_EXPORTI gboolean iupgtkEnterLeaveEvent(GtkWidget *widget, GdkEventCrossing *evt, Ihandle* ih);
 gboolean iupgtkMotionNotifyEvent(GtkWidget *widget, GdkEventMotion *evt, Ihandle *ih);
 gboolean iupgtkButtonEvent(GtkWidget *widget, GdkEventButton *evt, Ihandle *ih);
-gboolean iupgtkShowHelp(GtkWidget *widget, GtkWidgetHelpType *arg1, Ihandle* ih);
+IUP_EXPORTI gboolean iupgtkShowHelp(GtkWidget *widget, GtkWidgetHelpType *arg1, Ihandle* ih);
 
 int iupgtkSetMnemonicTitle(Ihandle* ih, GtkLabel* label, const char* value);
 void iupgtkUpdateMnemonic(Ihandle* ih);
@@ -29,7 +31,7 @@ void iupgdkColorSet(GdkColor* color, unsigned char r, unsigned char g, unsigned 
 void iupgtkSetBgColor(InativeHandle* handle, unsigned char r, unsigned char g, unsigned char b);
 void iupgtkSetFgColor(InativeHandle* handle, unsigned char r, unsigned char g, unsigned char b);
 
-void iupgtkAddToParent(Ihandle* ih);
+IUP_EXPORTI void iupgtkAddToParent(Ihandle* ih);
 const char* iupgtkGetWidgetClassName(GtkWidget* widget);
 void iupgtkSetPosSize(GtkContainer* parent, GtkWidget* widget, int x, int y, int width, int height);
 GdkWindow* iupgtkGetWindow(GtkWidget *widget);
@@ -43,7 +45,7 @@ void iupgtkNativeContainerMove(GtkWidget* container, GtkWidget* widget, int x, i
 
 /* str */
 void  iupgtkStrRelease(void);
-char* iupgtkStrConvertToSystem(const char* str);
+IUP_EXPORTI char* iupgtkStrConvertToSystem(const char* str);
 char* iupgtkStrConvertToSystemLen(const char* str, int *len);
 char* iupgtkStrConvertFromSystem(const char* str);
 char* iupgtkStrConvertFromFilename(const char* str);
@@ -53,7 +55,7 @@ int   iupgtkStrGetUTF8Mode(void);
 
 
 /* focus */
-gboolean iupgtkFocusInOutEvent(GtkWidget *widget, GdkEventFocus *evt, Ihandle* ih);
+IUP_EXPORTI gboolean iupgtkFocusInOutEvent(GtkWidget *widget, GdkEventFocus *evt, Ihandle* ih);
 void iupgtkSetCanFocus(GtkWidget *widget, int can);
 
 
