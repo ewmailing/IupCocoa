@@ -125,7 +125,7 @@ void iupAttribSetDoubleId2(Ihandle *ih, const char* name, int lin, int col, doub
 /** Returns the attribute from the hash table only.  \n
  * NO inheritance, NO control implementation, NO defalt value here. \n
  * \ingroup attrib */
-char* iupAttribGet(Ihandle* ih, const char* name);
+IUP_EXPORTI char* iupAttribGet(Ihandle* ih, const char* name);
 
 /** Returns the attribute from the hash table as a string, 
  * but if not defined then checks in its parent tree if allowed by the control implementation, 
