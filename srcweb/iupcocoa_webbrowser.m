@@ -34,9 +34,9 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 
 typedef NS_ENUM(NSInteger, IupCocoaWebViewLoadStatus)
 {
+	IupCocoaWebViewLoadStatusFinished,
 	IupCocoaWebViewLoadStatusFailed,
-	IupCocoaWebViewLoadStatusLoading,
-	IupCocoaWebViewLoadStatusFinished
+	IupCocoaWebViewLoadStatusLoading
 };
 
 @interface IupCocoaWebViewDelegate : NSObject <WebPolicyDelegate, WebFrameLoadDelegate, WebUIDelegate>
