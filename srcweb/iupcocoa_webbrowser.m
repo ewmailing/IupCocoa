@@ -32,10 +32,17 @@
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY";
 
+typedef NS_ENUM(NSInteger, IupCocoaWebViewLoadStatus)
+{
+	IupCocoaWebViewLoadStatusFailed,
+	IupCocoaWebViewLoadStatusLoading,
+	IupCocoaWebViewLoadStatusFinished
+};
 
 @interface IupCocoaWebViewDelegate : NSObject <WebPolicyDelegate, WebFrameLoadDelegate, WebUIDelegate>
 
 @property(nonatomic, assign) Ihandle* ihandle;
+@property(nonatomic, assign) IupCocoaWebViewLoadStatus currentLoadStatus;
 @end
 
 @implementation IupCocoaWebViewDelegate
@@ -75,6 +82,8 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 {
 	Ihandle* ih = [self ihandle];
 
+	[self setCurrentLoadStatus:IupCocoaWebViewLoadStatusFailed];
+	
 	IFns cb = (IFns)IupGetCallback(ih, "ERROR_CB");
 	if (cb)
 	{
@@ -101,7 +110,8 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 {
 	Ihandle* ih = [self ihandle];
 
-	
+	[self setCurrentLoadStatus:IupCocoaWebViewLoadStatusFinished];
+
 	IFns cb = (IFns)IupGetCallback(ih, "COMPLETED_CB");
 	if (cb)
 	{
@@ -137,6 +147,19 @@ static const void* IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY = "IUP_COCOA_WEBVIEW_DELEG
 */
 	
 }
+
+// WebFrameLoadDelegate
+- (void) webView:(WebView*)the_sender didStartProvisionalLoadForFrame:(WebFrame*)web_frame
+{
+	[self setCurrentLoadStatus:IupCocoaWebViewLoadStatusLoading];
+}
+
+// WebFrameLoadDelegate
+- (void) webView:(WebView*)the_sender didFailProvisionalLoadWithError:(NSError*)the_error forFrame:(WebFrame*)web_frame;
+{
+	[self setCurrentLoadStatus:IupCocoaWebViewLoadStatusFailed];
+}
+
 
 @end
 
@@ -230,8 +253,8 @@ static int cocoaWebBrowserSetPrintAttrib(Ihandle* ih, const char* value)
 	
 	return 0;
 }
-#if 0
 
+#if 0
 static int cocoaWebBrowserSetZoomAttrib(Ihandle* ih, const char* value)
 {
   int zoom;
@@ -245,18 +268,47 @@ static char* cocoaWebBrowserGetZoomAttrib(Ihandle* ih)
   int zoom = (int)(webkit_web_view_get_zoom_level((WebKitWebView*)ih->handle) * 100);
   return iupStrReturnInt(zoom);
 }
+#endif
 
+/*
+ Besides implementing the webView:didStartProvisionalLoadForFrame: method to display the page title, you can also use it to display the status, for example, “Loading.” Remember that at this point the content has only been requested, not loaded; therefore, the data source is provisional.
+ 
+ Similarly, implement the webView:didFinishLoadForFrame:, webView:didFailProvisionalLoadWithError:forFrame: and webView:didFailLoadWithError:forFrame: delegate methods to receive notification when a page has been loaded successfully or unsuccessfully. You might want to display a message if an error occurred.
+*/
 static char* cocoaWebBrowserGetStatusAttrib(Ihandle* ih)
 {
-  WebKitLoadStatus status = webkit_web_view_get_load_status((WebKitWebView*)ih->handle);
-  if (status == WEBKIT_LOAD_FAILED)
-    return "FAILED";
-  else if (status == WEBKIT_LOAD_FINISHED)
-    return "COMPLETED";
-  else
-    return "LOADING";
+	WebView* web_view = ih->handle;
+
+	// The state must be tracked through delegate callbacks. We save the current state directly in the delegate for convenience.
+	IupCocoaWebViewDelegate* webview_delegate = (IupCocoaWebViewDelegate*)objc_getAssociatedObject(web_view, IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY);
+	
+	IupCocoaWebViewLoadStatus current_status = [webview_delegate currentLoadStatus];
+	
+	switch(current_status)
+	{
+		case IupCocoaWebViewLoadStatusFailed:
+		{
+			return "FAILED";
+			break;
+		}
+		case IupCocoaWebViewLoadStatusLoading:
+		{
+			return "LOADING";
+			break;
+		}
+		case IupCocoaWebViewLoadStatusFinished:
+		{
+			return "COMPLETED";
+			break;
+		}
+		default:
+		{
+			NSLog(@"Unexpected case in cocoaWebBrowserGetStatusAttrib");
+			return "FAILED";
+		}
+	}
+	return "FAILED";
 }
-#endif
 
 static int cocoaWebBrowserSetReloadAttrib(Ihandle* ih, const char* value)
 {
@@ -358,9 +410,9 @@ static void cocoaWebBrowserUnMapMethod(Ihandle* ih)
 	WebView* web_view = ih->handle;
 
 /*
-	id butten_receiver = objc_getAssociatedObject(the_button, IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY);
-	objc_setAssociatedObject(the_button, IUP_COCOA_BUTTON_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
-	[butten_receiver release];
+	id web_view = objc_getAssociatedObject(the_button, IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY);
+	objc_setAssociatedObject(the_button, IUP_COCOA_WEBVIEW_DELEGATE_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
+	[web_view release];
 */
 	iupCocoaRemoveFromParent(ih);
 
@@ -443,9 +495,7 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "STOP", NULL, cocoaWebBrowserSetStopAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "RELOAD", NULL, cocoaWebBrowserSetReloadAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "HTML", NULL, cocoaWebBrowserSetHTMLAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-#if 0
   iupClassRegisterAttribute(ic, "STATUS", cocoaWebBrowserGetStatusAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
-#endif
   iupClassRegisterAttribute(ic, "COPY", NULL, cocoaWebBrowserSetCopyAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTALL", NULL, cocoaWebBrowserSetSelectAllAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
 #if 0
