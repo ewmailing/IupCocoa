@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
 
 /** \defgroup drvfont Driver Font Interface 
  * \par
@@ -26,7 +27,7 @@ void iupdrvFontFinish(void);
 /** Retrieve the character size for the selected font.
  * Should be used only to calculate the SIZE attribute.
  * \ingroup drvfont */
-void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight);
+IUP_EXPORTI void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight);
 
 /** Retrieve the string width for the selected font.
  * \ingroup drvfont */

@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 
 /** \defgroup str String Utilities
  * \par
@@ -53,7 +55,7 @@ int iupStrEqualNoCasePartial(const char* str1, const char* str2);
 /** Returns 1 if the string is "YES" or "ON". \n
  * Returns 0 otherwise (including NULL or empty).
  * \ingroup str */
-int iupStrBoolean(const char* str);
+IUP_EXPORTI int iupStrBoolean(const char* str);
 
 /** Returns 1 if the string is "NO" or "OFF". \n
  * Returns 0 otherwise (including NULL or empty). \n
@@ -163,11 +165,11 @@ char* iupStrReturnStrf(const char* format, ...);
 
 /** Returns a string value in a string using \ref iupStrGetMemory.
  * \ingroup str */
-char* iupStrReturnStr(const char* str);
+IUP_EXPORTI char* iupStrReturnStr(const char* str);
 
 /** Returns a boolean value (as YES or NO) in a string.
  * \ingroup str */
-char* iupStrReturnBoolean(int i);
+IUP_EXPORTI char* iupStrReturnBoolean(int i);
 
 /** Returns a checked value (as ON, OFF or NOTDEF (-1)) in a string.
  * \ingroup str */
@@ -175,7 +177,7 @@ char* iupStrReturnChecked(int i);
 
 /** Returns an int value in a string using \ref iupStrGetMemory.
  * \ingroup str */
-char* iupStrReturnInt(int i);
+IUP_EXPORTI char* iupStrReturnInt(int i);
 
 /** maximum float precision
 * \ingroup str */
@@ -230,7 +232,7 @@ int iupStrToRGBA(const char *str, unsigned char *r, unsigned char *g, unsigned c
 /** Converts the string to an int. The string must contains only the integer value.
  * Returns a a non zero value if sucessfull.
  * \ingroup str */
-int iupStrToInt(const char *str, int *i);
+IUP_EXPORTI int iupStrToInt(const char *str, int *i);
 
 /** Converts the string to two int. The string must contains two integer values in sequence, 
  * separated by the given character (usually 'x' or ':').

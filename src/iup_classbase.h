@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
 
 /** \defgroup iclassbase Base Class
  * \par
@@ -25,7 +26,7 @@ extern "C" {
  * FONT (and derived)                    \n\n
  * All controls that are positioned inside a dialog must register all common base attributes.
  * \ingroup iclassbase */
-void iupBaseRegisterCommonAttrib(Iclass* ic);
+IUP_EXPORTI void iupBaseRegisterCommonAttrib(Iclass* ic);
 
 /** Register all visual base attributes: \n
  * VISIBLE, ACTIVE                       \n
@@ -33,7 +34,7 @@ void iupBaseRegisterCommonAttrib(Iclass* ic);
  * TIP (and derived)                     \n\n
  * All controls that are positioned inside a dialog must register all visual base attributes.
  * \ingroup iclassbase */
-void iupBaseRegisterVisualAttrib(Iclass* ic);
+IUP_EXPORTI void iupBaseRegisterVisualAttrib(Iclass* ic);
 
 /** Register all common callbacks: \n
 * MAP_CB, UNMAP_CB, GETFOCUS_CB, KILLFOCUS_CB, ENTERWINDOW_CB, LEAVEWINDOW_CB, K_ANY, HELP_CB.
@@ -89,11 +90,11 @@ void iupBaseUpdateAttribFromFont(Ihandle* ih);
 
 /** Driver dependent \ref Iclass::LayoutUpdate method.
  * \ingroup iclassbasemethod */
-void iupdrvBaseLayoutUpdateMethod(Ihandle *ih);
+IUP_EXPORTI void iupdrvBaseLayoutUpdateMethod(Ihandle *ih);
 
 /** Driver dependent \ref Iclass::UnMap method.
  * \ingroup iclassbasemethod */
-void iupdrvBaseUnMapMethod(Ihandle* ih);
+IUP_EXPORTI void iupdrvBaseUnMapMethod(Ihandle* ih);
 
 /** Native type void \ref Iclass::Map method.
  * \ingroup iclassbasemethod */
@@ -132,7 +133,7 @@ int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetTipAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetTipVisibleAttrib(Ihandle* ih, const char* value);
 char* iupdrvBaseGetTipVisibleAttrib(Ihandle* ih);
-int iupdrvBaseSetBgColorAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI int iupdrvBaseSetBgColorAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetFgColorAttrib(Ihandle* ih, const char* value);
 char* iupBaseNativeParentGetBgColorAttrib(Ihandle* ih);
 
