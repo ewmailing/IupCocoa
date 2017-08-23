@@ -50,8 +50,8 @@ int IupMainLoop(void)
   // TODO how do we manage the callback from setIdleFunction ?
   if(!isRunning)
   {
+    isRunning = true;
     iupLoopCallEntryCb();
-	isRunning = true;
     be_app->Run();
     iupLoopCallExitCb();
   } else {

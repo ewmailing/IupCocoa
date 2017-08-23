@@ -78,8 +78,8 @@ int IupMainLoop(void)
   static int has_done_entry = 0;
   if (0 == has_done_entry)
   {
-    iupLoopCallEntryCb();
     has_done_entry = 1;
+    iupLoopCallEntryCb();
   }
 
   mot_mainloop++;
