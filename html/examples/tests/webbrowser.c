@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <iup.h>
-#include <iupweb.h>
+#include "iup.h"
+#include "iupweb.h"
 
 
 #ifndef WIN32
@@ -15,23 +15,31 @@ static int history_cb(Ihandle* ih)
 {
   int i;
   char str[50];
-  int back = IupGetInt(ih, "BACKCOUNT");
-  int fwrd = IupGetInt(ih, "FORWARDCOUNT");
+  Ihandle* web_ih = (Ihandle*)IupGetAttribute(ih, "MY_WEB");
+
+/*
+	IupSetAttribute(web_ih, "SELECTALL", NULL);
+	IupSetAttribute(web_ih, "COPY", NULL);
+	IupSetAttribute(web_ih, "PRINT", NULL);
+*/	
+	
+  int back = IupGetInt(web_ih, "BACKCOUNT");
+  int fwrd = IupGetInt(web_ih, "FORWARDCOUNT");
 
   printf("HISTORY ITEMS\n");
   for(i = -(back); i < 0; i++)
   {
     sprintf(str, "ITEMHISTORY%d", i);
-    printf("Backward %02d: %s\n", i, IupGetAttribute(ih, str));
+    printf("Backward %02d: %s\n", i, IupGetAttribute(web_ih, str));
   }
 
   sprintf(str, "ITEMHISTORY%d", 0);
-  printf("Current  %02d: %s\n", 0, IupGetAttribute(ih, str));
+  printf("Current  %02d: %s\n", 0, IupGetAttribute(web_ih, str));
 
   for(i = 1; i <= fwrd; i++)
   {
     sprintf(str, "ITEMHISTORY%d", i);
-    printf("Forward  %02d: %s\n", i, IupGetAttribute(ih, str));
+    printf("Forward  %02d: %s\n", i, IupGetAttribute(web_ih, str));
   }
 
   return IUP_DEFAULT;
@@ -162,6 +170,7 @@ void WebBrowserTest(void)
   IupSetCallback(btStop, "ACTION", (Icallback)stop_cb);
 #ifndef WIN32
   IupSetCallback(history, "ACTION", (Icallback)history_cb);
+  IupSetAttribute(history, "MY_WEB", (char*)web);
 #endif
 
   IupSetCallback(web, "NEWWINDOW_CB", (Icallback)newwindow_cb);
