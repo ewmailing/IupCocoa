@@ -131,6 +131,7 @@
 		0070FB911E02921A009A8631 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
 		0070FB931E029221009A8631 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
 		0070FB961E0BEDCB009A8631 /* IupLaunchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */; };
+		0088554C1F4E895E0014CB4D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0088554B1F4E895E0014CB4D /* WebKit.framework */; };
 		00BE50241F4E129A002B7C86 /* iup_webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE50171F4E1213002B7C86 /* iup_webbrowser.c */; };
 		00BE502C1F4E13BA002B7C86 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
 		00BE502D1F4E13BA002B7C86 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
@@ -425,6 +426,7 @@
 		0070FB941E0BEDCB009A8631 /* IupLaunchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupLaunchViewController.h; sourceTree = "<group>"; };
 		0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupLaunchViewController.m; sourceTree = "<group>"; };
 		0070FB971E0BF4B6009A8631 /* IupAppDelegateProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupAppDelegateProtocol.h; sourceTree = "<group>"; };
+		0088554B1F4E895E0014CB4D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		00BE50141F4E11CE002B7C86 /* libiupweb.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libiupweb.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		00BE50171F4E1213002B7C86 /* iup_webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_webbrowser.c; sourceTree = "<group>"; };
 		00BE50181F4E1213002B7C86 /* iup_webbrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_webbrowser.h; sourceTree = "<group>"; };
@@ -485,6 +487,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0088554C1F4E895E0014CB4D /* WebKit.framework in Frameworks */,
 				00BE503C1F4E1462002B7C86 /* libiupweb.a in Frameworks */,
 				00BE502C1F4E13BA002B7C86 /* Foundation.framework in Frameworks */,
 				00BE502D1F4E13BA002B7C86 /* UIKit.framework in Frameworks */,
@@ -828,6 +831,7 @@
 		0070FB8F1E029219009A8631 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0088554B1F4E895E0014CB4D /* WebKit.framework */,
 				0070FB921E029221009A8631 /* Foundation.framework */,
 				0070FB901E02921A009A8631 /* UIKit.framework */,
 			);
