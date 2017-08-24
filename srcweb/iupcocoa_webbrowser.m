@@ -5,27 +5,17 @@
  */
 
 #import <Cocoa/Cocoa.h>
-#import <webkit/webkit.h>
+#import <WebKit/WebKit.h>
 #import <objc/runtime.h>
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <memory.h>
-#include <stdarg.h>
 
 #include "iup.h"
 #include "iupcbs.h"
 
 #include "iup_object.h"
-#include "iup_layout.h"
-#include "iup_attrib.h"
 #include "iup_str.h"
 #include "iup_webbrowser.h"
 #include "iup_drv.h"
 #include "iup_drvfont.h"
-#include "iup_key.h"
-#include "iup_register.h"
 
 #include "iupcocoa_drv.h"
 
