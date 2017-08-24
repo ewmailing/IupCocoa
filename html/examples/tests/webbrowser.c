@@ -157,7 +157,9 @@ void WebBrowserTest(void)
 
    //IupSetAttribute(web, "HTML", "<html><body><b>Hello</b>World!</body></html>");
 //   IupSetAttribute(txt, "VALUE", "My HTML");
-  IupSetAttribute(txt, "VALUE", "http://www.tecgraf.puc-rio.br/iup");
+  // Apple now forbids non-encrypted traffic. Need to use server with https.
+  IupSetAttribute(txt, "VALUE", "https://www.google.com");
+//  IupSetAttribute(txt, "VALUE", "http://www.tecgraf.puc-rio.br/iup");
 //  IupSetAttribute(txt, "VALUE", "file:///D:/tecgraf/iup/html/index.html");
   IupSetAttribute(web, "VALUE", IupGetAttribute(txt, "VALUE"));
   IupSetAttributeHandle(dlg, "DEFAULTENTER", btLoad);
@@ -183,17 +185,32 @@ void WebBrowserTest(void)
 }
 
 #ifndef BIG_TEST
+static void IupExitPoint()
+{
+	IupClose();
+}
+
+void IupEntryPoint()
+{
+	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
+	WebBrowserTest();
+}
+
 int main(int argc, char* argv[])
 {
-  IupOpen(&argc, &argv);
-//  IupControlsOpen();      
-
-  WebBrowserTest();
-
-  IupMainLoop();
-
-  IupClose();
-
-  return EXIT_SUCCESS;
+	IupOpen(&argc, &argv);
+	
+#if 1 // new ENTRY_POINT callback
+	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+	IupMainLoop();
+	
+#else // legacy
+	IupEntryPoint();
+	IupMainLoop();
+	// legacy: New way should assume IupMainLoop may return immediately or this code is never reached.
+	IupClose();
+#endif
+	
+	return EXIT_SUCCESS;
 }
 #endif
