@@ -612,6 +612,7 @@ ELSEIF(IUP_USE_ANDROID)
 
 	SET(IUPWEB_ANDROID_SOURCE_FILES
 		${CMAKE_SOURCE_DIR}/srcweb/android/iupandroid_webbrowser.c
+		${CMAKE_SOURCE_DIR}/srcweb/android/iupandroid_jni_IupWebView.c
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_ANDROID_SOURCE_FILES}
