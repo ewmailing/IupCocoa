@@ -230,6 +230,16 @@ SET(IUPWEB_C_FLAGS "")
 SET(IUPEXE_C_FLAGS "")
 SET(IUPEXE_LINK_FLAGS "")
 
+MESSAGE("CMAKE_C_COMPILER_ID ${CMAKE_C_COMPILER_ID}")
+IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+	SET(CMAKE_C_FLAGS "-Wno-invalid-source-encoding ${CMAKE_C_FLAGS}")
+	SET(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding ${CMAKE_CXX_FLAGS}")
+ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+	SET(CMAKE_C_FLAGS "-Wno-invalid-source-encoding ${CMAKE_C_FLAGS}")
+	SET(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding ${CMAKE_CXX_FLAGS}")
+ENDIF()
+
+
 # TODO: We must add visibility annotations to IUP to support Emscripten.
 # We can then reuse them for other platforms too.
 IF(IUP_USE_EMSCRIPTEN)
@@ -436,6 +446,7 @@ SET(IUPOLE_COMMON_SOURCE_FILES
 )
 SET(IUPWEB_COMMON_SOURCE_FILES 
 	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.c
+	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.h
 )
 
 SET(IUP_LINK_LIBRARIES "")
@@ -613,13 +624,20 @@ ELSEIF(IUP_USE_ANDROID)
 
 
 	SET(IUPWEB_ANDROID_SOURCE_FILES
-		# TODO:
+		${CMAKE_SOURCE_DIR}/srcweb/android/iupandroid_webbrowser.c
+		${CMAKE_SOURCE_DIR}/srcweb/android/iupandroid_jni_IupWebView.c
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_ANDROID_SOURCE_FILES}
 	)
 
-	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	# Annoying hack to get around Android Studio always rebuilding everything for every target.
+	# arguments "-DIUP_ANDROID_BUILD_IUPWEB=1"
+	IF(IUP_ANDROID_BUILD_IUPWEB)
+		SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
+	ELSE()
+		SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	ENDIF()
 
 ELSEIF(IUP_USE_COCOATOUCH)
 
@@ -696,14 +714,18 @@ ELSEIF(IUP_USE_COCOATOUCH)
 	)
 
 
+	FIND_LIBRARY(APPLE_WEBKIT_LIBRARY WebKit)
 	SET(IUPWEB_COCOATOUCH_SOURCE_FILES
-		# TODO:
+		${CMAKE_SOURCE_DIR}/srcweb/iupcocoatouch_webbrowser.m
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_COCOATOUCH_SOURCE_FILES}
 	)
+	LIST(APPEND IUPWEB_LINK_LIBRARIES 
+		${APPLE_WEBKIT_LIBRARY}
+	)
 
-	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
 
 ELSEIF(IUP_USE_COCOA)
 
@@ -780,14 +802,17 @@ ELSEIF(IUP_USE_COCOA)
 		${IUPIMGLIB_COCOA_SOURCE_FILES}
 	)
 
+	FIND_LIBRARY(APPLE_WEBKIT_LIBRARY WebKit)
 	SET(IUPWEB_COCOA_SOURCE_FILES
-		# TODO:
+		${CMAKE_SOURCE_DIR}/srcweb/iupcocoatouch_webbrowser.m
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_COCOA_SOURCE_FILES}
 	)
-
-	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	LIST(APPEND IUPWEB_LINK_LIBRARIES 
+		${APPLE_WEBKIT_LIBRARY}
+	)
+	SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
 
 ELSEIF(IUP_USE_WIN32)
 
@@ -1152,6 +1177,17 @@ endif()
 
 if(IUP_SHOULD_BUILD_IUPWEB)
 	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUPWEB_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.pucrio.tecgraf.iupweb")
+
+	# Having problem with include paths on Android, partly because everything is spread out
+	IF(ANDROID)
+		# TARGET_INCLUDE_DIRECTORIES is guaranteed to be available on Android
+		TARGET_INCLUDE_DIRECTORIES(iupweb PRIVATE 
+			"${CMAKE_SOURCE_DIR}/src"
+			"${CMAKE_SOURCE_DIR}/src/android/source"
+			"${CMAKE_SOURCE_DIR}/srcweb"
+			"${CMAKE_SOURCE_DIR}/srcweb/android"
+		)
+	ENDIF()
 else()
 	MESSAGE("Not building iupweb")
 endif()
@@ -1161,68 +1197,71 @@ endif()
 #ADD_SUBDIRECTORY(test)
 
 function(BUILD_IUP_TEST exe_name source_list)
-	set(_should_exclude_from_all "")
-	if(NOT IUP_BUILD_TESTS)
-		set(_should_exclude_from_all 1)
-	endif()
-	
-	HELPER_CREATE_EXECUTABLE(${exe_name} 
-		"${source_list}"
-		"${WANTS_BUILD_SHARED_LIBRARY}"
-		"iup"
-		"${IUP_LINK_LIBRARIES}"
-		"${IUPEXE_C_FLAGS}"
-		"${IUPEXE_LINK_FLAGS}"
-		"${_should_exclude_from_all}"
-	)
-
-	# This adds the current test to the aggregate target for tests
-	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
-
-endfunction()
-
-function(BUILD_IUPIMGLIB_TEST exe_name source_list)
-	set(_should_exclude_from_all "")
-	if(NOT IUP_BUILD_TESTS)
-		set(_should_exclude_from_all 1)
-	endif()
-	
-	HELPER_CREATE_EXECUTABLE(${exe_name} 
-		"${source_list}"
-		"${WANTS_BUILD_SHARED_LIBRARY}"
-		"iupimglib;iup"
-		"${IUP_LINK_LIBRARIES}"
-		"${IUPEXE_C_FLAGS}"
-		"${IUPEXE_LINK_FLAGS}"
-		"${_should_exclude_from_all}"
-	)
-
-	# This adds the current test to the aggregate target for tests
-	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
-
-endfunction()
-
-function(BUILD_IUPWEB_TEST exe_name source_list)
-	set(_should_exclude_from_all "")
-	if(NOT IUP_BUILD_TESTS)
-		set(_should_exclude_from_all 1)
-	endif()
-	
-	if(IUP_SHOULD_BUILD_IUPWEB)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
 		HELPER_CREATE_EXECUTABLE(${exe_name} 
 			"${source_list}"
 			"${WANTS_BUILD_SHARED_LIBRARY}"
-			"iupweb;iup"
+			"iup"
 			"${IUP_LINK_LIBRARIES}"
 			"${IUPEXE_C_FLAGS}"
 			"${IUPEXE_LINK_FLAGS}"
 			"${_should_exclude_from_all}"
 		)
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
 	endif()
+endfunction()
 
-	# This adds the current test to the aggregate target for tests
-	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+function(BUILD_IUPIMGLIB_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		HELPER_CREATE_EXECUTABLE(${exe_name} 
+			"${source_list}"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupimglib;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			"${_should_exclude_from_all}"
+		)
 
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
+endfunction()
+
+function(BUILD_IUPWEB_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		if(IUP_SHOULD_BUILD_IUPWEB)
+			HELPER_CREATE_EXECUTABLE(${exe_name} 
+				"${source_list}"
+				"${WANTS_BUILD_SHARED_LIBRARY}"
+				"iupweb;iup"
+				"${IUP_LINK_LIBRARIES}"
+				"${IUPEXE_C_FLAGS}"
+				"${IUPEXE_LINK_FLAGS}"
+				"${_should_exclude_from_all}"
+			)
+		endif()
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
 endfunction()
 
 
@@ -1274,6 +1313,14 @@ elseif(IUP_USE_ANDROID)
 			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
 		)
 		target_link_libraries(MyIupProgram iupimglib iup)
+	ENDIF()
+
+	IF(IUPWEB_ANDROID_BUILD_TEST_LIBRARY)
+
+		add_library(MyIupProgramWebBrowser SHARED EXCLUDE_FROM_ALL
+			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+		)
+		target_link_libraries(MyIupProgramWebBrowser iupweb iup)
 
 	ENDIF()
 
