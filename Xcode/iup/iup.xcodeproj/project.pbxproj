@@ -1681,6 +1681,7 @@
 				SDKROOT = macosx;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WARNING_CFLAGS = "-Wno-invalid-source-encoding";
 			};
 			name = Debug;
 		};
@@ -1720,6 +1721,7 @@
 				SDKROOT = macosx;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WARNING_CFLAGS = "-Wno-invalid-source-encoding";
 			};
 			name = Release;
 		};
@@ -1911,6 +1913,7 @@
 				00BE4F8B1F4C9680002B7C86 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		00E3A5E71B60578300BEC175 /* Build configuration list for PBXProject "iup" */ = {
 			isa = XCConfigurationList;
