@@ -379,22 +379,6 @@ static char* winWebBrowserGetValueAttrib(Ihandle* ih)
   return NULL;
 }
 
-static int winWebBrowserSetBackAttrib(Ihandle* ih, const char* value)
-{
-  IWebBrowser2 *pweb = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
-  pweb->GoBack();
-  (void)value;
-  return 0; /* do not store value in hash table */
-}
-
-static int winWebBrowserSetForwardAttrib(Ihandle* ih, const char* value)
-{
-  IWebBrowser2 *pweb = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
-  pweb->GoForward();
-  (void)value;
-  return 0; /* do not store value in hash table */
-}
-
 static int winWebBrowserCreateMethod(Ihandle* ih, void **params)
 {
   (void)params;
@@ -486,9 +470,6 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "ZOOM", winWebBrowserGetZoomAttrib, winWebBrowserSetZoomAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "PRINT", NULL, winWebBrowserSetPrintAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "GOBACK", NULL, winWebBrowserSetBackAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "GOFORWARD", NULL, winWebBrowserSetForwardAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
- 
   if (!iweb_module)
   {
     /* CComModule implements a COM server module,
