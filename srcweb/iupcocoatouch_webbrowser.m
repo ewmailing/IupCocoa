@@ -296,24 +296,39 @@ static int cocoaTouchWebBrowserSetStopAttrib(Ihandle* ih, const char* value)
 	return 0; /* do not store value in hash table */
 }
 
-/*
+// iOS doesn't have the WebBackForwardList as on Mac.
+// This is the brute force way of doing it, but I'm not convinced this is reliable.
+// The API doesn't specifiy what happens if you try to keep going back while loading.
+// From a user-perspective, I've seen sites with aggressive redirects fight the back button and events get eaten.
+// This is implemented for completeness/convenience, but officially I don't want to say this is supported.
+// Please use the new CANGOBACK/FORWARD, and GOBACK/FORWARD APIs instead.
 static int cocoaTouchWebBrowserSetBackForwardAttrib(Ihandle* ih, const char* value)
 {
 	int val;
 	if(iupStrToInt(value, &val))
 	{
-		// Negative values represent steps backward while positive values represent steps forward.
 		UIWebView* web_view = (UIWebView*)ih->handle;
-		WebBackForwardList* back_forward_list = [web_view backForwardList];
-		WebHistoryItem* history_item = [back_forward_list itemAtIndex:val];
-		if(nil != history_item)
+		
+		/* Negative values represent steps backward while positive values represent steps forward. */
+		if(val > 0)
 		{
-			[web_view goToBackForwardItem:history_item];
+			for(int i = 0; i < val; i++)
+			{
+				[web_view goForward];
+			}
+		}
+		else if(val < 0)
+		{
+			for(int i = 0; i < -(val); i++)
+			{
+				[web_view goBack];
+			}
 		}
 	}
+		
 	return 0; // do not store value in hash table
 }
-*/
+
 
 static int cocoaTouchWebBrowserSetValueAttrib(Ihandle* ih, const char* value)
 {
@@ -334,6 +349,42 @@ static char* cocoaTouchWebBrowserGetValueAttrib(Ihandle* ih)
 	const char* c_url = [[[[web_view request] URL] absoluteString] UTF8String];
 	return iupStrReturnStr(c_url);
 }
+
+
+static char* cocoaTouchWebBrowserCanGoBackAttrib(Ihandle* ih)
+{
+	UIWebView* web_view = (UIWebView*)ih->handle;
+	BOOL is_true = [web_view canGoBack];
+	return iupStrReturnBoolean((int)is_true);
+}
+
+static char* cocoaTouchWebBrowserCanGoForwardAttrib(Ihandle* ih)
+{
+	UIWebView* web_view = (UIWebView*)ih->handle;
+	BOOL is_true = [web_view canGoForward];
+	return iupStrReturnBoolean((int)is_true);
+}
+
+static int cocoaTouchWebBrowserSetBackAttrib(Ihandle* ih, const char* value)
+{
+	(void)value;
+	
+	UIWebView* web_view = (UIWebView*)ih->handle;
+	[web_view goBack];
+	
+	return 0; /* do not store value in hash table */
+}
+
+static int cocoaTouchWebBrowserSetForwardAttrib(Ihandle* ih, const char* value)
+{
+	(void)value;
+	
+	UIWebView* web_view = (UIWebView*)ih->handle;
+	[web_view goForward];
+	
+	return 0; /* do not store value in hash table */
+}
+
 
 
 /*********************************************************************************************/
@@ -469,9 +520,8 @@ Iclass* iupWebBrowserNewClass(void)
 
   /* IupWebBrowser only */
   iupClassRegisterAttribute(ic, "VALUE", cocoaTouchWebBrowserGetValueAttrib, cocoaTouchWebBrowserSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#if 0
+
   iupClassRegisterAttribute(ic, "BACKFORWARD", NULL, cocoaTouchWebBrowserSetBackForwardAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#endif
   iupClassRegisterAttribute(ic, "STOP", NULL, cocoaTouchWebBrowserSetStopAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "RELOAD", NULL, cocoaTouchWebBrowserSetReloadAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "HTML", NULL, cocoaTouchWebBrowserSetHTMLAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
@@ -488,6 +538,12 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "FORWARDCOUNT", cocoaTouchWebBrowserGetForwardCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "ITEMHISTORY",  cocoaTouchWebBrowserGetItemHistoryAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 #endif
+
+  iupClassRegisterAttribute(ic, "CANGOBACK", cocoaTouchWebBrowserCanGoBackAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CANGOFORWARD", cocoaTouchWebBrowserCanGoForwardAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "GOBACK", NULL, cocoaTouchWebBrowserSetBackAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "GOFORWARD", NULL, cocoaTouchWebBrowserSetForwardAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 
   return ic;
 }
