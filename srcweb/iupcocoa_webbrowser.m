@@ -355,6 +355,41 @@ static char* cocoaWebBrowserGetValueAttrib(Ihandle* ih)
 }
 
 
+static char* cocoaWebBrowserCanGoBackAttrib(Ihandle* ih)
+{
+	WebView* web_view = (WebView*)ih->handle;
+	BOOL is_true = [web_view canGoBack];
+	return iupStrReturnBoolean((int)is_true);
+}
+
+static char* cocoaWebBrowserCanGoForwardAttrib(Ihandle* ih)
+{
+	WebView* web_view = (WebView*)ih->handle;
+	BOOL is_true = [web_view canGoForward];
+	return iupStrReturnBoolean((int)is_true);
+}
+
+static int cocoaWebBrowserSetBackAttrib(Ihandle* ih, const char* value)
+{
+	(void)value;
+
+	WebView* web_view = (WebView*)ih->handle;
+	[web_view goBack];
+
+	return 0; /* do not store value in hash table */
+}
+
+static int cocoaWebBrowserSetForwardAttrib(Ihandle* ih, const char* value)
+{
+	(void)value;
+
+	WebView* web_view = (WebView*)ih->handle;
+	[web_view goForward];
+
+	return 0; /* do not store value in hash table */
+}
+
+
 /*********************************************************************************************/
 
 
@@ -496,6 +531,12 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "BACKCOUNT", cocoaWebBrowserGetBackCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORWARDCOUNT", cocoaWebBrowserGetForwardCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "ITEMHISTORY",  cocoaWebBrowserGetItemHistoryAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "CANGOBACK", cocoaWebBrowserCanGoBackAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CANGOFORWARD", cocoaWebBrowserCanGoForwardAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "GOBACK", NULL, cocoaWebBrowserSetBackAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "GOFORWARD", NULL, cocoaWebBrowserSetForwardAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 
   return ic;
 }
