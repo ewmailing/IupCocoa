@@ -154,6 +154,30 @@ static char* gtkWebBrowserGetValueAttrib(Ihandle* ih)
   return iupStrReturnStr(value);
 }
 
+static char* gtkWebBrowserCanGoBackAttrib(Ihandle* ih)
+{
+  return iupStrReturnBoolean((int)webkit_web_view_can_go_back((WebKitWebView*)ih->handle));
+}
+
+static char* gtkWebBrowserCanGoForwardAttrib(Ihandle* ih)
+{
+  return iupStrReturnBoolean((int)webkit_web_view_can_go_forward((WebKitWebView*)ih->handle));
+}
+
+static int gtkWebBrowserSetBackAttrib(Ihandle* ih, const char* value)
+{
+  (void)value;
+  webkit_web_view_go_back((WebKitWebView*)ih->handle);
+  return 0; /* do not store value in hash table */
+}
+
+static int gtkWebBrowserSetForwardAttrib(Ihandle* ih, const char* value)
+{
+  (void)value;
+  webkit_web_view_go_forward((WebKitWebView*)ih->handle);
+  return 0; /* do not store value in hash table */
+}
+
 /*********************************************************************************************/
 
 static void gtkWebBrowserDocumentLoadFinished(WebKitWebView *web_view, WebKitWebFrame *frame, Ihandle *ih)
@@ -367,5 +391,11 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "FORWARDCOUNT", gtkWebBrowserGetForwardCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "ITEMHISTORY",  gtkWebBrowserGetItemHistoryAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 
+  iupClassRegisterAttribute(ic, "CANGOBACK", gtkWebBrowserCanGoBackAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CANGOFORWARD", gtkWebBrowserCanGoForwardAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "GOBACK", NULL, gtkWebBrowserSetBackAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "GOFORWARD", NULL, gtkWebBrowserSetForwardAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+ 
   return ic;
 }
