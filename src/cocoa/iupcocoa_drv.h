@@ -13,10 +13,29 @@ extern "C" {
 
 #include "iup_export.h"
 
-
+#include <asl.h>
+#if __OBJC__
+	#import <Foundation/Foundation.h>
+#endif
+	
 // the point of this is we have a unique memory address for an identifier
 extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 
+
+	
+// TODO: Move to os_log, but requires Mac 10.12
+#define iupAppleLog(...) asl_log(NULL, NULL, ASL_LEVEL_NOTICE, __VA_ARGS__)
+#define iupAppleLogDebug(...) asl_log(NULL, NULL, ASL_LEVEL_DEBUG, __VA_ARGS__)
+#define iupAppleLogInfo(...) asl_log(NULL, NULL, ASL_LEVEL_INFO, __VA_ARGS__)
+#define iupAppleLogNotice(...) asl_log(NULL, NULL, ASL_LEVEL_NOTICE, __VA_ARGS__)
+#define iupAppleLogWarning(...) asl_log(NULL, NULL, ASL_LEVEL_WARNING, __VA_ARGS__)
+#define iupAppleLogError(...) asl_log(NULL, NULL, ASL_LEVEL_ERR, __VA_ARGS__)
+#define iupAppleLogCritical(...) asl_log(NULL, NULL, ASL_LEVEL_CRIT, __VA_ARGS__)
+
+#if __OBJC__
+#define iupAppleNSLog(...) asl_log(NULL, NULL, ASL_LEVEL_INFO, "%s", [[NSString stringWithFormat:__VA_ARGS__] UTF8String])
+#endif
+	
 	
 IUP_EXPORTI void iupCocoaAddToParent(Ihandle* ih);
 IUP_EXPORTI void iupCocoaRemoveFromParent(Ihandle* ih);
@@ -40,6 +59,7 @@ Ihandle* iupCocoaMenuGetApplicationMenu(void);
 void iupCocoaMenuCleanupApplicationMenu(void);
 
 
+	
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
