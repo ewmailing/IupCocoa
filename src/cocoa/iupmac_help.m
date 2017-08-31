@@ -12,6 +12,45 @@
 
 #include "iup_str.h"
 
+int IupExecute(const char *filename, const char* parameters)
+{
+  int ret;
+  if (parameters)
+  {
+    char* cmd = (char*)malloc(sizeof(char)*(strlen(filename) + strlen(parameters) + 3));
+    sprintf(cmd, "%s %s &", filename, parameters);
+    ret = system(cmd);
+    free(cmd);
+  }
+  else
+  {
+    char* cmd = (char*)malloc(sizeof(char)*(strlen(filename) + 3));
+    sprintf(cmd, "%s &", filename);
+    ret = system(cmd);
+    free(cmd);
+  }
+  if (ret == -1)
+    return -1;
+  return 1;
+}
+
+int IupExecuteWait(const char *filename, const char* parameters)
+{
+  int ret;
+  if (parameters)
+  {
+    char* cmd = (char*)malloc(sizeof(char)*(strlen(filename) + strlen(parameters) + 3));
+    sprintf(cmd, "%s %s", filename, parameters);
+    ret = system(cmd);
+    free(cmd);
+  }
+  else
+    ret = system(filename);
+  if (ret == -1)
+    return -1;
+  return 1;
+}
+
 int IupHelp(const char *url)
 {
   char *cmd;
