@@ -9,6 +9,7 @@
 
 #include <stdarg.h>
 #include "iup_class.h"
+#include "iup_export.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -126,7 +127,7 @@ void** iupObjectGetParamList(void* first, va_list arglist);
 /** Checks if the handle is still valid based on the signature.
  * But if the handle was destroyed still can access invalid memory.
  * \ingroup object */
-int iupObjectCheck(Ihandle* ih);
+IUP_EXPORTI int iupObjectCheck(Ihandle* ih);
 
 
 /* Other functions declared in <iup.h> and implemented here. 
