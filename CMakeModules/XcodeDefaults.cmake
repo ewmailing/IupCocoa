@@ -145,8 +145,9 @@ if(APPLE)
 	# These two lines are needed to make the Archive option work (mostly).
 	# (You need to build as Release first. Then Archive, otherwise the build fails.)
 	# http://public.kitware.com/pipermail/cmake/2012-December/053017.html
-	set_xcode_property(${_EXE_NAME} INSTALL_PATH "$(LOCAL_APPS_DIR)")
-	set_xcode_property(${_EXE_NAME} SKIP_INSTALL NO)
+	# UPDATE: This breaks building frameworks as it changes the INSTALL_NAME from @rpath
+#	set_xcode_property(${_EXE_NAME} INSTALL_PATH "$(LOCAL_APPS_DIR)")
+#	set_xcode_property(${_EXE_NAME} SKIP_INSTALL NO)
 
 
 endif(APPLE)

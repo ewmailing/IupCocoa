@@ -11,8 +11,10 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 /* Used by the IupScanf implementation */
-int iupDataEntry(int maxlin, int* maxcol, int* maxscr, char* title, char** text, char** data);
+IUP_EXPORTI int iupDataEntry(int maxlin, int* maxcol, int* maxscr, char* title, char** text, char** data);
 
 /* Popups a dialog with IUP Version, used in IupOpen */
 void iupShowVersion(void);
