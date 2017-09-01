@@ -20,6 +20,7 @@
 		002CC4D71EA24A850007C8E7 /* iupcocoa_calendar.m in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */; };
 		003155701ED6A89500D116CA /* IupOutlineView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0031556E1ED6A89500D116CA /* IupOutlineView.xib */; };
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
+		003B58B81F583FEB0090F24E /* iupmac_help.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A01B605A7500BEC175 /* iupmac_help.m */; };
 		0052B9441F1AFD820036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9421F1AFD820036F199 /* iup_loop.c */; };
 		0052B9451F1AFD820036F199 /* iup_loop.h in Headers */ = {isa = PBXBuildFile; fileRef = 0052B9431F1AFD820036F199 /* iup_loop.h */; };
 		0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -200,7 +201,6 @@
 		00E3A8C01B605FB300BEC175 /* iupcocoa_open.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A61B605A7500BEC175 /* iupcocoa_open.m */; };
 		00E3A8C11B606D0900BEC175 /* iupcocoa_common.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8991B605A7500BEC175 /* iupcocoa_common.m */; };
 		00E3A8C31B606FDD00BEC175 /* iupcocoa_dialog.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8C21B606FDD00BEC175 /* iupcocoa_dialog.m */; };
-		00E3A8C41B6071F200BEC175 /* iupmac_help.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6301B60583500BEC175 /* iupmac_help.c */; };
 		00E3A8C61B60724900BEC175 /* iupcocoa_font.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A89D1B605A7500BEC175 /* iupcocoa_font.m */; };
 		00E3A8C81B60744200BEC175 /* iupcocoa_draw.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8C71B60744200BEC175 /* iupcocoa_draw.m */; };
 		00E3A8C91B6075C400BEC175 /* iupcocoa_tips.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A81B605A7500BEC175 /* iupcocoa_tips.m */; };
@@ -1381,12 +1381,12 @@
 				00E3A7841B60583600BEC175 /* iup_config.c in Sources */,
 				00E3A7B41B60583600BEC175 /* iup_maskparse.c in Sources */,
 				00E3A8DA1B6094C300BEC175 /* iupcocoa_frame.m in Sources */,
-				00E3A8C41B6071F200BEC175 /* iupmac_help.c in Sources */,
 				00E3A7B61B60583600BEC175 /* iup_menu.c in Sources */,
 				00E3A7741B60583600BEC175 /* iup_box.c in Sources */,
 				00E3A77E1B60583600BEC175 /* iup_class.c in Sources */,
 				00E3A78E1B60583600BEC175 /* iup_expander.c in Sources */,
 				00E3A77C1B60583600BEC175 /* iup_childtree.c in Sources */,
+				003B58B81F583FEB0090F24E /* iupmac_help.m in Sources */,
 				00E3A7CC1B60583600BEC175 /* iup_show.c in Sources */,
 				00E3A76F1B60583600BEC175 /* iup_assert.c in Sources */,
 				00E3A76D1B60583600BEC175 /* iup_array.c in Sources */,
