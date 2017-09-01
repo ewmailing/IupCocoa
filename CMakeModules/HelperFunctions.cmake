@@ -241,6 +241,77 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 endfunction()
 
 
+function(HELPER_CREATE_MODULE library_name wants_build_shared_library source_file_list public_headers private_headers source_headers foreign_source_files linked_libs_list library_c_flags uri_name)
+
+	IF(wants_build_shared_library)
+		ADD_LIBRARY(${library_name} MODULE 
+			${source_file_list}
+			${public_headers}
+	)
+	ELSE()
+		ADD_LIBRARY(${library_name} STATIC 
+			${source_file_list}
+			${public_headers}
+		)
+	ENDIF()
+
+	TARGET_LINK_LIBRARIES(${library_name}
+		${linked_libs_list}
+	)
+
+	IF(EMSCRIPTEN)
+		em_link_js_library(${library_name} ${foreign_source_files})
+	ENDIF()
+
+
+	IF(APPLE)
+		INCLUDE(XcodeDefaults)
+		BLURRR_CONFIGURE_XCODE_DEFAULTS(${library_name})
+	ENDIF()
+
+	# Android must keep the lib prefix
+	IF(ANDROID)
+			SET_TARGET_PROPERTIES(${library_name} PROPERTIES
+				COMPILE_FLAGS "${library_c_flags}"
+				LINK_FLAGS "-shared -fpic"
+			)
+	ELSEIF(APPLE)
+		IF(wants_build_shared_library)
+			MESSAGE("apple wants module")
+			SET_TARGET_PROPERTIES(${library_name} PROPERTIES
+				PREFIX ""
+				COMPILE_FLAGS "${library_c_flags}"
+				LINK_FLAGS "-flat_namespace -undefined suppress"
+				#LINK_FLAGS "-undefined dynamic_lookup"
+			)
+		ELSE()
+			MESSAGE("apple nowants module")
+			SET_TARGET_PROPERTIES(${library_name} PROPERTIES
+				PREFIX ""
+				COMPILE_FLAGS "${library_c_flags}"
+			)
+		ENDIF()
+	ELSEIF(UNIX)
+			SET_TARGET_PROPERTIES(${library_name} PROPERTIES
+				PREFIX ""
+				COMPILE_FLAGS "${library_c_flags}"
+				LINK_FLAGS "-shared -fpic"
+			)
+
+	ELSE()
+			SET_TARGET_PROPERTIES(${library_name} PROPERTIES
+				PREFIX ""
+				COMPILE_FLAGS "${library_c_flags}"
+			)
+	ENDIF()
+
+
+
+
+	
+
+endfunction()
+
 function(HELPER_SETUP_UNINSTALL_TARGET)
 	CONFIGURE_FILE(
 		"${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
