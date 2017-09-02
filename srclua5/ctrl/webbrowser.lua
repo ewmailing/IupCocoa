@@ -13,7 +13,7 @@ local ctrl = {
     error_cb = "s",
     completed_cb = "s",
   },
-  include = "iupweb.h",
+  include = "iupluaweb.h",
   extracode = [[ 
 int iupweblua_open(lua_State* L)
 {
