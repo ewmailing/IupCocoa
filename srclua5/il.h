@@ -124,7 +124,7 @@ IUPLUA_EXPORT void iuplua_plugstate(lua_State *L, Ihandle *ih);
 
 /** Retrieve the Lua State. Used inside a callback.
  */
-lua_State* iuplua_getstate(Ihandle *ih);
+IUPLUA_EXPORT lua_State* iuplua_getstate(Ihandle *ih);
 
 /** First function called inside a callback. 
  * It prepares the stack for the call and returns the Lua state.
