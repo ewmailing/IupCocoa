@@ -127,7 +127,7 @@ Ihandle* iupObjectCreate(Iclass* ic, void** params);
 /** Utility that returns an array of parameters. Must call free for the returned value after usage.
  * Used by the creation functions of objects that receives a NULL terminated array of parameters.
  * \ingroup object */
-void** iupObjectGetParamList(void* first, va_list arglist);
+IUP_EXPORTI void** iupObjectGetParamList(void* first, va_list arglist);
  
 /** Checks if the handle is still valid based on the signature.
  * But if the handle was destroyed still can access invalid memory.
