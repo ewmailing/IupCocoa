@@ -84,24 +84,24 @@ const char* iupStrNextValue(const char* str, int str_len, int *len, char sep);
 
 /** Returns the number of repetitions of the character occours in the string.
  * \ingroup str */
-int iupStrCountChar(const char *str, char c);
+IUP_EXPORTI int iupStrCountChar(const char *str, char c);
 
 
 
 /** Returns a copy of the given string.
  * If str is NULL it will return NULL.
  * \ingroup str */
-char* iupStrDup(const char* str); 
+IUP_EXPORTI char* iupStrDup(const char* str); 
 
 /** Returns a new string containing a copy of the string up to the character.
  * The string is then incremented to after the position of the character.
  * \ingroup str */
-char *iupStrDupUntil(const char **str, char c);
+IUP_EXPORTI char *iupStrDupUntil(const char **str, char c);
 
 /** Copy the string to the buffer, but limited to the max_size of the buffer.
  * buffer is always properly ended.
  * \ingroup str */
-void iupStrCopyN(char* dst_str, int dst_max_size, const char* src_str);
+IUP_EXPORTI void iupStrCopyN(char* dst_str, int dst_max_size, const char* src_str);
 
 
 
@@ -302,7 +302,7 @@ char* iupStrFileGetPath(const char *file_name);
 
 /** Concat path and title addind '/' between if path does not have it.
  * \ingroup str */
-char* iupStrFileMakeFileName(const char* path, const char* title);
+IUP_EXPORTI char* iupStrFileMakeFileName(const char* path, const char* title);
 
 /** Split the filename in path and title using pre-allocated strings.
  * \ingroup str */

@@ -57,6 +57,8 @@ ENDIF()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/" ${CMAKE_MODULE_PATH})
 INCLUDE(HelperFunctions)
 
+OPTION(IUP_OPTION_LUA "Build Lua if available" ON)
+
 IF(EMSCRIPTEN)
 		OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
 		OPTION(IUP_OPTION_COCOA "Use Cocoa backend" OFF)
@@ -215,6 +217,15 @@ ENDIF()
 # Not sure what the default should be for this, and if it should be backend dependent
 OPTION(IUPIMGLIB_OPTION_USE_IMGLIB_LARGE "Include images larger than 48x48 (inclusive) for imglib" ON)
 
+SET(IUP_USE_LUA 0)
+IF(IUP_OPTION_LUA)
+	FIND_PACKAGE(Lua QUIET)
+	IF(LUA_FOUND)
+		SET(IUP_USE_LUA 1)
+	ELSE()
+		MESSAGE("Lua not found")
+	ENDIF()
+ENDIF()
 
 # RPATH stuff. This MUST be set before any targets that use it are declared.
 # Only affects shared libraries.
@@ -226,9 +237,22 @@ endif()
 SET(IUP_C_FLAGS "")
 SET(IUPIMGLIB_C_FLAGS "")
 SET(IUPOLE_C_FLAGS "")
+# Do we need CXX flags for web because of Windows?
 SET(IUPWEB_C_FLAGS "")
+SET(IUPLUA_C_FLAGS "")
+SET(IUPLUAWEB_C_FLAGS "")
 SET(IUPEXE_C_FLAGS "")
 SET(IUPEXE_LINK_FLAGS "")
+
+MESSAGE("CMAKE_C_COMPILER_ID ${CMAKE_C_COMPILER_ID}")
+IF("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+	SET(CMAKE_C_FLAGS "-Wno-invalid-source-encoding ${CMAKE_C_FLAGS}")
+	SET(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding ${CMAKE_CXX_FLAGS}")
+ELSEIF("${CMAKE_C_COMPILER_ID}" MATCHES "GNU")
+	SET(CMAKE_C_FLAGS "-Wno-invalid-source-encoding ${CMAKE_C_FLAGS}")
+	SET(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding ${CMAKE_CXX_FLAGS}")
+ENDIF()
+
 
 # TODO: We must add visibility annotations to IUP to support Emscripten.
 # We can then reuse them for other platforms too.
@@ -247,16 +271,25 @@ IF(IUP_USE_EMSCRIPTEN)
 
 
 ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
-	IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+	IF("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -fvisibility=hidden")
 		SET(IUPOLE_C_FLAGS "${IUPOLE_C_FLAGS} -fvisibility=hidden")
 		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -fvisibility=hidden")
-	ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+		SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -fvisibility=hidden")
+		# FIXME: We must add a IUPLUAWEB_EXPORT for the lua/web open functions, but there is no obvious place to add it
+		# For now, don't use visibility, but this is still going to break on some platforms like Emscripten and CMake doesn't seem to support .def on all platforms like Xcode
+		#SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -fvisibility=hidden")
+
+	ELSEIF("${CMAKE_C_COMPILER_ID}" MATCHES "GNU")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -fvisibility=hidden")
 		SET(IUPOLE_C_FLAGS "${IUPOLE_C_FLAGS} -fvisibility=hidden")
 		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -fvisibility=hidden")
+		# FIXME: We must add a IUPLUAWEB_EXPORT for the lua/web open functions, but there is no obvious place to add it
+		# For now, don't use visibility, but this is still going to break on some platforms like Emscripten and CMake doesn't seem to support .def on all platforms like Xcode
+		#SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -fvisibility=hidden")
+
 	ENDIF()
 	
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
@@ -265,6 +298,7 @@ ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
 	SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
 	SET(IUPOLE_C_FLAGS "${IUPOLE_C_FLAGS} -DIUPOLE_BUILD_LIBRARY")
 	SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -DIUPWEB_BUILD_LIBRARY")
+	SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -DIUPLUA_BUILD_LIBRARY")
 
 ENDIF()
 
@@ -436,6 +470,7 @@ SET(IUPOLE_COMMON_SOURCE_FILES
 )
 SET(IUPWEB_COMMON_SOURCE_FILES 
 	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.c
+	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.h
 )
 
 SET(IUP_LINK_LIBRARIES "")
@@ -613,13 +648,20 @@ ELSEIF(IUP_USE_ANDROID)
 
 
 	SET(IUPWEB_ANDROID_SOURCE_FILES
-		# TODO:
+		${CMAKE_SOURCE_DIR}/srcweb/android/iupandroid_webbrowser.c
+		${CMAKE_SOURCE_DIR}/srcweb/android/iupandroid_jni_IupWebView.c
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_ANDROID_SOURCE_FILES}
 	)
 
-	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	# Annoying hack to get around Android Studio always rebuilding everything for every target.
+	# arguments "-DIUP_ANDROID_BUILD_IUPWEB=1"
+	IF(IUP_ANDROID_BUILD_IUPWEB)
+		SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
+	ELSE()
+		SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	ENDIF()
 
 ELSEIF(IUP_USE_COCOATOUCH)
 
@@ -696,14 +738,18 @@ ELSEIF(IUP_USE_COCOATOUCH)
 	)
 
 
+	FIND_LIBRARY(APPLE_WEBKIT_LIBRARY WebKit)
 	SET(IUPWEB_COCOATOUCH_SOURCE_FILES
-		# TODO:
+		${CMAKE_SOURCE_DIR}/srcweb/iupcocoatouch_webbrowser.m
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_COCOATOUCH_SOURCE_FILES}
 	)
+	LIST(APPEND IUPWEB_LINK_LIBRARIES 
+		${APPLE_WEBKIT_LIBRARY}
+	)
 
-	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
+	SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
 
 ELSEIF(IUP_USE_COCOA)
 
@@ -713,6 +759,8 @@ ELSEIF(IUP_USE_COCOA)
 
 		${CMAKE_SOURCE_DIR}/src/cocoa/IUPCocoaVerticalAlignmentTextFieldCell.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IUPCocoaVerticalAlignmentTextFieldCell.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/IUPTextSpinnerFilesOwner.h
+		${CMAKE_SOURCE_DIR}/src/cocoa/IUPTextSpinnerFilesOwner.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_button.m
@@ -780,15 +828,19 @@ ELSEIF(IUP_USE_COCOA)
 		${IUPIMGLIB_COCOA_SOURCE_FILES}
 	)
 
+	FIND_LIBRARY(APPLE_WEBKIT_LIBRARY WebKit)
 	SET(IUPWEB_COCOA_SOURCE_FILES
-		# TODO:
+		${CMAKE_SOURCE_DIR}/srcweb/iupcocoa_webbrowser.m
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_COCOA_SOURCE_FILES}
 	)
+	LIST(APPEND IUPWEB_LINK_LIBRARIES 
+		${APPLE_WEBKIT_LIBRARY}
+	)
+	SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
 
-	SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
-
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/cocoa)
 ELSEIF(IUP_USE_WIN32)
 
 
@@ -1152,6 +1204,17 @@ endif()
 
 if(IUP_SHOULD_BUILD_IUPWEB)
 	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUPWEB_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.pucrio.tecgraf.iupweb")
+
+	# Having problem with include paths on Android, partly because everything is spread out
+	IF(ANDROID)
+		# TARGET_INCLUDE_DIRECTORIES is guaranteed to be available on Android
+		TARGET_INCLUDE_DIRECTORIES(iupweb PRIVATE 
+			"${CMAKE_SOURCE_DIR}/src"
+			"${CMAKE_SOURCE_DIR}/src/android/source"
+			"${CMAKE_SOURCE_DIR}/srcweb"
+			"${CMAKE_SOURCE_DIR}/srcweb/android"
+		)
+	ENDIF()
 else()
 	MESSAGE("Not building iupweb")
 endif()
@@ -1161,68 +1224,71 @@ endif()
 #ADD_SUBDIRECTORY(test)
 
 function(BUILD_IUP_TEST exe_name source_list)
-	set(_should_exclude_from_all "")
-	if(NOT IUP_BUILD_TESTS)
-		set(_should_exclude_from_all 1)
-	endif()
-	
-	HELPER_CREATE_EXECUTABLE(${exe_name} 
-		"${source_list}"
-		"${WANTS_BUILD_SHARED_LIBRARY}"
-		"iup"
-		"${IUP_LINK_LIBRARIES}"
-		"${IUPEXE_C_FLAGS}"
-		"${IUPEXE_LINK_FLAGS}"
-		"${_should_exclude_from_all}"
-	)
-
-	# This adds the current test to the aggregate target for tests
-	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
-
-endfunction()
-
-function(BUILD_IUPIMGLIB_TEST exe_name source_list)
-	set(_should_exclude_from_all "")
-	if(NOT IUP_BUILD_TESTS)
-		set(_should_exclude_from_all 1)
-	endif()
-	
-	HELPER_CREATE_EXECUTABLE(${exe_name} 
-		"${source_list}"
-		"${WANTS_BUILD_SHARED_LIBRARY}"
-		"iupimglib;iup"
-		"${IUP_LINK_LIBRARIES}"
-		"${IUPEXE_C_FLAGS}"
-		"${IUPEXE_LINK_FLAGS}"
-		"${_should_exclude_from_all}"
-	)
-
-	# This adds the current test to the aggregate target for tests
-	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
-
-endfunction()
-
-function(BUILD_IUPWEB_TEST exe_name source_list)
-	set(_should_exclude_from_all "")
-	if(NOT IUP_BUILD_TESTS)
-		set(_should_exclude_from_all 1)
-	endif()
-	
-	if(IUP_SHOULD_BUILD_IUPWEB)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
 		HELPER_CREATE_EXECUTABLE(${exe_name} 
 			"${source_list}"
 			"${WANTS_BUILD_SHARED_LIBRARY}"
-			"iupweb;iup"
+			"iup"
 			"${IUP_LINK_LIBRARIES}"
 			"${IUPEXE_C_FLAGS}"
 			"${IUPEXE_LINK_FLAGS}"
 			"${_should_exclude_from_all}"
 		)
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
 	endif()
+endfunction()
 
-	# This adds the current test to the aggregate target for tests
-	ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+function(BUILD_IUPIMGLIB_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		HELPER_CREATE_EXECUTABLE(${exe_name} 
+			"${source_list}"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupimglib;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			"${_should_exclude_from_all}"
+		)
 
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
+endfunction()
+
+function(BUILD_IUPWEB_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		if(IUP_SHOULD_BUILD_IUPWEB)
+			HELPER_CREATE_EXECUTABLE(${exe_name} 
+				"${source_list}"
+				"${WANTS_BUILD_SHARED_LIBRARY}"
+				"iupweb;iup"
+				"${IUP_LINK_LIBRARIES}"
+				"${IUPEXE_C_FLAGS}"
+				"${IUPEXE_LINK_FLAGS}"
+				"${_should_exclude_from_all}"
+			)
+		endif()
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
 endfunction()
 
 
@@ -1274,12 +1340,87 @@ elseif(IUP_USE_ANDROID)
 			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
 		)
 		target_link_libraries(MyIupProgram iupimglib iup)
+	ENDIF()
+
+	IF(IUPWEB_ANDROID_BUILD_TEST_LIBRARY)
+
+		add_library(MyIupProgramWebBrowser SHARED EXCLUDE_FROM_ALL
+			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+		)
+		target_link_libraries(MyIupProgramWebBrowser iupweb iup)
 
 	ENDIF()
 
 
 endif()
 
+
+
+
+IF(IUP_USE_LUA)
+
+	FILE(GLOB LUA_IL_FILES ${CMAKE_SOURCE_DIR}/srclua5/elem/*.c)
+	
+	#	   SET(CMAKE_MODULE_LINKER_FLAGS
+	#   "${CMAKE_MODULE_LINKER_FLAGS} -flat_namespace -undefined suppress")
+
+	SET(IUPLUA_SOURCE_FILES
+#		${CMAKE_SOURCE_DIR}/srclua5/il.h
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua.c
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_api.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_config.c 		
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_draw.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_getcolor.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_getparam.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_scanf.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_tree_aux.c 
+		${LUA_IL_FILES}
+	)
+
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/srclua5 ${CMAKE_SOURCE_DIR}/srclua5/lh ${LUA_INCLUDE_DIR})
+	SET(IUPLUA_LINK_LIBRARIES "")
+	LIST(APPEND IUPLUA_LINK_LIBRARIES 
+		iup
+#		${LUA_LIBRARY}
+	)
+
+	SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -DIUPLUA_USELH")
+	#ADD_DEFINITIONS("-DIUPLUA_USELH")
+	#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
+	
+	SET(IUPLUA_LIBRARY_NAME "iuplua")
+	SET(IUP_LUA_VERSION_SUFFIX "${LUA_VERSION_MAJOR}${LUA_VERSION_MINOR}")
+	#	MESSAGE("IUP_LUA_VERSION_SUFFIX ${IUP_LUA_VERSION_SUFFIX}")
+	#SET(IUPLUA_LIBRARY_NAME "iuplua${IUPLUA_VERSION_SUFFIX}")
+	HELPER_CREATE_MODULE(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.pucrio.tecgraf.iuplua")
+
+
+	# FIXME: We must add a IUPLUAWEB_EXPORT for the lua/web open functions, but there is no obvious place to add it
+	SET(IUPLUAWEB_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srclua5/ctrl/il_webbrowser.c
+		${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
+		${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
+	)
+
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/srclua5 ${CMAKE_SOURCE_DIR}/srclua5/lh ${LUA_INCLUDE_DIR})
+	SET(IUPLUAWEB_LINK_LIBRARIES "")
+	LIST(APPEND IUPLUAWEB_LINK_LIBRARIES 
+		iupweb
+		iup
+#		${LUA_LIBRARY}
+	)
+
+	SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -DIUPLUA_USELH")
+	#ADD_DEFINITIONS("-DIUPLUA_USELH")
+	#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
+	
+	SET(IUPLUAWEB_LIBRARY_NAME "iupluaweb")
+	#SET(IUPLUAWEB_LIBRARY_NAME "${IUPLUAWEB_LIBRARY_NAME}${IUPLUA_VERSION_SUFFIX}")
+	HELPER_CREATE_MODULE(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.pucrio.tecgraf.iupluaweb")
+
+
+
+ENDIF(IUP_USE_LUA)
 
 
 # For uninstall
