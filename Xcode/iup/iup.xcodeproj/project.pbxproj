@@ -21,6 +21,7 @@
 		003155701ED6A89500D116CA /* IupOutlineView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0031556E1ED6A89500D116CA /* IupOutlineView.xib */; };
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
 		003B58B81F583FEB0090F24E /* iupmac_help.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A01B605A7500BEC175 /* iupmac_help.m */; };
+		003B58B91F5A60D10090F24E /* iupluaweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85D1B60595300BEC175 /* iupluaweb.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0052B9441F1AFD820036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9421F1AFD820036F199 /* iup_loop.c */; };
 		0052B9451F1AFD820036F199 /* iup_loop.h in Headers */ = {isa = PBXBuildFile; fileRef = 0052B9431F1AFD820036F199 /* iup_loop.h */; };
 		0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -181,7 +182,7 @@
 		00E3A87C1B60595300BEC175 /* iupglcontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84E1B60595300BEC175 /* iupglcontrols.h */; };
 		00E3A87D1B60595300BEC175 /* iupim.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A84F1B60595300BEC175 /* iupim.h */; };
 		00E3A87E1B60595300BEC175 /* iupkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8501B60595300BEC175 /* iupkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		00E3A87F1B60595300BEC175 /* iuplua.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8511B60595300BEC175 /* iuplua.h */; };
+		00E3A87F1B60595300BEC175 /* iuplua.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8511B60595300BEC175 /* iuplua.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E3A8801B60595300BEC175 /* iuplua_mglplot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8521B60595300BEC175 /* iuplua_mglplot.h */; };
 		00E3A8811B60595300BEC175 /* iuplua_plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8531B60595300BEC175 /* iuplua_plot.h */; };
 		00E3A8831B60595300BEC175 /* iuplua_scintilla.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8551B60595300BEC175 /* iuplua_scintilla.h */; };
@@ -984,6 +985,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00BE4F641F4BF479002B7C86 /* iupweb.h in Headers */,
+				003B58B91F5A60D10090F24E /* iupluaweb.h in Headers */,
 				00BE4F661F4BF48F002B7C86 /* iup_webbrowser.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -998,6 +1000,7 @@
 				00E3A88B1B60595300BEC175 /* iupluaweb.h in Headers */,
 				00E3A86F1B60595300BEC175 /* iup_scintilla.h in Headers */,
 				002CC4D51EA241E90007C8E7 /* iupdraw.h in Headers */,
+				00E3A87F1B60595300BEC175 /* iuplua.h in Headers */,
 				00E3A7821B60583600BEC175 /* iup_classbase.h in Headers */,
 				00E3A8841B60595300BEC175 /* iupluacontrols.h in Headers */,
 				00E3A7B51B60583600BEC175 /* iup_maskparse.h in Headers */,
@@ -1018,7 +1021,6 @@
 				00E3A7A91B60583600BEC175 /* iup_ledlex.h in Headers */,
 				00E3A7931B60583600BEC175 /* iup_focus.h in Headers */,
 				00E3A7771B60583600BEC175 /* iup_button.h in Headers */,
-				00E3A87F1B60595300BEC175 /* iuplua.h in Headers */,
 				00E3A77A1B60583600BEC175 /* iup_canvas.h in Headers */,
 				00E3A7D91B60583600BEC175 /* iup_text.h in Headers */,
 				00E3A7D71B60583600BEC175 /* iup_tabs.h in Headers */,
