@@ -634,7 +634,7 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 
 static int cocoaTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 {
-	BOOL is_editable = (BOOL)iupStrBoolean(value);
+	BOOL is_editable = !(BOOL)iupStrBoolean(value);
 	
 	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
 	switch(sub_type)
