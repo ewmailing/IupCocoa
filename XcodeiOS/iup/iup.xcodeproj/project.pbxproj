@@ -136,7 +136,6 @@
 		00BE502C1F4E13BA002B7C86 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
 		00BE502D1F4E13BA002B7C86 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
 		00BE502E1F4E13BA002B7C86 /* libiup.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070F8FE1E025C88009A8631 /* libiup.a */; };
-		00BE503A1F4E1436002B7C86 /* webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE50391F4E1436002B7C86 /* webbrowser.c */; };
 		00BE503B1F4E1459002B7C86 /* webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE50391F4E1436002B7C86 /* webbrowser.c */; };
 		00BE503C1F4E1462002B7C86 /* libiupweb.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE50141F4E11CE002B7C86 /* libiupweb.a */; };
 		00BE503F1F4E1649002B7C86 /* iupcocoatouch_webbrowser.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BE503D1F4E1640002B7C86 /* iupcocoatouch_webbrowser.m */; };
@@ -1233,7 +1232,6 @@
 				0070FB001E025CEE009A8631 /* iup_ledlex.c in Sources */,
 				0070FAFF1E025CEE009A8631 /* iup_layoutdlg.c in Sources */,
 				002CC4E31EA2D1740007C8E7 /* iup_flatframe.c in Sources */,
-				00BE503A1F4E1436002B7C86 /* webbrowser.c in Sources */,
 				0070FA7B1E025CEE009A8631 /* iupcocoatouch_dialog.m in Sources */,
 				002CC4E21EA2D1740007C8E7 /* iup_draw.c in Sources */,
 				0070FA8C1E025CEE009A8631 /* iupcocoatouch_tabs.m in Sources */,
@@ -1397,7 +1395,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../include";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1441,7 +1439,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../include";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

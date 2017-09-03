@@ -352,7 +352,7 @@ void iupdrvDisplayUpdate(Ihandle *ih)
 	if([the_handle isKindOfClass:[UIView class]])
 	{
 		UIView* the_view = (UIView*)the_handle;
-		[the_view setNeedsDisplay:YES];
+		[the_view setNeedsDisplay];
 	}
 	else if([the_handle isKindOfClass:[UIWindow class]])
 	{
