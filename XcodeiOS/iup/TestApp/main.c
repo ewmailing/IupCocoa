@@ -56,7 +56,7 @@ int OnButtonCallback()
 	return IUP_DEFAULT;
 }
 
-static void IupEntryPoint()
+static void ButtonLabelProgressBar()
 {
 
 	Ihandle* button = IupButton("Iup Button", "");
@@ -106,7 +106,62 @@ static void IupEntryPoint()
 
 }
 
+static void ButtonTextView()
+{
+	
+	//	Ihandle* label = IupLabel("Iup Label");
+	
+#if 1
+	Ihandle* text_view_result = IupMultiLine(NULL);
+	//	Ihandle* text_view_result = IupText(NULL);
+	//  IupSetAttribute(text_view_result, "SIZE", "500x100");
+	IupSetAttribute(text_view_result, "VISIBLECOLUMNS", "40");
+	IupSetAttribute(text_view_result, "VISIBLELINES", "10");
+	//	IupSetAttribute(text_view_result, "EXPAND", "YES");
+	//	IupSetAttribute(text_view_result, "READONLY", "YES");
+	IupSetAttribute(text_view_result, "VALUE", "Welcome to the wonderful world");
+	
+#endif
+	
+	Ihandle* button = IupButton("Iup Button", "");
+	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
+	Ihandle* button2 = IupButton("Iup Button 2", "");
+	Ihandle* button3 = IupButton("Iup Button 3", "");
+	Ihandle* button4 = IupButton("Iup Button 4", "");
+	
+	//	Ihandle* vb=IupVbox(text_view_result, button, NULL);
+	//	Ihandle* vb=IupVbox(button, text_view_result, NULL);
+	//	Ihandle* vb=IupVbox(button, button2, NULL);
+	Ihandle* hb1=IupHbox(button, button2, NULL);
+	Ihandle* hb2=IupHbox(button3, button4, NULL);
+	//	Ihandle* vb=IupVbox(hb1, hb2, NULL);
+	Ihandle* vb=IupVbox(hb1, text_view_result, hb2, NULL);
+	
+	//	IupSetAttribute(vb, "GAP", "10");
+	//	IupSetAttribute(vb, "MARGIN", "10x10");
+	//	IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
+	
+	Ihandle* dialog = IupDialog(vb);
+	//	IupMap(dialog);
+	IupSetAttribute(dialog, "TITLE", "Iup Activity Title");
+	//	IupSetAttribute(dialog, "RASTERSIZE", "1024x1920");
+	
+	
+	IupShow(dialog);
 
+}
+void IupExitPoint()
+{
+	IupClose();
+}
+
+static void IupEntryPoint()
+{
+	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
+
+//	ButtonLabelProgressBar();
+	ButtonTextView();
+}
 
 
 int main(int argc, char * argv[])
