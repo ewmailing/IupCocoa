@@ -1209,10 +1209,11 @@ function(BUILD_IUPWEB_TEST exe_name source_list)
 				"${IUPEXE_LINK_FLAGS}"
 				"${_should_exclude_from_all}"
 			)
-		endif()
 
-		# This adds the current test to the aggregate target for tests
-		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+			# This adds the current test to the aggregate target for tests
+			ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+		endif()
+		
 	endif()
 endfunction()
 
