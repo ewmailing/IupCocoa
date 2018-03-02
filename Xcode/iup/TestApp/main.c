@@ -1417,6 +1417,54 @@ Ihandle* ListTest(void)
 }
 
 
+
+Ihandle* DropDownListTest(void)
+{
+	Ihandle* list2;
+	
+
+	list2 = IupList(NULL);
+//	IupSetAttributes(list2, "1=\"Banana\", 2=\"Apple\", 3=\"Orange\", 4=\"Strawberry Shortcake vs. B. Pudding\", 5=\"Grape\","
+//					 "DROPDOWN=YES, NAME=list2, TIP=Drop, XXX_VALUE=2, XXX_SORT=YES, XXX_BGCOLOR=\"192 64 192\"");
+	IupSetAttributes(list2, "1=\"Strawberry Shortcake vs. B. Pudding\","
+					 "DROPDOWN=YES, NAME=list2");
+//	set_callbacks(list2);
+	
+	
+	Ihandle* dialog = IupDialog(list2);
+	IupShow(dialog);
+	
+	return dialog;
+	
+	
+
+}
+
+Ihandle* EditboxDropDownListTest(void)
+{
+	Ihandle* list2;
+	
+	
+	list2 = IupList(NULL);
+	//IupSetAttributes(list2, "1=\"Banana\", 2=\"Apple\", 3=\"Orange\", 4=\"Strawberry Shortcake vs. B. Pudding\", 5=\"Grape\","
+	// "DROPDOWN=YES, NAME=list2, TIP=Drop, XXX_VALUE=2, XXX_SORT=YES, XXX_BGCOLOR=\"192 64 192\"");
+	IupSetAttributes(list2, "1=\"Strawberry Shortcake vs. B. Pudding\","
+					                    "DROPDOWN=YES, EDITBOX=YES, TIP=Edit+Drop, NAME=list2");
+	//set_callbacks(list2);
+	
+	
+	Ihandle* dialog = IupDialog(list2);
+	IupShow(dialog);
+	
+	return dialog;
+	
+	
+	
+}
+
+
+
+
 static int OnButton(Ihandle* button_object)
 {
 	Ihandle* override_sdk_dialog = (Ihandle*)IupGetAttribute(button_object, "overrideSDKDialog");
@@ -1804,6 +1852,38 @@ void ListTextButtonLabelTest()
 	
 }
 
+
+void BasicListTest()
+{
+
+	Ihandle* list = ListTest();
+	
+	
+	//	Ihandle* vb=IupHbox(button, NULL);
+	//IupSetAttribute(vb, "EXPAND", "YES");
+	
+	//	Ihandle* vb=IupVbox(button, NULL);
+	//	Ihandle* vb=IupVbox(list, NULL);
+	//	Ihandle* vb=IupVbox(button, list, NULL);
+	Ihandle* vb=IupVbox(list, NULL);
+	//	IupSetAttribute(vb, "GAP", "10");
+	//	IupSetAttribute(vb, "MARGIN", "10x10");
+	//IupSetAttribute(vb, "ALIGNMENT", "ACENTER");
+	
+	
+	
+	Ihandle* frame1 = IupFrame(vb);
+//	IupSetAttribute(frame1, "TITLE", "Frame Title");
+//	IupSetAttribute(frame1, "CLIENTOFFSET", "10x10");
+//	IupSetAttribute(frame1, "CLIENTSIZE", "10x10");
+	
+	
+	Ihandle* dialog = IupDialog(frame1);
+		IupShow(dialog);
+	
+	
+	
+}
 static int OnPreferencesCallback(Ihandle* the_object)
 {
 	Ihandle* label1 = IupLabel("Prefernences placeholder");
@@ -2003,13 +2083,17 @@ void IupEntryPoint()
 {
 	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
 
+	//DropDownListTest();
+	EditboxDropDownListTest();
+	
+//	BasicListTest();
 //	GridTest();
 //	ListAndModalWindowTest();
 //	ListTextButtonLabelTest();
 //	AppMenuTest();
 //	ProgressbarTest2();
 	
-	//TextTest();
+//	TextTest();
 
 //	DoLocalizedMessageBox();
 
@@ -2021,7 +2105,7 @@ void IupEntryPoint()
 	LayoutTestGrid2Label();
 	LayoutTestGrid2LabelText();
 */
-
+/*
 	LayoutTestGrid3LabelTextButton();
  LayoutTestGrid3LabelTextButtonInFrame();
 
@@ -2029,7 +2113,7 @@ void IupEntryPoint()
 	LayoutTestGrid3LabelLabelButtonInFrame();
 	LayoutTestGrid3LabelTextButton();
 
-
+*/
 
 //	LabelSizeTest();
 	
@@ -2076,4 +2160,8 @@ int main(int argc, char* argv[])
 	
 	return 0;
 }
+
+
+
+
 
