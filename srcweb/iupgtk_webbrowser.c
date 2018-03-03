@@ -4,10 +4,15 @@
  * See Copyright Notice in "iup.h"
  */
 
-#include <gtk/gtk.h>
 
+#ifdef IUPWEB_USE_DLOPEN
+#include "iupwebgtk_dlopen.h"
+#else
+#include <gtk/gtk.h>
 #include <webkit/webkit.h>
 #include <JavaScriptCore/JavaScript.h>
+#endif
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,6 +39,78 @@
 #ifndef WEBKIT_LOAD_FAILED
 #define WEBKIT_LOAD_FAILED 4
 #endif
+
+
+#ifdef IUPWEB_USE_DLOPEN
+/* In my past experience with GTK, I don't think it is possible to unload the library.
+	 I don't know if WebKit is any better, but for now I am assuming it is not.
+	 So load it once and and never close for now.
+*/
+static void* s_webKitLibrary = NULL;
+/*
+	 Returns IUP_NOERROR on successful dlopen of libwebkitgtk.
+	 IUP_OPENED if already opened.
+	 IUP_ERROR on failure to load. Sets IupSetGlobal with key _IUP_WEBBROWSER_MISSING_DLL with a name of a missing libwekkitgtk.so.
+*/
+int IupGtkWebBrowserDLOpen()
+{
+  size_t i;
+  // RTLD_LAZY or RTLD_NOW?
+  //const mode_flags = RTLD_NOW | RTLD_LOCAL;	
+  const mode_flags = RTLD_LAZY | RTLD_LOCAL;	
+  static const char* listOfWebKitNames[] =
+  {
+#if GTK_CHECK_VERSION(3, 0, 0)
+    "libwebkitgtk-3.0.so",
+    "libwebkitgtk-3.0.so.0"
+#else
+    "libwebkitgtk-1.0.so",
+    "libwebkitgtk-1.0.so.0"
+#endif
+  };
+
+  if(NULL != s_webKitLibrary)
+  {
+    return IUP_OPENED;
+  }
+
+#define WEBKIT_NAMES_ARRAY_LENGTH (sizeof(listOfWebKitNames)/sizeof(*listOfWebKitNames))
+  for(i=0; i<WEBKIT_NAMES_ARRAY_LENGTH; i++)
+  {
+    s_webKitLibrary = dlopen(listOfWebKitNames[i], mode_flags);
+    if(NULL != s_webKitLibrary)
+    {
+      break;
+    }
+  }
+
+  if(NULL == s_webKitLibrary)
+  {
+#if GTK_CHECK_VERSION(3, 0, 0)
+    IupSetGlobal("_IUP_WEBBROWSER_MISSING_DLL", "libwebkitgtk-3.0.so");
+#else
+    IupSetGlobal("_IUP_WEBBROWSER_MISSING_DLL", "libwebkitgtk-1.0.so");
+#endif
+    return IUP_ERROR;
+  }
+  else
+  {
+    return IUP_NOERROR;
+  }
+}
+/*
+// Unused for now.
+static void Internal_UnloadLibrary()
+{
+  if(NULL != s_webKitLibrary)
+  {
+    dlclose(s_webKitLibrary);
+    s_webKitLibrary = NULL;
+  }
+}
+*/
+#endif /* IUPWEB_USE_DLOPEN */
+
 
 struct _IcontrolData 
 {

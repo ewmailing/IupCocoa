@@ -25,12 +25,22 @@
 #include "iup_layout.h"
 #include "iup_webbrowser.h"
 
+#ifdef IUPWEB_USE_DLOPEN
+extern int IupGtkWebBrowserDLOpen(void);
+#endif
 
 int IupWebBrowserOpen(void)
 {
 #ifdef WIN32
   IupOleControlOpen();
 #endif
+#ifdef IUPWEB_USE_DLOPEN
+  if(IUP_ERROR == IupGtkWebBrowserDLOpen())
+  {
+	  return IUP_ERROR;
+  }
+#endif
+
 
   if (IupGetGlobal("_IUP_WEBBROWSER_OPEN"))
     return IUP_OPENED;
