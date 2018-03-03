@@ -13,6 +13,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 #define UNIMPLEMENTED printf("%s (%s %d) UNIMPLEMENTED\n",__func__,__FILE__,__LINE__);
 
@@ -49,8 +50,10 @@ int IupMainLoop(void)
   // TODO how do we manage the callback from setIdleFunction ?
   if(!isRunning)
   {
-	isRunning = true;
+    isRunning = true;
+    iupLoopCallEntryCb();
     be_app->Run();
+    iupLoopCallExitCb();
   } else {
 	// FIXME not so good design here. We're locking the calling thread (likely
 	// a BWindow) which means it will not be able to receive any messages as

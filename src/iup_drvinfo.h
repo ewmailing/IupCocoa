@@ -88,6 +88,14 @@ void* iupdrvGetDisplay(void);
  * \ingroup drvinfo */
 char* iupdrvLocaleInfo(void);
 
+/** Returns the path to the preference directory.
+ * Path will always have a trailing slash so it is easy to strlcat to.
+ * May return ""
+ * Return 1 on success, 0 on failure.
+ * Do not pass in an NULL or a string of length 0.
+ * strlen probably should be size_t instead of int, but this header includes no headers.
+ * \ingroup drvinfo */
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name);
 
 #ifdef __cplusplus
 }

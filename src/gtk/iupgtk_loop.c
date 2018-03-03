@@ -11,6 +11,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 
 /* local variables */
@@ -65,7 +66,22 @@ int IupMainLoopLevel(void)
 
 int IupMainLoop(void)
 {
+  static int loop_count = 0;
+  static int has_done_entry = 0;
+  loop_count++;
+  if (0 == has_done_entry)
+  {
+    has_done_entry = 1;
+    iupLoopCallEntryCb();
+  }
+
   gtk_main();
+
+  loop_count--;
+  if( 0 == loop_count)
+  {
+    iupLoopCallExitCb();
+  }
   return IUP_NOERROR;
 }
 

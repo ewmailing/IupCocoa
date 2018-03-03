@@ -10,6 +10,7 @@
 
 #include "iup.h"
 #include "iupcbs.h"
+#include "iup_loop.h"
 
 #include "iupmot_drv.h"
 
@@ -74,6 +75,13 @@ int IupMainLoopLevel(void)
 
 int IupMainLoop(void)
 {
+  static int has_done_entry = 0;
+  if (0 == has_done_entry)
+  {
+    has_done_entry = 1;
+    iupLoopCallEntryCb();
+  }
+
   mot_mainloop++;
   mot_exitmainloop = 0;
 
@@ -85,6 +93,11 @@ int IupMainLoop(void)
 
   mot_exitmainloop = 0;
   mot_mainloop--;
+
+  if(0 == mot_mainloop)
+  {
+    iupLoopCallExitCb();
+  }
   return IUP_NOERROR;
 }
 
