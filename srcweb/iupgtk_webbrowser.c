@@ -42,6 +42,8 @@
 
 
 #ifdef IUPWEB_USE_DLOPEN
+#include <dlfcn.h>
+
 /* In my past experience with GTK, I don't think it is possible to unload the library.
 	 I don't know if WebKit is any better, but for now I am assuming it is not.
 	 So load it once and and never close for now.
@@ -91,10 +93,12 @@ int IupGtkWebBrowserDLOpen()
 #else
     IupSetGlobal("_IUP_WEBBROWSER_MISSING_DLL", "libwebkitgtk-1.0.so");
 #endif
+    iupgtkWebBrowser_ClearDLSymbols();
     return IUP_ERROR;
   }
   else
   {
+    iupgtkWebBrowser_SetDLSymbols(s_webKitLibrary);
     return IUP_NOERROR;
   }
 }
