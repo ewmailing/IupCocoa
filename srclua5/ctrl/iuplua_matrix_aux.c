@@ -158,7 +158,7 @@ static void show_formula_error(lua_State *L, Ihandle* ih, const char* str_messag
   const char* error = lua_tostring(L, -1);
   char msg[1024];
   sprintf(msg, "%s\n  Lua error: %s", str_message, error);
-  iupShowError(IupGetDialog(ih), msg);
+  IupMessageError(IupGetDialog(ih), msg);
 }
 
 static void register_math_global(lua_State *L)

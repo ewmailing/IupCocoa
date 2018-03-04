@@ -102,7 +102,7 @@ static int motFileDlgCheckValue(Ihandle* ih, Widget filebox)
   {
     if (!iupUnixIsDirectory(value))               /* if does not exist or not a directory */
     {
-      iupShowError(ih, "IUP_INVALIDDIR");
+      IupMessageError(ih, "IUP_INVALIDDIR");
       return 0;
     }
   }
@@ -110,7 +110,7 @@ static int motFileDlgCheckValue(Ihandle* ih, Widget filebox)
   {
     if (iupUnixIsDirectory(value))  /* selected a directory */
     {
-      iupShowError(ih, "IUP_INVALIDDIR");
+      IupMessageError(ih, "IUP_INVALIDDIR");
       return 0;
     }
     else if (!iupUnixIsFile(value))      /* not a file == new file */
@@ -126,7 +126,7 @@ static int motFileDlgCheckValue(Ihandle* ih, Widget filebox)
 
       if (!iupStrBoolean(value))
       {
-        iupShowError(ih, "IUP_FILENOTEXIST");
+        IupMessageError(ih, "IUP_FILENOTEXIST");
         return 0;
       }
     }
@@ -289,7 +289,7 @@ static void motFileDlgCallback(Widget filebox, Ihandle* ih, XmFileSelectionBoxCa
 
       if (!motFileDlgGetMultipleFiles(ih, iupAttribGet(ih, "DIRECTORY"), wList))
       {
-        iupShowError(ih, "IUP_FILENOTEXIST");
+        IupMessageError(ih, "IUP_FILENOTEXIST");
         return; /* do not update STATUS */
       }
 
@@ -345,7 +345,7 @@ static void motFileDlgCallback(Widget filebox, Ihandle* ih, XmFileSelectionBoxCa
       char* dir;
       XtVaGetValues(filebox, XmNdirectory, &xm_dir, NULL);
       XmStringGetLtoR(xm_dir, XmSTRING_DEFAULT_CHARSET, &dir);
-      iupUnixSetCurrentDirectory(dir);
+      iupdrvSetCurrentDirectory(dir);
       XtFree(dir);
     }
   }
@@ -679,7 +679,7 @@ static int motFileDlgPopup(Ihandle* ih, int x, int y)
       char* dir = iupAttribGet(ih, "DIRECTORY");
       if (!dir)
       {
-        cur_dir = iupUnixGetCurrentDirectory();
+        cur_dir = iupdrvGetCurrentDirectory();
         dir = cur_dir;
       }
 

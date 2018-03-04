@@ -35,6 +35,7 @@
 
 <h3><a name="Creation">Creation</a></h3>
 <pre>Ihandle* IupParamBox(Ihandle *<strong>param</strong>, ...); [in C]
+Ihandle* IupParamBoxV(Ihandle* <strong>param</strong>, va_list <strong>arglist</strong>); [in C]
 Ihandle* IupParamBoxv(Ihandle **<strong>param_array</strong>); [in C]
 iup.parambox{<strong>param</strong>, ...: ihandle} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
 parambox(<strong>param</strong>, ...) [in LED]</pre>
@@ -53,7 +54,8 @@ parambox(<strong>param</strong>, ...) [in LED]</pre>
 BUTTON2</strong>, <strong>BUTTON3</strong> [read-only]: returns an IUP Ihandle* 
 of the respective button in the button box.</p>
 <p><strong>PARAM<em>n </em></strong>[read-only]: returns an IUP Ihandle* representing the n<sup>th</sup> parameter, indexed 
-    by the declaration order, not counting separators or button names.</p>
+    by the declaration order, not counting separators or button names. n starts 
+at 0.</p>
 <p><strong>PARAMCOUNT</strong> [read-only]: returns the number of parameters 
 not counting separators and button names.</p>
 <p><strong>STATUS</strong> [read-only]: set to 1 when button1 is activated, and set to 0 when button2 is 

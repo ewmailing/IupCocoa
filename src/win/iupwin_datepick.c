@@ -82,7 +82,8 @@ static char* winDatePickGetValueAttrib(Ihandle* ih)
 
 static int winDatePickSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {

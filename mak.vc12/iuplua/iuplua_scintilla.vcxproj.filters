@@ -16,12 +16,18 @@
     <ClCompile Include="..\..\srclua5\ctrl\il_scintilla.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_scintilladlg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\srclua5\ctrl\iuplua_scintilla.def">
       <Filter>Source Files</Filter>
     </None>
     <None Include="..\..\srclua5\ctrl\scintilla.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\scintilladlg.lua">
       <Filter>Lua</Filter>
     </None>
   </ItemGroup>

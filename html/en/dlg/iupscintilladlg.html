@@ -1,0 +1,296 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupScintillaDlg</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	border-width: 0;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupScintillaDlg<font size="4"> (since 3.22)</font></h2>
+<p>Creates a notepad dialog using the <a href="../ctrl/iup_scintilla.html">
+IupScintilla</a> control. It is a predefined dialog for 
+  a text notepad. The dialog can be shown with <strong>IupShow</strong>, <strong>IupShowXY</strong> 
+or <strong>IupPopup</strong>.</p>
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupScintillaDlg(void); [in C]
+iup.scintilladlg{} -&gt; (<strong>elem</strong>: ihandle) [in Lua]
+scintilladlg() [in LED]</pre>
+<p><u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+<p>Supports all the <a href="iupdialog.html#Attributes">IupDialog</a> attributes. 
+But some attributes where changed to configure the dialog and the dialog has 
+innumerous children to compose the notepad.</p>
+<hr>
+<p>New attributes. All non inheritable.</p>
+<p><strong>SUBTITLE</strong>: partial title to be used in dialog title along 
+with the current file name title.</p>
+<p><strong>UPDATETITLE</strong> (write-only): force an update of the dialog 
+title. (since 3.23)</p>
+<p><strong>CONFIG</strong>: name of a <a href="../func/iupconfig.html">IupConfig</a> resource to 
+be used for persistency of menu options and recent file list. Must be set before 
+map. This will trigger the CONFIGLOAD_CB callback (since 3.23).</p>
+<p><strong>CONFIG_HANDLE</strong>: Ihandle of the IupConfig resource.</p>
+<p><strong>NEWFILE</strong> (write-only): clear the text contents and initialize 
+a new file.</p>
+<p><strong>OPENFILE</strong> (write-only): opens a file using the value as 
+filename. If value is NULL works as NEWFILE.</p>
+<p><strong>SAVEFILE</strong> (write-only): saves a file using the value as 
+filename. If value is NULL uses the current file name.</p>
+<p><strong>CLOSEFILE</strong> (write-only): closes a file checking if it is 
+saved. (since 3.23)</p>
+<p><strong>FORCECLOSEFILE</strong> (write-only): force a file to close with no 
+save check. (since 3.23)</p>
+<p><strong>EXTRAFILTERS</strong>: additional filters for File Open and File Save 
+As dialogs in the same format as the IupFileDlg EXTFILTER attribute. The filters 
+will be concatenated at start with the existing filters: "Text Files|*.txt|All 
+Files|*.*|".</p>
+<p><strong>TOGGLEMARKER<em>id</em></strong> (write-only): toggles the state of a 
+marker given its line number as id, and margin as value.</p>
+<h3><a name="Callbacks">Callbacks</a></h3>
+<p>Supports all the <a href="iupdialog.html#Callbacks">IupDialog</a> callbacks.</p>
+
+
+<hr>
+
+<p>New callbacks.</p>
+
+  
+<p><strong>EXIT_CB</strong>:
+  Action generated when the dialog is closing. Called at the last moment after 
+the dialog is already hidden.</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>); [in C]<br><strong>elem</strong>:exit_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+<p><strong>NEWTEXT_CB</strong>: Called when a new document is created. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, char* <strong>old_filename</strong>, char* <strong>new_filename</strong>); [in C]<br><strong>elem</strong>:newtext_cb(<strong>old_filename</strong>, <strong>new_filename</strong>: string) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>old_filename</strong>: previous file name.<br><strong>
+new_filename</strong>: current filename.</p>
+<p><strong>CLOSETEXT_CB</strong>: Called when a document is closed. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>); [in C]<br><strong>elem</strong>:closetext_cb(<strong>multitext</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.</p>
+
+  
+<p><strong>NEWFILENAME_CB</strong>: Called after the filename of document was 
+changed by "Save As" or "Rename". (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>); [in C]<br><strong>elem</strong>:newfilename_cb(<strong>multitext</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.</p>
+
+  
+<p><strong>MARKERCHANGED_CB</strong>:
+  Action generated when a marker is changed in a margin (interactively or 
+programmatically).</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>, int <strong>lin</strong>, int <strong>margin</strong>); [in C]<br><strong>elem</strong>:markerchanged_cb(<strong>multitext</strong>: ihandle, <strong>lin</strong>, <strong>margin</strong>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.<br><strong>lin</strong>: line number where the marker was changed 
+(starts at 0).<br>
+<strong>margin</strong>: which margin was affected.</p>
+
+  
+<p><strong>RESTOREMARKERS_CB</strong>: Called when the markers in the Scitilla 
+editor are being restored from the configuration file. By default only bookmarks 
+are handled.</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>); [in C]<br><strong>elem</strong>:restoremarkers_cb(<strong>multitext</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.</p>
+<p><strong>SAVEMARKERS_CB</strong>: Called when the markers in the Scitilla 
+editor are about to be saved in the configuration file. By default only 
+bookmarks are handled.</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>); [in C]<br><strong>elem</strong>:savemarkers_cb(<strong>multitext</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.</p>
+<p><strong>CONFIGLOAD_CB</strong>: Called when the configuration file was set, 
+and supposedly loaded. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>); [in C]<br><strong>elem</strong>:configload_cb(<strong>multitext</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.</p>
+<p><strong>CONFIGSAVE_CB</strong>: Called when the configuration file is about 
+to be saved. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle*<strong> ih</strong>, Ihandle* <strong>multitext</strong>); [in C]<br><strong>elem</strong>:configsave_cb(<strong>multitext</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>multitext</strong>: identifier of the scintilla element that 
+is affected.</p>
+
+  
+<h3><a name="Notes">Notes</a></h3>
+<p>The dialog can be freely customized to incorporate other menu items or 
+controls. </p>
+<p>The dialog explores many <strong>IupScintilla</strong> features and made them 
+available through the menus. The screenshots bellow illustrates some of them.</p>
+<p>In IUP version 3.23 we added support for <strong>Projects</strong>. This is a 
+configuration file that stores a list of files that can be easily accessed from 
+a list. When a configuration file is active the bookmarks are also saved in the 
+project file instead of the global configuration file. When it is created or 
+opened the list of files is shown at left. There the user can double click to 
+open a file. Files can be added from new files, from existing files, and from 
+already open files. When a non blank project is created it inherits all the 
+current global configurations and the current opened files are automatically 
+added to the project. Only files that are saved can be added to the project. 
+Project files must be manually saved only when a files is added or removed from 
+the project, when other parameters are changed the project file is automatically 
+saved.</p>
+<h3><a name="Examples">Examples</a></h3>
+<pre>static int item_help_action_cb(void)
+{
+  IupHelp("http://www.tecgraf.puc-rio.br/iup");
+  return IUP_DEFAULT;
+}
+
+static int item_about_action_cb(void)
+{
+  IupMessage("About", "   Scintilla Notepad\n\nAutors:\n   Camilo Freire\n   Antonio Scuri");
+  return IUP_DEFAULT;
+}
+
+int main(int argc, char **argv)
+{
+  Ihandle *main_dialog;
+  Ihandle *config;
+  Ihandle *menu;
+
+  IupOpen(&argc, &argv);
+  IupImageLibOpen();
+
+  IupScintillaOpen();
+
+  config = IupConfig();
+  IupSetAttribute(config, "APP_NAME", "scintilla_notepad");
+  IupConfigLoad(config);
+
+  main_dialog = IupScintillaDlg();
+
+  IupSetAttributeHandle(main_dialog, "CONFIG", config);
+  IupSetAttribute(main_dialog, "SUBTITLE", "Scintilla Notepad");
+
+  menu = IupGetAttributeHandle(main_dialog, "MENU");
+  IupAppend(menu, IupSubmenu("&Help", IupMenu(
+    IupSetCallbacks(IupItem("&Help...", NULL), "ACTION", (Icallback)item_help_action_cb, NULL),
+    IupSetCallbacks(IupItem("&About...", NULL), "ACTION", (Icallback)item_about_action_cb, NULL),
+    NULL)));
+
+  /* show the dialog at the last position, with the last size */
+  IupConfigDialogShow(config, main_dialog, "MainWindow");
+
+  /* initialize the current file */
+  IupSetAttribute(main_dialog, "NEWFILE", NULL);
+
+  /* open a file from the command line (allow file association in Windows) */
+  if (argc > 1 && argv[1])
+  {
+    const char* filename = argv[1];
+    IupSetStrAttribute(main_dialog, "OPENFILE", filename);
+  }
+
+  IupMainLoop();
+
+  IupClose();
+  return EXIT_SUCCESS;
+}
+</pre>
+<div align="center">
+  <center>
+  <table border="0" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" id="AutoNumber1">
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/scintilladlg.png"><br>
+	  View menu and dialog overview<br></td>
+    </tr>
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/scintilladlg1.png"><br>
+	  Edit menu<br></td>
+    </tr>
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/scintilladlg2.png"><br>
+	  Blank Operations</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<h3><a name="SeeAlso">See Also</a></h3>
+<p>
+<a href="../ctrl/iup_scintilla.html">
+IupScintilla</a>,
+<a href="iupdialog.html">IupDialog</a></p>
+
+</body>
+
+</html>

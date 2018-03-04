@@ -328,10 +328,10 @@ void FlatButtonTest(void)
   IupAppend(box1, button);
 
   button = IupFlatButton(NULL);
-  IupSetAttribute(button, "TITLE", "Text\n<b>Second Line</b>");
+  IupSetAttribute(button, "TITLE", "Text\nSecond Line");
   IupSetAttribute(button, "RASTERSIZE", "200x100");
-  IupSetAttribute(button, "ALIGNMENT", "ARIGHT:ABOTTOM");
-  IupSetAttribute(button, "MARKUP", "YES");
+  IupSetAttribute(button, "TEXTALIGNMENT", "ACENTER");
+//  IupSetAttribute(button, "ALIGNMENT", "ARIGHT:ABOTTOM");
   IupSetAttribute(button, "NAME", "button3");
   IupSetAttribute(button, "CANFOCUS", "NO");
   if (toggle) IupSetAttribute(button, "TOGGLE", "Yes");

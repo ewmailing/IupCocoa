@@ -11,6 +11,8 @@
 #include "iup.h"
 #include "iupcbs.h"
 
+#include "iup_str.h"
+
 #include "iupmot_drv.h"
 
 
@@ -64,7 +66,9 @@ static int motLoopProcessEvent(void)
 
 void IupExitLoop(void)
 {
-  mot_exitmainloop = 1;
+  char* exit_loop = IupGetGlobal("EXITLOOP");
+  if (mot_mainloop > 1 || !exit_loop || iupStrBoolean(exit_loop))
+    mot_exitmainloop = 1;
 }
 
 int IupMainLoopLevel(void)

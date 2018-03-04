@@ -38,7 +38,7 @@ static inline void iPlotDrawRotatedText(cdCanvas* canvas, double inX, double inY
   cdCanvasTextOrientation(canvas, theOldOrientation);
 }
 
-static inline void iPlotDrawRect(cdCanvas* canvas, int inX, int inY, int inW, int inH)
+static inline void iPlotDrawRectI(cdCanvas* canvas, int inX, int inY, int inW, int inH)
 {
   cdCanvasRect(canvas, inX, inX + inW - 1, inY, inY + inH - 1);
 }
@@ -58,7 +58,7 @@ static inline void iPlotDrawSector(cdCanvas* canvas, double inX, double inY, dou
   cdfCanvasSector(canvas, inX, inY, inW, inH, inStartAngle, inEndAngle);
 }
 
-static void iPlotFillArrow(cdCanvas* canvas, int inX1, int inY1, int inX2, int inY2, int inX3, int inY3)
+static void iPlotFillArrowI(cdCanvas* canvas, int inX1, int inY1, int inX2, int inY2, int inX3, int inY3)
 {
   cdCanvasBegin(canvas, CD_FILL);
   cdCanvasVertex(canvas, inX1, inY1);
@@ -81,7 +81,7 @@ static void iPlotDrawArrow(cdCanvas* canvas, double inX, double inY, int inVerti
 
     int theY1 = iupPlotRound(inY + inDirection*inSize);
     int theY2 = theY1 - inDirection*theSizeDir;
-    iPlotFillArrow(canvas, theX, theY1,
+    iPlotFillArrowI(canvas, theX, theY1,
                    theX - theSizeDir, theY2,
                    theX + theSizeDir, theY2);
   }
@@ -91,7 +91,7 @@ static void iPlotDrawArrow(cdCanvas* canvas, double inX, double inY, int inVerti
 
     int theX1 = iupPlotRound(inX + inDirection*inSize);
     int theX2 = theX1 - inDirection*theSizeDir;
-    iPlotFillArrow(canvas, theX1, theY,
+    iPlotFillArrowI(canvas, theX1, theY,
                    theX2, theY - theSizeDir,
                    theX2, theY + theSizeDir);
   }
@@ -178,7 +178,7 @@ void iupPlotBox::Draw(const iupPlotRect &inRect, cdCanvas* canvas) const
   cdCanvasSetForeground(canvas, mColor);
   iPlotSetLine(canvas, mLineStyle, mLineWidth);
 
-  iPlotDrawRect(canvas, inRect.mX, inRect.mY, inRect.mWidth, inRect.mHeight);
+  iPlotDrawRectI(canvas, inRect.mX, inRect.mY, inRect.mWidth, inRect.mHeight);
 }
 
 bool iupPlotGrid::DrawX(iupPlotTickIterBase* inTickIter, iupPlotTrafoBase* inTrafo, const iupPlotRect &inRect, cdCanvas* canvas) const
@@ -234,14 +234,8 @@ bool iupPlotGrid::DrawY(iupPlotTickIterBase* inTickIter, iupPlotTrafoBase* inTra
   return true;
 }
 
-bool iupPlotAxis::DrawX(const iupPlotRect &inRect, cdCanvas* canvas, const iupPlotAxis& inAxisY) const
+double iupPlotAxis::GetScreenYOriginX(const iupPlotAxis& inAxisY) const
 {
-  if (!mShow)
-    return true;
-
-  cdCanvasSetForeground(canvas, mColor);
-  iPlotSetLine(canvas, CD_CONTINUOUS, mLineWidth);
-
   double theTargetY = 0;
   if (!mCrossOrigin)
   {
@@ -253,7 +247,18 @@ bool iupPlotAxis::DrawX(const iupPlotRect &inRect, cdCanvas* canvas, const iupPl
   if (inAxisY.mDiscrete)
     theTargetY -= 0.5;
 
-  double theScreenY = inAxisY.mTrafo->Transform(theTargetY);
+  return inAxisY.mTrafo->Transform(theTargetY);
+}
+
+bool iupPlotAxis::DrawX(const iupPlotRect &inRect, cdCanvas* canvas, const iupPlotAxis& inAxisY) const
+{
+  if (!mShow)
+    return true;
+
+  cdCanvasSetForeground(canvas, mColor);
+  iPlotSetLine(canvas, CD_CONTINUOUS, mLineWidth);
+
+  double theScreenY = GetScreenYOriginX(inAxisY);
   double theScreenX1 = inRect.mX;
   double theScreenX2 = theScreenX1 + inRect.mWidth;
 
@@ -360,14 +365,8 @@ bool iupPlotAxis::DrawXTick(double inX, double inScreenY, bool inMajor, const ch
   return true;
 }
 
-bool iupPlotAxis::DrawY(const iupPlotRect &inRect, cdCanvas* canvas, const iupPlotAxis& inAxisX) const
+double iupPlotAxis::GetScreenXOriginY(const iupPlotAxis& inAxisX) const
 {
-  if (!mShow)
-    return true;
-
-  cdCanvasSetForeground(canvas, mColor);
-  iPlotSetLine(canvas, CD_CONTINUOUS, mLineWidth);
-
   double theTargetX = 0;
   if (!mCrossOrigin)
   {
@@ -379,7 +378,18 @@ bool iupPlotAxis::DrawY(const iupPlotRect &inRect, cdCanvas* canvas, const iupPl
   if (inAxisX.mDiscrete)
     theTargetX -= 0.5;
 
-  double theScreenX = inAxisX.mTrafo->Transform(theTargetX);
+  return inAxisX.mTrafo->Transform(theTargetX);
+}
+
+bool iupPlotAxis::DrawY(const iupPlotRect &inRect, cdCanvas* canvas, const iupPlotAxis& inAxisX) const
+{
+  if (!mShow)
+    return true;
+
+  cdCanvasSetForeground(canvas, mColor);
+  iPlotSetLine(canvas, CD_CONTINUOUS, mLineWidth);
+
+  double theScreenX = GetScreenXOriginY(inAxisX);
   double theScreenY1 = inRect.mY;
   double theScreenY2 = theScreenY1 + inRect.mHeight;
 
@@ -741,7 +751,7 @@ bool iupPlot::DrawLegend(const iupPlotRect &inRect, cdCanvas* canvas, iupPlotRec
 
       cdCanvasSetForeground(canvas, mLegend.mBoxColor);
       iPlotSetLine(canvas, mLegend.mBoxLineStyle, mLegend.mBoxLineWidth);
-      iPlotDrawRect(canvas, theScreenX, theScreenY, theMaxWidth, theTotalHeight);
+      iPlotDrawRectI(canvas, theScreenX, theScreenY, theMaxWidth, theTotalHeight);
     }
 
     for (ds = 0; ds < mDataSetListCount; ds++)
@@ -891,7 +901,7 @@ bool iupPlot::DrawSampleColorLegend(iupPlotDataSet *dataset, const iupPlotRect &
 
       cdCanvasSetForeground(canvas, mLegend.mBoxColor);
       iPlotSetLine(canvas, mLegend.mBoxLineStyle, mLegend.mBoxLineWidth);
-      iPlotDrawRect(canvas, theScreenX, theScreenY, theMaxWidth, theTotalHeight);
+      iPlotDrawRectI(canvas, theScreenX, theScreenY, theMaxWidth, theTotalHeight);
     }
 
     for (int i = 0; i < theCount; i++)
@@ -1045,6 +1055,8 @@ void iupPlotDataSet::DrawDataMark(const iupPlotTrafoBase *inTrafoX, const iupPlo
 
 void iupPlotDataSet::DrawDataStem(const iupPlotTrafoBase *inTrafoX, const iupPlotTrafoBase *inTrafoY, cdCanvas* canvas, const iupPlotSampleNotify* inNotify, bool inShowMark) const
 {
+  double theScreenY0 = inTrafoY->Transform(0);
+
   int theCount = mDataX->GetCount();
   for (int i = 0; i < theCount; i++)
   {
@@ -1052,7 +1064,6 @@ void iupPlotDataSet::DrawDataStem(const iupPlotTrafoBase *inTrafoX, const iupPlo
     double theY = mDataY->GetSample(i);
     double theScreenX = inTrafoX->Transform(theX);
     double theScreenY = inTrafoY->Transform(theY);
-    double theScreenY0 = inTrafoY->Transform(0.0);
 
     if (inNotify->cb)
       inNotify->cb(inNotify->ih, inNotify->ds, i, theX, theY, (int)mSelection->GetSampleBool(i));
@@ -1206,6 +1217,9 @@ void iupPlotDataSet::DrawDataBar(const iupPlotTrafoBase *inTrafoX, const iupPlot
     if (inNotify->cb)
       inNotify->cb(inNotify->ih, inNotify->ds, i, theX, theY, (int)mSelection->GetSampleBool(i));
 
+    if (theBarHeight == 0)
+      continue;
+
     if (mBarMulticolor)
       cdCanvasSetForeground(canvas, iPlotGetSampleColorTable(inNotify->ih, i));
 
@@ -1252,6 +1266,9 @@ void iupPlotDataSet::DrawDataHorizontalBar(const iupPlotTrafoBase *inTrafoX, con
     if (inNotify->cb)
       inNotify->cb(inNotify->ih, inNotify->ds, i, theX, theY, (int)mSelection->GetSampleBool(i));
 
+    if (theBarWidth == 0)
+      continue;
+
     if (mBarMulticolor)
       cdCanvasSetForeground(canvas, iPlotGetSampleColorTable(inNotify->ih, i));
 
@@ -1297,6 +1314,9 @@ void iupPlotDataSet::DrawDataMultiBar(const iupPlotTrafoBase *inTrafoX, const iu
 
     if (inNotify->cb)
       inNotify->cb(inNotify->ih, inNotify->ds, i, theX, theY, (int)mSelection->GetSampleBool(i));
+
+    if (theBarHeight == 0)
+      continue;
 
     iPlotDrawBox(canvas, theBarX, theScreenY0, theBarWidth, theBarHeight);
 

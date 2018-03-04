@@ -24,17 +24,17 @@ extern "C" {
 
 /* SIZE to RASTERSIZE
  * \ingroup object */
-#define iupWIDTH2RASTER(_w, _cw) ((int)((_w * _cw)/4.0 + 0.5))
+#define iupWIDTH2RASTER(_w, _cw) iupRound((_w * _cw)/4.0)
 /* SIZE to RASTERSIZE
  * \ingroup object */
-#define iupHEIGHT2RASTER(_h, _ch) ((int)((_h * _ch)/8.0 + 0.5))
+#define iupHEIGHT2RASTER(_h, _ch) iupRound((_h * _ch)/8.0)
 
 /* RASTERSIZE to SIZE
  * \ingroup object */
-#define iupRASTER2WIDTH(_w, _cw) ((int)((_w * 4.0)/_cw + 0.5))
+#define iupRASTER2WIDTH(_w, _cw) iupRound((_w * 4.0)/_cw)
 /* RASTERSIZE to SIZE
  * \ingroup object */
-#define iupRASTER2HEIGHT(_h, _ch) ((int)((_h * 8.0)/_ch + 0.5))
+#define iupRASTER2HEIGHT(_h, _ch) iupRound((_h * 8.0)/_ch)
 
 
 /** Expand configuration

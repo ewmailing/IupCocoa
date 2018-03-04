@@ -41,7 +41,8 @@ int action(Ihandle *ih, float posx, float posy)
 int scroll_cb(Ihandle *ih, int op, float posx, float posy)
 {
   (void)op;
-  action(ih, posx, posy);
+  action(ih, posx, posy); /* works only with CD and OpenGL */
+  /* IupUpdate(ih) */
   return IUP_DEFAULT;
 }
 
@@ -51,10 +52,6 @@ int resize_cb(Ihandle *ih, int w, int h)
   IupSetfAttribute(ih, "DX", "%d", w);
   IupSetfAttribute(ih, "DY", "%d", h);
   
-  /* refresh scrollbar in IUP 2.x */
-  IupStoreAttribute(ih, "POSX", IupGetAttribute(ih, "POSX"));
-  IupStoreAttribute(ih, "POSY", IupGetAttribute(ih, "POSY"));
-
   if (!cdcanvas)
     return IUP_DEFAULT;
 

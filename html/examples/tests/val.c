@@ -22,7 +22,7 @@ static void print_value(Ihandle *ih, double a)
   }
 
   IupSetfAttribute(ih, "TIP", "%.2f", a);
-  IupSetfAttribute(ih, "TIPVISIBLE", "Yes");
+  IupSetAttribute(ih, "TIPVISIBLE", "Yes");
 }
 
 static int mousemove(Ihandle *ih, double a)

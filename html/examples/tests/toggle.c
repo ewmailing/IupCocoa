@@ -243,7 +243,7 @@ void ToggleTest(void)
   IupSetAttribute(toggle1, "IMINACTIVE", "image1i");
   IupSetAttribute(toggle1, "NAME", "1");
   //  IupSetAttribute(toggle1, "FLAT", "Yes");
-  //  IupSetAttribute(toggle1, "PADDING",   "10x10");            
+    IupSetAttribute(toggle1, "PADDING",   "10x10");            
 //  IupSetAttribute(toggle1, "RASTERSIZE",   "160x160");
   //  IupSetAttribute(toggle1, "CANFOCUS", "NO");
   //  IupSetAttribute(toggle1, "ALIGNMENT",   "ARIGHT");

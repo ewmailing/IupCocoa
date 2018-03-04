@@ -80,8 +80,6 @@ char* iupmotGetXWindowAttrib(Ihandle *ih);
 /* Unix Info */
 int iupUnixIsFile(const char* name);
 int iupUnixIsDirectory(const char* name);
-int iupUnixSetCurrentDirectory(const char* dir);
-char* iupUnixGetCurrentDirectory(void);
 int iupUnixMakeDirectory(const char* name);
 
 

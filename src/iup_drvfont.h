@@ -38,6 +38,10 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str);
  * \ingroup drvfont */
 void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h);
 
+/** Same as \ref iupdrvFontGetMultiLineStringSize but not associated with a control. \n
+*\ingroup drvfont */
+void iupdrvFontGetTextSize(const char* font, const char* str, int *w, int *h);
+
 /** Returns the System default font.
  * \ingroup drvfont */
 char* iupdrvGetSystemFont(void);

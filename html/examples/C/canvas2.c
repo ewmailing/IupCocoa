@@ -65,9 +65,9 @@ int motion_cb(Ihandle* self, int x, int y)
 
 int scroll_cb(Ihandle* self)
 {
-  redraw_cb(self,0.0,0.0);
-	
-  return IUP_DEFAULT;	
+  redraw_cb(self, 0.0, 0.0); /* works only with CD and OpenGL */
+  /* IupUpdate(ih) */
+  return IUP_DEFAULT;
 }
 
 int enter_cb(Ihandle* self)

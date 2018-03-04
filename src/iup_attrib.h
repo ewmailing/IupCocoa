@@ -137,6 +137,11 @@ char* iupAttribGetStr(Ihandle* ih, const char* name);
  * \ingroup attrib */
 int iupAttribGetInt(Ihandle* ih, const char* name);
 
+/** Same as \ref iupAttribGetInt but returns two integer numbers. \n
+ * Returns the number of valid integers: 0, 1 or 2.
+ * \ingroup attrib */
+int iupAttribGetIntInt(Ihandle *ih, const char* name, int *i1, int *i2, char sep);
+
 /** Same as \ref iupAttribGetStr but checks for boolean values.
  * Use \ref iupStrBoolean.
  * \ingroup attrib */

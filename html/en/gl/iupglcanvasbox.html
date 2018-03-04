@@ -51,6 +51,7 @@ EXPANDHORIZONTAL or EXPANDVERTICAL are set.</p>
 <h3><a name="Creation">Creation</a></h3>
 <div>
   <pre>Ihandle* IupGLCanvasBox(Ihandle *<strong>child</strong>, ...); [in C]
+Ihandle* IupGLCanvasBoxV(Ihandle* <strong>child</strong>, va_list <strong>arglist</strong>); [in C]
 Ihandle* IupGLCanvasBoxv(Ihandle **<strong>children</strong>); [in C]
 iup.glcanvasbox{<strong>child</strong>, ...: ihandle} -&gt; (<strong>elem</strong>: ihandle) [in Lua]
 glcanvasbox(<strong>child</strong>, ...) [in LED]</pre>
@@ -110,12 +111,14 @@ POSITION</a> attribute.</p>
 
 
 <p><strong>EXPANDHORIZONTAL</strong> (<font SIZE="3">non inheritable</font>) <strong>(at children only)</strong>:
-  Expand the horizontal size of the element to the box width. Can be Yes or No. 
+  Expand the horizontal size of the element to the box width. Works only if 
+EXPAND=Yes or HORIZONTAL. Can be Yes or No. 
 Default: No. (since 3.13)</p>
 
 
 <p><strong>EXPAND<span lang="pt-br">VERTICAL</span></strong> (<font SIZE="3">non inheritable</font>) <strong>(at children only)</strong>:
-  Expand the vertical size of the element to the box height. Can be Yes or No. 
+  Expand the vertical size of the element to the box height. Works only if 
+EXPAND=Yes or VERTICAL. Can be Yes or No. 
 Default: No. (since 3.13)</p>
 
 <h3><a name="Callbacks">Callbacks</a></h3>

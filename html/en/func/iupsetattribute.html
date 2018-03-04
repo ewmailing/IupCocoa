@@ -55,18 +55,21 @@ will be used.</p>
 <h3>Utility Functions </h3>
 <p>These functions can also be used to set attributes from the element:</p>
 <pre>void IupSetStrf  (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, const char* <strong>format</strong>, ...);
+void IupSetStrfV (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, const char* <strong>format</strong>, va_list <strong>arglist</strong>);
 void IupSetInt   (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>value</strong>);
 void IupSetFloat (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, float <strong>value</strong>);
 void IupSetDouble(Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, double <strong>value</strong>);
 void IupSetRGB   (Ihandle *<strong>ih</strong>, const char* <strong>name</strong>, unsigned char <strong>r</strong>, unsigned char <strong>g</strong>, unsigned char <strong>b</strong>);
 
 void IupSetStrfId  (Ihandle *<strong>ih</strong>, const char* <strong>name</strong>, int <strong>id</strong>, const char* <strong>format</strong>, ...);
+void IupSetStrfIdV (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>id</strong>, const char* <strong>format</strong>, va_list <strong>arglist</strong>);
 void IupSetIntId   (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>id</strong>, int <strong>value</strong>);
 void IupSetFloatId (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>id</strong>, float <strong>value</strong>);
 void IupSetDoubleId(Ihandle* <strong>ih</strong>, const char* <strong>name, </strong>int<strong> id, </strong>double <strong>value</strong>);
 void IupSetRGBId   (Ihandle *<strong>ih</strong>, const char* <strong>name, </strong>int<strong> id</strong>, unsigned char <strong>r</strong>, unsigned char <strong>g</strong>, unsigned char <strong>b</strong>);
 
 void IupSetStrfId2  (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>lin</strong>, int <strong>col</strong>, const char* <strong>format</strong>, ...);
+void IupSetStrfId2V (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>lin</strong>, int <strong>col</strong>, const char* <strong>format</strong>, va_list <strong>arglist</strong>);
 void IupSetIntId2   (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>lin</strong>, int <strong>col</strong>, int <strong>value</strong>);
 void IupSetFloatId2 (Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>lin</strong>, int <strong>col</strong>, float <strong>value</strong>);
 void IupSetDoubleId2(Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>lin</strong>, int <strong>col</strong>, double <strong>value</strong>);

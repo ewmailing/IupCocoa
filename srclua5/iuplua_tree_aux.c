@@ -24,10 +24,7 @@
 /* iup.TREEREFTABLE[object at pos] = ref */
 static void tree_settableref(lua_State *L, int pos, int ref)
 {
-  iuplua_get_env(L);
-  lua_pushstring(L, "TREEREFTABLE");
-  lua_gettable(L, -2);
-  lua_remove(L, -2); /* remove iup table from stack */
+  iuplua_push_name(L, "TREEREFTABLE");
 
   lua_pushvalue(L, pos);
   if(ref == LUA_NOREF)
@@ -41,10 +38,7 @@ static void tree_settableref(lua_State *L, int pos, int ref)
 /* ref = iup.TREEREFTABLE[object at pos] */
 static int tree_gettableref(lua_State *L, int pos)
 {
-  iuplua_get_env(L);
-  lua_pushstring(L, "TREEREFTABLE");
-  lua_gettable(L, -2);
-  lua_remove(L, -2); /* remove iup table from stack */
+  iuplua_push_name(L, "TREEREFTABLE");
 
   lua_pushvalue(L, pos);
   lua_gettable(L, -2);

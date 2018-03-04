@@ -58,6 +58,7 @@ tree() [in LED]</pre>
 <p class="info"><strong>ADDEXPANDED<br>ADDROOT<br>AUTOREDRAW<br>
 BGCOLOR<br>
 CANFOCUS<br>
+PROPAGATEFOCUS<br>
 COUNT<br>
 DRAGDROPTREE<br>
 <strong style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
@@ -239,7 +240,9 @@ below to associate a user data to a node and to find a node given its user data.
 <p>In Windows, IMAGELEAF, IMAGEBRANCHCOLLAPSED and IMAGEBRANCHEXPANDED must have 
 the same size. In other systems only IMAGEBRANCHCOLLAPSED and IMAGEBRANCHEXPANDED 
 must have the same size. In Windows, IMAGELEAF defines the size available for 
-the image on all node.</p>
+the image on all nodes.</p>
+<p>IMGEMPTY can be used as branches or leafs to clear the image (a totally 
+transparent image) and reduce the image horizontal space by half. (since 3.23)</p>
 <h4>Simple Marking</h4>
 <p>It is the default operation mode (MARKMODE=SINGLE). In this mode only one node can 
 be selected.</p>

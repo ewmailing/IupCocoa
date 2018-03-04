@@ -90,7 +90,7 @@
     <ClCompile Include="..\src\gtk\iupgtk_calendar.c" />
     <ClCompile Include="..\src\gtk\iupgtk_common.c" />
     <ClCompile Include="..\src\gtk\iupgtk_dragdrop.c" />
-    <ClCompile Include="..\src\gtk\iupgtk_draw.c">
+    <ClCompile Include="..\src\gtk\iupgtk_draw_gdk.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -102,6 +102,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_info.c" />
     <ClCompile Include="..\src\gtk\iupgtk_key.c" />
     <ClCompile Include="..\src\gtk\iupgtk_loop.c" />
     <ClCompile Include="..\src\gtk\iupgtk_open.c" />
@@ -110,7 +111,6 @@
     <ClCompile Include="..\src\gtk\iupgtk_button.c" />
     <ClCompile Include="..\src\gtk\iupgtk_canvas.c" />
     <ClCompile Include="..\src\gtk\iupgtk_clipboard.c" />
-    <ClCompile Include="..\src\gtk\iupgtk_colordlg.c" />
     <ClCompile Include="..\src\gtk\iupgtk_dialog.c" />
     <ClCompile Include="..\src\gtk\iupgtk_filedlg.c" />
     <ClCompile Include="..\src\gtk\iupgtk_fontdlg.c" />
@@ -140,12 +140,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\mot\iupx11_info.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\gtk\iupgtk_drv.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\iupgtk.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

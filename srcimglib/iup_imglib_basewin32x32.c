@@ -43,6 +43,9 @@ void iupImglibBaseLibWin32x32Open(void)
   iupImageStockSet("IUP_MediaReverse", load_image_MediaReverse, 0);
   iupImageStockSet("IUP_MediaRewind", load_image_MediaRewind, 0);
   iupImageStockSet("IUP_MediaStop", load_image_MediaStop, 0);
+  iupImageStockSet("IUP_MessageError", load_image_MessageError, 0);
+  iupImageStockSet("IUP_MessageHelp", load_image_MessageHelp, 0);
+  iupImageStockSet("IUP_MessageInfo", load_image_MessageInfo, 0);
   iupImageStockSet("IUP_NavigateHome", load_image_NavigateHome, 0);
   iupImageStockSet("IUP_NavigateRefresh", load_image_NavigateRefresh, 0);
   iupImageStockSet("IUP_Print", load_image_Print, 0);
@@ -56,10 +59,7 @@ void iupImglibBaseLibWin32x32Open(void)
   iupImageStockSet("IUP_ZoomIn", load_image_ZoomIn, 0);
   iupImageStockSet("IUP_ZoomOut", load_image_ZoomOut, 0);
   iupImageStockSet("IUP_ZoomSelection", load_image_ZoomSelection, 0);
-  iupImageStockSet("IUP_MessageError", load_image_MessageError, 0);
-  iupImageStockSet("IUP_MessageHelp", load_image_MessageHelp, 0);
-  iupImageStockSet("IUP_MessageInfo", load_image_MessageInfo, 0);
-
+  
   iupImageStockSet("IUP_Webcam", load_image_Webcam, 0);
 
 #ifdef IUP_IMGLIB_OLD

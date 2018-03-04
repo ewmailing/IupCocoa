@@ -66,6 +66,8 @@ static char* iFrameGetClientOffsetAttrib(Ihandle* ih)
   So we must manually add the decorations. */
   if (!iupdrvFrameHasClientOffset())
   {
+    /* GTK and Motif Only */
+
     iupdrvFrameGetDecorOffset(&dx, &dy);
 
     if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
@@ -139,6 +141,7 @@ static void iFrameSetChildrenPositionMethod(Ihandle* ih, int x, int y)
     So we must manually add the decorations. */
     if (iupdrvFrameHasClientOffset())
     {
+      /* Windows Only */
       int dx = 0, dy = 0;
       iupdrvFrameGetDecorOffset(&dx, &dy);
 
@@ -190,6 +193,7 @@ Iclass* iupFrameNewClass(void)
   /* Common Callbacks */
   iupClassRegisterCallback(ic, "MAP_CB", "");
   iupClassRegisterCallback(ic, "UNMAP_CB", "");
+  iupClassRegisterCallback(ic, "FOCUS_CB", "i");
 
   /* Common */
   iupBaseRegisterCommonAttrib(ic);

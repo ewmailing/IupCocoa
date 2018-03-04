@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 
   IupImageLibOpen();
 
-  IupSetAttribute(btn_restart, "IMAGE", "IUP_MediaGotoBegin");
+  IupSetAttribute(btn_restart, "IMAGE", "IUP_MediaGoToBegin");
   IupSetAttribute(btn_restart, "TIP", "Restart" );
   IupSetAttribute(btn_pause, "IMAGE", "IUP_MediaPause");
   IupSetAttribute(btn_pause, "TIP", "Play/Pause");

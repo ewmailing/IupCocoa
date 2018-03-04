@@ -22,6 +22,11 @@
 <strong>status</strong>: status of mouse buttons and certain keyboard keys at 
 the moment the event was generated. The same macros used for
 <a href="../call/iup_button_cb.html">BUTTON_CB</a> can be used for this status.</p>
+<h3>Notes</h3>
+<p>Between press and release all mouse events are redirected only to this 
+control, even if the cursor moves outside the element. So the BUTTON_CB callback 
+when released and the MOTION_CB callback can be called with coordinates outside 
+the element rectangle.</p>
 <h3>Affects</h3>
 <p><a href="../elem/iupcanvas.html">IupCanvas</a>,
   <a href="../ctrl/iupglcanvas.html">IupGLCanvas</a></p>

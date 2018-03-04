@@ -14,7 +14,7 @@ wb_usr = {
 wb_usr.messages = {
   en = {
     title = "IUP - Portable User Interface",
-    bar_title = "IUP - Version 3.21"
+    bar_title = "IUP - Version 3.24"
   }
 }
 
@@ -176,12 +176,20 @@ wb_usr.tree =
               link= "ide_guide/codeblocks.html"
             },
             {
+              name= {nl= "CodeLite"},
+              link= "ide_guide/codelite.html"
+            },
+            {
               name= {nl= "Dev-C++"},
               link= "ide_guide/dev-cpp.html"
             },
             {
               name= {nl= "Eclipse for C++"},
               link= "ide_guide/eclipse.html"
+            },
+            {
+              name= {nl= "NetBeans"},
+              link= "ide_guide/netbeans.html"
             },
             {
               name= {nl= "Open Watcom C++"},
@@ -448,6 +456,42 @@ wb_usr.tree =
               link= "tutorial/tutorial5.html#Dynamic_Libraries",
             },
           },
+        },
+        { link= "", name= {en= "" } },
+        {
+          name= {en= "7GUIs"},
+          link= "7gui/7gui.html",
+          folder=
+          {
+            {
+              name= {en= "1. Counter"},
+              link= "7gui/7gui.html#task1"
+            },
+            {
+              name= {en= "2. Temperature Converter"},
+              link= "7gui/7gui.html#task2"
+            },
+            {
+              name= {en= "3. Flight Booker"},
+              link= "7gui/7gui.html#task3"
+            },
+            {
+              name= {en= "4. Timer"},
+              link= "7gui/7gui.html#task4"
+            },
+            {
+              name= {en= "5. CRUD"},
+              link= "7gui/7gui.html#task5"
+            },
+            {
+              name= {en= "6. Circle Drawer"},
+              link= "7gui/7gui.html#task6"
+            },
+            {
+              name= {en= "7. Cells"},
+              link= "7gui/7gui.html#task7"
+            },
+          }    
         },
       }
     },
@@ -976,6 +1020,14 @@ wb_usr.tree =
               name= {nl= "IupProgressDlg"},
               link= "dlg/iupprogressdlg.html"
             },
+            {
+              name= {nl= "IupScintillaDlg"},
+              link= "dlg/iupscintilladlg.html"
+            },
+            {
+              name= {nl= "IupLuaScripterDlg"},
+              link= "dlg/iupluascripterdlg.html"
+            },
             { link= "", name= {en= "" } },
             {
               name= {nl= "IupAlarm"},
@@ -1015,6 +1067,14 @@ wb_usr.tree =
             {
               name= {nl= "IupMessage"},
               link= "dlg/iupmessage.html"
+            },
+            {
+              name= {nl= "IupMessageError"},
+              link= "dlg/iupmessageerror.html"
+            },
+            {
+              name= {nl= "IupMessageAlarm"},
+              link= "dlg/iupmessagealarm.html"
             },
             {
               name= {nl= "IupScanf"},
@@ -1203,6 +1263,17 @@ wb_usr.tree =
               name= {nl= "IupScrollBox"},
               link= "elem/iupscrollbox.html"
             },
+            {
+              name= {nl= "IupFlatScrollBox"},
+              link= "elem/iupflatscrollbox.html",
+              folder=
+              {
+                {
+                  name= {nl= "FLATSCROLLBAR"},
+                  link= "attrib/iup_flatscrollbar.html"
+                },
+              }
+            },
             { link= "", name= {en= "" } },
             {
               name= {nl= "IupDetachBox"},
@@ -1339,13 +1410,29 @@ wb_usr.tree =
                 },
                 {
                   name= {nl= "IupDraw"},
-                  link= "elem/iupdraw.html"
+                  link= "func/iupdraw.html"
                 },
               }
             },
             {
+              name= {nl= "IupColorbar"},
+              link= "elem/iupcolorbar.html"
+            },
+            {
+              name= {nl= "IupColorBrowser"},
+              link= "elem/iupcolorbrowser.html"
+            },
+            {
               name= {nl= "IupDatePick"},
               link= "elem/iupdatepick.html"
+            },
+            {
+              name= {nl= "IupDial"},
+              link= "elem/iupdial.html"
+            },
+            {
+              name= {nl= "IupGauge"},
+              link= "elem/iupgauge.html"
             },
             {
               name= {nl= "IupLabel"},
@@ -1429,22 +1516,6 @@ wb_usr.tree =
                   link= "ctrl/iupcells.html"
                 },
                 {
-                  name= {nl= "IupColorbar"},
-                  link= "ctrl/iupcolorbar.html"
-                },
-                {
-                  name= {nl= "IupColorBrowser"},
-                  link= "ctrl/iupcolorbrowser.html"
-                },
-                {
-                  name= {nl= "IupDial"},
-                  link= "ctrl/iupdial.html"
-                },
-                {
-                  name= {nl= "IupGauge"},
-                  link= "ctrl/iupgauge.html"
-                },
-                {
                   name= {nl= "IupMatrix"},
                   link= "ctrl/iupmatrix.html",
 
@@ -1461,14 +1532,14 @@ wb_usr.tree =
                   }
                 },
                 {
+                  name= {nl= "IupMatrixEx"},
+                  link= "ctrl/iupmatrixex.html",
+                },
+                {
                   name= {nl= "IupMatrixList"},
                   link= "ctrl/iupmatrixlist.html",
                 },
               },
-            },
-            {
-              name= {nl= "IupMatrixEx"},
-              link= "ctrl/iupmatrixex.html",
             },
             {
               name= {nl= "IupGLCanvas"},
@@ -1894,11 +1965,10 @@ wb_usr.tree =
           name= {nl= "IupHelp"},
           link= "func/iuphelp.html"
         },
-        { link= "", name= {en= "" } },
         {
-          name= {nl= "iupMask"},
-          link= "ctrl/iupmask.html"
-        }
+          name= {nl= "IupLog"},
+          link= "func/iuplog.html"
+        },
       }
     },
     { link= "", name= {en= "" } },

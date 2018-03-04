@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <memory.h>
 
 #include "iup.h"
 
@@ -64,6 +65,7 @@ void iupNamesDestroyHandles(void)
     return;
 
   ih_array = (Ihandle**)malloc(count * sizeof(Ihandle*));
+  memset(ih_array, 0, count * sizeof(Ihandle*));
 
   /* store the handles before updating so we can remove elements in the loop */
   name = iupTableFirst(inames_strtable);

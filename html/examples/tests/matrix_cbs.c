@@ -4,7 +4,6 @@
 
 #include "iup.h"
 #include "iupcontrols.h"
-#include "iupmatrixex.h"
 #include <cd.h>
 
 
@@ -110,20 +109,20 @@ static int edition(Ihandle *self, int lin, int col, int mode)
   return IUP_DEFAULT;
 }
 
-static int drawcb(Ihandle *h, int lin, int col,int x1, int x2, int y1, int y2)
+static int drawcb(Ihandle *h, int lin, int col,int x1, int x2, int y1, int y2, cdCanvas* canvas)
 {
   if (lin < 5 || lin > 12 || col < 2 || col > 8)
     return IUP_IGNORE;
 
-  cdForeground(CD_RED);
-  cdLine(x1, y1, x2, y2);
-  cdLine(x1, y2, x2, y1);
+  cdCanvasForeground(canvas, CD_RED);
+  cdCanvasLine(canvas, x1, y1, x2, y2);
+  cdCanvasLine(canvas, x1, y2, x2, y1);
 
   {
     char s[50];
     sprintf(s, "%d:%d", lin, col);
-    cdTextAlignment(CD_CENTER);
-    cdText((x1+x2)/2, (y1+y2)/2, s);
+    cdCanvasTextAlignment(canvas, CD_CENTER);
+    cdCanvasText(canvas, (x1 + x2) / 2, (y1 + y2) / 2, s);
   }
 
   return IUP_DEFAULT;
@@ -162,16 +161,17 @@ static int actioncb(Ihandle *h, int key, int lin, int col, int active, char* aft
 
 static Ihandle *create_mat(int mati)
 {
-  Ihandle *mat = IupMatrix(NULL); 
+  Ihandle *mat; 
   char name[30];
-
   sprintf(name, "mat%d", mati);
 
   if (mati==1)
   {
-    IupMatrixExInit(mat);
+    mat = IupMatrixEx();
     IupSetAttribute(mat,"UNDOREDO","Yes"); 
   }
+  else
+    mat = IupMatrix(NULL);
 
   IupSetHandle(name, mat);
   
@@ -248,6 +248,9 @@ static Ihandle *create_mat(int mati)
 //  IupSetAttribute(mat,"WIDTH0","24");
 //  IupSetAttribute(mat,"HEIGHT0","8");
 
+  IupSetAttribute(mat, "FLATSCROLLBAR", "Yes");
+//  IupSetAttribute(mat, "SHOWFLOATING", "Yes");
+
   return mat;
 }
 
@@ -279,7 +282,8 @@ static int redraw(Ihandle *self)
 
 static int removeline(Ihandle *self) 
 {
-  IupSetAttribute(IupGetHandle("mat1"),"DELLIN","1"); 
+//  IupSetAttribute(IupGetHandle("mat1"),"ORIGIN","5:1"); 
+    IupSetAttribute(IupGetHandle("mat1"),"DELLIN","1"); 
 //  IupSetAttribute(IupGetHandle("mat1"),"NUMLIN","0"); 
   return IUP_DEFAULT;
 }
@@ -339,8 +343,6 @@ void MatrixCbsTest(void)
 {
   Ihandle *dlg, *bt;
 
-  IupMatrixExOpen();
- 
   IupSetFunction("removeline", (Icallback)removeline);
   IupSetFunction("addline", (Icallback)addline);
   IupSetFunction("removecol", (Icallback)removecol);

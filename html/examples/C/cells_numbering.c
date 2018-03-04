@@ -27,7 +27,7 @@ static int width_cb(Ihandle* h, int j)
   return 70;
 }
 
-static int mouseclick_cb(Ihandle* h, int b, char* m, int i, int j, int x, int y, char* r) 
+static int mouseclick_cb(Ihandle* h, int b, int p, int i, int j, int x, int y, char* r)
 {
   char buffer[128];
   sprintf(buffer, "CLICK: %d: (%02d, %02d)\n", b, i, j);

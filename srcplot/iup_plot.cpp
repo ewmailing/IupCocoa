@@ -106,7 +106,7 @@ static int iPlotExportEPS_CB(Ihandle* self)
       cdKillCanvas(cd_canvas);
     }
     else
-      iupShowError(IupGetDialog(ih), "IUP_ERRORFILEOPEN");
+      IupMessageError(IupGetDialog(ih), "IUP_ERRORFILESAVE");
   }
   return IUP_DEFAULT;
 }
@@ -131,7 +131,7 @@ static int iPlotExportSVG_CB(Ihandle* self)
       cdKillCanvas(cd_canvas);
     }
     else
-      iupShowError(IupGetDialog(ih), "IUP_ERRORFILEOPEN");
+      IupMessageError(IupGetDialog(ih), "IUP_ERRORFILESAVE");
   }
   return IUP_DEFAULT;
 }
@@ -156,7 +156,7 @@ static int iPlotExportCGM_CB(Ihandle* self)
       cdKillCanvas(cd_canvas);
     }
     else
-      iupShowError(IupGetDialog(ih), "IUP_ERRORFILEOPEN");
+      IupMessageError(IupGetDialog(ih), "IUP_ERRORFILESAVE");
   }
   return IUP_DEFAULT;
 }
@@ -179,7 +179,7 @@ static int iPlotExportEMF_CB(Ihandle* self)
       cdKillCanvas(cd_canvas);
     }
     else
-      iupShowError(IupGetDialog(ih), "IUP_ERRORFILEOPEN");
+      IupMessageError(IupGetDialog(ih), "IUP_ERRORFILESAVE");
   }
   return IUP_DEFAULT;
 }
@@ -201,7 +201,7 @@ static int iPlotExportWMF_CB(Ihandle* self)
       cdKillCanvas(cd_canvas);
     }
     else
-      iupShowError(IupGetDialog(ih), "IUP_ERRORFILEOPEN");
+      IupMessageError(IupGetDialog(ih), "IUP_ERRORFILESAVE");
   }
   return IUP_DEFAULT;
 }
@@ -286,6 +286,8 @@ static int iPlotDataSetValuesNumericSetValue_CB(Ihandle* ih_matrix, int lin, int
   Ihandle* ih = (Ihandle*)IupGetAttribute(ih_matrix, "PLOT");
   int plot_current = IupGetInt(ih_matrix, "PLOT_CURRENT");
   int ds = IupGetInt(ih_matrix, "DS");
+  int sample_index = lin - 1;
+  double x, y;
 
   IupSetInt(ih, "PLOT_CURRENT", plot_current);
   IupSetInt(ih, "CURRENT", ds);
@@ -293,21 +295,24 @@ static int iPlotDataSetValuesNumericSetValue_CB(Ihandle* ih_matrix, int lin, int
   if (col == 2 && IupGetInt(ih, "DS_STRXDATA"))
   {
     char* str_x;
-    double y;
-    IupPlotGetSampleStr(ih, ds, lin - 1, (const char**)&str_x, &y);
+    IupPlotGetSampleStr(ih, ds, sample_index, (const char**)&str_x, &y);
+    x = sample_index;
 
-    IupPlotSetSampleStr(ih, ds, lin - 1, str_x, new_value);
+    IupPlotSetSampleStr(ih, ds, sample_index, str_x, new_value);
   }
   else
   {
-    double x, y;
-    IupPlotGetSample(ih, ds, lin - 1, &x, &y);
+    IupPlotGetSample(ih, ds, sample_index, &x, &y);
 
     if (col == 1)
-      IupPlotSetSample(ih, ds, lin - 1, new_value, y);
+      IupPlotSetSample(ih, ds, sample_index, new_value, y);
     else
-      IupPlotSetSample(ih, ds, lin - 1, x, new_value);
+      IupPlotSetSample(ih, ds, sample_index, x, new_value);
   }
+
+  IFniidd editsample_cb = (IFniidd)IupGetCallback(ih, "EDITSAMPLE_CB");
+  if (editsample_cb)
+    editsample_cb(ih, ds, sample_index, x, y);
 
   return IUP_DEFAULT;
 }
@@ -317,17 +322,24 @@ static int iPlotDataSetValuesValueEdit_CB(Ihandle* ih_matrix, int lin, int col, 
   Ihandle* ih = (Ihandle*)IupGetAttribute(ih_matrix, "PLOT");
   int plot_current = IupGetInt(ih_matrix, "PLOT_CURRENT");
   int ds = IupGetInt(ih_matrix, "DS");
+  int sample_index = lin - 1;
 
   IupSetInt(ih, "PLOT_CURRENT", plot_current);
   IupSetInt(ih, "CURRENT", ds);
 
   if (col == 1 && IupGetInt(ih, "DS_STRXDATA"))
   {
-    char* s;
-    double y;
-    IupPlotGetSampleStr(ih, ds, lin - 1, (const char**)&s, &y);
+    char* str_x;
+    double x, y;
 
-    IupPlotSetSampleStr(ih, ds, lin - 1, new_value, y);
+    IupPlotGetSampleStr(ih, ds, sample_index, (const char**)&str_x, &y);
+    x = sample_index;
+
+    IupPlotSetSampleStr(ih, ds, sample_index, new_value, y);
+
+    IFniidd editsample_cb = (IFniidd)IupGetCallback(ih, "EDITSAMPLE_CB");
+    if (editsample_cb)
+      editsample_cb(ih, ds, sample_index, x, y);
   }
 
   return IUP_DEFAULT;
@@ -423,7 +435,7 @@ static int iPlotDataSetValues_CB(Ihandle* ih_item)
 
   IupSetCallback(button, "ACTION", (Icallback)iPlotDataSetValuesButton_CB);
 
-  IupSetAttribute(matrix, "PLOT", (char *)ih);
+  IupSetAttribute(matrix, "PLOT", (char*)ih);
   IupSetInt(matrix, "PLOT_CURRENT", plot_current);
   IupSetInt(matrix, "DS", ds);
 
@@ -817,6 +829,10 @@ static void iPlotPropertiesResetChanges(Ihandle* parambox)
 {
   Ihandle* ih = (Ihandle*)IupGetAttribute(parambox, "PLOT");
 
+  int plot_current = IupGetInt(parambox, "PLOT_CURRENT");
+  // make sure we are changing the right plot
+  IupSetInt(ih, "PLOT_CURRENT", plot_current);
+
   int i, count = IupGetInt(parambox, "PARAMCOUNT");
   for (i = count - 1; i >= 0; i--) // backwards to avoid dependencies
   {
@@ -838,11 +854,19 @@ static void iPlotPropertiesResetChanges(Ihandle* parambox)
 
   IupSetAttribute(parambox, "PLOT_CHANGED", NULL);
   IupSetAttribute(ih, "REDRAW", NULL);
+
+  Icallback cb = IupGetCallback(ih, "PROPERTIESCHANGED_CB");
+  if (cb)
+    cb(ih);
 }
 
 static void iPlotPropertiesApplyChanges(Ihandle* parambox)
 {
   Ihandle* ih = (Ihandle*)IupGetAttribute(parambox, "PLOT");
+
+  int plot_current = IupGetInt(parambox, "PLOT_CURRENT");
+  // make sure we are changing the right plot
+  IupSetInt(ih, "PLOT_CURRENT", plot_current);
 
   int i, count = IupGetInt(parambox, "PARAMCOUNT");
   for (i = count - 1; i >= 0; i--) // backwards to avoid dependencies
@@ -860,6 +884,10 @@ static void iPlotPropertiesApplyChanges(Ihandle* parambox)
 
   IupSetAttribute(parambox, "PLOT_CHANGED", NULL);
   IupSetAttribute(ih, "REDRAW", NULL);
+
+  Icallback cb = IupGetCallback(ih, "PROPERTIESCHANGED_CB");
+  if (cb)
+    cb(ih);
 }
 
 static void iPlotPropertiesCheckChanges(Ihandle* parambox)
@@ -873,10 +901,10 @@ static void iPlotPropertiesCheckChanges(Ihandle* parambox)
     IupSetAttribute(dlg, "DIALOGTYPE", "WARNING");
     IupSetAttribute(dlg, "BUTTONS", "YESNO");
 
-    IupSetStrAttribute(dlg, "TITLE", "_@IUP_WARNING");
+    IupSetStrAttribute(dlg, "TITLE", "_@IUP_ATTENTION");
     IupSetStrAttribute(dlg, "VALUE", "_@IUP_CHANGESNOTAPPLIEDAPPLY");
 
-    IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
+    IupPopup(dlg, IUP_CENTERPARENT, IUP_CENTERPARENT);
 
     int ret = IupGetInt(dlg, "BUTTONRESPONSE");
     IupDestroy(dlg);
@@ -990,6 +1018,9 @@ static int iPlotProperties_CB(Ihandle* ih_item)
   Ihandle* ih = (Ihandle*)IupGetAttribute(ih_item, "PLOT");
   Ihandle* parent = IupGetDialog(ih);
 
+  int plot_current = IupGetInt(ih_item, "PLOT_CURRENT");
+  IupSetInt(ih, "PLOT_CURRENT", plot_current);
+
   Ihandle* tree = IupTree();
   IupSetAttribute(tree, "ADDROOT", "NO");
   IupSetCallback(tree, "SELECTION_CB", (Icallback)iPlotPropertiesTreeSelection_CB);
@@ -1015,6 +1046,7 @@ static int iPlotProperties_CB(Ihandle* ih_item)
   iPlotPropertiesAddParamBox(ih, zbox, iplot_axisYticksnumber_attribs);  /* 14 */
 
   IupSetAttribute(zbox, "PLOT", (char*)ih);
+  IupSetInt(zbox, "PLOT_CURRENT", plot_current);
 
   Ihandle* dlg = IupDialog(IupHbox(tree, zbox, NULL));
   IupSetAttributeHandle(dlg, "PARENTDIALOG", parent);
@@ -1054,6 +1086,17 @@ static int iPlotProperties_CB(Ihandle* ih_item)
   IupDestroy(dlg);
 
   return IUP_DEFAULT;
+}
+
+static int setparent_param_cb(Ihandle* param_dialog, int param_index, void* user_data)
+{
+  if (param_index == IUP_GETPARAM_MAP)
+  {
+    Ihandle* ih = (Ihandle*)user_data;
+    IupSetAttributeHandle(param_dialog, "PARENTDIALOG", ih);
+  }
+
+  return 1;
 }
 
 static int iPlotDataSetProperties_CB(Ihandle* ih_item)
@@ -1126,7 +1169,7 @@ static int iPlotDataSetProperties_CB(Ihandle* ih_item)
     "_@IUP_PIESLICELABEL%l|_@IUP_NONE|X|Y|_@IUP_PERCENT|\n"
     "_@IUP_PIESLICELABELPOS%R[0,1,]\n";
 
-  if (!IupGetParam("_@IUP_DATASETPROPERTIESDLG", NULL, NULL, format,
+  if (!IupGetParam("_@IUP_DATASETPROPERTIESDLG", setparent_param_cb, IupGetDialog(ih), format,
     name, color, &mode, &linestyle, &linewidth, &markstyle, &marksize,
     &barSpacing, &barOutline, barOutlineColor,
     &areaTransparency,
@@ -1172,6 +1215,10 @@ static int iPlotDataSetProperties_CB(Ihandle* ih_item)
   IupSetDouble(ih, "DS_PIESLICELABELPOS", pieSliceLabelPos);
 
   IupSetAttribute(ih, "REDRAW", NULL);
+
+  IFni cb = (IFni)IupGetCallback(ih, "DSPROPERTIESCHANGED_CB");
+  if (cb)
+    cb(ih, ds);
 
   return IUP_DEFAULT;
 }
@@ -1223,7 +1270,6 @@ static Ihandle* iPlotCreateMenuContext(Ihandle* ih, int x, int y)
         ((ih->data->current_plot->mHighlightMode == IUP_PLOT_HIGHLIGHT_CURVE || ih->data->current_plot->mHighlightMode == IUP_PLOT_HIGHLIGHT_BOTH) && ih->data->current_plot->FindDataSetSegment((double)x, (double)y, ds, ds_name, sample1, rx1, ry1, sample2, rx2, ry2)))
     {
       // save plot info because it may have changed by the time the callback is called
-      IupSetInt(menu, "PLOT_CURRENT", ih->data->current_plot_index);
       IupSetInt(menu, "DS", ds);
 
       IupSetAttribute(itemProp, "ACTIVE", "YES");
@@ -1234,6 +1280,9 @@ static Ihandle* iPlotCreateMenuContext(Ihandle* ih, int x, int y)
       IupSetAttribute(itemProp, "ACTIVE", "NO");
       if (itemVal) IupSetAttribute(itemVal, "ACTIVE", "NO");
     }
+
+    // save plot info because it may have changed by the time the callback is called
+    IupSetInt(menu, "PLOT_CURRENT", ih->data->current_plot_index);
   }
 
   IupSetAttribute(menu, "PLOT", (char*)ih);
@@ -2000,7 +2049,7 @@ static int iPlotKeyPress_CB(Ihandle* ih, int c, int press)
     if (ih->data->show_cross_hair != IUP_PLOT_CROSSNONE)  // was shown, leave it there as reference
       iPlotRedrawInteract(ih);
 
-    return IUP_DEFAULT;
+    return IUP_IGNORE;  /* ignore processed keys */
   }
 
   if (ih->data->current_plot->mDataSetListCount == 0)
@@ -2011,22 +2060,26 @@ static int iPlotKeyPress_CB(Ihandle* ih, int c, int press)
     int x = ih->data->current_plot->mViewport.mX + ih->data->current_plot->mViewport.mWidth / 2;
     int y = ih->data->current_plot->mViewport.mY + ih->data->current_plot->mViewport.mHeight / 2;
     iPlotZoom(ih, x, y, 1);
+    return IUP_IGNORE;  /* ignore processed keys */
   }
   else if (c == K_minus)
   {
     int x = ih->data->current_plot->mViewport.mX + ih->data->current_plot->mViewport.mWidth / 2;
     int y = ih->data->current_plot->mViewport.mY + ih->data->current_plot->mViewport.mHeight / 2;
     iPlotZoom(ih, x, y, -1);
+    return IUP_IGNORE;  /* ignore processed keys */
   }
   else if (c == K_period)
   {
     iupPlotResetZoom(ih, 1);
+    return IUP_IGNORE;  /* ignore processed keys */
   }
   else if (c == K_LEFT || c == K_RIGHT)
   {
     float delta = 1.0f;
     if (c == K_LEFT) delta = -1.0f;
     iPlotScroll(ih, delta, false, false);
+    return IUP_IGNORE;  /* ignore processed keys */
   }
   else if (c == K_UP || c == K_DOWN || c == K_PGUP || c == K_PGDN)
   {
@@ -2037,6 +2090,7 @@ static int iPlotKeyPress_CB(Ihandle* ih, int c, int press)
     if (c == K_PGUP || c == K_PGDN) full_page = true;
 
     iPlotScroll(ih, delta, full_page, true);
+    return IUP_IGNORE;  /* ignore processed keys */
   }
   else if (c == K_DEL)
   {
@@ -2044,12 +2098,14 @@ static int iPlotKeyPress_CB(Ihandle* ih, int c, int press)
     {
       ih->data->current_plot->DeleteSelectedDataSetSamples();
       iPlotRedrawInteract(ih);
+      return IUP_IGNORE;  /* ignore processed keys */
     }
   }
   else if (c == K_ESC)
   {
     ih->data->current_plot->ClearDataSetSelection();
     iPlotRedrawInteract(ih);
+    return IUP_IGNORE;  /* ignore processed keys */
   }
 
   return IUP_DEFAULT;
@@ -2872,7 +2928,6 @@ static void iPlotSetClassUpdate(Iclass* ic)
     IupSetLanguageString("IUP_HORIZONTAL", "Horizontal");
     IupSetLanguageString("IUP_VERTICAL", "Vertical");
 
-    IupSetLanguageString("IUP_WARNING", "Warning!");
     IupSetLanguageString("IUP_CHANGESNOTAPPLIEDAPPLY", "Changes Not Applied. Apply?");
 
     IupSetLanguageString("IUP_MARGIN", "Margin");
@@ -3007,7 +3062,6 @@ static void iPlotSetClassUpdate(Iclass* ic)
     IupSetLanguageString("IUP_HORIZONTAL", "Horizontal");
     IupSetLanguageString("IUP_VERTICAL", "Vertical");
 
-    IupSetLanguageString("IUP_WARNING", "AtenÁ„o!");
     IupSetLanguageString("IUP_CHANGESNOTAPPLIEDAPPLY", "ModificaÁıes n„o aplicadas. Aplicar?");
 
     IupSetLanguageString("IUP_MARGIN", "Margem");
@@ -3075,7 +3129,6 @@ static void iPlotSetClassUpdate(Iclass* ic)
       IupSetLanguageString("IUP_TITLE", "T√≠tulo");
       IupSetLanguageString("IUP_GRIDMINOR", "Grade Secund√°ria");
       IupSetLanguageString("IUP_AXISTICKSNUMBER", "N√∫meros do Eixo");
-      IupSetLanguageString("IUP_WARNING", "Aten√ß√£o!");
       IupSetLanguageString("IUP_CHANGESNOTAPPLIEDAPPLY", "Modifica√ß√µes n√£o aplicadas. Aplicar?");
       IupSetLanguageString("IUP_ITALIC", "It√°lico");
       IupSetLanguageString("IUP_BOLDITALIC", "Negrito It√°lico");
@@ -3088,6 +3141,170 @@ static void iPlotSetClassUpdate(Iclass* ic)
       IupSetLanguageString("IUP_BARSPACING", "Espa√ßamento da Barra:");
       IupSetLanguageString("IUP_AREATRANSPARENCY", "Transpar√™ncia de √Årea:");
       IupSetLanguageString("IUP_PIESTARTANGLE", "√Çngulo de In√≠cio da Torta:");
+    }
+  }
+  else if (iupStrEqualNoCase(IupGetGlobal("LANGUAGE"), "SPANISH"))
+  {
+    IupSetLanguageString("IUP_EXPORT", "Exportar");
+    IupSetLanguageString("IUP_COPY", "Copiar");
+    IupSetLanguageString("IUP_PRINTDLG", "Imprimir...");
+
+    IupSetLanguageString("IUP_ZOOMINAC", "Acercar\t+");
+    IupSetLanguageString("IUP_ZOOMOUTAC", "Alejar\t-");
+    IupSetLanguageString("IUP_RESETZOOMAC", "Restablecer Vista\t.");
+    IupSetLanguageString("IUP_SHOWHIDELEGEND", "Mostrar/Ocultar Leyenda");
+    IupSetLanguageString("IUP_SHOWHIDEGRID", "Mostrar/Ocultar Grilla");
+
+    IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "FÛrmula Inv·lida.");
+
+    IupSetLanguageString("IUP_PROPERTIESDLG", "Propiedades...");
+    IupSetLanguageString("IUP_DATASETPROPERTIESDLG", "Propiedades de los Datos...");
+    IupSetLanguageString("IUP_DATASETVALUESDLG", "Valores de los Datos...");
+
+    IupSetLanguageString("IUP_NAME", "Nombre:");
+    IupSetLanguageString("IUP_COLOR", "Color:");
+    IupSetLanguageString("IUP_MODE", "Modo:");
+    IupSetLanguageString("IUP_LINES", "Lineas");
+    IupSetLanguageString("IUP_MARKS", "Marcas");
+    IupSetLanguageString("IUP_MARKSLINES", "Marcas & Lineas");
+    IupSetLanguageString("IUP_BARS", "Barras");
+    IupSetLanguageString("IUP_AREA", "¡rea");
+    IupSetLanguageString("IUP_STEMS", "Plotear");
+    IupSetLanguageString("IUP_MARKSSTEMS", "Marcas & Plotear");
+    IupSetLanguageString("IUP_HORIZONTALBARS", "Barras Horizontales");
+    IupSetLanguageString("IUP_MULTIBARS", "Barras M˙ltiples");
+    IupSetLanguageString("IUP_ERRORBARS", "Barras de Error");
+    IupSetLanguageString("IUP_STEPS", "Pasos");
+    IupSetLanguageString("IUP_PIE", "Pastel");
+    IupSetLanguageString("IUP_LINESTYLE", "Estilo de Linea:");
+    IupSetLanguageString("IUP_CONTINUOUS", "Continua");
+    IupSetLanguageString("IUP_DASHED", "Trazos");
+    IupSetLanguageString("IUP_DOTTED", "Punteada");
+    IupSetLanguageString("IUP_DASH_DOT", "Trazo Punto");
+    IupSetLanguageString("IUP_DASH_DOT_DOT", "Trazo Punto Punto");
+    IupSetLanguageString("IUP_LINEWIDTH", "Ancho de Linea:");
+    IupSetLanguageString("IUP_MARKSTYLE", "Estilo de Marca:");
+    IupSetLanguageString("IUP_BAROUTLINE", "Contorno de Barra:");
+    IupSetLanguageString("IUP_BARSPACING", "Espaciado de Barras:");
+    IupSetLanguageString("IUP_BAROUTLINECOLOR", "Color del Contorno de Barra:");
+    IupSetLanguageString("IUP_PLUS", "Mas");
+    IupSetLanguageString("IUP_STAR", "Estrella");
+    IupSetLanguageString("IUP_CIRCLE", "Circulo");
+    IupSetLanguageString("IUP_X", "X");
+    IupSetLanguageString("IUP_BOX", "Caja");
+    IupSetLanguageString("IUP_DIAMOND", "Diamante");
+    IupSetLanguageString("IUP_HOLLOW_CIRCLE", "Circulo VacÌo");
+    IupSetLanguageString("IUP_HOLLOW_BOX", "Caja VacÌa");
+    IupSetLanguageString("IUP_HOLLOW_DIAMOND", "Diamante VacÌo");
+    IupSetLanguageString("IUP_MARKSIZE", "TamaÒo de Marca:");
+    IupSetLanguageString("IUP_AREATRANSPARENCY", "Transparencia de ¡rea:");
+    IupSetLanguageString("IUP_PIERADIUS", "Radio del Pastel:");
+    IupSetLanguageString("IUP_PIESTARTANGLE", "¡ngulo de Inicio del Pastel:");
+    IupSetLanguageString("IUP_PIECONTOUR", "Contorno del Pastel:");
+    IupSetLanguageString("IUP_PIEHOLE", "Agujero del Pastel:");
+    IupSetLanguageString("IUP_PIESLICELABEL", "Etiqueta de PorciÛn de Pastel:");
+    IupSetLanguageString("IUP_PIESLICELABELPOS", "Pos. de Etiqueta en la PorciÛn:");
+    IupSetLanguageString("IUP_PERCENT", "Porcentaje");
+    IupSetLanguageString("IUP_NONE", "Ninguno");
+
+    IupSetLanguageString("IUP_CLOSE", "Cerrar");
+
+    IupSetLanguageString("IUP_BACKGROUND", "Fondo");
+    IupSetLanguageString("IUP_TITLE", "TÌtulo");
+    IupSetLanguageString("IUP_LEGEND", "Leyenda");
+    IupSetLanguageString("IUP_LEGENDBOX", "Caja de Leyenda");
+    IupSetLanguageString("IUP_GRID", "Grilla");
+    IupSetLanguageString("IUP_GRIDMINOR", "Grilla Secundaria");
+    IupSetLanguageString("IUP_XAXIS", "Eje X");
+    IupSetLanguageString("IUP_YAXIS", "Eje Y");
+    IupSetLanguageString("IUP_AXISLABEL", "Etiquetas de Ejes");
+    IupSetLanguageString("IUP_AXISTICKS", "Marcas en los Ejes");
+    IupSetLanguageString("IUP_AXISTICKSNUMBER", "N˙meros en las Marcas");
+
+    IupSetLanguageString("IUP_TEXT", "Texto:");
+    IupSetLanguageString("IUP_SHOW", "Mostrar:");
+    IupSetLanguageString("IUP_HORIZONTAL", "Horizontal");
+    IupSetLanguageString("IUP_VERTICAL", "Vertical");
+
+    IupSetLanguageString("IUP_CHANGESNOTAPPLIEDAPPLY", "Hay Modificaciones. øAplicarlas?");
+
+    IupSetLanguageString("IUP_MARGIN", "Margen");
+    IupSetLanguageString("IUP_LEFT", "Izquierdo:");
+    IupSetLanguageString("IUP_RIGHT", "Derecho:");
+    IupSetLanguageString("IUP_TOP", "Superior:");
+    IupSetLanguageString("IUP_BOTTOM", "Inferior:");
+
+    IupSetLanguageString("IUP_FONTSTYLE", "Estilo de Fuente:");
+    IupSetLanguageString("IUP_FONTSIZE", "TamaÒo de Fuente:");
+    IupSetLanguageString("IUP_PLAIN", "Plano");
+    IupSetLanguageString("IUP_BOLD", "Negrita");
+    IupSetLanguageString("IUP_ITALIC", "It·lica");
+    IupSetLanguageString("IUP_BOLDITALIC", "Negrita It·lica");
+
+    IupSetLanguageString("IUP_POSITION", "PosiciÛn:");
+    IupSetLanguageString("IUP_POSXY", "(x,y):");
+    IupSetLanguageString("IUP_TOPRIGHT", "Arriba a la Derecha");
+    IupSetLanguageString("IUP_TOPLEFT", "Arriba a la Izquierda");
+    IupSetLanguageString("IUP_BOTTOMRIGHT", "Abajo a la Derecha");
+    IupSetLanguageString("IUP_BOTTOMLEFT", "Abajo a la Izquierda");
+    IupSetLanguageString("IUP_BOTTOMCENTER", "Abajo Centrado");
+    IupSetLanguageString("IUP_XY", "(x,y)");
+
+    IupSetLanguageString("IUP_SHOWARROW", "Mostrar Flecha:");
+    IupSetLanguageString("IUP_MIN", "MÌnimo:");
+    IupSetLanguageString("IUP_MAX", "M·ximo:");
+    IupSetLanguageString("IUP_REVERSE", "Invertir:");
+    IupSetLanguageString("IUP_CROSSORIGIN", "Cruzar Origen:");
+    IupSetLanguageString("IUP_CENTERED", "Centrado:");
+
+    IupSetLanguageString("IUP_SCALE", "Escala:");
+    IupSetLanguageString("IUP_LINEAR", "Lineal");
+    IupSetLanguageString("IUP_LOG10", "Logaritmo (base 10)");
+    IupSetLanguageString("IUP_LOG2", "Logaritmo (base 2)");
+    IupSetLanguageString("IUP_LOGN", "Logaritmo (base e)");
+
+    IupSetLanguageString("IUP_SPACING", "Espaciamiento:");
+    IupSetLanguageString("IUP_MAJORSPAN", "Intervalo Principal:");
+    IupSetLanguageString("IUP_MINORDIVISION", "Divisiones Secundarias:");
+    IupSetLanguageString("IUP_SIZE", "TamaÒo:");
+    IupSetLanguageString("IUP_MAJOR", "Principal:");
+    IupSetLanguageString("IUP_MINOR", "Secundario:");
+
+    IupSetLanguageString("IUP_ROTATE", "RotaciÛn:");
+    IupSetLanguageString("IUP_ANGLE", "¡ngulo:");
+
+    IupSetLanguageString("IUP_VALUE", "Valor:");
+    IupSetLanguageString("IUP_DECIMALS", "Decimales:");
+    IupSetLanguageString("IUP_FORMAT", "Formato:");
+
+    if (IupGetInt(NULL, "UTF8MODE"))
+    {
+      /* When seeing this file assuming ISO8859-1 encoding, above will appear correct.
+      When seeing this file assuming UTF-8 encoding, bellow will appear correct. */
+
+      IupSetLanguageString("IUP_ERRORINVALIDFORMULA", "F√≥rmula Inv√°lida.");
+      IupSetLanguageString("IUP_AREA", "√Årea");
+      IupSetLanguageString("IUP_MULTIBARS", "Barras M√∫ltiples");
+      IupSetLanguageString("IUP_HOLLOW_CIRCLE", "Circulo Vac√≠o");
+      IupSetLanguageString("IUP_HOLLOW_BOX", "Caja Vac√a");
+      IupSetLanguageString("IUP_HOLLOW_DIAMOND", "Diamante Vac√≠o");
+      IupSetLanguageString("IUP_MARKSIZE", "Tama√±o de Marca:");
+      IupSetLanguageString("IUP_AREATRANSPARENCY", "Transparencia de √Årea:");
+      IupSetLanguageString("IUP_PIESTARTANGLE", "√Ångulo de Inicio del Pastel:");
+      IupSetLanguageString("IUP_PIESLICELABEL", "Etiqueta de Porci√≥n de Pastel:");
+      IupSetLanguageString("IUP_PIESLICELABELPOS", "Pos. de Etiqueta en la Porci√≥n:");
+      IupSetLanguageString("IUP_TITLE", "T√≠tulo");
+      IupSetLanguageString("IUP_AXISTICKSNUMBER", "N√∫meros en las Marcas");
+      IupSetLanguageString("IUP_CHANGESNOTAPPLIEDAPPLY", "Hay Modificaciones. ¬øAplicarlas?");
+      IupSetLanguageString("IUP_FONTSIZE", "Tama√±o de Fuente:");
+      IupSetLanguageString("IUP_ITALIC", "It√°lica");
+      IupSetLanguageString("IUP_BOLDITALIC", "Negrita It√°lica");
+      IupSetLanguageString("IUP_POSITION", "Posici√≥n:");
+      IupSetLanguageString("IUP_MIN", "M√≠nimo:");
+      IupSetLanguageString("IUP_MAX", "M√°ximo:");
+      IupSetLanguageString("IUP_SIZE", "Tama√±o:");
+      IupSetLanguageString("IUP_ROTATE", "Rotaci√≥n:");
+      IupSetLanguageString("IUP_ANGLE", "√Ångulo:");
     }
   }
 }
@@ -3117,6 +3334,7 @@ static Iclass* iPlotNewClass(void)
   iupClassRegisterCallback(ic, "DRAWSAMPLE_CB", "iiddi");
   iupClassRegisterCallback(ic, "PLOTMOTION_CB", "dds");
   iupClassRegisterCallback(ic, "PLOTBUTTON_CB", "iidds");
+  iupClassRegisterCallback(ic, "EDITSAMPLE_CB", "iidd");
   iupClassRegisterCallback(ic, "DELETE_CB", "iidd");
   iupClassRegisterCallback(ic, "DELETEBEGIN_CB", "");
   iupClassRegisterCallback(ic, "DELETEEND_CB", "");
@@ -3125,6 +3343,8 @@ static Iclass* iPlotNewClass(void)
   iupClassRegisterCallback(ic, "SELECTEND_CB", "");
   iupClassRegisterCallback(ic, "MENUCONTEXT_CB", "nii");
   iupClassRegisterCallback(ic, "MENUCONTEXTCLOSE_CB", "nii");
+  iupClassRegisterCallback(ic, "PROPERTIESCHANGED_CB", "");
+  iupClassRegisterCallback(ic, "DSPROPERTIESCHANGED_CB", "i");
 
   iupPlotRegisterAttributes(ic);
 
@@ -3143,7 +3363,9 @@ Ihandle* IupPlot(void)
 void IupPlotOpen(void)
 {
   IupGLCanvasOpen();
+#ifdef USE_CONTEXTPLUS
   cdInitContextPlus();
+#endif
 
   if (!IupGetGlobal("_IUP_PLOT_OPEN"))
   {

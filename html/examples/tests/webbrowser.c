@@ -57,6 +57,8 @@ static int error_cb(Ihandle* self, char* url)
 static int completed_cb(Ihandle* self, char* url)
 {
   printf("COMPLETED_CB: %s\n", url);
+  printf("CANGOBACK: %s\n", IupGetAttribute(self, "CANGOBACK"));
+  printf("CANGOFORWARD: %s\n", IupGetAttribute(self, "CANGOFORWARD"));
   (void)self;
   return IUP_DEFAULT;
 }

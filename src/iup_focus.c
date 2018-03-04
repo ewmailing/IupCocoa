@@ -16,6 +16,7 @@
 #include "iup_attrib.h"
 #include "iup_str.h"
 #include "iup_drv.h"
+#include "iup_childtree.h"
 
 
 Ihandle* iupFocusNextInteractive(Ihandle *ih)
@@ -124,7 +125,7 @@ Ihandle* IupNextField(Ihandle *ih)
   ih_next = iFocusFindNext(ih, 1);
   if (!ih_next)
   {
-    /* not found after the element, then start over from the begining,
+    /* not found after the element, then start over from the beginning,
        at the dialog. */
     ih_next = iFocusFindNext(IupGetDialog(ih), 1);
     if (ih_next == ih)
@@ -145,7 +146,7 @@ void iupFocusNext(Ihandle *ih)
   Ihandle *ih_next = iFocusFindNext(ih, 0);
   if (!ih_next)
   {
-    /* not found after the element, then start over from the begining,
+    /* not found after the element, then start over from the beginning,
        at the dialog. */
     ih_next = iFocusFindNext(IupGetDialog(ih), 0);
     if (ih_next == ih)
@@ -251,6 +252,14 @@ void iupSetCurrentFocus(Ihandle *ih)
   }
 }
 
+void iupResetCurrentFocus(Ihandle *destroyed_ih)
+{
+  if (iup_current_focus == destroyed_ih)
+    iup_current_focus = NULL;
+  if (iup_current_focus_dialog == destroyed_ih)
+    iup_current_focus_dialog = NULL;
+}
+
 Ihandle *IupSetFocus(Ihandle *ih)
 {
   Ihandle* old_focus = IupGetFocus();
@@ -285,6 +294,22 @@ void iupCallGetFocusCb(Ihandle *ih)
   }
 
   iupSetCurrentFocus(ih);
+
+  if (iupAttribGetBoolean(ih, "PROPAGATEFOCUS"))
+  {
+    Ihandle* parent = iupChildTreeGetNativeParent(ih);
+    while (parent)
+    {
+      IFni cb = (IFni)IupGetCallback(parent, "FOCUS_CB");
+      if (cb)
+      {
+        cb(parent, 1);
+        break;
+      }
+
+      parent = iupChildTreeGetNativeParent(parent);
+    }
+  }
 }
 
 void iupCallKillFocusCb(Ihandle *ih)
@@ -301,6 +326,22 @@ void iupCallKillFocusCb(Ihandle *ih)
   {
     IFni cb2 = (IFni)IupGetCallback(ih, "FOCUS_CB");
     if (cb2) cb2(ih, 0);
+  }
+
+  if (iupObjectCheck(ih) && iupAttribGetBoolean(ih, "PROPAGATEFOCUS"))
+  {
+    Ihandle* parent = iupChildTreeGetNativeParent(ih);
+    while (parent)
+    {
+      IFni cb = (IFni)IupGetCallback(parent, "FOCUS_CB");
+      if (cb)
+      {
+        cb(parent, 0);
+        break;
+      }
+
+      parent = iupChildTreeGetNativeParent(parent);
+    }
   }
 
   iupSetCurrentFocus(NULL);
