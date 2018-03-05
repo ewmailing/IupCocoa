@@ -89,29 +89,14 @@
   Undo/Redo, Find, Sort, Column Visibility, Numeric Columns, Numeric Units, 
   Context Menu and others. </p>
 <p>
-  The extension can be used in two different ways: using a new control called
-  <strong>IupMatrixEx</strong>, or by calling <strong>IupMatrixExInit</strong> 
-  for an existing <strong>IupMatrix</strong> control.</p>
-<p>
   It can be used in callback mode or in standard more.</p>
+<p>This is an additional control that depends on the 
+<a href="../iupcontrols.html">IupControls</a> library. (Since IUP version 3.24 
+the separate library that contains IupMatrixEx was merged with the IupControls 
+library)</p>
 <p>
   Based on the DMatrix library created by Bruno Kassar and Luiz Cristóvão Gomez 
   Coelho.</p>
-  <h3>Initialization and Usage</h3>
-<p>
-The<span class="Apple-converted-space">&nbsp;</span><b>IupMatrixExOpen</b><span class="Apple-converted-space">&nbsp;</span>function 
-must be called after a<span class="Apple-converted-space">&nbsp;</span><b>IupOpen</b>, 
-so that the control can be used. The &quot;iupmatrixex.h&quot; file must also be 
-included in the source code. The program must be linked to the controls library 
-(iupmatrixex), and it depends on the <a href="../iupcontrols.html">Controls 
-Library</a>.</p>
-<p>To make the control available in Lua use require&quot;iupluamatrixex&quot; or manually 
-call the initialization function in C, 
-<b>iupmatrixexlua_open</b>, after calling <b>iuplua_open</b>.
-  &nbsp;When manually calling the function the iupluamatrixex.h file must also be included in the source code 
-and the program must be linked to the 
-Lua control 
-  library (iupluamatrixex).</p>
 
 
 <h3><a name="Creation">Creation</a></h3>
@@ -122,13 +107,6 @@ Lua control
 <p>
   This function returns the identifier of the 
   created editing component, or NULL if an error occurs.</p>
-
-
-<h3>Auxiliary Functions</h3>
-<pre>void <b>IupMatrixExInit</b>(Ihandle* <b>ih</b>); [in C]
-<b>iup.MatrixExInit</b>(<b>ih</b>: ihandle) [in Lua]</pre>
-<p>Register the new attributes and callbacks in a regular <strong>IupMatrix</strong> 
-control.</p>
 
 
 <h3><a name="Attributes">Attributes</a></h3>
@@ -691,15 +669,15 @@ Copy To (Same Column)    Copy cell value to other lines in the same column (not 
 <p>The library adds some shortcut keys to the already implemented in <strong>
 IupMatrix</strong>:</p>
 <pre>Ctrl+A (English)    =&gt; Select All
-Ctrl+T (Portuguese) =&gt; Select All
+Ctrl+T (Portuguese or Spanish) =&gt; Select All
 Ctrl+X              =&gt; Cut (Copy + Clear Cell Values)
 Ctrl+C              =&gt; Copy to Clipboard (marked cells)
 Ctrl+V              =&gt; Paste from Clipboard (start at focus cell)
 Ctrl+Z              =&gt; Undo 1 level
 Ctrl+Y (English)    =&gt; Redo 1 level
-Ctrl+R (Portuguese) =&gt; Redo 1 level
+Ctrl+R (Portuguese or Spanish) =&gt; Redo 1 level
 Ctrl+F (English)    =&gt; Show the Find Dialog
-Ctrl+L (Portuguese) =&gt; Show the Find Dialog
+Ctrl+L (Portuguese or Spanish) =&gt; Show the Find Dialog
 Alt+F3              =&gt; Show the Find Dialog
 Esc                 =&gt; Hide the Find Dialog
 F3                  =&gt; Find Next
@@ -777,10 +755,10 @@ classification.</p>
 	</tr>
 	<tr>
 		<td class="style8">Area</td>
-		<td class="style8" valign="top">square metre <br>square centimetre<br>square millimetre<br>square inch <br>square foot <br>
-		square kilometre<br>square yard <br>square mile <br>acre <br>hectare <br>
+		<td class="style8" valign="top">square metre <br>square millimetre<br>square centimetre<br>square kilometre<br>square nanometre<br>square angstrom <br>square micron<br>square inch <br>square foot <br>
+		square yard <br>square mile <br>acre <br>hectare <br>
 		</td>
-		<td class="style8" valign="top">m²<br>cm²<br>mm² <br>sq in<br>sq ft<br>km² <br>sq yd<br>sq mi<br>ac
+		<td class="style8" valign="top">m²<br>mm² <br>cm²<br>km² <br>nm²<br>Å² <br>µ²<br>sq in<br>sq ft<br>sq yd<br>sq mi<br>ac
 		<br>ha <br></td>
 		<td class="style8" valign="top"><br>- (CGS Unit)<br><br><br><br>&nbsp;<br>
 		&nbsp; 

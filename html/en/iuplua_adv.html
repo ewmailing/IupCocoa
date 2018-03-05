@@ -41,6 +41,11 @@ and tries to open it again. (Since 3.2)</p>
   default _ERRORMESSAGE is defined to show a dialog with the error message. The 
 global attribute &quot;LUA_ERROR_LABEL&quot; if defined will be used in a label inside the 
 dialog (since 3.17). </p>
+<p>Also when using these functions the function that gets the stack during the 
+error can be replaced if &quot;iup._TRACEBACK(msg)&quot; is defined. By default it is 
+called &quot;debug.traceback(msg)&quot;, but you can replace the default to inspect local 
+variables during the error. Notice that iup._ERRORMESSAGE is called after the 
+error stack is reverted, iup._TRACEBACK is called during the error. (since 3.23)</p>
 <p>In Lua, you can also use:</p>
 <pre>iup<strong>.dofile</strong>(<strong>filename</strong>: string) -&gt; (values returned by the chunk)
 iup<strong>.dostring</strong>(<strong>str</strong>: string) -&gt; (values returned by the chunk)</pre>

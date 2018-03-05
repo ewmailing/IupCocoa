@@ -37,6 +37,7 @@ int iupspinboxlua_open (lua_State * L);
 int iupspinlua_open (lua_State * L);
 int iupsboxlua_open (lua_State * L);
 int iupscrollboxlua_open(lua_State * L);
+int iupflatscrollboxlua_open(lua_State * L);
 int iupgridboxlua_open(lua_State * L);
 int iuplinklua_open (lua_State * L);
 int iupsplitlua_open (lua_State * L);
@@ -63,6 +64,10 @@ int iupflatframelua_open(lua_State * L);
 int iupanimatedlabellua_open(lua_State * L);
 int iupcalendarlua_open(lua_State * L);
 int iupdatepicklua_open(lua_State * L);
+int iupgaugelua_open(lua_State * L);
+int iupdiallua_open(lua_State * L);
+int iupcolorbarlua_open (lua_State * L);
+int iupcolorbrowserlua_open (lua_State * L);
 
 void iupgetparamlua_open (lua_State * L);
 void iupconfiglua_open(lua_State * L);
@@ -110,6 +115,9 @@ void iuplua_plugstate(lua_State *L, Ihandle *ih);
 /** Retrieve the Lua State. Used inside a callback.
  */
 lua_State* iuplua_getstate(Ihandle *ih);
+
+/* Push iup[name] in the stack */
+void iuplua_push_name(lua_State *L, const char* name);
 
 /** First function called inside a callback. 
  * It prepares the stack for the call and returns the Lua state.

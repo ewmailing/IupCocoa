@@ -39,7 +39,11 @@ int    IupConfigGetVariableIntIdDef(Ihandle* ih, const char* group, const char* 
 double IupConfigGetVariableDoubleDef(Ihandle* ih, const char* group, const char* key, double def);
 double IupConfigGetVariableDoubleIdDef(Ihandle* ih, const char* group, const char* key, int id, double def);
 
+void IupConfigCopy(Ihandle* ih1, Ihandle* ih2, const char* exclude_prefix);
+
 /****************************************************************/
+
+void IupConfigSetListVariable(Ihandle* ih, const char *group, const char* key, const char* value, int add);
 
 void IupConfigRecentInit(Ihandle* ih, Ihandle* menu, Icallback recent_cb, int max_recent);
 void IupConfigRecentUpdate(Ihandle* ih, const char* filename);

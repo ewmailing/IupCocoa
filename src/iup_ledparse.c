@@ -26,8 +26,8 @@ static Ihandle* iParseFunction (Iclass *ic);
 static int iParseError (int err, char *s);
 
 static int iparse_error = 0;
-#define IPARSE_RETURN_IF_ERRO(_e)        {iparse_error=(_e); if (iparse_error) return NULL;}
-#define IPARSE_RETURN_IF_ERRO2(_e, _x)   {iparse_error=(_e); if (iparse_error) { if (_x) free(_x); return NULL;} }
+#define IPARSE_RETURN_IF_ERROR(_e)        {iparse_error=(_e); if (iparse_error) return NULL;}
+#define IPARSE_RETURN_IF_ERROR_FREE(_e, _x)   {iparse_error=(_e); if (iparse_error) { if (_x) free(_x); return NULL;} }
 
 
 char* IupLoad(const char *filename)
@@ -90,7 +90,7 @@ static Ihandle* iParseExp(void)
   Ihandle* ih = NULL;
 
   int match = iupLexSeenMatch(IUPLEX_TK_FUNC,&iparse_error);
-  IPARSE_RETURN_IF_ERRO(iparse_error);
+  IPARSE_RETURN_IF_ERROR_FREE(iparse_error, nm);
 
   if (match)
     return iParseFunction(iupLexGetClass());
@@ -98,7 +98,7 @@ static Ihandle* iParseExp(void)
   if (iupLexLookAhead() == IUPLEX_TK_NAME)
   {
     nm = iupLexGetName();
-    IPARSE_RETURN_IF_ERRO(iupLexAdvance());
+    IPARSE_RETURN_IF_ERROR_FREE(iupLexAdvance(), nm);
   }
   else
   {
@@ -107,19 +107,19 @@ static Ihandle* iParseExp(void)
   }
 
   match = iupLexSeenMatch(IUPLEX_TK_SET,&iparse_error); 
-  IPARSE_RETURN_IF_ERRO(iparse_error);
+  IPARSE_RETURN_IF_ERROR_FREE(iparse_error, nm);
 
   if (match)
   {
     ih = iParseExp();  
-    IPARSE_RETURN_IF_ERRO(iparse_error);
+    IPARSE_RETURN_IF_ERROR_FREE(iparse_error, nm);
     IupSetHandle(nm, ih);
   }
   else
   {
     ih = IupGetHandle(nm);
     if (!ih)
-      IPARSE_RETURN_IF_ERRO(iParseError(IPARSE_SYMBNOTDEF,nm));
+      IPARSE_RETURN_IF_ERROR_FREE(iParseError(IPARSE_SYMBNOTDEF, nm), nm);
   }
 
   if (nm) free(nm);
@@ -131,25 +131,25 @@ static void* iParseControlParam(char type)
   switch(type)
   {
   case 'a':
-    IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_NAME));
+    IPARSE_RETURN_IF_ERROR(iupLexMatch(IUPLEX_TK_NAME));
     return iupLexGetName();
 
   case 's':
-    IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_STR));
+    IPARSE_RETURN_IF_ERROR(iupLexMatch(IUPLEX_TK_STR));
     return iupLexGetName();
 
   case 'b':
   case 'c':
-    IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_NAME));
+    IPARSE_RETURN_IF_ERROR(iupLexMatch(IUPLEX_TK_NAME));
     return (void*)(unsigned long)iupLexByte();
 
   case 'i':
   case 'j':
-    IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_NAME));
+    IPARSE_RETURN_IF_ERROR(iupLexMatch(IUPLEX_TK_NAME));
     return (void*)(unsigned long)iupLexInt();
 
   case 'f':
-    IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_NAME));
+    IPARSE_RETURN_IF_ERROR(iupLexMatch(IUPLEX_TK_NAME));
     {
       float f = iupLexFloat();
       unsigned long* l = (unsigned long*)&f;
@@ -160,7 +160,7 @@ static void* iParseControlParam(char type)
   case 'h':
     {
       char *new_control = (char*)iParseExp();
-      IPARSE_RETURN_IF_ERRO(iparse_error);
+      IPARSE_RETURN_IF_ERROR(iparse_error);
       return new_control;
     }
 
@@ -179,7 +179,7 @@ static Ihandle* iParseControl(Iclass *ic)
     Ihandle *new_control;
     void** params;
     int i, alloc_arg, num_arg,
-        num_format = strlen(format);
+      num_format = (int)strlen(format);
                       
     num_arg = num_format;
     alloc_arg = num_arg+20;
@@ -190,7 +190,7 @@ static Ihandle* iParseControl(Iclass *ic)
       char p_format = format[i];
 
       if (i > 0)
-        IPARSE_RETURN_IF_ERRO2(iupLexMatch (IUPLEX_TK_COMMA), params);
+        IPARSE_RETURN_IF_ERROR_FREE(iupLexMatch (IUPLEX_TK_COMMA), params);
 
       if (p_format != 'j' &&    /* not array */
           p_format != 'g' && 
@@ -198,7 +198,7 @@ static Ihandle* iParseControl(Iclass *ic)
       {
         params[i] = iParseControlParam(p_format);
         i++;
-        IPARSE_RETURN_IF_ERRO2(iparse_error, params);
+        IPARSE_RETURN_IF_ERROR_FREE(iparse_error, params);
       }
       else    /* array */
       {
@@ -216,9 +216,9 @@ static Ihandle* iParseControl(Iclass *ic)
           }
           params[i] = iParseControlParam(p_format);
           i++;
-          IPARSE_RETURN_IF_ERRO2(iparse_error, params);
+          IPARSE_RETURN_IF_ERROR_FREE(iparse_error, params);
           match = iupLexSeenMatch(IUPLEX_TK_COMMA,&iparse_error);
-          IPARSE_RETURN_IF_ERRO2(iparse_error, params);
+          IPARSE_RETURN_IF_ERROR_FREE(iparse_error, params);
         } while (match); 
 
         /* after an array of parameters there are no more parameters */
@@ -251,23 +251,24 @@ static Ihandle* iParseFunction(Iclass *ic)
   char *attr = NULL;
 
   int match = iupLexSeenMatch(IUPLEX_TK_ATTR,&iparse_error); 
-  IPARSE_RETURN_IF_ERRO(iparse_error);
+  IPARSE_RETURN_IF_ERROR_FREE(iparse_error, attr);
 
   if (match)
-    attr = (char*)iupStrDup(iupLexName());
-
-  IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_BEGP));
+    attr = iupLexGetName();
+  
+  IPARSE_RETURN_IF_ERROR_FREE(iupLexMatch(IUPLEX_TK_BEGP), attr);
 
   ih = iParseControl(ic);
-  IPARSE_RETURN_IF_ERRO(iparse_error);
+  IPARSE_RETURN_IF_ERROR_FREE(iparse_error, attr);
 
   if (attr)
   {
     IupSetAttributes(ih, attr);
     free(attr);
+    attr = NULL;
   }
 
-  IPARSE_RETURN_IF_ERRO(iupLexMatch(IUPLEX_TK_ENDP));
+  IPARSE_RETURN_IF_ERROR_FREE(iupLexMatch(IUPLEX_TK_ENDP), attr);
   return ih;
 }
 

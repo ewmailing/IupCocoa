@@ -436,6 +436,7 @@ int MGL_EXPORT mgl_data_scan_file(HMDT d,const char *fname, const char *templ)
 	if(ny<1)
 	{
 		if(!d->a)	mgl_data_create(d, 1,1,1);
+    free(s);
 		return	false;
 	}
 	d->Create(nx,ny);

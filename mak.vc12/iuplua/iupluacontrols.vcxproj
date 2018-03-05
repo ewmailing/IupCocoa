@@ -94,10 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\srclua5\ctrl\il_cells.c" />
-    <ClCompile Include="..\..\srclua5\ctrl\il_colorbar.c" />
-    <ClCompile Include="..\..\srclua5\ctrl\il_colorbrowser.c" />
-    <ClCompile Include="..\..\srclua5\ctrl\il_dial.c" />
-    <ClCompile Include="..\..\srclua5\ctrl\il_gauge.c" />
+    <ClCompile Include="..\..\srclua5\ctrl\il_matrixex.c" />
     <ClCompile Include="..\..\srclua5\ctrl\il_matrixlist.c" />
     <ClCompile Include="..\..\srclua5\ctrl\il_matrix.c" />
     <ClCompile Include="..\..\srclua5\ctrl\iuplua_matrix_aux.c" />
@@ -106,11 +103,8 @@
   <ItemGroup>
     <None Include="..\..\srclua5\ctrl\iupluacontrols.def" />
     <None Include="..\..\srclua5\ctrl\cells.lua" />
-    <None Include="..\..\srclua5\ctrl\colorbar.lua" />
-    <None Include="..\..\srclua5\ctrl\colorbrowser.lua" />
-    <None Include="..\..\srclua5\ctrl\dial.lua" />
-    <None Include="..\..\srclua5\ctrl\gauge.lua" />
     <None Include="..\..\srclua5\ctrl\matrix.lua" />
+    <None Include="..\..\srclua5\ctrl\matrixex.lua" />
     <None Include="..\..\srclua5\ctrl\matrixlist.lua" />
   </ItemGroup>
   <ItemGroup>

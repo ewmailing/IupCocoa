@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\srcscintilla\iup_scintilla.cpp" />
-    <ClCompile Include="..\srcscintilla\win32\PlatWin.cxx">
+    <ClCompile Include="..\srcscintilla\scintilla\win32\PlatWin.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcscintilla\win32\ScintillaWin.cxx">
+    <ClCompile Include="..\srcscintilla\scintilla\win32\ScintillaWin.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
-    <ClCompile Include="..\srcscintilla\win32\HanjaDic.cxx">
+    <ClCompile Include="..\srcscintilla\scintilla\win32\HanjaDic.cxx">
       <Filter>Scintilla</Filter>
     </ClCompile>
+    <ClCompile Include="..\srcscintilla\iup_scintilla_win.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scintilla">
@@ -21,10 +21,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\srcscintilla\win32\PlatWin.h">
+    <ClInclude Include="..\srcscintilla\scintilla\win32\PlatWin.h">
       <Filter>Scintilla\inc</Filter>
     </ClInclude>
-    <ClInclude Include="..\srcscintilla\win32\HanjaDic.h">
+    <ClInclude Include="..\srcscintilla\scintilla\win32\HanjaDic.h">
       <Filter>Scintilla\inc</Filter>
     </ClInclude>
   </ItemGroup>

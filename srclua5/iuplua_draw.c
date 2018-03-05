@@ -70,8 +70,9 @@ static int DrawPolygon(lua_State *L)
 
 static int DrawText(lua_State *L)
 {
-  size_t len = 0;
-  IupDrawText(iuplua_checkihandle(L, 1), luaL_checklstring(L, 2, &len), (int)len, (int)luaL_checkinteger(L, 3), (int)luaL_checkinteger(L, 4));
+  size_t size;
+  const char* str = luaL_checklstring(L, 2, &size);
+  IupDrawText(iuplua_checkihandle(L, 1), str, (int)size, (int)luaL_checkinteger(L, 3), (int)luaL_checkinteger(L, 4));
   return 0;
 }
 

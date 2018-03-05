@@ -76,7 +76,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;gtk-win32-3.0.lib;gdk-win32-3.0.lib;gdk_pixbuf-2.0.lib;pango-1.0.lib;pangowin32-1.0.lib;gobject-2.0.lib;gmodule-2.0.lib;glib-2.0.lib;iupgtk3.lib;iupgl.lib;iupcontrols.lib;iupimglib.lib;iup_mglplot.lib;cdgdk3.lib;ftgl.lib;zlib1.lib;iupcd.lib;cdgl.lib;cairo.lib;pangocairo-1.0.lib;freetype6.lib;iupmatrixex.lib;im.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;gtk-win32-3.0.lib;gdk-win32-3.0.lib;gdk_pixbuf-2.0.lib;pango-1.0.lib;pangowin32-1.0.lib;gobject-2.0.lib;gmodule-2.0.lib;glib-2.0.lib;iupgtk3.lib;iupgl.lib;iupcontrols.lib;iupimglib.lib;iup_mglplot.lib;cdgdk3.lib;ftgl.lib;zlib1.lib;iupcd.lib;cdgl.lib;cairo.lib;pangocairo-1.0.lib;freetype6.lib;im.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib\Debug;d:\lng\gtk3\lib;..\..\cd\lib\Debug;..\..\im\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -114,7 +114,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/MACHINE:X64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;gtk-win32-3.0.lib;gdk-win32-3.0.lib;gdk_pixbuf-2.0.lib;pango-1.0.lib;pangowin32-1.0.lib;gobject-2.0.lib;gmodule-2.0.lib;glib-2.0.lib;iupgtk3.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupmatrixex.lib;iupimglib.lib;iup_plot.lib;iup_mglplot.lib;cdgdk3.lib;ftgl.lib;zlib1.lib;iupcd.lib;cdgl.lib;cairo.lib;pangocairo-1.0.lib;freetype6.lib;im.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;gtk-win32-3.0.lib;gdk-win32-3.0.lib;gdk_pixbuf-2.0.lib;pango-1.0.lib;pangowin32-1.0.lib;gobject-2.0.lib;gmodule-2.0.lib;glib-2.0.lib;iupgtk3.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_plot.lib;iup_mglplot.lib;cdgdk3.lib;ftgl.lib;zlib1.lib;iupcd.lib;cdgl.lib;cairo.lib;pangocairo-1.0.lib;freetype6.lib;im.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib\Debug_64;d:\lng\gtk3_x64\lib;..\..\cd\lib\Debug_64;..\..\im\lib\Debug_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>

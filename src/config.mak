@@ -23,7 +23,6 @@ else
     ifeq ($(findstring Win, $(TEC_SYSNAME)), )
       # Force definition if not in Windows
       USE_MOTIF = Yes
-      USE_X11 = Yes
     endif
   endif
 endif
@@ -49,12 +48,14 @@ SRC = iup_array.c iup_callback.c iup_dlglist.c iup_attrib.c iup_focus.c iup_font
       iup_sbox.c iup_scrollbox.c iup_normalizer.c iup_tree.c iup_split.c iup_layoutdlg.c \
       iup_recplay.c iup_progressdlg.c iup_expander.c iup_open.c iup_loop.c iup_table.c iup_canvas.c \
       iup_gridbox.c iup_detachbox.c iup_backgroundbox.c iup_linefile.c iup_config.c \
-      iup_flatbutton.c iup_animatedlabel.c iup_draw.c iup_flatframe.c iup_flattabs.c 
+      iup_flatbutton.c iup_animatedlabel.c iup_draw.c iup_flatframe.c iup_flattabs.c \
+      iup_flatscrollbar.c iup_flatscrollbox.c iup_gauge.c iup_dial.c iup_colorbar.c \
+      iup_colorbrowser.c iup_colorhsi.c
 
 ifdef USE_HAIKU
   # Since Haiku has no GTK and no Motif, we can only use the native implementation
   SRC += haiku/iuphaiku_button.cpp haiku/iuphaiku_canvas.cpp haiku/iuphaiku_clipboard.c \
-         haiku/iuphaiku_colordlg.c haiku/iuphaiku_common.cpp haiku/iuphaiku_dialog.cpp \
+         haiku/iuphaiku_common.cpp haiku/iuphaiku_dialog.cpp \
          haiku/iuphaiku_dragdrop.c haiku/iuphaiku_draw.c haiku/iuphaiku_filedlg.cpp \
          haiku/iuphaiku_focus.cpp haiku/iuphaiku_font.cpp haiku/iuphaiku_fontdlg.c \
          haiku/iuphaiku_frame.cpp haiku/iuphaiku_globalattrib.c haiku/iuphaiku_help.c \
@@ -71,14 +72,15 @@ ifdef USE_GTK
   CHECK_GTK = Yes
   DEFINES += GTK_DISABLE_DEPRECATED 
   ifdef USE_GTK3
-    DEFINES += GDK_DISABLE_DEPRECATED GSEAL_ENABLE
+    DEFINES += GDK_DISABLE_DEPRECATED
+    DEFINES += GSEAL_ENABLE
   endif
   INCLUDES += gtk
   SRC += gtk/iupgtk_focus.c gtk/iupgtk_clipboard.c gtk/iupgtk_val.c \
          gtk/iupgtk_globalattrib.c gtk/iupgtk_key.c gtk/iupgtk_tips.c \
          gtk/iupgtk_loop.c gtk/iupgtk_open.c gtk/iupgtk_messagedlg.c \
          gtk/iupgtk_timer.c gtk/iupgtk_label.c gtk/iupgtk_font.c \
-         gtk/iupgtk_colordlg.c gtk/iupgtk_fontdlg.c gtk/iupgtk_filedlg.c \
+         gtk/iupgtk_fontdlg.c gtk/iupgtk_filedlg.c \
          gtk/iupgtk_button.c gtk/iupgtk_toggle.c gtk/iupgtk_dragdrop.c \
          gtk/iupgtk_text.c gtk/iupgtk_frame.c gtk/iupgtk_progressbar.c \
          gtk/iupgtk_tabs.c gtk/iupgtk_list.c gtk/iupgtk_tree.c \
@@ -89,7 +91,7 @@ ifdef USE_GTK
   ifdef USE_GTK3
     SRC += gtk/iupgtk_draw_cairo.c
   else
-    SRC += gtk/iupgtk_draw.c
+    SRC += gtk/iupgtk_draw_gdk.c
   endif
   
   ifneq ($(findstring Win, $(TEC_SYSNAME)), )
@@ -100,8 +102,22 @@ ifdef USE_GTK
       SRC += gtk/iupmac_help.c gtk/iupmac_info.c
       DEFINES += GTK_MAC
     else
-      USE_X11 = Yes
+      #GDK_NULL = Yes
+      ifdef GDK_NULL 
+        #to completely remove X11 calls
+        #works only for GTK3
+        DEFINES += GDK_NULL
+      else
+        USE_X11 = Yes
+      endif
       SRC += gtk/iupgtk_help.c mot/iupunix_info.c
+      
+      ifdef USE_GTK3
+        SRC += gtk/iupgtk_info.c
+      else
+        # Because of iupdrvGetScreenSize limitation
+        SRC += mot/iupx11_info.c
+      endif
     endif
   endif
   
@@ -116,13 +132,13 @@ ifdef USE_MOTIF
          mot/iupmot_key.c mot/iupmot_loop.c mot/iupmot_open.c mot/iupmot_tips.c \
          mot/iupmot_globalattrib.c mot/iupmot_dialog.c mot/iupmot_messagedlg.c mot/iupmot_draw.c \
          mot/iupmot_timer.c mot/iupmot_image.c mot/iupmot_label.c mot/iupmot_canvas.c \
-         mot/iupmot_colordlg.c mot/iupmot_fontdlg.c mot/iupmot_filedlg.c mot/iupmot_frame.c \
+         mot/iupmot_fontdlg.c mot/iupmot_filedlg.c mot/iupmot_frame.c \
          mot/iupmot_button.c mot/iupmot_toggle.c mot/iupmot_progressbar.c mot/iupmot_clipboard.c \
          mot/iupmot_text.c mot/iupmot_val.c mot/iupmot_tabs.c mot/iupmot_menu.c \
          mot/iupmot_list.c mot/iupmot_tree.c mot/iupmot_dragdrop.c mot/iupmot_str.c \
          mot/iupmot_calendar.c iup_datepick.c
          
-  SRC += mot/iupunix_help.c mot/iupunix_info.c
+  SRC += mot/iupunix_help.c mot/iupunix_info.c mot/iupx11_info.c
   USE_X11 = Yes
 
   INCLUDES += mot
@@ -132,7 +148,7 @@ else
          win/iupwin_loop.c win/iupwin_open.c win/iupwin_tips.c win/iupwin_info.c \
          win/iupwin_dialog.c win/iupwin_messagedlg.c win/iupwin_timer.c \
          win/iupwin_image.c win/iupwin_label.c win/iupwin_canvas.c win/iupwin_frame.c \
-         win/iupwin_colordlg.c win/iupwin_fontdlg.c win/iupwin_filedlg.c win/iupwin_dragdrop.c \
+         win/iupwin_fontdlg.c win/iupwin_filedlg.c win/iupwin_dragdrop.c \
          win/iupwin_button.c win/iupwin_draw.c win/iupwin_toggle.c win/iupwin_clipboard.c \
          win/iupwin_progressbar.c win/iupwin_text.c win/iupwin_val.c win/iupwin_touch.c \
          win/iupwin_tabs.c win/iupwin_menu.c win/iupwin_list.c win/iupwin_tree.c \
@@ -151,11 +167,7 @@ ifneq ($(findstring dll, $(TEC_UNAME)), )
   DEFINES += IUP_DLL
   INCLUDES += ../etc
   SRC += ../etc/iup.rc
-  ifdef USE_GTK
-    DEF_FILE = iupgtk.def
-  else
-    DEF_FILE = iup.def
-  endif
+  DEF_FILE = iup.def
 endif
 
 ifeq "$(TEC_UNAME)" "vc6"

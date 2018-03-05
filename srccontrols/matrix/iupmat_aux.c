@@ -95,7 +95,7 @@ void iupMatrixAuxAdjustFirstFromLast(ImatLinColData* p)
     sum += p->dt[i].size;
   }
 
-  if (i==p->num_noscroll && sum < p->current_visible_size)
+  if (i == p->num_noscroll && sum < p->current_visible_size)
   {
     /* if there are room for everyone then position at start */
     p->first = p->num_noscroll;
@@ -155,21 +155,22 @@ void iupMatrixAuxAdjustFirstFromScrollPos(ImatLinColData* p, int scroll_pos)
 */
 void iupMatrixAuxUpdateScrollPos(Ihandle* ih, int m)
 {
-  float pos;
-  int i, sb, scroll_pos;
+  int i, sb, SB, scroll_pos;
   char* POS;
   ImatLinColData *p;
+
+  sb = iupMatrixGetScrollbar(ih);
 
   if (m == IMAT_PROCESS_LIN)
   {
     p = &(ih->data->lines);
-    sb = IUP_SB_VERT;
+    SB = IUP_SB_VERT;
     POS = "POSY";
   }
   else
   {
     p = &(ih->data->columns);
-    sb = IUP_SB_HORIZ;
+    SB = IUP_SB_HORIZ;
     POS = "POSX";
   }
 
@@ -182,7 +183,7 @@ void iupMatrixAuxUpdateScrollPos(Ihandle* ih, int m)
     p->first_offset = 0;
     p->last = p->num==p->num_noscroll? p->num_noscroll: p->num-1;
 
-    if (ih->data->canvas.sb & sb)
+    if (sb & SB)
       IupSetAttribute(ih, POS, "0");
 
     return;
@@ -203,14 +204,12 @@ void iupMatrixAuxUpdateScrollPos(Ihandle* ih, int m)
     iupMatrixAuxAdjustFirstFromScrollPos(p, scroll_pos);
   }
 
-  pos = (float)scroll_pos/(float)p->total_visible_size;
-
   /* update last */
   iupMatrixAuxUpdateLast(p);
 
   /* update scroll pos */
-  if (ih->data->canvas.sb & sb)
-    IupSetFloat(ih, POS, pos);
+  if (sb & SB)
+    IupSetInt(ih, POS, scroll_pos);
 }
 
 /* Calculate which is the last visible column/line of the matrix. 
@@ -282,31 +281,33 @@ static void iMatrixAuxFillSizeVec(Ihandle* ih, int m)
 
 static void iMatrixAuxUpdateVisibleSize(Ihandle* ih, int m)
 {
-  char *D, *AUTOHIDE;
+  char *D, *AUTOHIDE, *MAX;
   ImatLinColData *p;
   int canvas_size, fixed_size, i, SB;
 
   if (m == IMAT_PROCESS_LIN)
   {
     D = "DY";
+    MAX = "YMAX";
 
     /* when configuring the vertical scrollbar check if horizontal scrollbar can be hidden */
     AUTOHIDE = "XAUTOHIDE";  
     SB = IUP_SB_HORIZ;
 
     p = &(ih->data->lines);
-    canvas_size = ih->data->h;
+    canvas_size = iupMatrixGetHeight(ih);
   }
   else
   {
     D = "DX";
+    MAX = "XMAX";
 
     /* when configuring the horizontal scrollbar check if vertical scrollbar can be hidden */
     AUTOHIDE = "YAUTOHIDE";  
     SB = IUP_SB_VERT;
 
     p = &(ih->data->columns);
-    canvas_size = ih->data->w;
+    canvas_size = iupMatrixGetWidth(ih);
   }
 
   fixed_size = 0;
@@ -319,18 +320,23 @@ static void iMatrixAuxUpdateVisibleSize(Ihandle* ih, int m)
     p->current_visible_size = p->total_visible_size;
 
   if (!p->total_visible_size || p->current_visible_size == p->total_visible_size)
-    IupSetAttribute(ih, D, "1");
+  {
+    IupSetAttribute(ih, MAX, "0");
+    IupSetAttribute(ih, D, "0");
+  }
   else
   {
-    if (ih->data->limit_expand && (ih->data->canvas.sb & SB) && iupAttribGetBoolean(ih, AUTOHIDE))
+    int sb = iupMatrixGetScrollbar(ih);
+    if (ih->data->limit_expand && (sb & SB) && iupAttribGetBoolean(ih, AUTOHIDE))
     {
       /* Must perform an extra check or the scrollbar will be always visible */
-      int sb_size = iupdrvGetScrollbarSize();
+      int sb_size = iupMatrixGetScrollbarSize(ih);
       if (p->current_visible_size + sb_size == p->total_visible_size)
         p->current_visible_size = p->total_visible_size;
     }
 
-    IupSetFloat(ih, D, (float)p->current_visible_size/(float)p->total_visible_size);
+    IupSetInt(ih, MAX, p->total_visible_size);
+    IupSetInt(ih, D, p->current_visible_size);
   }
 }
 
@@ -346,7 +352,7 @@ void iupMatrixAuxCalcSizes(Ihandle* ih)
   if (ih->data->lines.first > ih->data->lines.num-1) 
   {
     ih->data->lines.first_offset = 0;
-    if (ih->data->lines.num==ih->data->lines.num_noscroll)
+    if (ih->data->lines.num == ih->data->lines.num_noscroll)
       ih->data->lines.first = ih->data->lines.num_noscroll;
     else
       ih->data->lines.first = ih->data->lines.num-1;
@@ -354,7 +360,7 @@ void iupMatrixAuxCalcSizes(Ihandle* ih)
   if (ih->data->columns.first > ih->data->columns.num-1) 
   {
     ih->data->columns.first_offset = 0;
-    if (ih->data->columns.num==ih->data->columns.num_noscroll)
+    if (ih->data->columns.num == ih->data->columns.num_noscroll)
       ih->data->columns.first = ih->data->columns.num_noscroll;
     else
       ih->data->columns.first = ih->data->columns.num-1;

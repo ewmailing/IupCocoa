@@ -235,7 +235,7 @@ void GaugeTest(void)
 //  IupSetAttribute(gauge, "BGCOLOR", "255 0 128");
 //  IupSetAttribute(gauge, "FGCOLOR", "0 128 0");
 //  IupSetAttribute(gauge, "FLAT", "YES");
-//  IupSetAttribute(gauge, "FGCOLOR", "96 120 232");
+  //IupSetAttribute(gauge, "FGCOLOR", "96 120 232");
 
   btn_restart = IupButton(NULL, NULL);
   btn_pause = IupButton(NULL, NULL);
@@ -277,6 +277,7 @@ void GaugeTest(void)
   dlg = IupDialog(vbox);
   
   IupSetAttribute(dlg, "TITLE", "IupGauge Test");
+//  IupSetAttribute(dlg, "BGCOLOR", "255 0 128");
 
   IupSetCallback(btn_pause, "ACTION", (Icallback) btn_pause_cb);
   IupSetCallback(btn_restart, "ACTION", (Icallback) btn_restart_cb);
@@ -296,7 +297,6 @@ void GaugeTest(void)
 int main(int argc, char* argv[])
 {
   IupOpen(&argc, &argv);
-  IupControlsOpen();
 
   GaugeTest();
 

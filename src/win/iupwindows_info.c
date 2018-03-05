@@ -15,6 +15,7 @@
 
 #include "iup_str.h"
 #include "iup_drvinfo.h"
+#include "iup_varg.h"
 
 
 char* iupdrvLocaleInfo(void)
@@ -65,11 +66,11 @@ int iupdrvGetScreenDepth(void)
   return bpp;
 }
 
-float iupdrvGetScreenDpi(void)
+double iupdrvGetScreenDpi(void)
 {
-  float dpi;
+  double dpi;
   HDC hDCDisplay = GetDC(NULL);
-  dpi = (float)GetDeviceCaps(hDCDisplay, LOGPIXELSY);
+  dpi = (double)GetDeviceCaps(hDCDisplay, LOGPIXELSY);
   ReleaseDC(NULL, hDCDisplay);
   return dpi;
 }
@@ -289,3 +290,60 @@ int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
 
 }
 
+
+int iupdrvSetCurrentDirectory(const char* path)
+{
+  return SetCurrentDirectoryA(path);
+}
+
+char* iupdrvGetCurrentDirectory(void)
+{
+  char* cur_dir = NULL;
+
+  int len = GetCurrentDirectoryA(0, NULL);
+  if (len == 0) return NULL;
+
+  cur_dir = iupStrGetMemory(len + 2);
+  GetCurrentDirectoryA(len + 1, cur_dir);
+  cur_dir[len] = '\\';
+  cur_dir[len + 1] = 0;
+
+  return cur_dir;
+}
+
+void IupLogV(const char* type, const char* format, va_list arglist)
+{
+  HANDLE EventSource;
+  WORD wtype = 0;
+
+  int size;
+  char* value = iupStrGetLargeMem(&size);
+  vsnprintf(value, size, format, arglist);
+
+  if (iupStrEqualNoCase(type, "DEBUG"))
+  {
+    OutputDebugStringA(value);
+    return;
+  }
+  else if (iupStrEqualNoCase(type, "ERROR"))
+    wtype = EVENTLOG_ERROR_TYPE;
+  else if (iupStrEqualNoCase(type, "WARNING"))
+    wtype = EVENTLOG_WARNING_TYPE;
+  else if (iupStrEqualNoCase(type, "INFO"))
+    wtype = EVENTLOG_INFORMATION_TYPE;
+
+  EventSource = RegisterEventSourceA(NULL, "Application");
+  if (EventSource)
+  {
+    ReportEventA(EventSource, wtype, 0, 0, NULL, 1, 0, &value, NULL);
+    DeregisterEventSource(EventSource);
+  }
+}
+
+void IupLog(const char* type, const char* format, ...)
+{
+  va_list arglist;
+  va_start(arglist, format);
+  IupLogV(type, format, arglist);
+  va_end(arglist);
+}

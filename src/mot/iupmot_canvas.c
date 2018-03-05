@@ -52,16 +52,16 @@ static void motCanvasScrollbarCallback(Widget w, XtPointer client_data, XtPointe
 
   if (op > IUP_SBDRAGV)
   {
-    iupCanvasCalcScrollRealPos(iupAttribGetFloat(ih,"XMIN"), iupAttribGetFloat(ih,"XMAX"), &posx, 
+    iupCanvasCalcScrollRealPos(iupAttribGetDouble(ih,"XMIN"), iupAttribGetDouble(ih,"XMAX"), &posx, 
                                IUP_SB_MIN, IUP_SB_MAX, ipage, &ipos);
-    ih->data->posx = (float)posx;
+    ih->data->posx = posx;
     posy = ih->data->posy;
   }
   else
   {
-    iupCanvasCalcScrollRealPos(iupAttribGetFloat(ih,"YMIN"), iupAttribGetFloat(ih,"YMAX"), &posy, 
+    iupCanvasCalcScrollRealPos(iupAttribGetDouble(ih,"YMIN"), iupAttribGetDouble(ih,"YMAX"), &posy, 
                                IUP_SB_MIN, IUP_SB_MAX, ipage, &ipos);
-    ih->data->posy = (float)posy;
+    ih->data->posy = posy;
     posx = ih->data->posx;
   }
 
@@ -72,7 +72,11 @@ static void motCanvasScrollbarCallback(Widget w, XtPointer client_data, XtPointe
   {
     IFnff cb = (IFnff)IupGetCallback(ih,"ACTION");
     if (cb)
-      cb (ih, (float)posx, (float)posy);
+    {
+      /* REDRAW Now (since 3.24) - to allow a full native redraw process */
+      iupdrvRedrawNow(ih);
+      /* cb(ih, (float)posx, (float)posy); - OLD method */
+    }
   }
 }
 
@@ -177,7 +181,7 @@ static void motCanvasExposeCallback(Widget w, Ihandle *ih, XtPointer call_data)
     if (!iupAttribGet(ih, "_IUPMOT_NO_BGCOLOR"))
       motCanvasSetBgColorAttrib(ih, iupAttribGetStr(ih, "BGCOLOR"));  /* reset to update window attributes */
 
-    cb (ih, ih->data->posx, ih->data->posy);
+    cb(ih, (float)ih->data->posx, (float)ih->data->posy);
   }
 }
 
@@ -216,13 +220,13 @@ static void motCanvasInputCallback(Widget w, Ihandle *ih, XtPointer call_data)
         else
         {
           IFniff scb = (IFniff)IupGetCallback(ih,"SCROLL_CB");
-          float posy = ih->data->posy;
+          double posy = ih->data->posy;
           int delta = but_evt->button==Button4? 1: -1;
           int op = but_evt->button==Button4? IUP_SBUP: IUP_SBDN;
-          posy -= delta*iupAttribGetFloat(ih, "DY")/10.0f;
-          IupSetFloat(ih, "POSY", posy);
+          posy -= delta*iupAttribGetDouble(ih, "DY")/10.0;
+          IupSetDouble(ih, "POSY", posy);
           if (scb)
-            scb(ih,op,ih->data->posx,ih->data->posy);
+            scb(ih, op, (float)ih->data->posx, (float)ih->data->posy);
         }
       }
     }
@@ -247,16 +251,16 @@ static int motCanvasSetDXAttrib(Ihandle* ih, const char *value)
   if (ih->data->sb & IUP_SB_HORIZ)
   {
     double posx, xmin, xmax, linex;
-    float dx;
+    double dx;
     int iposx, ipagex, ilinex;
     Widget sb_horiz = (Widget)iupAttribGet(ih, "_IUPMOT_SBHORIZ");
     if (!sb_horiz) return 1;
 
-    if (!iupStrToFloatDef(value, &dx, 0.1f))
+    if (!iupStrToDoubleDef(value, &dx, 0.1))
       return 1;
 
-    xmin = iupAttribGetFloat(ih, "XMIN");
-    xmax = iupAttribGetFloat(ih, "XMAX");
+    xmin = iupAttribGetDouble(ih, "XMIN");
+    xmax = iupAttribGetDouble(ih, "XMAX");
     posx = ih->data->posx;
 
     iupCanvasCalcScrollIntPos(xmin, xmax, dx, posx, 
@@ -271,7 +275,7 @@ static int motCanvasSetDXAttrib(Ihandle* ih, const char *value)
     else
     {
       /* line and page conversions are the same */
-      linex = iupAttribGetFloat(ih,"LINEX");
+      linex = iupAttribGetDouble(ih,"LINEX");
       iupCanvasCalcScrollIntPos(xmin, xmax, linex, 0, 
                                 IUP_SB_MIN, IUP_SB_MAX, &ilinex,  NULL);
     }
@@ -291,7 +295,7 @@ static int motCanvasSetDXAttrib(Ihandle* ih, const char *value)
       else
         XtSetSensitive(sb_horiz, False);
 
-      ih->data->posx = (float)xmin;
+      ih->data->posx = xmin;
       XtVaSetValues(sb_horiz, XmNvalue, IUP_SB_MIN, NULL);
     }
     else
@@ -311,7 +315,7 @@ static int motCanvasSetDXAttrib(Ihandle* ih, const char *value)
 
       iupAttribSet(ih, "XHIDDEN", "NO");
 
-      ih->data->posx = (float)posx;
+      ih->data->posx = posx;
     }
   }
   return 1;
@@ -322,20 +326,20 @@ static int motCanvasSetPosXAttrib(Ihandle* ih, const char *value)
   if (ih->data->sb & IUP_SB_HORIZ)
   {
     double xmin, xmax, dx;
-    float posx;
+    double posx;
     int iposx, ipagex;
     Widget sb_horiz = (Widget)iupAttribGet(ih, "_IUPMOT_SBHORIZ");
     if (!sb_horiz) return 1;
 
-    if (!iupStrToFloat(value, &posx))
+    if (!iupStrToDouble(value, &posx))
       return 1;
 
-    xmin = iupAttribGetFloat(ih, "XMIN");
-    xmax = iupAttribGetFloat(ih, "XMAX");
-    dx = iupAttribGetFloat(ih, "DX");
+    xmin = iupAttribGetDouble(ih, "XMIN");
+    xmax = iupAttribGetDouble(ih, "XMAX");
+    dx = iupAttribGetDouble(ih, "DX");
 
-    if (posx < xmin) posx = (float)xmin;
-    if (posx > (xmax - dx)) posx = (float)(xmax - dx);
+    if (posx < xmin) posx = xmin;
+    if (posx > (xmax - dx)) posx = xmax - dx;
     ih->data->posx = posx;
 
     iupCanvasCalcScrollIntPos(xmin, xmax, dx, posx, 
@@ -351,16 +355,16 @@ static int motCanvasSetDYAttrib(Ihandle* ih, const char *value)
   if (ih->data->sb & IUP_SB_VERT)
   {
     double posy, ymin, ymax, liney;
-    float dy;
+    double dy;
     int iposy, ipagey, iliney;
     Widget sb_vert = (Widget)iupAttribGet(ih, "_IUPMOT_SBVERT");
     if (!sb_vert) return 1;
 
-    if (!iupStrToFloatDef(value, &dy, 0.1f))
+    if (!iupStrToDoubleDef(value, &dy, 0.1))
       return 1;
 
-    ymin = iupAttribGetFloat(ih, "YMIN");
-    ymax = iupAttribGetFloat(ih, "YMAX");
+    ymin = iupAttribGetDouble(ih, "YMIN");
+    ymax = iupAttribGetDouble(ih, "YMAX");
     posy = ih->data->posy;
 
     iupCanvasCalcScrollIntPos(ymin, ymax, dy, posy, 
@@ -375,7 +379,7 @@ static int motCanvasSetDYAttrib(Ihandle* ih, const char *value)
     else
     {
       /* line and page conversions are the same */
-      liney = iupAttribGetFloat(ih,"LINEY");
+      liney = iupAttribGetDouble(ih,"LINEY");
       iupCanvasCalcScrollIntPos(ymin, ymax, liney, 0, 
                                 IUP_SB_MIN, IUP_SB_MAX, &iliney,  NULL);
     }
@@ -395,7 +399,7 @@ static int motCanvasSetDYAttrib(Ihandle* ih, const char *value)
       else
         XtSetSensitive(sb_vert, False);
 
-      ih->data->posy = (float)ymin;
+      ih->data->posy = ymin;
       XtVaSetValues(sb_vert, XmNvalue, IUP_SB_MIN, NULL);
     }
     else
@@ -415,7 +419,7 @@ static int motCanvasSetDYAttrib(Ihandle* ih, const char *value)
 
       iupAttribSet(ih, "YHIDDEN", "NO");
 
-      ih->data->posy = (float)posy;
+      ih->data->posy = posy;
     }
   }
   return 1;
@@ -426,20 +430,20 @@ static int motCanvasSetPosYAttrib(Ihandle* ih, const char *value)
   if (ih->data->sb & IUP_SB_VERT)
   {
     double ymin, ymax, dy;
-    float posy;
+    double posy;
     int iposy, ipagey;
     Widget sb_vert = (Widget)iupAttribGet(ih, "_IUPMOT_SBVERT");
     if (!sb_vert) return 1;
 
-    if (!iupStrToFloat(value, &posy))
+    if (!iupStrToDouble(value, &posy))
       return 1;
 
-    ymin = iupAttribGetFloat(ih, "YMIN");
-    ymax = iupAttribGetFloat(ih, "YMAX");
-    dy = iupAttribGetFloat(ih, "DY");
+    ymin = iupAttribGetDouble(ih, "YMIN");
+    ymax = iupAttribGetDouble(ih, "YMAX");
+    dy = iupAttribGetDouble(ih, "DY");
 
-    if (posy < ymin) posy = (float)ymin;
-    if (posy > (ymax - dy)) posy = (float)(ymax - dy);
+    if (posy < ymin) posy = ymin;
+    if (posy > (ymax - dy)) posy = ymax - dy;
     ih->data->posy = posy;
 
     iupCanvasCalcScrollIntPos(ymin, ymax, dy, posy, 

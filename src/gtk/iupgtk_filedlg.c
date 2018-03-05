@@ -137,28 +137,12 @@ static void gtkFileDlgGetMultipleFiles(Ihandle* ih, GSList* list)
   free(dir);
 }
 
-#ifdef GTK_MAC
-  #include <gdk/gdk.h>
-#else
-  #ifdef WIN32
-    #include <gdk/gdkwin32.h>
-  #else
-    #include <gdk/gdkx.h>
-  #endif
-#endif
-
 static void gtkFileDlgUpdatePreviewGLCanvas(Ihandle* ih)
 {
   Ihandle* glcanvas = IupGetAttributeHandle(ih, "PREVIEWGLCANVAS");
   if (glcanvas)
   {
-#ifndef GTK_MAC
-  #ifdef WIN32                                 
-      iupAttribSet(glcanvas, "HWND", iupAttribGet(ih, "HWND"));
-  #else
-      iupAttribSet(glcanvas, "XWINDOW", iupAttribGet(ih, "XWINDOW"));
-  #endif
-#endif
+    iupAttribSet(glcanvas, iupgtkGetNativeWindowHandleName(), iupAttribGet(ih, iupgtkGetNativeWindowHandleName()));
     glcanvas->iclass->Map(glcanvas);  /* this will call Map only for the IupGLCanvas, NOT for the IupCanvas */
   }
 }
@@ -170,14 +154,9 @@ static void gtkFileDlgPreviewRealize(GtkWidget *widget, Ihandle *ih)
 
   iupAttribSet(ih, "DRAWABLE", (char*)iupgtkGetWindow(widget));
 
-#ifndef GTK_MAC
-  #ifdef WIN32                                 
-    iupAttribSet(ih, "HWND", (char*)GDK_WINDOW_HWND(iupgtkGetWindow(widget)));
-  #else
-    iupAttribSet(ih, "XWINDOW", (char*)GDK_WINDOW_XID(iupgtkGetWindow(widget)));
+  iupAttribSet(ih, iupgtkGetNativeWindowHandleName(), iupgtkGetNativeWidgetHandle(widget));
+  if (iupdrvGetDisplay())
     iupAttribSet(ih, "XDISPLAY", (char*)iupdrvGetDisplay());
-  #endif
-#endif
 
   gtkFileDlgUpdatePreviewGLCanvas(ih);
 }
@@ -232,12 +211,14 @@ static void gtkFileDlgUpdatePreview(GtkFileChooser *file_chooser, Ihandle* ih)
 {
   char *filename = gtk_file_chooser_get_preview_filename(file_chooser);
 
-  /* callback here always exists */
   IFnss cb = (IFnss)IupGetCallback(ih, "FILE_CB");
-  if (gtkIsFile(filename))
-    cb(ih, iupgtkStrConvertFromFilename(filename), "SELECT");
-  else
-    cb(ih, iupgtkStrConvertFromFilename(filename), "OTHER");
+  if (cb) /* safety check - callback here always exists */
+  {
+    if (gtkIsFile(filename))
+      cb(ih, iupgtkStrConvertFromFilename(filename), "SELECT");
+    else
+      cb(ih, iupgtkStrConvertFromFilename(filename), "OTHER");
+  }
 
   g_free (filename);
 
@@ -529,7 +510,7 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
       {
         if (!dir_exist)
         {
-          iupShowError(ih, "IUP_INVALIDDIR");
+          IupMessageError(ih, "IUP_INVALIDDIR");
           response = GTK_RESPONSE_HELP; /* to leave the dialog open */
           continue;
         }
@@ -538,7 +519,7 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
       {
         if (dir_exist)
         {
-          iupShowError(ih, "IUP_FILEISDIR");
+          IupMessageError(ih, "IUP_FILEISDIR");
           response = GTK_RESPONSE_HELP; /* to leave the dialog open */
           continue;
         }
@@ -556,7 +537,7 @@ static int gtkFileDlgPopup(Ihandle* ih, int x, int y)
 
           if (!iupStrBoolean(value))
           {
-            iupShowError(ih, "IUP_FILENOTEXIST");
+            IupMessageError(ih, "IUP_FILENOTEXIST");
             response = GTK_RESPONSE_HELP; /* to leave the dialog open */
             continue;
           }

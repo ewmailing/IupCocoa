@@ -20,9 +20,10 @@
 #include "iup_drvfont.h"
 #include "iup_register.h"
 #include "iup_stdcontrols.h"
+#include "iup_varg.h"
 
 
-#define RAD2DEG  57.296   /* radians to degrees */
+#define IUP_RAD2DEG  57.295779513   /* radians to degrees (deg = IUP_RAD2DEG * rad) */
 
 
 static void iParamSetDoublePrec(Ihandle* ih, const char* name, double num, int prec)
@@ -198,7 +199,7 @@ static int iParamTextAction_CB(Ihandle *self, int c, char *after)
       double min = iupAttribGetDouble(param, "MIN");
       double step = iupAttribGetDouble(self, "_IUPGP_INCSTEP");
       double val = iupAttribGetDouble(param, "VALUE");
-      IupSetInt(self, "SPINVALUE", (int)((val-min)/step + 0.5));
+      IupSetInt(self, "SPINVALUE", iupRound((val - min) / step));
     }
     else
     {
@@ -239,7 +240,7 @@ static int iParamValAction_CB(Ihandle *self)
       else
         old_angle = iupAttribGetDouble(param, "_IUPGP_OLD_ANGLE");
 
-      val = old_angle + val*RAD2DEG;
+      val = old_angle + val*IUP_RAD2DEG;
 
       if (iupAttribGetInt(param, "INTERVAL"))
       {
@@ -289,7 +290,7 @@ static int iParamValAction_CB(Ihandle *self)
       double min = iupAttribGetDouble(param, "MIN");
       double step = iupAttribGetDouble(ctrl, "_IUPGP_INCSTEP");
       double val = iupAttribGetDouble(param, "VALUE");
-      IupSetInt(ctrl, "SPINVALUE", (int)((val - min) / step + 0.5));
+      IupSetInt(ctrl, "SPINVALUE", iupRound((val - min) / step));
     }
     else
     {
@@ -359,15 +360,20 @@ static int iParamFileButton_CB(Ihandle *self)
 
   Ihandle* file_dlg = IupFileDlg();
 
+  char* dir = iupAttribGet(param, "DIRECTORY");
+
   IupSetAttributeHandle(file_dlg, "PARENTDIALOG", IupGetDialog(self));
   IupSetStrAttribute(file_dlg, "TITLE", iupAttribGet(param, "TITLE"));
   IupSetAttribute(file_dlg, "VALUE", iupAttribGet(param, "VALUE"));
 
   IupSetAttribute(file_dlg, "DIALOGTYPE", iupAttribGet(param, "DIALOGTYPE"));
   IupSetAttribute(file_dlg, "FILTER", iupAttribGet(param, "FILTER"));
-  IupSetAttribute(file_dlg, "DIRECTORY", iupAttribGet(param, "DIRECTORY"));
+  IupSetAttribute(file_dlg, "DIRECTORY", dir);
   IupSetAttribute(file_dlg, "NOCHANGEDIR", iupAttribGet(param, "NOCHANGEDIR"));
   IupSetAttribute(file_dlg, "NOOVERWRITEPROMPT", iupAttribGet(param, "NOOVERWRITEPROMPT"));
+
+  if (iupStrEqualNoCase(IupGetAttribute(file_dlg, "DIALOGTYPE"), "DIR") && (!dir || dir[0]==0))
+    IupSetStrAttribute(file_dlg, "DIRECTORY", iupAttribGet(param, "VALUE"));
 
   IupPopup(file_dlg, IUP_CENTER, IUP_CENTER);
 
@@ -383,7 +389,12 @@ static int iParamFileButton_CB(Ihandle *self)
       iupAttribSetStr(param, "VALUE", iupAttribGet(param, "OLD_VALUE"));
     }
     else
+    {
       IupSetAttribute(ctrl, "VALUE", iupAttribGet(param, "VALUE"));
+
+      if (iupStrEqualNoCase(IupGetAttribute(file_dlg, "DIALOGTYPE"), "DIR"))
+        iupAttribSetStr(param, "DIRECTORY", value);
+    }
   }
 
   IupDestroy(file_dlg);
@@ -838,8 +849,8 @@ static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
         IupAppend(box, ctrl);
         IupSetCallback(ctrl, "SPIN_CB", (Icallback)iParamSpinReal_CB);
         /* SPINMIN=0 and SPININC=1 */
-        IupSetInt(ctrl, "SPINMAX", (int)((max-min)/step + 0.5));
-        IupSetInt(ctrl, "SPINVALUE", (int)((val-min)/step + 0.5));
+        IupSetInt(ctrl, "SPINMAX", iupRound((max - min) / step));
+        IupSetInt(ctrl, "SPINVALUE", iupRound((val - min) / step));
 
         iupAttribSetDouble(ctrl, "_IUPGP_INCSTEP", step);
         iupAttribSet(ctrl, "_IUPGP_SPINREAL", "1");
@@ -915,7 +926,7 @@ static Ihandle* iParamCreateCtrlBox(Ihandle* param, const char *type)
         aux = IupCreate("dial");  /* Use IupCreate to avoid depending on the IupControls library */
         if (aux)  /* If IupControls library is not available it will fail */
         {
-          IupSetDouble(aux, "VALUE", iupAttribGetDouble(param, "VALUE")/RAD2DEG);
+          IupSetDouble(aux, "VALUE", iupAttribGetDouble(param, "VALUE")/IUP_RAD2DEG);
           IupSetAttribute(aux, "SIZE", "50x10");
         }
       }
@@ -1790,26 +1801,35 @@ int IupGetParamv(const char* title, Iparamcb action, void* user_data, const char
   }
 }
 
-int IupGetParam(const char* title, Iparamcb action, void* user_data, const char* format,...)
+int IupGetParamV(const char* title, Iparamcb action, void* user_data, const char* format, va_list arglist)
 {
   int param_count, param_extra, i, ret;
   void** param_data;
-  va_list arg;
 
   param_count = iupGetParamCount(format, &param_extra);
 
   param_data = malloc(param_count*sizeof(void*));
 
-  va_start(arg, format);
   for (i = 0; i < param_count; i++)
   {
-    param_data[i] = (void*)(va_arg(arg, void*));
+    param_data[i] = (void*)(va_arg(arglist, void*));
   }
-  va_end(arg);
 
   ret = IupGetParamv(title, action, user_data, format, param_count, param_extra, param_data);
 
   free(param_data);
+  return ret;
+}
+
+int IupGetParam(const char* title, Iparamcb action, void* user_data, const char* format, ...)
+{
+  va_list arglist;
+  int ret;
+
+  va_start(arglist, format);
+  ret = IupGetParamV(title, action, user_data, format, arglist);
+  va_end(arglist);
+
   return ret;
 }
 
@@ -1879,18 +1899,19 @@ Ihandle *IupParamBoxv(Ihandle** children)
   return IupCreatev("parambox", (void**)children);
 }
 
+Ihandle*  IupParamBoxV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("parambox", child, arglist);
+}
+
 Ihandle *IupParamBox(Ihandle * child, ...)
 {
-  Ihandle **children;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("parambox", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("parambox", (void**)children);
-  free(children);
 
   return ih;
 }
@@ -1956,17 +1977,19 @@ Iclass* iupParamBoxNewClass(void)
 
   iupClassRegisterAttribute(ic, "STATUS", NULL, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "PARAMCOUNT", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "BUTTON1", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "BUTTON2", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "BUTTON3", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "USERDATA", NULL, NULL, NULL, NULL, IUPAF_NO_STRING | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "LABELALIGN", NULL, iParamBoxSetLabelAlignAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MODIFIABLE", NULL, iParamBoxSetModifiableAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   /* ATTENTION: can NOT set IUPAF_READONLY if get is not defined when attribute is used before map. 
      In iupAttribUpdate (called by IupMap) store will be 0 for read-only attributes, then attribute will be removed from the hash table.
+
+     The following are documented as read-only:
   */
+  iupClassRegisterAttribute(ic, "PARAMCOUNT", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON1", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON2", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BUTTON3", NULL, NULL, NULL, NULL, IUPAF_IHANDLE | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   return ic;
 }

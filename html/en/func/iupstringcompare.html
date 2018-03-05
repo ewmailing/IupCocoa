@@ -25,8 +25,8 @@ The comparison will work only for Latin-1 characters, even if UTF8MODE is Yes.</
 <h3>
 Parameters/Return</h3>
 <div>
-  <pre>void <strong>IupStringCompare</strong>(const char* <strong>str1</strong>, const char* <strong>str2</strong>, int <strong>casesensitive</strong>, int <strong>lexicographic</strong>); [in C]
-iup.<strong>StringCompare</strong>(<strong>str1, str2</strong>: string[, <strong>casesensitive, lexicographic: </strong>number]) [in Lua]
+  <pre>int <strong>IupStringCompare</strong>(const char* <strong>str1</strong>, const char* <strong>str2</strong>, int <strong>casesensitive</strong>, int <strong>lexicographic</strong>); [in C]
+iup.<strong>StringCompare</strong>(<strong>str1, str2</strong>: string[, <strong>casesensitive, lexicographic: </strong>number]) -&gt; <strong>ret</strong>: integer [in Lua]
 </pre>
 </div>
 <p><b>str1 and str2</b>: strings to be compared.<br>

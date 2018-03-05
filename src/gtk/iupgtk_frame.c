@@ -122,7 +122,8 @@ static int gtkFrameSetFgColorAttrib(Ihandle* ih, const char* value)
 
 static int gtkFrameSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {

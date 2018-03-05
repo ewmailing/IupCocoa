@@ -139,15 +139,21 @@ static void iClassLayoutUpdate(Iclass* ic, Ihandle *ih)
 
 static int iClassDlgPopup(Iclass* ic, Ihandle* ih, int x, int y)
 {
-  int ret = IUP_INVALID;  /* IUP_INVALID means it is not implemented */
+  /* must be before the parent class */
+  if (ic->DlgPopup)
+    return ic->DlgPopup(ih, x, y);  /* ignore parent if implemented */
+
   if (ic->parent)
-    ret = iClassDlgPopup(ic->parent, ih, x, y);
+    return  iClassDlgPopup(ic->parent, ih, x, y);
 
-  if (ret != IUP_ERROR && ic->DlgPopup)
-    ret = ic->DlgPopup(ih, x, y);
-
-  return ret;
+  return IUP_INVALID;  /* means it is not implemented */
 }
+
+
+/*****************************************************************
+                     Public Interface
+*****************************************************************/
+
 
 int iupClassObjectCreate(Ihandle* ih, void** params)
 {

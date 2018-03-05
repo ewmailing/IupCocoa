@@ -15,6 +15,7 @@
 #include "iup_array.h"
 #include "iup_stdcontrols.h"
 #include "iup_normalizer.h"
+#include "iup_varg.h"
 
 
 enum {NORMALIZE_NONE, NORMALIZE_WIDTH, NORMALIZE_HEIGHT};
@@ -207,18 +208,19 @@ Ihandle *IupNormalizerv(Ihandle **ih_list)
   return IupCreatev("normalizer", (void**)ih_list);
 }
 
+Ihandle*  IupNormalizerV(Ihandle* ih_first, va_list arglist)
+{
+  return IupCreateV("normalizer", ih_first, arglist);
+}
+
 Ihandle *IupNormalizer(Ihandle* ih_first, ...)
 {
-  Ihandle **ih_list;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, ih_first);
-  ih_list = (Ihandle **)iupObjectGetParamList(ih_first, arglist);
+  ih = IupCreateV("normalizer", ih_first, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("normalizer", (void**)ih_list);
-  free(ih_list);
 
   return ih;
 }

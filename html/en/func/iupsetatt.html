@@ -17,7 +17,9 @@
 <p>Sets several attributes of an interface element and optionally sets its name.</p>
 <h3>
 Parameters/Return</h3>
-<pre>Ihandle* IupSetAtt(const char* <strong>handle_name</strong>, Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, ...); [in C]</pre>
+<pre>Ihandle* IupSetAtt(const char* <strong>handle_name</strong>, Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, ...); [in C]
+Ihandle* IupSetAttV(const char* <strong>handle_name</strong>, Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, va_list <strong>arglist</strong>); [in C]
+[There is no equivalent in Lua]</pre>
 <p><strong>handle_name: </strong>optional handle name. <strong>IupSetHandle</strong> 
 will be called internally. can be NULL<strong>.<br>
 ih</strong>: Identifier of the interface element.<br>

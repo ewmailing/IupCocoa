@@ -131,7 +131,7 @@ int iupMatrixProcessKeyPress(Ihandle* ih, int c)
       iupMATRIX_ScrollKeyUp(ih);
       iupMatrixAuxCallEnterCellCb(ih);
       iMatrixKeyCheckMarkEnd(ih, c, K_sUP);
-      break ;
+      break;
 
     case K_cDOWN:
     case K_sDOWN:

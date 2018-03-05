@@ -17,7 +17,6 @@
 #include "iupcontrols.h"
 #include "iup_plot.h"
 #include "iupim.h"
-#include "iupmatrixex.h"
 
 #include <cd.h>
 #include <cdiup.h>
@@ -274,7 +273,7 @@ static void InitPlots(void)
 
   {
     const char * kLables[12] = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
-    const double kData[12] = { 10, 20, 30, 40, 50, 60, 70, 80, 90, 0, 10, 20 };
+    const double kData[12] = { 10, -20, 30, 40, 50, 60, 70, 80, 90, 0, 10, 20 };
     IupPlotBegin(plot[3], 1);
     for (theI = 0; theI < 12; theI++)
       IupPlotAddStr(plot[3], kLables[theI], kData[theI]);
@@ -374,6 +373,7 @@ static void InitPlots(void)
   IupSetAttribute(plot[6], "DS_LEGEND", "Line");
   IupSetAttribute(plot[6], "DS_MODE", "STEP");
   IupSetAttribute(plot[6], "HIGHLIGHTMODE", "SAMPLE");
+  IupSetAttribute(plot[6], "DATASETCLIPPING", "NONE");
 
   /************************************************************************/
   /* PLOT 7 */
@@ -466,6 +466,7 @@ static void InitPlots(void)
   IupSetAttribute(plot[9], "DS_BAROUTLINE", "Yes");
   IupSetAttribute(plot[9], "DS_BAROUTLINECOLOR", "70 70 160");
   IupSetAttribute(plot[9], "HIGHLIGHTMODE", "SAMPLE");
+//  IupSetAttribute(plot[9], "GRAPHICSMODE", "OPENGL");
 
   {
     const char * kLables[12] = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
@@ -499,6 +500,7 @@ static void InitPlots(void)
   IupSetAttribute(plot[9], "DS_LEGEND", "Error Bar");
   IupSetAttribute(plot[9], "DS_MODE", "ERRORBAR");
   IupSetAttribute(plot[9], "HIGHLIGHTMODE", "BOTH");
+  IupSetAttribute(plot[9], "DATASETCLIPPING", "AREAOFFSET");
 
   /************************************************************************/
   /* PLOT 11 */
@@ -870,7 +872,6 @@ void PlotTest(void)
   int ii;
 
   IupPlotOpen();     /* init IupPlot library */
-  IupMatrixExOpen();
 
   /* create plots */
   for (ii = 0; ii < MAXPLOT; ii++)
@@ -908,7 +909,7 @@ void PlotTest(void)
   IupSetAttribute(tgg1, "VALUE", "ON");
 
   f1 = IupFrame(IupVbox(boxdial1, tgg1, NULL));
-  IupSetAttribute(f1, "TITLE", "Y Zoom");
+  IupSetAttribute(f1, "TITLE", "Y Min-Max");
 
   /* X zooming */
   dial2 = IupDial("HORIZONTAL");
@@ -937,7 +938,7 @@ void PlotTest(void)
   IupSetCallback(tgg2, "ACTION", (Icallback)tgg2_cb);
 
   f2 = IupFrame(IupVbox(boxdial2, tgg2, NULL));
-  IupSetAttribute(f2, "TITLE", "X Zoom");
+  IupSetAttribute(f2, "TITLE", "X Min-Max");
 
   lbl1 = IupLabel("");
   IupSetAttribute(lbl1, "SEPARATOR", "HORIZONTAL");

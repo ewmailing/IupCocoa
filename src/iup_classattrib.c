@@ -990,10 +990,10 @@ void iupClassObjectEnsureDefaultAttributes(Ihandle* ih)
         !(afunc->flags & IUPAF_HAS_ID))
     {
       if ((!iupStrEqualNoCase(afunc->default_value, afunc->system_default)) || 
-          (afunc->call_global_default && iupGlobalDefaultColorChanged(afunc->default_value)))
+          (afunc->call_global_default && afunc->default_value && iupGlobalDefaultColorChanged(afunc->default_value)))
       {
-        if ((!ih->handle && (afunc->flags & IUPAF_NOT_MAPPED)) ||
-            (ih->handle && !(afunc->flags & IUPAF_NOT_MAPPED)))
+        if ((!ih->handle &&  (afunc->flags & IUPAF_NOT_MAPPED)) ||
+             (ih->handle && !(afunc->flags & IUPAF_NOT_MAPPED)))
         {
           char* value = iupAttribGet(ih, name);
           if (!value)  /* if set will be updated later */

@@ -129,8 +129,8 @@ struct Iclass_
    */
   void* (*GetInnerNativeContainerHandle)(Ihandle* ih, Ihandle* child);
 
-  /** Notifies the element that a child was appended using IupAppend. \n
-   * Called only from IupAppend or IupReparent. 
+  /** Notifies the element that a child was added to the child tree hierarchy. \n
+   * Called only from IupAppend, IupInsert or IupReparent. 
    * The child is not mapped yet, but the parent can be mapped.
    */
   void (*ChildAdded)(Ihandle* ih, Ihandle* child);

@@ -5,6 +5,13 @@
 #include "iupkey.h"
 
 
+
+static int kcr_cb(Ihandle* ih)
+{
+  printf("SPINVALUE=%s\n", IupGetAttribute(ih, "SPINVALUE"));
+  printf("VALUE=%s\n", IupGetAttribute(ih, "VALUE"));
+  return IUP_DEFAULT;
+}
 static int valuechanged_cb(Ihandle* ih)
 {
   printf("VALUECHANGED_CB(%s)\n", IupGetAttribute(ih, "SPINVALUE"));
@@ -31,6 +38,7 @@ static int action_cb(Ihandle* ih, int c, char* after)
 static int setspinvalue(Ihandle* ih)
 {
   IupSetAttribute(IupGetDialogChild(ih, "spin"), "SPINVALUE", "25");
+//  IupSetAttribute(IupGetDialogChild(ih, "spin"), "VALUE", "44");
   return IUP_DEFAULT;
 }
 
@@ -55,8 +63,8 @@ void TextSpinTest(void)
 //  IupSetAttribute(text, "MASK", "[+/-]?(/d+/.?/d*|/./d+)");
 //  IupSetAttribute(text, "MASK", "[+/-]?(/d+/./d/d)");
 
-  
-//  IupSetCallback(text, "SPIN_CB", (Icallback)spin_cb);
+  IupSetCallback(text, "K_CR", (Icallback)kcr_cb);
+  //  IupSetCallback(text, "SPIN_CB", (Icallback)spin_cb);
 //  IupSetCallback(text, "ACTION", (Icallback)action_cb);
 //  IupSetCallback(text, "VALUECHANGED_CB", (Icallback)valuechanged_cb);
 

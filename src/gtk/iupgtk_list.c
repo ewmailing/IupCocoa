@@ -184,7 +184,8 @@ void iupdrvListRemoveAllItems(Ihandle* ih)
 
 static int gtkListSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {
@@ -306,7 +307,7 @@ static int gtkListSetBgColorAttrib(Ihandle* ih, const char* value)
     if (renderer)
     {
       GdkColor color;
-      iupgdkColorSet(&color, r, g, b);
+      iupgdkColorSetRGB(&color, r, g, b);
       g_object_set(G_OBJECT(renderer), "cell-background-gdk", &color, NULL);
     }
   }
@@ -335,7 +336,7 @@ static int gtkListSetFgColorAttrib(Ihandle* ih, const char* value)
     if (renderer)
     {
       GdkColor color;
-      iupgdkColorSet(&color, r, g, b);
+      iupgdkColorSetRGB(&color, r, g, b);
       g_object_set(G_OBJECT(renderer), "foreground-gdk", &color, NULL);
     }
   }
@@ -507,7 +508,7 @@ static int gtkListSetTopItemAttrib(Ihandle* ih, const char* value)
     if (iupStrToInt(value, &pos))
     {
       GtkTreePath* path = gtk_tree_path_new_from_indices(pos-1, -1);   /* IUP starts at 1 */
-      gtk_tree_view_scroll_to_cell((GtkTreeView*)ih->handle, path, NULL, FALSE, 0, 0);
+      gtk_tree_view_scroll_to_cell((GtkTreeView*)ih->handle, path, NULL, TRUE, 0, 0);  /* scroll to visible, top */
       gtk_tree_path_free(path);
     }
   }
@@ -545,10 +546,7 @@ static int gtkListSetPaddingAttrib(Ihandle* ih, const char* value)
   {
     GtkEntry* entry = (GtkEntry*)iupAttribGet(ih, "_IUPGTK_ENTRY");
 #if GTK_CHECK_VERSION(3, 4, 0)
-    g_object_set(G_OBJECT(entry), "margin-bottom", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(entry), "margin-top", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(entry), "margin-left", ih->data->horiz_padding, NULL);
-    g_object_set(G_OBJECT(entry), "margin-right", ih->data->horiz_padding, NULL);
+    iupgtkSetMargin(GTK_WIDGET(entry), ih->data->horiz_padding, ih->data->vert_padding, 0);
 #else
 #if GTK_CHECK_VERSION(2, 10, 0)
     GtkBorder border;
