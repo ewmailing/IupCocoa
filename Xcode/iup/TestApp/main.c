@@ -2081,12 +2081,13 @@ void IupExitPoint()
 
 void IupEntryPoint()
 {
+	IupLog(NULL, "Entered IupEntryPoint");
 	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
 
 	//DropDownListTest();
 	EditboxDropDownListTest();
 	
-//	BasicListTest();
+	BasicListTest();
 //	GridTest();
 //	ListAndModalWindowTest();
 //	ListTextButtonLabelTest();
