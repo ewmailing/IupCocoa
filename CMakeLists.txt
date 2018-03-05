@@ -335,6 +335,7 @@ SET(IUP_PUBLIC_HEADERS
 	${CMAKE_SOURCE_DIR}/include/iupdraw.h
 	${CMAKE_SOURCE_DIR}/include/iupkey.h
 	${CMAKE_SOURCE_DIR}/include/iup_config.h
+	${CMAKE_SOURCE_DIR}/include/iup_varg.h
 )
 SET(IUPIMGLIB_PUBLIC_HEADERS
 )
@@ -381,10 +382,15 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_classattrib.c
 	${CMAKE_SOURCE_DIR}/src/iup_classbase.c
 	${CMAKE_SOURCE_DIR}/src/iup_classbase.h
+	${CMAKE_SOURCE_DIR}/src/iup_colorbar.c
+	${CMAKE_SOURCE_DIR}/src/iup_colorbrowser.c
 	${CMAKE_SOURCE_DIR}/src/iup_colordlg.c
+	${CMAKE_SOURCE_DIR}/src/iup_colorhsi.c
+	${CMAKE_SOURCE_DIR}/src/iup_colorhsi.h
 	${CMAKE_SOURCE_DIR}/src/iup_config.c
 #	${CMAKE_SOURCE_DIR}/src/iup_datepick.c
 	${CMAKE_SOURCE_DIR}/src/iup_detachbox.c
+	${CMAKE_SOURCE_DIR}/src/iup_dial.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.h
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.c
@@ -399,6 +405,9 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_fill.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatbutton.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatframe.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.h
+	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbox.c
 	${CMAKE_SOURCE_DIR}/src/iup_flattabs.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.h
