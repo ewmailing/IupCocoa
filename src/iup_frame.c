@@ -66,7 +66,7 @@ static char* iFrameGetClientOffsetAttrib(Ihandle* ih)
   if (!iupdrvFrameHasClientOffset(ih))
   {
     /* GTK and Motif Only */
-
+    
     iupdrvFrameGetDecorOffset(ih, &dx, &dy);
 
     if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
