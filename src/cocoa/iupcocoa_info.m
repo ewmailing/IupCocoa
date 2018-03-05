@@ -12,6 +12,7 @@
  Mac OS Carbon system headers. */
 
 #import <Cocoa/Cocoa.h>
+#include <asl.h>
 //#include <Carbon/Carbon.h>
 // For computer name
 #include <SystemConfiguration/SystemConfiguration.h>
@@ -30,7 +31,6 @@
 #include "iup_str.h"
 #include "iup_drv.h"
 #include "iup_drvinfo.h"
-#include "iupcocoa_drv.h"
 
 #define IUP_MAC_ERROR -1
 
