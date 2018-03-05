@@ -27,6 +27,7 @@
 //#include <gtk/gtk.h>
 
 #include "iup.h"
+#include "iup_varg.h"
 
 #include "iup_str.h"
 #include "iup_drv.h"
