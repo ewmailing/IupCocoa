@@ -16,8 +16,9 @@ container and <b>mapped</b> to the native system so it can be visible.</p>
 <h3>
 Parameters/Return</h3>
 <pre>Ihandle* IupCreate(const char *<b>classname</b>); [in C]
-Ihandle* IupCreatev(const char *<b>classname</b>, void **<b>params</b>)
-Ihandle *IupCreatep(const char *<b>classname</b>, void* <b>params0</b>, ...)
+Ihandle* IupCreatev(const char *<b>classname</b>, void **<b>params</b>); [in C]
+Ihandle *IupCreatep(const char *<b>classname</b>, void* <b>params0</b>, ...); [in C]
+Ihandle* IupCreateV(const char *<strong>classname</strong>, void* <strong>first</strong>, va_list <strong>arglist</strong>); [in C]
 [Not available in Lua]</pre>
 <p><b>classname</b>: class name of the element to be created<br>
 <b>params</b>: list of parameters limited by a NULL.</p>

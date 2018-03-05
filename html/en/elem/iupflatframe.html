@@ -56,8 +56,8 @@ are calculated according FRAME, FRAMEWIDTH, FRAMESPACE and the title area.</p>
 
 
 <p>
-<strong>BGCOLOR</strong>: background color 
-of the child area. Default: the global attribute DLGBGCOLOR.</p>
+<strong>BGCOLOR</strong>: background color of the child area. If not defined it will 
+use the background color of the native parent.</p>
 <p>
 <strong>FRAME</strong> (<font SIZE="3">non inheritable</font>): enables the frame line. Default: 
 Yes.</p>
@@ -89,6 +89,10 @@ title. Use
 	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
 	associate an image to a name. See also
 	<a href="../elem/iupimage.html">IupImage</a>.</p>
+<p><strong>TITLEIMAGEINACTIVE</strong> (<font SIZE="3">non inheritable</font>): 
+image used in title when inactive. If it is not defined then the TITLEIMAGE is 
+used and its colors will be replaced by a modified version creating the disabled 
+effect. (since 3.22)</p>
 <p><strong>TITLEIMAGEPOSITION</strong> (<font SIZE="3">non inheritable</font>): position of the 
 image relative to the text when both are displayed. Can be: LEFT, RIGHT, TOP, 
 BOTTOM. Default: LEFT.</p>
@@ -96,6 +100,9 @@ BOTTOM. Default: LEFT.</p>
 image and the text. Default: &quot;2&quot;.</p>
 <p><strong>TITLEALIGNMENT</strong> (<font SIZE="3">non inheritable</font>): horizontal alignment. 
 Possible values: &quot;ALEFT&quot;, &quot;ACENTER&quot; and &quot;ARIGHT&quot;. Default: &quot;ACENTER&quot;.</p>
+<p><strong>TITLETEXTALIGNMENT </strong>(<font size="3">non inheritable</font>): 
+horizontal text alignment for multiple lines. Can be: ALEFT, ARIGHT or ACENTER. 
+Default: ALEFT. (since 3.22)</p>
 <p><strong>TITLEPADDING</strong> (<font SIZE="3">non inheritable</font>): title internal margin. 
 Default value: &quot;0x0&quot;.</p>
 

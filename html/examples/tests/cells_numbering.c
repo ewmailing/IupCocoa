@@ -27,27 +27,31 @@ static int width_cb(Ihandle* ih, int j)
   return 70;
 }
 
-static int mouseclick_cb(Ihandle* ih, int b, char* m, int i, int j, int x, int y, char* r)
+static int mouseclick_cb(Ihandle* ih, int b, int p, int i, int j, int x, int y, char* r)
 {
-  static char buffer[128];
-  sprintf(buffer, "CLICK: %d: (%02d, %02d)\n", b, i, j);
+  printf("CLICK: %d,%d (%d,%d)\n", i, j, x, y);
+  return IUP_DEFAULT;
+}
 
-  IupMessage("Hi!", buffer);
+static int mousemotion_cb(Ihandle *ih, int i, int j, int x, int y, char *r)
+{
+  printf("MOTION: %d,%d (%d,%d)\n", i, j, x, y);
   return IUP_DEFAULT;
 }
 
 static int draw_cb(Ihandle* ih, int i, int j, int xmin, int xmax, int ymin, int ymax, cdCanvas* canvas)
 {
-  static char buffer[64];
+  char buffer[64];
   int xm = (xmax + xmin) / 2;
   int ym = (ymax + ymin) / 2;
 
   cdCanvasForeground(canvas, cdEncodeColor((unsigned char)(i*20), (unsigned char)(j*100), (unsigned char)(i+100)));
 
+  cdCanvasFont(canvas, "Courier", CD_PLAIN, 9);
   cdCanvasBox(canvas, xmin, xmax, ymin, ymax);
   cdCanvasTextAlignment(canvas, CD_CENTER);
   cdCanvasForeground(canvas, CD_BLACK);
-  sprintf(buffer, "(%02d, %02d)", i, j);
+  sprintf(buffer, "%d,%d", i, j);
   cdCanvasText(canvas, xm, ym, buffer);
 
   return IUP_DEFAULT;
@@ -58,7 +62,8 @@ static Ihandle* create(void)
   Ihandle* cells = IupCells(); 
 
   IupSetCallback(cells, "MOUSECLICK_CB", (Icallback)mouseclick_cb);
-  IupSetCallback(cells, "DRAW_CB",       (Icallback)draw_cb);
+  IupSetCallback(cells, "MOUSEMOTION_CB", (Icallback)mousemotion_cb);
+  IupSetCallback(cells, "DRAW_CB", (Icallback)draw_cb);
   IupSetCallback(cells, "WIDTH_CB",      (Icallback)width_cb);
   IupSetCallback(cells, "HEIGHT_CB",     (Icallback)height_cb);
   IupSetCallback(cells, "NLINES_CB",     (Icallback)nlines_cb);

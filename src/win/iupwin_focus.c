@@ -67,7 +67,7 @@ void iupwinWmSetFocus(Ihandle *ih)
   {
     /* if a control inside that dialog had the focus, then reset to it when the dialog gets the focus */
     Ihandle* lastfocus = (Ihandle*)iupAttribGet(dialog, "_IUPWIN_LASTFOCUS");
-    if (lastfocus)
+    if (iupObjectCheck(lastfocus))
     {
       /* call the callback and update current focus before changing it again */
       iupCallGetFocusCb(ih);

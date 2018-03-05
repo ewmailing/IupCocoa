@@ -24,7 +24,7 @@ PROJDIR = ../../..
 
 #DBG = Yes
 
-SRC = alarm.c
+#SRC = alarm.c
 #SRC = button.c
 #SRC = dialog1.c
 #SRC = dialog2.c
@@ -79,8 +79,9 @@ SRC = alarm.c
 
 #LIBS = cdcontextplus gdiplus
 
-#USE_OPENGL = Yes
+USE_OPENGL = Yes
 #SRC = glcanvas.c
+SRC = glcube.c
 
 #IUPWEB_SAMPLE=Yes
 ifdef IUPWEB_SAMPLE
@@ -106,6 +107,10 @@ endif
 #SRC = getparam.c
 #SRC = matrix.c
 #SRC = mdi.c
+
+#USE_IUPGLCONTROLS = Yes
+#SRC = glcontrols.c
+#LINKER = g++
 
 #IUPPLOT_SAMPLE=Yes
 ifdef IUPPLOT_SAMPLE

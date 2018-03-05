@@ -84,8 +84,8 @@ but redefines a few attributes.</p>
 <p><b>ALIGNMENT</b> (<font size="3">non inheritable</font>): horizontal and 
 vertical alignment of the set image+text. Possible values: &quot;ALEFT&quot;, &quot;ACENTER&quot; and &quot;ARIGHT&quot;,&nbsp; 
 combined to &quot;ATOP&quot;, &quot;ACENTER&quot; and &quot;ABOTTOM&quot;. Default: &quot;ACENTER:ACENTER&quot;. Partial 
-values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be used 
-from the current alignment. </p>
+values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be 
+obtained from the default value. </p>
 
 
   <p><strong>BACKIMAGE</strong> (<font SIZE="3">non inheritable</font>):
@@ -108,13 +108,10 @@ then the BACKIMAGE is used.</p>
 background image name of the element in pressed state. If it is not defined then 
 the BACKIMAGE is used.</p>
 
-<p><a href="../attrib/iup_bgcolor.html">BGCOLOR</a>:
-  Background color. If text and image are not defined, the button 
-is configured to simply show a color, in 
-this case set the button size because the natural size will be very small. Default: 
-it will use used the background from the native parent the global 
-attribute DLGBGCOLOR. BGCOLOR is ignored when FLAT=YES because it will be used 
-the background from the native parent. </p>
+<p><a href="../attrib/iup_bgcolor.html">BGCOLOR</a>: Background color. If text 
+and image are not defined, the button is configured to simply show a color, in 
+this case set the button size because the natural size will be very small. If 
+not defined it will use the background color of the native parent. </p>
 
 <p><b>BORDER </b>(creation only):
   
@@ -132,6 +129,9 @@ this value to 0. This is for the <strong>IupFlatButton</strong> drawn border.</p
 <p><strong>CANFOCUS</strong> (creation only)<strong> </strong>(<font size="3">non inheritable</font>): 
 enables the focus traversal of the control. In Windows the button will respect 
 CANFOCUS in opposite to the other controls. Default: YES.</p>
+
+<p><strong>PROPAGATEFOCUS</strong>(<font size="3">non inheritable</font>): enables the focus callback forwarding to the next native parent with FOCUS_CB defined. Default: NO. (since 3.23)</p>
+
 <p>
 <a href="../attrib/iup_expand.html" style="font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
 EXPAND</a><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);"><span class="Apple-converted-space">&nbsp;</span>(</span><font size="3" style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">non 
@@ -225,6 +225,9 @@ image and the text. Default: &quot;2&quot;.</p>
   <p><a href="../attrib/iup_title.html">TITLE</a> (<font SIZE="3">non inheritable</font>): 
 	Label's text. The '\n' character is accepted for line change.</p>
 <p><strong>TOGGLE</strong>: enabled the toggle behavior. Default: NO.</p>
+<p><strong>TEXTALIGNMENT </strong>(<font size="3">non inheritable</font>): 
+Horizontal text alignment for multiple lines. Can be: ALEFT, ARIGHT or ACENTER. 
+Default: ALEFT. (since 3.22)</p>
 
 
 

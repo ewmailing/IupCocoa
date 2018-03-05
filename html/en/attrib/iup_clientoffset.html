@@ -33,7 +33,8 @@ after the control is
 mapped.</p>
 <p>In GTK and Motif, for the <strong>IupDialog</strong>, the dy value is 
 negative when there is a menu. This occurs because in those systems the menu is 
-placed inside the Client Area and all children must be placed below the menu.</p>
+placed inside the Client Area and all children must be placed below the menu. In 
+Windows it will return 0x0, except when CUSTOMFRAMEDRAW is used.</p>
 <p>In Windows, for the <strong>IupFrame</strong>, the value is always &quot;0x0&quot; the 
 position of the child is still relative to the top-left corner of the frame. 
 This is automatically compensated in calculation of the POSITION attribute.</p>

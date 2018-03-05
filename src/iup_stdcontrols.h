@@ -38,6 +38,10 @@ Iclass* iupLinkNewClass(void);
 Iclass* iupFlatButtonNewClass(void);
 Iclass* iupFlatFrameNewClass(void);
 Iclass* iupFlatTabsNewClass(void);
+Iclass* iupDialNewClass(void);
+Iclass* iupGaugeNewClass(void);
+Iclass* iupColorbarNewClass(void);
+Iclass* iupColorBrowserNewClass(void);
 
 Iclass* iupMenuNewClass(void);
 Iclass* iupItemNewClass(void);
@@ -53,6 +57,7 @@ Iclass* iupSboxNewClass(void);
 Iclass* iupNormalizerNewClass(void);
 Iclass* iupSplitNewClass(void);
 Iclass* iupScrollBoxNewClass(void);
+Iclass* iupFlatScrollBoxNewClass(void);
 Iclass* iupGridBoxNewClass(void);
 Iclass* iupExpanderNewClass(void);
 Iclass* iupDetachBoxNewClass(void);
@@ -84,7 +89,7 @@ Iclass* iupBackgroundBoxNewBaseClass(const char* name, const char* base_name);
 /* Common definition of the canvas class */
 typedef struct _iupCanvas {
   int sb;    /* scrollbar configuration, valid only after map, use iupBaseGetScrollbar before map */
-  float posx, posy;
+  double posx, posy;
   int inside_resize;
 } iupCanvas;
 

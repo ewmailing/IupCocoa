@@ -20,6 +20,7 @@
 #include "iup_stdcontrols.h"
 #include "iup_drvinfo.h"
 #include "iup_menu.h"
+#include "iup_varg.h"
 
 
 struct _IcontrolData 
@@ -129,9 +130,9 @@ char* iupMenuProcessTitle(Ihandle* ih, const char* title)
   str = strchr(title, (int)(*key));
   if (str)
   {
-    int len = strlen(title);
+    int len = (int)strlen(title);
     char *new_title = malloc(len+1+1);
-    int pos = str-title;
+    int pos = (int)(str - title);
     memcpy(new_title, title, pos);
     new_title[pos] = '&';
     memcpy(new_title+pos+1, title+pos, len-pos+1);
@@ -343,18 +344,19 @@ Ihandle *IupMenuv(Ihandle **children)
   return IupCreatev("menu", (void**)children);
 }
 
+Ihandle*  IupMenuV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("menu", child, arglist);
+}
+
 Ihandle *IupMenu(Ihandle *child, ...)
 {
-  Ihandle **children;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("menu", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("menu", (void**)children);
-  free(children);
 
   return ih;
 }

@@ -23,6 +23,7 @@ imImage* IupGetNativeHandleImage(void* handle);
 void* IupGetImageNativeHandle(const imImage* image);
 
 Ihandle* IupImageFromImImage(const imImage* image);
+imImage* IupImageToImImage(Ihandle* iup_image);
 #endif
 
 

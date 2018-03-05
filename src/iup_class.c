@@ -149,6 +149,12 @@ static int iClassDlgPopup(Iclass* ic, Ihandle* ih, int x, int y)
   return IUP_INVALID;  /* means it is not implemented */
 }
 
+
+/*****************************************************************
+                     Public Interface
+*****************************************************************/
+
+
 int iupClassObjectCreate(Ihandle* ih, void** params)
 {
   return iClassCreate(ih->iclass, ih, params);

@@ -149,21 +149,6 @@ int iupdrvSetGlobal(const char *name, const char *value)
   return 1;
 }
 
-int iupdrvCheckMainScreen(int *w, int *h)
-{
-  GdkScreen *screen = gdk_screen_get_default();
-  int monitors_count = gdk_screen_get_n_monitors(screen);
-  if (monitors_count > 1)
-  {
-    GdkRectangle rect;
-    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_monitor_at_point(screen, 0, 0), &rect);
-    *w = rect.width;
-    *h = rect.height;
-    return 1;
-  }
-  return 0;
-}
-
 char *iupdrvGetGlobal(const char *name)
 {
   if (iupStrEqual(name, "VIRTUALSCREEN"))

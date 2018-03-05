@@ -18,6 +18,7 @@
          
 #define ALLOC(n,t)  ((t *)calloc((n),sizeof(t)))
 #define REQUIRE(b)  {if (!(b)) goto cleanup;}
+#define REQUIRE_ARG(b)  {if (!(b)) goto cleanup_arg;}
 
 int IupScanf (const char *format, ...)
 {
@@ -51,22 +52,22 @@ int IupScanf (const char *format, ...)
   REQUIRE(text!=NULL);
 
   va_start(va,format);
-  REQUIRE ((s1=s=(char *)iupStrDup(format)) != NULL);
+  REQUIRE_ARG((s1=s=(char *)iupStrDup(format)) != NULL);
   title=iupStrDupUntil(&s,'\n');
-  REQUIRE(title!=NULL);
+  REQUIRE_ARG(title != NULL);
   for (i=0; i<fields_in_count; ++i)
   {
     int n;
     prompt[i]=iupStrDupUntil(&s,'%');
-    REQUIRE(prompt[i]!=NULL);
+    REQUIRE_ARG(prompt[i] != NULL);
     n=sscanf(s,"%d.%d",width+i,scroll+i);
-    REQUIRE(n==2);
+    REQUIRE_ARG(n == 2);
     s=strchr(s,'%');
-    REQUIRE(s!=NULL);
+    REQUIRE_ARG(s != NULL);
     if (outf) free(outf);
     outf = iupStrDupUntil(&s, '\n');
     text[i]=ALLOC(width[i]+1,char);
-    REQUIRE(text[i]!=NULL);
+    REQUIRE_ARG(text[i] != NULL);
 
     switch (s[-2])
     {
@@ -97,7 +98,7 @@ int IupScanf (const char *format, ...)
       sprintf(text[i],outf,((char *)va_arg(va,char *)));
       break;
     default:
-      goto cleanup;
+      goto cleanup_arg;
     }
   }
   va_end(va);
@@ -175,6 +176,7 @@ int IupScanf (const char *format, ...)
     }
     ++fields_out_count;
   }
+cleanup_arg:
   va_end(va);
 
 cleanup:

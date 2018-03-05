@@ -24,14 +24,19 @@ function cv:action()
   cv.drawstyle = "FILL"
   cv:DrawRectangle(0, 0, w, h)
 
-
   cv.drawcolor = "255 0 0"
   cv:DrawLine(0, 0, w-1, h-1)
   cv:DrawLine(0, h-1, w-1, 0)
+  
+  cv.drawcolor = "0 0 0"
+  cv.drawfont = "Times, 28"
+  cv:DrawText("This is a test", w/2, h/2)
+  
   cv:DrawEnd()
 end
 
 dg:showxy(iup.CENTER, iup.CENTER)
+
 if (iup.MainLoopLevel()==0) then
   iup.MainLoop()
 end

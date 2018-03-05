@@ -27,7 +27,7 @@ static int width_cb(Ihandle* ih, int j)
   return (int)(50 + j * 1.5);
 }
 
-static int mouseclick_cb(Ihandle* ih, int b, char* m, int i, int j, int x, int y, char* r)
+static int mouseclick_cb(Ihandle* ih, int b, int p, int i, int j, int x, int y, char* r)
 {
   printf("CLICK: %d: (%02d, %02d)\n", b, i, j);
   return IUP_DEFAULT;

@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupDraw</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	text-decoration: underline;
+}
+.auto-style1 {
+	font-size: large;
+}
+.auto-style2 {
+	background-color: #CEE7FF;
+}
+</style>
+</head>
+<body>
+
+<h2>IupDraw<span class="auto-style1"> (since 3.19)</span></h2>
+<p>A group of functions to draw in a <a href="../elem/iupcanvas.html">IupCanvas</a> or a
+<a href="../elem/iupbackgroundbox.html">IupBackgroundBox</a>. They are simple functions 
+designed to help the drawing of custom controls based on these two controls. It 
+is NOT a complete set of drawing functions, for that you should still use 
+another toolkit like CD. </p>
+<p>To use the functions in C/C++ you must include the &quot;iupdraw.h&quot; header.</p>
+<p>IMPORTANT: all functions can be used only in <strong>IupCanvas</strong> or
+<strong>IupBackgroundBox</strong> and inside the ACTION callback. To force a 
+redraw anytime use the functions <a href="../func/iupupdate.html">IupUpdate</a> 
+or <a href="iupdraw.html">IupRedraw</a>.</p>
+<h3>Control</h3>
+<p>All primitives can be called only between calls to DrawBegin and DrawEnd.</p>
+<pre>void IupDrawBegin(Ihandle* <strong>ih</strong>); [in C]
+iup.DrawBegin<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">)</span> [in Lua]
+<strong>ih</strong>:DrawBegin() [in Lua]</pre>
+<p>Initialize the drawing process.</p>
+<pre>void IupDrawEnd(Ihandle* <strong>ih</strong>); [in C]
+iup.DrawEnd<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">)</span> [in Lua]
+<strong>ih</strong>:DrawEnd() [in Lua]</pre>
+<p>Terminates the drawing process.</p>
+<pre>void IupDrawSetClipRect(Ihandle* <strong>ih</strong>, int <strong>x1</strong>, int <strong>y1</strong>, int <strong>x2</strong>, int <strong>y2</strong>); [in C]
+iup.DrawSetClipRect<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawSetClipRect(<span class="auto-style2"><strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number</span>) [in Lua]</pre>
+<p>Defines a rectangular clipping region.</p>
+<pre>void IupDrawResetClip(Ihandle* <strong>ih</strong>); [in C]
+iup.Draw<span class="auto-style2">ResetClip(</span><strong>ih</strong>: ihandle<span class="auto-style2">)</span> [in Lua]
+<strong>ih</strong>:DrawResetClip() [in Lua]</pre>
+<p>Reset the clipping area to none.</p>
+<h3>Primitives</h3>
+<p>The primitives color is controlled by the attribute <strong>DRAWCOLOR</strong>.
+<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);">
+Default: &quot;0 0 0&quot;.</span></p>
+<p>Rectangle, Arc and Polygon can be filled or stroked. When stroked the line 
+style can be continuous, dashed or dotted. These are controlled by the attribute 
+<strong>DRAWSTYLE</strong>. Can have values: FILL, STROKE, STROKE_DASH or STROKE_DOT. Default: 
+STROKE. The FILL value when set before DrawLine has the same effect as STROKE. </p>
+<p>The line width default is 1, but it can be controlled by the <strong>DRAWLINEWIDTH</strong> 
+attribute. (since 3.24)</p>
+<pre>void IupDrawParentBackground(Ihandle* <strong>ih</strong>); [in C]
+iup.DrawParentBackground<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">)</span> [in Lua]
+<strong>ih</strong>:DrawParentBackground() [in Lua]</pre>
+<p>Fills the canvas with the native parent background color.</p>
+<pre>void IupDrawLine(Ihandle* <strong>ih</strong>, int <strong>x1</strong>, int <strong>y1</strong>, int <strong>x2</strong>, int <strong>y2</strong>); [in C]
+iup.DrawLine<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawLine(<span class="auto-style2"><strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number</span>) [in Lua]</pre>
+<p>Draws a line including start and end points.</p>
+<pre>void IupDrawRectangle(Ihandle* <strong>ih</strong>, int <strong>x1</strong>, int <strong>y1</strong>, int <strong>x2</strong>, int <strong>y2</strong>); [in C]
+iup.DrawRectangle<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawRectangle(<span class="auto-style2"><strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number</span>) [in Lua]</pre>
+<p>Draws a rectangle including start and end points.</p>
+<pre>void IupDrawArc(Ihandle* <strong>ih</strong>, int <strong>x1</strong>, int <strong>y1</strong>, int <strong>x2</strong>, int <strong>y2</strong>, double <strong>a1</strong>, double <strong>a2</strong>); [in C]
+iup.Draw<span class="auto-style2">Arc(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2, a1, a2</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawArc(<span class="auto-style2"><strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number</span>) [in Lua]</pre>
+<p>Draws an arc inside a rectangle between the two angles in degrees. When 
+filled will draw a pie shape with the vertex at the center of the rectangle. 
+Angles are counter-clock wise relative to the 3 o'clock position.</p>
+<pre>void IupDrawPolygon(Ihandle* <strong>ih</strong>, int* <strong>points</strong>, int <strong>count</strong>); [in C]
+iup.DrawPolygon<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2"><strong>, points</strong>: table of number)</span> [in Lua]
+<strong>ih</strong>:DrawPolygon(<span class="auto-style2"><strong>points</strong>: table of number</span>) [in Lua]</pre>
+<p>Draws a polygon. Coordinates are stored in the array in the sequence: x1, y1, 
+x2, y2, ...</p>
+<pre>void IupDrawText(Ihandle* <strong>ih</strong>, const char* <strong>str</strong>, int <strong>len</strong>, int <strong>x</strong>, int <strong>y</strong>); [in C]
+iup.Draw<span class="auto-style2">Text(</span><strong>ih</strong>: ihandle<span class="auto-style2"><strong>, str</strong>: string</span><span class="auto-style2">, <strong>x</strong>, <strong>y</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawText(<span class="auto-style2"><strong>str</strong>: string, <strong>x</strong>, <strong>y</strong>: number</span>) [in Lua]</pre>
+<p>Draws a text in the given position using the font defined by <strong>DRAWFONT</strong> (since 
+3.22), if not defined then use
+<a href="../attrib/iup_font.html">FONT</a>. The size of the string is used only 
+in C. Can be 0 so <strong>strlen</strong> is used internally. The coordinates 
+are relative the top-left corner of the text. Strings with multiple line are 
+accepted using '\n&quot; as line separator. Horizontal text alignment for multiple 
+lines can be controlled using <strong>DRAWTEXTALIGNMENT</strong> attribute: ALEFT (default), ARIGHT 
+and ACENTER options (since 3.22).</p>
+<pre>void IupDrawImage(Ihandle* <strong>ih</strong>, const char* <strong>name</strong>, int <strong>make_inactive</strong>, int <strong>x</strong>, int <strong>y</strong>); [in C]
+iup.Draw<span class="auto-style2">Image(</span><strong>ih</strong>: ihandle<span class="auto-style2"><strong>, name</strong>: string or <strong>image</strong>: ihandle, <strong>make_inactive, x</strong>, <strong>y</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawImage(<strong>name</strong><span class="auto-style2">: string or <strong>image</strong>: ihandle, <strong>make_inactive, x</strong>, <strong>y</strong>: number</span>) [in Lua]</pre>
+<p>Draws an image given its name. The coordinates are relative the top-left 
+corner of the image. The image name follows the same behavior as the IMAGE 
+attribute used by many controls.
+<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);">
+Use<span class="Apple-converted-space">&nbsp;</span></span><a href="../func/iupsethandle.html" style="font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">IupSetHandle</a><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);"><span class="Apple-converted-space">&nbsp;</span>or<span class="Apple-converted-space">&nbsp;</span></span><a href="../func/iupsetattributehandle.html" style="font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">IupSetAttributeHandle</a><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);"><span class="Apple-converted-space">&nbsp;</span>to 
+associate an image to a name. See also<span class="Apple-converted-space">&nbsp;</span></span><a href="iupimage.html" style="font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">IupImage</a><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.8px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);">.<span class="Apple-converted-space">&nbsp;In 
+Lua, the name parameter can be the actual image handle. The make_inactive 
+parameter will draw the same image in inactive state.</span></span><br></p>
+<pre>void IupDrawSelectRect(Ihandle* <strong>ih</strong>, int <strong>x1</strong>, int <strong>y1</strong>, int <strong>x2</strong>, int <strong>y2</strong>); [in C]
+iup.DrawSelectRect<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawSelectRect(<span class="auto-style2"><strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number</span>) [in Lua]</pre>
+<p>Draws a selection rectangle.</p>
+<pre>void IupDrawFocusRect(Ihandle* <strong>ih</strong>, int <strong>x1</strong>, int <strong>y1</strong>, int <strong>x2</strong>, int <strong>y2</strong>); [in C]
+iup.DrawFocusRect<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number)</span> [in Lua]
+<strong>ih</strong>:DrawFocusRect(<span class="auto-style2"><strong>x1</strong>, <strong>y1</strong>, <strong>x2</strong>, <strong>y2</strong>: number</span>) [in Lua]</pre>
+<p>Draws a focus rectangle.</p>
+<h3>Information</h3>
+<pre>void IupDrawGetSize(Ihandle* <strong>ih</strong>, int *<strong>w</strong>, int *<strong>h</strong>); [in C]
+iup.DrawGetSize<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">) -&gt; <strong>w</strong>, <strong>h</strong>: number</span> [in Lua]
+<strong>ih</strong>:DrawGetSize()<span class="auto-style2"> -&gt; <strong>w</strong>, <strong>h</strong>: number</span> [in Lua]</pre>
+<p>Returns the drawing area size. In C unwanted values can be NULL.</p>
+<pre>void IupDrawGetTextSize(Ihandle* <strong>ih</strong>, const char* <strong>str</strong>, int *<strong>w</strong>, int *<strong>h</strong>); [in C]
+iup.DrawGetTextSize<span class="auto-style2">(</span><strong>ih</strong>: ihandle<span class="auto-style2">, <strong>str</strong>: string) -&gt; <strong>w</strong>, <strong>h</strong>: number</span> [in Lua]
+<strong>ih</strong>:DrawGetTextSize(<span class="auto-style2"><strong>str</strong>: string</span>)<span class="auto-style2"> -&gt; <strong>w</strong>, <strong>h</strong>: number</span> [in Lua]</pre>
+<p>Returns the given text size using the font defined by DRAWFONT, if not 
+defined then use
+<a href="../attrib/iup_font.html">FONT</a>.&nbsp; In C unwanted values can be 
+NULL.</p>
+<pre>void IupDrawGetImageInfo(const char* <strong>name</strong>, int *<strong>w</strong>, int *<strong>h</strong>, int *<strong>bpp</strong>); [in C]
+iup.DrawGetImageInfo<span class="auto-style2">(<strong>name</strong>: string) -&gt; <strong>w</strong>, <strong>h, bpp</strong>: number</span> [in Lua]
+<strong>ih</strong>:DrawGetImageInfo(<strong>name</strong><span class="auto-style2">: string</span>)<span class="auto-style2"> -&gt; <strong>w</strong>, <strong>h, bpp</strong>: number</span> [in Lua]</pre>
+<p>Returns the given image size and bits per pixel. bpp can be 8, 24 or 32.&nbsp; 
+In C unwanted values can be NULL.</p>
+<h3>See Also</h3>
+<p> <a href="../elem/iupcanvas.html">IupCanvas</a>, 
+<a href="../elem/iupbackgroundbox.html">IupBackgroundBox</a>, <a href="../func/iupupdate.html">IupUpdate</a>, <a href="iupdraw.html">IupRedraw</a></p>
+
+</body>
+
+</html>

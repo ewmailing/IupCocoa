@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+	<title>Tutorial</title>
+	<meta http-equiv="Content-Language" content="en-us">
+  <link rel="stylesheet" type="text/css" href="../../style.css">
+  <link rel="stylesheet" type="text/css" href="../tutorial/tutorial.css">
+	<style type="text/css">
+	.SubTitle {
+		font-size: large;
+		}
+	.IndexItem {
+		font-size: large;
+		font-weight: bold;
+	    background-color: #E1E1E1;
+		color: #575757;
+	}
+	.IndexItem a {
+		color: #575757;
+		text-decoration: none;
+	}
+	.IndexItemIndent1 {
+		font-size: large;
+		font-weight: bold;
+		text-indent: 2em;
+		color: #575757;
+	}
+	.IndexItemIndent1 a {
+		color: #575757;
+		text-decoration: none;
+	}
+	.IndexItemIndent2 {
+		font-size: medium;
+		font-weight: bold;
+		text-indent: 4em;
+		color: #575757;
+	}
+	.IndexItemIndent2 a {
+		color: #575757;
+		text-decoration: none;
+	}
+	</style>
+</head>
+<body>
+
+<h1>7GUIs Implementation in IUP</h1> 
+<h2>Introduction</h2>
+<p>The 7GUIs is a set of 7 tasks to be implemented using a GUI proposed by Eugen 
+Kiss in his master's thesis as a way to evaluate GUI toolkits. By implementing 
+those 7 task one should be able to compare different GUIs in any language with a 
+similar comparison base. See his web site for more details on the task and on 
+the proposed evaluation: <a href="https://eugenkiss.github.io/7guis/">https://eugenkiss.github.io/7guis/</a>.
+</p>
+<p>The tasks will also help beginners to understand simple and complex tasks in 
+GUI programming serving as a common tutorial.</p>
+<h2 id="7tasks">The 7 Tasks</h2>
+<h3>1. <a name="task1">Counter</a></h3>
+<p>&quot;<em><strong>Challenge</strong>:</em> <em>Understanding the basic ideas of a language/toolkit.</em></p>
+<p><em>The task is to build a frame containing a label or read-only textfield</em> T <em>and 
+a button</em> <em>B. Initially, the value in</em> T <em>is 
+“0” and each click of</em> B <em>increases the value in</em> T <em>by 
+one.</em>&quot;</p>
+<p class="example_title">Counter
+<span class="example_button">[in C] <a target="counter" href="counter.c">counter.c</a> <a href="counter.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="counter" href="counter.lua">counter.lua</a> <a href="counter.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="counter.c" id="task_1" name="counter" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="counter.png"></p>
+<p>One alternative is to use the SPIN attribute of the <strong>IupText</strong> 
+control to allow the user to increment and decrement the value.</p>
+
+<h3>2. <a name="task2">Temperature Converter</a></h3>
+<p>&quot;<strong><em>Challenges</em></strong>: <em>bidirectional 
+data flow, user-provided text input.</em></p>
+<p><em>The task is to build a frame containing two textfields</em> TC <em>and</em> TF <em>representing 
+the temperature in Celsius and Fahrenheit, respectively. Initially, both</em> TC <em>and</em> TF <em>are 
+empty. When the user enters a numerical value into</em> TC <em>the 
+corresponding value in</em> TF <em>is 
+automatically updated and vice versa. When the user enters a non-numerical 
+string into</em> TC <em>the 
+value in</em> TF <em>is</em> <em>not</em> <em>updated 
+and vice versa. The formula for converting a temperature</em> C <em>in 
+Celsius into a temperature</em> F <em>in 
+Fahrenheit is</em> <em>C = (F - 32) * (5/9)</em> <em>and 
+the dual direction is</em> <em>F = C * (9/5) + 32.</em>&quot;</p>
+<p class="example_title">TempConv
+<span class="example_button">[in C] <a target="temperature_converter" href="temperature_converter.c">temperature_converter.c</a> <a href="temperature_converter.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="temperature_converter" href="temperature_converter.lua">temperature_converter.lua</a> <a href="temperature_converter.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="temperature_converter.c" id="task_2" name="temperature_converter" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="temperature_converter.png"></p>
+<p>One alternative is to avoid the automatic update because the user is not 
+interested in the intermediate result while typing &quot;32&quot; for instance. The 
+application can update only when the text box loses its focus for instance, 
+using the KILLFOCUS_CB callback or when the Tab key is pressed in the K_ANY 
+callback.</p>
+<h3>3. <a name="task3">Flight Booker</a></h3>
+<p>&quot;<em><strong>Challenge</strong>:</em> <em>Constraints.</em></p>
+<p><em>The task is to build a frame containing a combobox</em> C <em>with 
+the two options “one-way flight” and “return flight”, two textfields</em> T1<em> and</em> T2 <em>representing 
+the start and return date, respectively, and a button</em> B <em>for 
+submitting the selected flight.</em> T2 <em>is 
+enabled if</em>&nbsp; C<em> value is “return flight”. When</em> C <em>has 
+the value “return flight” and</em> <em>T2’s date is 
+strictly before</em> <em>T1’s then</em> B <em>is 
+disabled. When a non-disabled textfield</em> T <em>has 
+an ill-formatted date then</em> T <em>is 
+colored red and</em> B <em>is 
+disabled. When clicking</em> B <em>a 
+message is displayed informing the user of his selection (e.g. “You have booked 
+a one-way flight on 04.04.2014.”). Initially,</em> C <em>has 
+the value “one-way flight” and</em> T1 <em>as 
+well as</em> T2 <em>have 
+the same (arbitrary) date (it is implied that</em> T2 <em>is 
+disabled).</em>&quot;</p>
+<p class="example_title">Book Flight
+<span class="example_button">[in C] <a target="flight_booker" href="flight_booker.c">flight_booker.c</a> <a href="flight_booker.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="flight_booker" href="flight_booker.lua">flight_booker.lua</a> <a href="flight_booker.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="flight_booker.c" id="task_3" name="flight_booker" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="flight_booker.png"></p>
+<p>One alternative is to use the <strong>IupDatePick</strong><span>&nbsp;control for 
+selecting dates, it is more user friendly and more resourceful. </span></p>
+<h3>4. <a name="task4">Timer</a></h3>
+<p>&quot;<strong><em>Challenges</em></strong>: <em>concurrency, 
+competing user/signal interactions, responsiveness.</em></p>
+<p><em>The task is to build a frame containing a gauge</em> G<em> for 
+the elapsed time</em> <em>e, a label which shows the 
+elapsed time as a numerical value, a slider</em> S <em>by 
+which the duration</em> d <em>of the 
+timer can be adjusted while the timer is running and a reset button</em> R<em>. 
+Adjusting</em> S <em>must 
+immediately reflect on</em> d <em>and 
+not only when</em> S <em>is 
+released. It follows that while moving</em> S <em>the 
+filled amount of</em><span><em>&nbsp; </em></span>G <em>will 
+(usually) change immediately. When</em> <em>e &#8805; d</em> <em>is 
+true then the timer stops (and</em> G <em>will 
+be full). If, thereafter,</em> d <em>is 
+increased such that</em> <em>d &gt; e</em> <em>will 
+be true then the timer restarts to tick until</em> <em>e &#8805; 
+d</em> <em>is true again. Clicking</em> R <em>will 
+reset</em> e <em>to zero.</em>&quot;</p>
+<p class="example_title">Timer
+<span class="example_button">[in C] <a target="timer" href="timer.c">timer.c</a> <a href="timer.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="timer" href="timer.lua">timer.lua</a> <a href="timer.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="timer.c" id="task_4" name="timer" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="timer.png"></p>
+<p>In the code we used <strong>IupGauge</strong>, but <strong>IupProgressBar</strong> can also be used. One 
+natural enhancement to the sample would be to display the duration of the timer, 
+only the position of the valuator is shown.</p>
+<h3>5. <a name="task5">CRUD</a></h3>
+<p>&quot;<strong><em>Challenges</em></strong>:<span><em>&nbsp;</em></span><em>separating 
+the domain and presentation logic, managing mutation, building a non-trivial 
+layout.</em></p>
+<p><em>The task is to build a frame containing the following elements: a 
+textfield</em><span><em>&nbsp;</em></span><em>Tprefix, a pair of </em><em>textfields</em><span><em>&nbsp;</em></span><em>Tname</em><span><em>&nbsp;</em></span><em>and</em><span><em>&nbsp;</em></span><em>Tsurname, 
+a </em><em>listbox</em><span><em>&nbsp;</em></span>L<em>, buttons</em><span><em>&nbsp;</em></span>BC<em>,</em><span><em>&nbsp;</em></span>BU<span><em>&nbsp;</em></span><em>and</em><span><em>&nbsp;</em></span>BD<span><em>&nbsp;</em></span><em>and 
+the three labels as seen in the screenshot.</em><span><em>&nbsp;</em></span>L<em> presents 
+a view of the data in the database that consists of a list of names. At most one 
+entry can be selected in</em><span><em>&nbsp;</em></span>L<em> at a time. By entering 
+a string into</em><span><em>&nbsp;</em></span><em>Tprefix the user can filter the 
+names whose surname start with the entered prefix—this should happen immediately 
+without having to submit the prefix with enter. Clicking</em><span><em>&nbsp;</em></span>BC<span><em>&nbsp;</em></span><em>will 
+append the resulting name from concatenating the strings in</em><span><em>&nbsp;</em></span><em>Tname</em><span><em>&nbsp;</em></span><em>and</em><span><em>&nbsp;</em></span><em>Tsurname</em><span><em>&nbsp;</em></span><em>to</em><span><em>&nbsp;</em></span><em>L.</em><span><em>&nbsp;</em></span>BU<em> and</em><span><em>&nbsp;</em></span>BD<span><em>&nbsp;</em></span><em>are 
+enabled iff an entry in</em><span><em>&nbsp;</em></span>L<span><em>&nbsp;</em></span><em>is 
+selected. In contrast to</em><span><em>&nbsp;</em></span>BC<em>,</em><span><em>&nbsp;</em></span>BU<span><em>&nbsp;</em></span><em>will 
+not append the resulting name but instead replace the selected entry with the 
+new name.</em><span><em>&nbsp;</em></span>BD<span><em>&nbsp;</em></span><em>will 
+remove the selected entry. The layout is to be done like suggested in the 
+screenshot. In particular,</em><span><em>&nbsp;</em></span>L<span><em>&nbsp;</em></span><em>must 
+occupy all the remaining space.</em>&quot;</p>
+<p class="example_title">CRUD
+<span class="example_button">[in C] <a target="crud" href="crud.c">crud.c</a> <a href="crud.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="crud" href="crud.lua">crud.lua</a> <a href="crud.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="crud.c" id="task_5" name="crud" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="crud.png"></p>
+<p>&lt;comments&gt;</p>
+<h3>6. <a name="task6">Circle Drawer</a></h3>
+<p>&quot;<em><strong>Challenges</strong>:</em><span><em>&nbsp;</em></span><em>undo/redo, 
+custom drawing, dialog control*.</em></p>
+<p><em>The task is to build a frame containing an undo and redo button as well 
+as a canvas area underneath. Left-clicking inside an empty area inside the 
+canvas will create an unfilled circle with a fixed diameter whose center is the 
+left-clicked point. The circle nearest to the mouse pointer such that the 
+distance from its center to the pointer is less than its radius, if it exists, 
+is filled with the color gray. The gray circle is the selected circle</em><span><em>&nbsp;</em></span><em>C. 
+Right-clicking</em><span><em>&nbsp;</em></span>C<span><em>&nbsp;</em></span><em>will make 
+a popup menu appear with one entry “Adjust diameter..”. Clicking on this entry 
+will open another frame with a slider inside that adjusts the diameter of</em><span><em>&nbsp;</em></span><em>C. 
+Changes are applied immediately. Closing this frame will mark the last diameter 
+as significant for the undo/redo history. Clicking undo will undo the last 
+significant change (i.e. circle creation or diameter adjustment). Clicking redo 
+will reapply the last undoed change unless new changes were made by the user in 
+the meantime.</em>&quot;</p>
+<p class="example_title">Circle Drawer
+<span class="example_button">[in C] <a target="circle_drawer" href="circle_drawer.c">circle_drawer.c</a> <a href="circle_drawer.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="circle_drawer" href="circle_drawer.lua">circle_drawer.lua</a> <a href="circle_drawer.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="circle_drawer.c" id="task_6" name="circle_drawer" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="circle_drawer.png"></p>
+<p>&lt;comments&gt;</p>
+<h3>7. <a name="task7">Cells</a></h3>
+<p>&quot;<em><strong>Challenges</strong>:</em><span><em>&nbsp;</em></span><em>change 
+propagation, widget customization, implementing a more authentic/involved GUI 
+application.</em></p>
+<p><em>The task is to create a simple but usable spreadsheet application. The 
+spreadsheet should be scrollable. The rows should be numbered from 0 to 99 and 
+the columns from A to Z. Double-clicking a cell</em><span><em>&nbsp;</em></span>C<span><em>&nbsp;</em></span><em>lets 
+the user change</em><span><em>&nbsp;</em></span><em>C’s formula. After having 
+finished editing the formula is parsed and evaluated and its updated value is 
+shown in</em><span><em>&nbsp;</em></span><em>C. In addition, all cells which depend 
+on</em><span><em>&nbsp;</em></span>C<span><em>&nbsp;</em></span><em>must be reevaluated. 
+This process repeats until there are no more changes in the values of any cell 
+(change propagation). Note that one should not just recompute the value of every 
+cell but only of those cells that depend on another cell’s changed value. If 
+there is an already provided spreadsheet widget it should not be used. Instead, 
+another similar widget (like JTable in Swing) should be customized to become a 
+reusable spreadsheet widget.</em>&quot;</p>
+<p class="example_title">Cells
+<span class="example_button">[in C] <a target="cells" href="cells.c">cells.c</a> <a href="cells.c">
+<img alt="" src="../tutorial/download.png"></a></span> <span class="example_button">[in Lua] <a target="cells" href="cells.lua">cells.lua</a> <a href="cells.lua"><img alt="" src="../tutorial/download.png"></a></span></p>
+<iframe src="cells.c" id="task_7" name="cells" marginheight="0" marginwidth="0" style="height: 15em">
+</iframe>
+<p class="example_image"><img alt="" src="cells.png"></p>
+<p>&lt;comments&gt;</p>
+</body>
+</html>

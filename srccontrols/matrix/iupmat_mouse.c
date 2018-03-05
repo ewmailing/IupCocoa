@@ -21,6 +21,7 @@
 #include "iup_attrib.h"
 #include "iup_str.h"
 #include "iup_stdcontrols.h"
+#include "iup_flatscrollbar.h"
 
 #include "iupmat_def.h"
 #include "iupmat_colres.h"
@@ -166,7 +167,7 @@ static void iMatrixMouseLeftPress(Ihandle* ih, int lin, int col, int shift, int 
     }
     else
     {
-      if (lin>0 && col>0)
+      if (lin>0 && col>0 && !(ih->data->noscroll_as_title && (lin < ih->data->lines.num_noscroll || col < ih->data->columns.num_noscroll)))
       {
         int ret;
 
@@ -219,7 +220,24 @@ static void iMatrixMouseLeftPress(Ihandle* ih, int lin, int col, int shift, int 
       {
         /* only process marks here if at titles */
         if (ih->data->mark_mode != IMAT_MARK_NO && iupAttribGetBoolean(ih, "MARKATTITLE"))
+        {
           iupMatrixMarkBlockSet(ih, ctrl, lin, col);
+
+          if (ih->data->merge_info_count)
+          {
+            int merged = iupMatrixGetMerged(ih, lin, col);
+            if (merged)
+            {
+              int endLin, endCol;
+              iupMatrixGetMergedRect(ih, merged, NULL, &endLin, NULL, &endCol);
+
+              if (lin == 0 || (ih->data->noscroll_as_title && lin < ih->data->lines.num_noscroll))
+                iupMatrixMarkBlockInc(ih, 0, endCol);
+              else
+                iupMatrixMarkBlockInc(ih, endLin, 0);
+            }
+          }
+        }
       }
     }
   }
@@ -312,23 +330,41 @@ int iupMatrixMouseMove_CB(Ihandle* ih, int x, int y, char *status)
   if (!iupMatrixIsValid(ih, 0))
     return IUP_DEFAULT;
 
+  iupFlatScrollBarMotionUpdate(ih, x, y);
+
   has_lincol = iupMatrixGetCellFromXY(ih, x, y, &lin, &col);
 
   if (iup_isbutton1(status) && ih->data->mark_block && ih->data->mark_multiple && ih->data->mark_mode != IMAT_MARK_NO)
   {
     if ((x < ih->data->columns.dt[0].size || x < IMAT_DRAG_SCROLL_DELTA) && (ih->data->columns.first > ih->data->columns.num_noscroll))
       iupMATRIX_ScrollLeft(ih);
-    else if ((x > ih->data->w - IMAT_DRAG_SCROLL_DELTA) && (ih->data->columns.last < ih->data->columns.num-1))
+    else if ((x > iupMatrixGetWidth(ih) - IMAT_DRAG_SCROLL_DELTA) && (ih->data->columns.last < ih->data->columns.num - 1))
       iupMATRIX_ScrollRight(ih);
 
     if ((y < ih->data->lines.dt[0].size || y < IMAT_DRAG_SCROLL_DELTA) && (ih->data->lines.first > ih->data->lines.num_noscroll))
       iupMATRIX_ScrollUp(ih);
-    else if ((y > ih->data->h - IMAT_DRAG_SCROLL_DELTA) && (ih->data->lines.last < ih->data->lines.num-1))
+    else if ((y > iupMatrixGetHeight(ih) - IMAT_DRAG_SCROLL_DELTA) && (ih->data->lines.last < ih->data->lines.num - 1))
       iupMATRIX_ScrollDown(ih);
 
     if (has_lincol)
     {
       iupMatrixMarkBlockInc(ih, lin, col);
+
+      if (ih->data->merge_info_count)
+      {
+        int merged = iupMatrixGetMerged(ih, lin, col);
+        if (merged)
+        {
+          int endLin, endCol;
+          iupMatrixGetMergedRect(ih, merged, NULL, &endLin, NULL, &endCol);
+
+          if (lin == 0 || (ih->data->noscroll_as_title && lin < ih->data->lines.num_noscroll))
+            iupMatrixMarkBlockInc(ih, 0, endCol);
+          else
+            iupMatrixMarkBlockInc(ih, endLin, 0);
+        }
+      }
+
       iupMatrixDrawUpdate(ih);
 
       iMatrixMouseCallMoveCb(ih, lin, col);

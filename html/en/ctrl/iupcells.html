@@ -121,7 +121,8 @@ ih</strong>:draw_cb(<b>line</b>, <b>column</b>, <b>xmin</b>, <b>xmax</b>, <b>ymi
 <strong>xmin, xmax, ymin, ymax</strong>: the raster bounding box of the redrawn 
     cells, where the application can use CD functions to draw anything. If the 
 attribute IUP_CLIPPED is set (the 
-    default), all CD graphical primitives is clipped to the bounding region.<br>
+    default), all CD graphical primitives is clipped to the bounding region. Y 
+coordinates are oriented bottom to top as in CD.<br>
 <strong>canvas</strong>: internal canvas CD used to draw the cells.</p>
 
 <p><strong>HEIGHT_CB</strong><tt>:</tt> called when the controls needs to know a (eventually new) line 
@@ -153,7 +154,8 @@ ih</strong>:mouseclick_cb(<strong>button, pressed, line, column, x, y</strong>: 
 IupCanvas callback with two additional parameters:</p>
 <p class="info"><strong>line</strong>, <strong>column</strong>:
     the grid position in the control where the event has 
-    occurred, in grid coordinates.<br>
+    occurred, in grid coordinates.<br>But Y coordinates are oriented bottom to 
+top as in CD.<br>
 </p>
 <p><strong>MOUSEMOTION_CB</strong><tt>:</tt> 
   called when the mouse moves over the control.</p>
@@ -163,7 +165,8 @@ IupCanvas callback with two additional parameters:</p>
 IupCanvas callback with two additional parameters:</p>
 <p class="info"><strong>line</strong>, <strong>column</strong>:
     the grid position in the control where the event has 
-    occurred, in grid coordinates.<br>
+    occurred, in grid coordinates.<br>But Y coordinates are oriented bottom to 
+top as in CD.<br>
 </p>
 <p><strong>NCOLS_CB</strong><tt>:</tt> called when then controls needs to know its number of columns.</p>
 <pre>int function(Ihandle* <b>ih</b>);  [in C]

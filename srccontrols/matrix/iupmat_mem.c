@@ -124,6 +124,14 @@ void iupMatrixMemRelease(Ihandle* ih)
     free(ih->data->sort_line_index);
     ih->data->sort_line_index = NULL;
   }
+
+  if (ih->data->merge_info)
+  {
+    free(ih->data->merge_info);
+    ih->data->merge_info = NULL;
+    ih->data->merge_info_max = 0;
+    ih->data->merge_info_count = 0;
+  }
 }
 
 void iupMatrixMemReAllocLines(Ihandle* ih, int old_num, int num, int base)

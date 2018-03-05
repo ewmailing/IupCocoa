@@ -6,7 +6,7 @@
 
 #---------------------------------#
 # Tecmake Version
-VERSION = 4.15
+VERSION = 4.16
 
 
 #---------------------------------#
@@ -928,6 +928,9 @@ ifeq "$(TEC_CC)" "gcc"
     STDFLAGS += -fopenmp
     LIBS += gomp
   endif
+  ifdef USE_CPP11
+    STDFLAGS += -std=c++11
+  endif
   ifeq ($(MAKETYPE), APP)
     STDLFLAGS = -Wl,-subsystem,$(APPTYPE)
   else
@@ -1350,6 +1353,10 @@ STDINCS := $(addprefix -I, $(STDINCS))
 EXTRAINCS := $(addprefix -I, $(EXTRAINCS))
 DEFINES := $(addprefix -D, $(DEFINES))
 
+ifdef USE_CPP11
+  DEPFLAGS += -std=c++11
+endif
+
 # For aplications and DLLs
 ifneq ($(MAKETYPE), LIB)
   LIBS += $(STDLIB)
@@ -1669,7 +1676,7 @@ $(DEPEND): $(MAKENAME)
 	  @which gcc 2> /dev/null 1>&2 ;\
 	  if [ $$? -eq 0 ]; then \
 	    echo "Tecmake: Building Dependencies ... (can be slow)" ;\
-	    g++ $(DEPINCS) $(DEFINES) $(STDDEFS) $(DEPDEFS) -MM $(SOURCES) | \
+	    g++ $(DEPFLAGS) $(DEPINCS) $(DEFINES) $(STDDEFS) $(DEPDEFS) -MM $(SOURCES) | \
 	    sed -e '1,$$s/^\([^ ]*\)\.o/$$(OBJDIR)\/\1.$(OBJEXT)/' | \
 	    sed -e 's/\([ \t][ \t]*\)\([a-zA-Z]\):/\1\/cygdrive\/\2/g' > $(DEPEND) ;\
 	  else \

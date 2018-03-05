@@ -35,6 +35,7 @@ typedef struct _Iwin2iupkey
 
 static void winKeyInitXKey(Iwin2iupkey* map)
 {
+  map[VK_CANCEL].iupcode =    K_cPAUSE;
   map[VK_ESCAPE].iupcode =    K_ESC;
   map[VK_PAUSE].iupcode =     K_PAUSE;
   map[VK_SNAPSHOT].iupcode =  K_Print;
@@ -342,16 +343,16 @@ int iupwinKeyEvent(Ihandle* ih, int wincode, int press)
         else if (result == IUP_IGNORE)
           return 0;
       }
-    }
 
-    if ((GetKeyState(VK_MENU) & 0x8000) && wincode < 128) /* Alt + mnemonic */
-    {
-      if (iupKeyProcessMnemonic(ih, wincode))
+      if ((GetKeyState(VK_MENU) & 0x8000) && wincode < 128) /* Alt + mnemonic */
+      {
+        if (iupKeyProcessMnemonic(ih, wincode))
+          return 0;
+      }
+
+      if (iupKeyProcessNavigation(ih, code, (GetKeyState(VK_SHIFT) & 0x8000)))
         return 0;
     }
-
-    if (iupKeyProcessNavigation(ih, code, (GetKeyState(VK_SHIFT) & 0x8000)))
-      return 0;
   }
   else
   {
