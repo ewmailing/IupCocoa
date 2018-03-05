@@ -23,6 +23,8 @@ norm.normalize = "HORIZONTAL"
 iup.Destroy(norm)
 
 dialog:show()
-iup.MainLoop()
 
-dialog:destroy()
+if (iup.MainLoopLevel()==0) then
+  iup.MainLoop()
+  dialog:destroy()
+end

@@ -96,8 +96,12 @@
     <ClCompile Include="..\src\iup_class.c" />
     <ClCompile Include="..\src\iup_classattrib.c" />
     <ClCompile Include="..\src\iup_classbase.c" />
+    <ClCompile Include="..\src\iup_colorbar.c" />
+    <ClCompile Include="..\src\iup_colorbrowser.c" />
+    <ClCompile Include="..\src\iup_colorhsi.c" />
     <ClCompile Include="..\src\iup_config.c" />
     <ClCompile Include="..\src\iup_detachbox.c" />
+    <ClCompile Include="..\src\iup_dial.c" />
     <ClCompile Include="..\src\iup_dlglist.c" />
     <ClCompile Include="..\src\iup_draw.c" />
     <ClCompile Include="..\src\iup_expander.c" />
@@ -106,10 +110,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\iup_flatscrollbar.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\iup_flatscrollbox.c" />
     <ClCompile Include="..\src\iup_flattabs.c" />
     <ClCompile Include="..\src\iup_focus.c" />
     <ClCompile Include="..\src\iup_font.c" />
     <ClCompile Include="..\src\iup_func.c" />
+    <ClCompile Include="..\src\iup_gauge.c" />
     <ClCompile Include="..\src\iup_globalattrib.c" />
     <ClCompile Include="..\src\iup_gridbox.c" />
     <ClCompile Include="..\src\iup_key.c" />
@@ -175,17 +185,20 @@
     <ClInclude Include="..\include\iup_class_cbs.hpp" />
     <ClInclude Include="..\include\iup_config.h" />
     <ClInclude Include="..\include\iup_plus.h" />
+    <ClInclude Include="..\include\iup_varg.h" />
     <ClInclude Include="..\src\iup_array.h" />
     <ClInclude Include="..\src\iup_assert.h" />
     <ClInclude Include="..\src\iup_attrib.h" />
     <ClInclude Include="..\src\iup_childtree.h" />
     <ClInclude Include="..\src\iup_class.h" />
     <ClInclude Include="..\src\iup_classbase.h" />
+    <ClInclude Include="..\src\iup_colorhsi.h" />
     <ClInclude Include="..\src\iup_dlglist.h" />
     <ClInclude Include="..\src\iup_drv.h" />
     <ClInclude Include="..\src\iup_drvdraw.h" />
     <ClInclude Include="..\src\iup_drvfont.h" />
     <ClInclude Include="..\src\iup_drvinfo.h" />
+    <ClInclude Include="..\src\iup_flatscrollbar.h" />
     <ClInclude Include="..\src\iup_focus.h" />
     <ClInclude Include="..\src\iup_func.h" />
     <ClInclude Include="..\src\iup_globalattrib.h" />

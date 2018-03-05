@@ -17,6 +17,9 @@
 .auto-style1 {
 	color: #FF0000;
 }
+.auto-style2 {
+	text-align: center;
+}
 </style>
 </head>
 <body>
@@ -43,6 +46,7 @@ buttons are manually drawn. It inherits from
 <h3><a name="Creation">Creation</a></h3>
 <div>
   <pre>Ihandle* IupFlatTabs(Ihandle*<strong> child</strong>, ...); [in C]
+Ihandle* IupFlatTabsV(Ihandle* <strong>child</strong>, va_list <strong>arglist</strong>); [in C]
 Ihandle* IupFlatTabsv(Ihandle**<strong> children</strong>); [in C]
 iup.flattabs{<strong>child</strong>, ...: ihandle} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
 flattabs(<strong>child</strong>, ...) [in LED]</pre>
@@ -82,15 +86,6 @@ horizontal and vertical offsets, respectively, in pixels. Default: 0x0.</p>
 <p><b>COUNT</b> (read-only)<b>:</b> 
 returns the number of tabs. Same value returned by <strong>IupGetChildCount</strong>.</p>
 <p><a href="../attrib/iup_expand.html">EXPAND</a>: The default value is &quot;YES&quot;.</p>
-<p><strong>EXTRABOX</strong> (read-only)<b>:</b> 
-returns the extra box name so it can be used to add extra controls to the free 
-area. Use <a href="../func/iupsethandle.html">
-IupSetHandle</a> or <a href="../func/iupsetattributehandle.html">
-IupSetAttributeHandle</a> to associate a child to a name. In Lua you can also 
-use the element reference directly. The extra box is a IupHbox that is usually 
-empty.</p>
-<p><strong>EXTRABOX_HANDLE</strong> (read-only)<b>:</b> 
-returns the handle of the extra box. </p>
 <p><strong>FIXEDWIDTH</strong>: forces all tabs to use the same width. Default: 
 No.</p>
 <p><b>SHOWCLOSE</b>: <span id="result_box1" class="short_text" lang="en">
@@ -98,27 +93,20 @@ No.</p>
 <span class="hps">tab.</span></span><span id="result_box0" class="" lang="en"><span class="">
 </span></span>Default value: &quot;NO&quot;. By default when closed the tab is hidden. 
 To change that behavior use the TABCLOSE_CB callback.</p>
-<p><strong>CLOSEIMAGE</strong>: image name to be used in the close button. Use <a href="../func/iupsethandle.html">
-	IupSetHandle</a> or
-	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
-	associate an image to a name. n starts at 0. See also <a href="iupimage.html">IupImage</a>. 
-Default: &quot;IMGFLATCLOSE&quot;.</p>
-<p><strong>CLOSEIMAGEHIGH</strong>: image name to be used in the close button in 
-highlight state. Default: &quot;IMGFLATCLOSEHIGH&quot;.</p>
-<p><strong>CLOSEIMAGEPRESS</strong>: image name to be used in the close button 
-in pressed state. Default: &quot;IMGFLATCLOSEPRESS&quot;.</p>
-<p><strong>CLOSEHIGHCOLOR</strong>: background color of the close button in 
-highlight state. Default: &quot;200 220 245&quot;.</p>
+<p><strong>SHOWLINES</strong>: when enabled the current tab will be separated of 
+the other tabs by a line. Can be Yes or No. Default: Yes.</p>
 <p><a href="../attrib/iup_size.html">SIZE</a>: 
 	The default size is the smallest size that fits its largest child. All child 
 	elements are considered even invisible ones.</p>
+<p><strong>TABCHANGEONCHECK</strong>: call the TABCHANGE* callbacks when current 
+tab is removed or hidden, so a new tab is made current internally. (since 3.22)</p>
   <p><b>TABSPADDING</b>: internal margin of the tab title. Works just like the 
 	MARGIN attribute of the IupHbox and IupVbox containers, but uses a different 
   name to avoid inheritance problems. Default value: &quot;10x10&quot;.</p>
 <p><strong>TABSFORECOLOR</strong>: text color of the tabs that are not the 
 current tab. Default: the global attribute DLGFGCOLOR.</p>
 <p><strong>TABSBACKCOLOR</strong>: background color of the tabs that are not the 
-current tab. Default: the global attribute DLGBGCOLOR.</p>
+current tab. If not defined it will use the background color of the parent.</p>
 <p><strong>TABSHIGHCOLOR</strong>: background highlight color of the tabs that 
 are not the current tab. When not defined the background is not highlighted. </p>
 <p><strong>TABSFONT</strong>: text font of the tabs. When not defined FONT is 
@@ -127,8 +115,9 @@ used. It is a non inheritable option for setting the font.</p>
 set TABSFONT.</p>
 <p><strong>TABSFONTSIZE</strong>: text font size. When change will actually set 
 TABSFONT.</p>
-<p><strong>SHOWLINES</strong>: when enabled the current tab will be separated of 
-the other tabs by a line. Can be Yes or No. Default: Yes.</p>
+<p><strong>TABSTEXTALIGNMENT </strong>(<font size="3">non inheritable</font>): 
+Horizontal text alignment for multiple lines. Can be: ALEFT, ARIGHT or ACENTER. 
+Default: ALEFT. (since 3.22)</p>
 <p><strong>TABSLINECOLOR</strong>: color of the separator line. Default: &quot;180 
 180 180&quot;</p>
 <p><strong>TABSIMAGEPOSITION</strong>: position of the image relative to the 
@@ -138,30 +127,33 @@ Default: &quot;2&quot;.</p>
 <p><strong>TABSALIGNMENT</strong>: horizontal and vertical alignment of the set 
 image+text. Possible values: &quot;ALEFT&quot;, &quot;ACENTER&quot; and &quot;ARIGHT&quot;,&nbsp; 
 combined to &quot;ATOP&quot;, &quot;ACENTER&quot; and &quot;ABOTTOM&quot;. Default: &quot;ACENTER:ACENTER&quot;. Partial 
-values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be used 
-from the current alignment. </p>
+values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be 
+obtained from the default value. </p>
 <h4>Tab Attributes (<font SIZE="3">non inheritable</font>)</h4>
 
   <p><strong>TABIMAGEn</strong>: image 
 	name to be used in the respective tab. Use <a href="../func/iupsethandle.html">
 	IupSetHandle</a> or
 	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
-	associate an image to a name. n starts at 0. See also <a href="iupimage.html">IupImage</a>. 
-  When set after map will update the TABIMAGE attribute on the respective child.</p>
+	associate an image to a name. n starts at 0. See also <a href="iupimage.html">IupImage</a>. </p>
+<p><strong>TABIMAGEHIGHTLIGHTn</strong>: same as TABIMAGEn when in highlight 
+state. If not defined TABIMAGEn is used. (since 3.22)</p>
+<p><strong>TABIMAGEINACTIVEn</strong>: same as TABIMAGEn when in inactive state. 
+If not defined TABIMAGEn is used and its colors will be replaced by a modified 
+version creating the disabled effect. (since 3.22)</p>
 
 
 <p><strong>TABVISIBLEn</strong>: Allows to hide a tab. n starts at 0. When a tab 
 is hidden the tabs indices are not changed. Can be Yes or No. Default: Yes.</p>
 <p><strong>TABTITLEn</strong>: Contains the text to be shown in the respective 
-tab title. n starts at 0. If this value is NULL, it will remain empty. When set 
-after map will update the TABTITLE attribute on the respective child.</p>
+tab title. n starts at 0. If this value is NULL, it will remain empty. </p>
 <p><strong>TABACTIVEn</strong>: active state of the tab.&nbsp; Can be Yes or No. 
 Default: Yes.</p>
-<p><strong>TABFORECOLORn</strong>: text color of the tab. When not defined TABSFORECOLOR 
+<p><strong>TABFORECOLORn</strong>: text color of the tab title. When not defined TABSFORECOLOR 
 is used.</p>
 <p><strong>TABBACKCOLORn</strong>: background color of the tab. When not defined TABSBACKCOLOR 
 is used.</p>
-<p><strong>TABHIGHCOLORn</strong>: highlight color of the tab. When not defined TABSHIGHCOLOR 
+<p><strong>TABHIGHCOLORn</strong>: highlight color of the tab title. When not defined TABSHIGHCOLOR 
 is used.</p>
 <p><strong>TABFONTn</strong>: text font of the tab. When not defined TABSFONT is 
 used.</p>
@@ -169,19 +161,85 @@ used.</p>
 set TABFONTn. </p>
 <p><strong>TABFONTSIZEn</strong>: text font size. When change will actually set 
 TABFONTn. </p>
+<p><strong>TABTIPn</strong>: TIP of the tab. (since 3.22)</p>
+<h4>Tab Close Button Attributes</h4>
+<p><strong>CLOSEIMAGE</strong>: image name to be used in the close button. Use <a href="../func/iupsethandle.html">
+	IupSetHandle</a> or
+	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
+	associate an image to a name. n starts at 0. See also <a href="iupimage.html">IupImage</a>. 
+Default: &quot;IMGFLATCLOSE&quot;.</p>
+<p><strong>CLOSEIMAGEPRESS</strong>: image name to be used in the close button 
+in pressed state. Default: &quot;IMGFLATCLOSEPRESS&quot;.</p>
+<p><strong>CLOSEIMAGEHIGHLIGHT</strong>: image name to be used in the close 
+button in highlight state. </p>
+<p><strong>CLOSEIMAGEINACTIVE</strong>: image name to be used in the close button 
+in inactive state. If it is not defined then the CLOSEIMAGE is used and its 
+colors will be replaced by a modified version creating the disabled effect. 
+(since 3.22)</p>
+<p><strong>CLOSEPRESSCOLOR</strong>: background color of the close button in 
+pressed state. Default: &quot;80 180 245&quot;. (since 3.22)</p>
+<p><strong>CLOSEHIGHCOLOR</strong>: background color of the close button in 
+highlight state. Default: &quot;200 220 245&quot;.</p>
+<h4>Extra Buttons Attributes (<font SIZE="3">non inheritable</font>) (since 3.22)</h4>
+<p><strong>EXTRABUTTONS</strong>: sets 
+the number of extra image buttons at right in the free space area. There can be 
+any number of buttons. See the EXTRABUTTON_CB callback. Default: 0.</p>
+<p class="info">Button id starts at 1, and are positioned from right to left. 
+Just like the tabs they do not affect natural width. But they also don't affect 
+the tabs title height, if button title or image are larger than the tabs title 
+height they will be cropped.</p>
+<p><strong>EXTRATITLE</strong><em><strong>id</strong></em>: text of the 
+respective button.</p>
+<p><strong>EXTRAACTIVE</strong><em><strong>id</strong></em>: active state of the 
+button. Can be Yes or No. When not defined works as &quot;Yes&quot;.</p>
+<p><strong>EXTRAFORECOLOR</strong><em><strong>id</strong></em>: text color of 
+the button title. When not defined TABSFORECOLOR 
+is used.</p>
+<p><strong>EXTRAPRESSCOLOR</strong><em><strong>id</strong></em>: background 
+color of the button in pressed state. When not defined CLOSEPRESSCOLOR is used.</p>
+<p><strong>EXTRAHIGHCOLOR</strong><em><strong>id</strong></em>: background color 
+of the button in highlight state. When not defined CLOSEHIGHCOLOR 
+is used.</p>
+<p><strong>EXTRAFONT</strong><em><strong>id</strong></em>: text font of the 
+button. When not defined TABSFONT is used.</p>
+<p><strong>EXTRAIMAGE</strong><em><strong>id</strong></em>: image name to be 
+used in the respective button. Use <a href="../func/iupsethandle.html">
+	IupSetHandle</a> or
+	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
+	associate an image to a name. n starts at 0. See also <a href="iupimage.html">IupImage</a>. </p>
+<p><strong>EXTRAIMAGEPRESS</strong><em><strong>id</strong></em>: same as 
+EXTRAIMAGE<em>id</em> when in pressed 
+state. If not defined EXTRAIMAGE<em>id</em> is used.</p>
+<p><strong>EXTRAIMAGEHIGHLIGHT</strong><em><strong>id</strong></em>: same as 
+EXTRAIMAGE<em>id</em> when in highlight 
+state. If not defined EXTRAIMAGE<em>id</em> is used.</p>
+<p><strong>EXTRAIMAGEINACTIVE</strong><em><strong>id</strong></em>: same as 
+EXTRAIMAGE<em>id</em> when in inactive 
+state. If not defined EXTRAIMAGE<em>id</em> is used and its colors will be 
+replaced by a modified version creating the disabled effect.</p>
+<p><strong>EXTRATIP<em>id</em></strong>: TIP of the button.</p>
+<h4>Expand Button Attributes (<font SIZE="3">non inheritable</font>) (since 3.22)</h4>
+<p><strong>EXPANDBUTTON</strong>: uses the next free extra button to configure 
+an expand button. The button allows to dynamically expand and collapse the tabs 
+contents. When collapsed a click on a tab causes that tab to be temporarily 
+expanded until it looses the focus.</p>
+<p><strong>EXPANDBUTTONPOS</strong> (read-only): position of the expand button 
+in the extra buttons.</p>
+<p><strong>EXPANDBUTTONSTATE</strong>: The expand button is on expand state. Can 
+be Yes or No. Default: Yes.</p>
 <h4>Current Tab (<font SIZE="3">non inheritable</font>)</h4>
 <p><strong>VALUE</strong>: Changes the 
 current tab by its name. The value passed must be the name of one of the elements 
 contained in the tabs. Use <a href="../func/iupsethandle.html">
 IupSetHandle</a> or <a href="../func/iupsetattributehandle.html">
 IupSetAttributeHandle</a> to associate a child to a name. In Lua you can also 
-use the element reference directly.</p>
+use the element reference directly. When the tabs is created, the first element 
+inserted is set as the current tab. When the current tab is changed is also 
+scrolled to be visible (since 3.23).</p>
 <p><b>VALUE_HANDLE</b>: Changes the current tab by its handle. The value passed 
-must be the handle of a child contained in the tabs. When the tabs is created, 
-the first element inserted is set as the visible child.</p>
+must be the handle of a child contained in the tabs. </p>
 <p><strong>VALUEPOS</strong>: Changes the current tab by its position, starting 
-at 0. When the tabs is created, the first element inserted is set as the visible 
-child. In GTK, inside the callback the returned value is still the previous one.</p>
+at 0.</p>
   <blockquote>
   <hr>
 </blockquote>
@@ -203,11 +261,13 @@ VISIBLE</a>: also accepted.</p>
 
 <h3>Attributes (at Children)</h3>
 <p><strong>TABTITLE </strong>(<font SIZE="3">non inheritable</font>) <strong>(at 
-children only)</strong>: Same as <strong>TABTITLEn</strong> but set in each 
-child. Works only if set before the child is added to the tabs.</p>
+children only)</strong>: Same as TABTITLEn but set in each 
+child. Works only if set before the child is added to the tabs. Is not updated 
+if TABTITLEn is changed.</p>
 <p><strong>TABIMAGE </strong>(<font SIZE="3">non inheritable</font>) <strong>(at 
 children only)</strong>: Same as <strong>TABIMAGEn</strong> but set in each 
-child. Works only if set before the child is added to the tabs.</p>
+child. Works only if set before the child is added to the tabs. Is not updated 
+if TABIMAGEn is changed.</p>
 
 <h3><a name="Callbacks">Callbacks</a></h3>
 
@@ -216,7 +276,9 @@ child. Works only if set before the child is added to the tabs.</p>
 but redefines a few of them. Including BUTTON_CB, MOTION_CB, and LEAVEWINDOW_CB. 
 To allow the application to use those callbacks the same callbacks are exported 
 with the &quot;FLAT_&quot; prefix using the same parameters. They are all called before the internal callbacks and if they return 
-IUP_IGNORE the internal callbacks are not processed.</p>
+IUP_IGNORE the internal callbacks are not processed. In FLATBUTTON_CB and 
+FLAT_MOTION_CB use <a href="../func/iupconvertxytopos.html">IupConvertXYToPos</a> to convert 
+	(x,y) coordinates in tab position (same as VALUEPOS) (since 3.23). </p>
 
 <p><strong>TABCHANGE_CB</strong>: Callback called when the user changes the 
 current tab.</p>
@@ -244,7 +306,7 @@ the event.<br>
 <strong>old_pos</strong>: the previously selected tab position</p>
 <p class="info"><u>Returns</u>: if IUP_IGNORE is returned the current tab is NOT 
 changed.</p>
-<p><strong>TABCLOSE_CB</strong> [Windows and GTK Only]: Callback called when the user clicks on the 
+<p><strong>TABCLOSE_CB</strong>: Callback called when the user clicks on the 
 close button. Called only when SHOWCLOSE=Yes.</p>
 <div align="left">
   <pre>int function(Ihandle* <strong>ih</strong>, int <strong>pos</strong>); [in C]
@@ -265,9 +327,18 @@ tab using the right mouse button.</p>
 <p class="info"><strong>ih</strong>: identifier of the element that activated 
 the event.<br>
     <strong>pos</strong>: the tab position</p>
-  <blockquote>
-  <hr>
-</blockquote>
+  <p><strong>EXTRABUTTON_CB</strong>:
+  Action generated when any mouse button is 
+  pressed or released. (since 3.22)</p>
+<pre>int function(Ihandle* <strong>ih</strong>, int <strong>button</strong>, int <strong>pressed</strong>); [in C]
+<strong>ih</strong>:extrabutton_cb(<strong>button</strong>, <strong>pressed</strong>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+<p class="info"><strong>ih</strong>:
+  identifies the element that activated the 
+  event.<br><strong>button</strong>: identifies the extra button. Can be 1, 2, 3, 
+4, and so on. (this is 
+not the same as BUTTON_CB)<br><strong>pressed</strong>:
+  indicates the state of the button (1=pressed, 0=released)</p>
+<hr>
 
 <p><a href="../call/iup_map_cb.html">MAP_CB</a>, 
 <a href="../call/iup_unmap_cb.html">UNMAP_CB</a>, 
@@ -307,8 +378,6 @@ to control the focus behavior call
 	<li>TABORIENTATION is NOT supported. Only HORIZONTAL tabs are implemented.</li>
 	<li>MULTILINE is NOT supported. </li>
 	<li>Mnemonics are NOT supported.</li>
-	<li>Scrolling of tabs when width is smaller than minimum size to show all 
-	tabs. (To be implemented in the next version)</li>
 </ul>
 <h3>Utility Functions </h3>
 <p>These functions can be used to set and get attributes from the element:</p>
@@ -327,59 +396,22 @@ not need to parse the attribute name string and the application does not need to
 concatenate the attribute name with the id.</p>
 <h3><a name="Examples">Examples</a></h3>
 <p><a href="../../examples/">Browse for Example Files</a></p>
-<p>In Windows, the Visual Styles work only when TABTYPE is TOP.</p>
-
-<table align="center">
-	<tr>
-		<th>Windows <br>
-		Classic</th>
-		<th>Windows <br>
-		w/ Styles</th>
-	</tr>
-	<tr>
-		<td class="bg_win2k"><img src="images/iuptabs_win2k_top.png"></td>
-		<td class="bg_winxp"><img src="images/iuptabs_winxp_top.png"></td>
-	</tr>
-	<tr>
-		<td class="bg_win2k"><img src="images/iuptabs_win2k_left.png"></td>
-		<td class="bg_winxp"><img src="images/iuptabs_winxp_left.png"></td>
-	</tr>
-	<tr>
-		<td class="bg_win2k"><img src="images/iuptabs_win2k_top_multi.png"></td>
-		<td class="bg_winxp"><img src="images/iuptabs_winxp_top_multi.png"></td>
-	</tr>
-</table>
-
-<p>GTK is the only one that supports vertical text in the TOP configuration, but 
-does not supports multiple lines of tab buttons.</p>
-
-<table align="center">
-	<tr>
-		<th colspan="2">GTK</th>
-	</tr>
-	<tr>
-		<td class="bg_gtk"><img src="images/iuptabs_gtk_top.png"></td>
-		<td class="bg_gtk"><img src="images/iuptabs_gtk_left.png"></td>
-	</tr>
-	<tr>
-		<td class="bg_gtk"><img src="images/iuptabs_gtk_top_vert.png"></td>
-		<td class="bg_gtk"><img src="images/iuptabs_gtk_left_vert.png"></td>
-	</tr>
-</table>
-
-<p>Motif does not supports vertical text.</p>
-
-<table align="center">
-	<tr>
-		<th>Motif</th>
-	</tr>
-	<tr>
-		<td class="bg_mot"><img src="images/iuptabs_mot_top.png"></td>
-	</tr>
-	<tr>
-		<td class="bg_mot"><img src="images/iuptabs_mot_left.png"></td>
-	</tr>
-</table>
+<pre> IupSetAttribute(ih, &quot;TABVISIBLE2&quot;, &quot;NO&quot;);
+IupSetAttribute(ih, &quot;TABACTIVE3&quot;, &quot;NO&quot;);
+IupSetAttribute(ih, &quot;SHOWCLOSE&quot;, &quot;Yes&quot;);
+IupSetAttribute(ih, &quot;TABFONTSTYLE4&quot;, &quot;Bold&quot;);</pre>
+<p class="auto-style2">
+<img src="images/iupflattabs1.png"></p>
+<pre> IupSetAttribute(ih, &quot;FORECOLOR&quot;, &quot;192 0 0&quot;);
+IupSetAttribute(ih, &quot;TABSBACKCOLOR&quot;, &quot;192 0 0&quot;);
+IupSetAttribute(ih, &quot;HIGHCOLOR&quot;, &quot;255 128 128&quot;);
+IupSetAttribute(ih, &quot;CLOSEHIGHCOLOR&quot;, &quot;255 128 128&quot;);
+IupSetAttribute(ih, &quot;TABSFORECOLOR&quot;, &quot;255 255 255&quot;);
+IupSetAttribute(ih, &quot;SHOWLINES&quot;, &quot;NO&quot;);
+IupSetAttribute(ih, &quot;SHOWCLOSE&quot;, &quot;NO&quot;);
+IupSetAttribute(ih, &quot;EXPANDBUTTON&quot;, &quot;Yes&quot;);</pre>
+<p class="auto-style2">
+<img src="images/iupflattabs2.png"></p>
 
 </body>
 

@@ -7,6 +7,7 @@ local ctrl = {
   creation = "",
   subdir = "ctrl",
   callback = {
+    dwell_cb = "nnnn",
     savepoint_cb = "n",
   --  valuechanged_cb = "",
   --  caret_cb = "nnn", 
@@ -18,10 +19,17 @@ local ctrl = {
     autocselection_cb = "ns",
     autoccancelled_cb = "",
     autocchardeleted_cb = "",
+    updatecontent_cb = "",
+    updateselection_cb = "",
+    updatevscroll_cb = "",
+    updatehscroll_cb = "",
+    lineschanged_cb = "ii",
     zoom_cb = "n",
   },
   include = "iup_scintilla.h",
   extracode = [[ 
+int iupscintilladlglua_open(lua_State * L);
+
 int iup_scintillalua_open(lua_State* L)
 {
   if (iuplua_opencall_internal(L))
@@ -29,6 +37,7 @@ int iup_scintillalua_open(lua_State* L)
     
   iuplua_get_env(L);
   iupscintillalua_open(L);
+  iupscintilladlglua_open(L);
   return 0;
 }
 

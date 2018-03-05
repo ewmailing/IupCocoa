@@ -16,9 +16,7 @@ local ctrl = {
     menucontext_cb = "inn",
     menucontextclose_cb = "inn",
   },
-  include = "iupmatrixex.h",
-  extrafuncs = 1,
-  openfuncname = "_matrixex",
+  include = "iupcontrols.h",
 }
 
 function ctrl.createElement(class, param)

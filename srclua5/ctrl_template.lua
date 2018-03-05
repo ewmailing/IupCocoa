@@ -71,7 +71,7 @@ static int myControl (lua_State * L)
 } 
 ]],
 
-  extracode = [[        -- [optional] extra fucntions to be defined in C.
+  extracode = [[        -- [optional] extra functions to be defined in C.
 ]],
 
 }

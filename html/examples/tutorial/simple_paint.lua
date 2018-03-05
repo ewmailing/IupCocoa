@@ -855,7 +855,7 @@ function tool_draw_pencil(toolbox, image, start_x, start_y, x, y)
   local line_width = tonumber(toolbox.toolwidth)
   r, g, b = string.match(toolbox.toolcolor, "(%d*) (%d*) (%d*)")
   
-  -- do not use line style here */
+  -- do not use line style here
   local rgb_canvas = cd.CreateCanvas(cd.IMIMAGE, image)
   rgb_canvas:SetAttribute("RESOLUTION", res)
   rgb_canvas:Foreground(cd.EncodeColor(r, g, b))
@@ -882,9 +882,9 @@ function tool_draw_overlay(toolbox, cnv, start_x, start_y, end_x, end_y)
   elseif (canvas.overlay == "BOX") then
     cnv:Box(start_x, end_x, start_y, end_y)
   elseif (canvas.overlay == "ELLIPSE") then
-    cnv:Arc((end_x + start_x) / 2, (end_y + start_y) / 2, math.abs(end_x - start_x), math.abs(end_y - start_y), 0, 360)
+    cnv:Arc(math.floor((end_x + start_x) / 2), math.floor((end_y + start_y) / 2), math.abs(end_x - start_x), math.abs(end_y - start_y), 0, 360)
   elseif (canvas.overlay == "OVAL") then
-    cnv:Sector((end_x + start_x) / 2, (end_y + start_y) / 2, math.abs(end_x - start_x), math.abs(end_y - start_y), 0, 360)
+    cnv:Sector(math.floor((end_x + start_x) / 2), math.floor((end_y + start_y) / 2), math.abs(end_x - start_x), math.abs(end_y - start_y), 0, 360)
   elseif (canvas.overlay == "TEXT") then
     cnv:TextAlignment(cd.SOUTH_WEST)
     cnv:NativeFont(toolbox.toolfont)
@@ -1278,6 +1278,8 @@ function canvas:motion_cb(x, y, status)
         local tool_index = tonumber(toolbox.toolindex)
         
         if (tool_index == 0) then -- Pointer 
+          if not canvas.start_cursor_x then canvas.start_cursor_x = cursor_x end
+          if not canvas.start_cursor_y then canvas.start_cursor_y = cursor_y end
           local start_cursor_x = tonumber(canvas.start_cursor_x)
           local start_cursor_y = tonumber(canvas.start_cursor_y)
 
@@ -1289,7 +1291,7 @@ function canvas:motion_cb(x, y, status)
 
           self.start_cursor_x = cursor_x
           self.start_cursor_y = cursor_y
-        elseif (tool_index == 2) then -- Pencil */
+        elseif (tool_index == 2) then -- Pencil
           local start_x = self.start_x
           local start_y = self.start_y
           

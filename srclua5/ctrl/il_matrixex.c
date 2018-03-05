@@ -9,7 +9,7 @@
 
 #include "iup.h"
 #include "iuplua.h"
-#include "iupmatrixex.h"
+#include "iupcontrols.h"
 #include "il.h"
 
 
@@ -82,9 +82,7 @@ static int MatrixEx(lua_State *L)
   return 1;
 }
 
-void iuplua_matrixexfuncs_open(lua_State *L);
-
-int iup_matrixexlua_open(lua_State * L)
+int iupmatrixexlua_open(lua_State * L)
 {
   iuplua_register(L, MatrixEx, "MatrixEx");
 
@@ -95,8 +93,6 @@ int iup_matrixexlua_open(lua_State * L)
   iuplua_register_cb(L, "MENUCONTEXT_CB", (lua_CFunction)matrixex_menucontext_cb, NULL);
   iuplua_register_cb(L, "SORTCOLUMNCOMPARE_CB", (lua_CFunction)matrixex_sortcolumncompare_cb, NULL);
   iuplua_register_cb(L, "NUMERICGETVALUE_CB", (lua_CFunction)matrixex_numericgetvalue_cb, NULL);
-
-  iuplua_matrixexfuncs_open(L);
 
 #ifdef IUPLUA_USELOH
 #include "matrixex.loh"

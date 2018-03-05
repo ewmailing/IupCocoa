@@ -60,7 +60,11 @@ IUP_EXPORT int    IupConfigGetVariableIntIdDef(Ihandle* ih, const char* group, c
 IUP_EXPORT double IupConfigGetVariableDoubleDef(Ihandle* ih, const char* group, const char* key, double def);
 IUP_EXPORT double IupConfigGetVariableDoubleIdDef(Ihandle* ih, const char* group, const char* key, int id, double def);
 
+IUP_EXPORT void IupConfigCopy(Ihandle* ih1, Ihandle* ih2, const char* exclude_prefix);
+
 /****************************************************************/
+
+IUP_EXPORT void IupConfigSetListVariable(Ihandle* ih, const char *group, const char* key, const char* value, int add);
 
 IUP_EXPORT void IupConfigRecentInit(Ihandle* ih, Ihandle* menu, Icallback recent_cb, int max_recent);
 IUP_EXPORT void IupConfigRecentUpdate(Ihandle* ih, const char* filename);

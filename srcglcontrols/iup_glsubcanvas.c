@@ -225,7 +225,7 @@ static void iGLSubCanvasRedrawFront(Ihandle* ih)
   IFn cb = (IFn)IupGetCallback(ih, "GL_ACTION");
   if (cb && iupAttribGetInt(ih, "VISIBLE"))
   {
-    Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+    Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
     IupGLMakeCurrent(gl_parent);
     glDrawBuffer(GL_FRONT);
     iupGLSubCanvasSaveState(gl_parent);
@@ -238,7 +238,7 @@ static void iGLSubCanvasRedrawFront(Ihandle* ih)
 
 int iupGLSubCanvasRedraw(Ihandle* ih)
 {
-  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
   if (iupAttribGetInt(ih, "REDRAWALL"))
     IupSetAttribute(gl_parent, "REDRAW", NULL);  /* redraw the whole box */
   else
@@ -266,7 +266,7 @@ int iupGLSubCanvasMove(Ihandle* ih, int x, int y)
 
   if ((x != start_x) || (y != start_y))
   {
-    Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+    Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
     IFnii cb = (IFnii)IupGetCallback(ih, "MOVE_CB");
 
     /* clear canvas box alignment */
@@ -407,7 +407,7 @@ static int iGLSubCanvasSetZorder(Ihandle* parent, Ihandle* child, int top)
 
 static int iGLSubCanvasSetZorderAttrib(Ihandle* ih, const char* value)
 {
-  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
   int redraw = 0;
   int top = 1;
   if (iupStrEqualNoCase(value, "BOTTOM"))
@@ -444,7 +444,7 @@ static int iGLSubCanvasMapMethod(Ihandle* ih)
   if (!gl_parent || !iupClassMatch(gl_parent->iclass, "glcanvasbox"))
     return IUP_ERROR;
 
-  iupAttribSet(ih, "GL_CANVAS", (char*)gl_parent);
+  iupAttribSet(ih, "_IUP_GLCANVAS_PARENT", (char*)gl_parent);
 
   /* use the handle of the native parent */
   ih->handle = gl_parent->handle;
@@ -488,6 +488,12 @@ Iclass* iupGLSubCanvasNewClass(void)
   iupClassRegisterCallback(ic, "GL_LEAVEWINDOW_CB", "");
   iupClassRegisterCallback(ic, "GL_MOTION_CB", "iis");
   iupClassRegisterCallback(ic, "GL_WHEEL_CB", "fiis");
+
+  /* Common Callbacks */
+  iupClassRegisterCallback(ic, "DESTROY_CB", "");
+  iupClassRegisterCallback(ic, "LDESTROY_CB", "");
+  iupClassRegisterCallback(ic, "MAP_CB", "");
+  iupClassRegisterCallback(ic, "UNMAP_CB", "");
 
   /* Common */
   iupBaseRegisterCommonAttrib(ic);

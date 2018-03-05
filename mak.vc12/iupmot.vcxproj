@@ -97,7 +97,6 @@
     <ClCompile Include="..\src\mot\iupmot_button.c" />
     <ClCompile Include="..\src\mot\iupmot_canvas.c" />
     <ClCompile Include="..\src\mot\iupmot_clipboard.c" />
-    <ClCompile Include="..\src\mot\iupmot_colordlg.c" />
     <ClCompile Include="..\src\mot\iupmot_dialog.c" />
     <ClCompile Include="..\src\mot\iupmot_filedlg.c" />
     <ClCompile Include="..\src\mot\iupmot_fontdlg.c" />

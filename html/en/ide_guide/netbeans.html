@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>NetBeans Guide</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.auto-style3 {
+	text-indent: 0;
+}
+.auto-style4 {
+	text-align: center;
+}
+.auto-style5 {
+	border-style: solid;
+	border-width: 2px;
+}
+</style>
+</head>
+
+<body>
+
+<h2><span lang=EN-US>NetBeans IDE 8.2 Project Properties Guide</span></h2>
+
+</div>
+
+<h3 class="auto-style4"><a href="https://netbeans.org">https://netbeans.org</a></h3>
+
+<div style='margin-left:12.0pt;
+margin-right:0cm'>
+
+<p style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-bottom:0cm;border-bottom:
+0cm none black'><span lang=EN-US>This guide was created using NetBeans 8.2 IDE in Windows 7 x64 bit
+OS (but similar configuration also tested in Linux).</span></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>To create a new
+project go to the menu &quot;File -&gt; New Project...&quot; or use &quot;Ctrl+Shit+N&quot;
+and select &quot;C/C++ Application&quot;:</span></p>
+
+<p class=auto-style4 style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-top:0cm;
+padding-bottom:0cm;border-bottom:0cm none black'>
+<a href="netbeans1.png">
+<img src="netbeans1_small.png" class="auto-style5" height="140" width="200" xthumbnail-orig-image="netbeans1.png"></a></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US> You can use
+several compilers, for this tutorial we will choose the MinGW_TDM x64 compiler.
+Just use the respective IUP binaries package: &quot;dllw4_64&quot; or compile
+required libraries yourself.</span></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>Then remove the
+automatically added files and add your files to the newly created project or
+just start by editing default main.c file.</span></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>After creating
+the project you must configure it to find the IUP includes and libraries.
+Select your project and use option &quot;Properties&quot;, that would be
+available when one press right mouse button (MB3)&quot;.</span></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>To configure the
+include files location go to &quot;Build -&gt; C Compiler -&gt; General -&gt;
+Include Directories&quot; and add the paths you need in your project:</span></p>
+
+<p class=auto-style4 style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-top:0cm;
+padding-bottom:0cm;border-bottom:0cm none black'>
+<a href="netbeans2.png">
+<img src="netbeans2_small.png" class="auto-style5" height="134" width="200" xthumbnail-orig-image="netbeans2.png"></a></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>Do not forget
+that by default one use Configuration: Debug (active). You should as well
+repeat all these steps for Configuration: Release.</span></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>To configure the
+library files location go to project properties and then &quot;Build -&gt; C
+Compiler -&gt; General -&gt; Linker -&gt; Additional Libraries
+Directories&quot; and add the paths you need:</span></p>
+
+<p class=auto-style4 style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-top:0cm;
+padding-bottom:0cm;border-bottom:0cm none black'>
+<a href="netbeans3.png">
+<img src="netbeans3_small.png" class="auto-style5" height="134" width="200" xthumbnail-orig-image="netbeans3.png"></a></p>
+
+<p class=MsoNormal style='margin-top:12.0pt;margin-right:0cm;margin-bottom:
+15.6pt;margin-left:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>And then add the
+library files by using option &quot;Build -&gt; C Compiler -&gt; General -&gt;
+Linker -&gt; Libraries&quot; then in &quot;Link libraries&quot; add the files
+that you need:</span></p>
+
+<p style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-top:0cm' class="auto-style4"><a href="netbeans4.png">
+<img
+src="netbeans4_small.png" class="auto-style5" height="192" width="200" xthumbnail-orig-image="netbeans4.png"></a></p>
+
+</div>
+
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm'>
+
+<p class=MsoNormal style='padding-bottom:0cm;border-bottom:0cm none black'><span
+lang=EN-US>&nbsp;Additional hints:</span></p>
+
+</div>
+
+<div style='margin-left:18.05pt;
+margin-right:0cm'>
+
+<p class=auto-style3 style='margin-left:17.95pt;padding-bottom:0cm;border-bottom:0cm none black'>
+<span lang=EN-US>·</span><span lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Oracle Java SE Development Kit (JDK) 8 is
+required to install NetBeans 8.2 IDE on Windows or Linux OS. Download it here: <a
+href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Oracle
+JDK Download</a></span></p>
+
+<p class=auto-style3 style='margin-left:17.95pt;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>·</span><span
+lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+When <a
+href="https://netbeans.org/downloads/index.html">downloading</a> NetBeans IDE
+please select C/C++ version. It is available for both x86 and x64 platforms
+(corresponding x86 or x64 Java JDK required).</span></p>
+
+<p class=auto-style3 style='margin-left:17.95pt;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>·</span><span
+lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+On Windows 10 x64 platform one could face issue
+with installation of NetBeans 8.2 IDE, when system would complain about
+&quot;unsupported Java version&quot; and aborting installation. In that case
+just download portable version, that would not require installation, extract it
+to required directory and start NetBeans 8.2 from there.</span></p>
+
+<p class=auto-style3 style='margin-left:17.95pt;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>·</span><span
+lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NetBeans IDE is multiplatform one and could run
+on Windows and Linux providing the same user interface and features.</span></p>
+
+<p class=auto-style3 style='margin-left:17.95pt;padding-top:0cm'>
+<span lang=EN-US>·</span><span lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On Windows or Linux platforms NetBeans would use locale to set GUI
+language. If you would prefer IDE in English then just edit shortcut (on
+Windows OS) and all option: --locale en_US, something like:</span></p>
+
+</div>
+
+<div style='margin-left:36.0pt;
+margin-right:0cm'>
+
+<p class=MsoNormal style='padding-bottom:0cm;border-bottom:0cm none black'><span
+lang=EN-US>&quot;D:\Program Files\NetBeans 8.2\bin\netbeans64.exe&quot;
+--locale en:US</span></p>
+
+<p class=MsoNormal style='padding-top:0cm'><span lang=EN-US>and then IDE would
+start in English when you restart it. Another way to get the same result is to
+edit netbeans.conf and add parameters: &quot;-J-Duser.language=en -J-Duser.region=US&quot; to the option
+&quot;netbeans_default_options&quot;. (working on both Linux and Windows)</span></p>
+
+</body>
+
+</html>

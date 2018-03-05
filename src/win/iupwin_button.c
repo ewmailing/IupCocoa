@@ -446,14 +446,14 @@ static int winButtonSetAlignmentAttrib(Ihandle* ih, const char* value)
     ih->data->horiz_alignment = IUP_ALIGN_ARIGHT;
   else if (iupStrEqualNoCase(value1, "ALEFT"))
     ih->data->horiz_alignment = IUP_ALIGN_ALEFT;
-  else /* "ACENTER" */
+  else /* "ACENTER" (default) */
     ih->data->horiz_alignment = IUP_ALIGN_ACENTER;
 
   if (iupStrEqualNoCase(value2, "ABOTTOM"))
     ih->data->vert_alignment = IUP_ALIGN_ABOTTOM;
   else if (iupStrEqualNoCase(value2, "ATOP"))
     ih->data->vert_alignment = IUP_ALIGN_ATOP;
-  else /* "ACENTER" */
+  else /* "ACENTER" (default) */
     ih->data->vert_alignment = IUP_ALIGN_ACENTER;
 
   if (ih->handle)

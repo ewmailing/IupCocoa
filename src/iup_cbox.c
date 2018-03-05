@@ -17,6 +17,7 @@
 #include "iup_drvfont.h"
 #include "iup_stdcontrols.h"
 #include "iup_layout.h"
+#include "iup_varg.h"
 
 
 static int iCboxCreateMethod(Ihandle* ih, void** params)
@@ -95,18 +96,19 @@ Ihandle *IupCboxv(Ihandle** children)
   return IupCreatev("cbox", (void**)children);
 }
 
+Ihandle*  IupCboxV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("cbox", child, arglist);
+}
+
 Ihandle *IupCbox (Ihandle * child,...)
 {
-  Ihandle **children;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("cbox", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("cbox", (void**)children);
-  free(children);
 
   return ih;
 }

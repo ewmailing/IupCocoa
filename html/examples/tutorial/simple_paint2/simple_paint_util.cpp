@@ -121,42 +121,30 @@ int str_compare(const char *l, const char *r, int casesensitive)
 /********************************************************************/
 
 
-void show_error(const char* message, int is_error)
-{
-  Ihandle* dlg = IupMessageDlg();
-  IupSetStrAttribute(dlg, "PARENTDIALOG", IupGetGlobal("PARENTDIALOG"));
-  IupSetAttribute(dlg, "DIALOGTYPE", is_error ? "ERROR" : "WARNING");
-  IupSetAttribute(dlg, "BUTTONS", "OK");
-  IupSetStrAttribute(dlg, "TITLE", is_error ? "Error" : "Warning");
-  IupSetStrAttribute(dlg, "VALUE", message);
-  IupPopup(dlg, IUP_CENTERPARENT, IUP_CENTERPARENT);
-  IupDestroy(dlg);
-}
-
 void show_file_error(int error)
 {
   switch (error)
   {
   case IM_ERR_OPEN:
-    show_error("Error Opening File.",  1);
+    IupMessageError(NULL, "Error Opening File.");
     break;
   case IM_ERR_MEM:
-    show_error("Insufficient memory.",  1);
+    IupMessageError(NULL, "Insufficient memory.");
     break;
   case IM_ERR_ACCESS:
-    show_error("Error Accessing File.",  1);
+    IupMessageError(NULL, "Error Accessing File.");
     break;
   case IM_ERR_DATA:
-    show_error("Image type not Supported.",  1);
+    IupMessageError(NULL, "Image type not Supported.");
     break;
   case IM_ERR_FORMAT:
-    show_error("Invalid Format.",  1);
+    IupMessageError(NULL, "Invalid Format.");
     break;
   case IM_ERR_COMPRESS:
-    show_error("Invalid or unsupported compression.",  1);
+    IupMessageError(NULL, "Invalid or unsupported compression.");
     break;
   default:
-    show_error("Unknown Error.",  1);
+    IupMessageError(NULL, "Unknown Error.");
   }
 }
 

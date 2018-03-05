@@ -91,28 +91,21 @@ static void iGLIconGetAlignment(const char* value, int *horiz_alignment, int *ve
 {
   char value1[30], value2[30];
 
-  if (!value)
-  {
-    *horiz_alignment = IUP_ALIGN_ALEFT;
-    *vert_alignment = IUP_ALIGN_ATOP;
-    return;
-  }
-
   iupStrToStrStr(value, value1, value2, ':');
 
   if (iupStrEqualNoCase(value1, "ARIGHT"))
     *horiz_alignment = IUP_ALIGN_ARIGHT;
   else if (iupStrEqualNoCase(value1, "ACENTER"))
     *horiz_alignment = IUP_ALIGN_ACENTER;
-  else /* "ALEFT" */
+  else /* "ALEFT" (default) */
     *horiz_alignment = IUP_ALIGN_ALEFT;
 
   if (iupStrEqualNoCase(value2, "ABOTTOM"))
     *vert_alignment = IUP_ALIGN_ABOTTOM;
-  else if (iupStrEqualNoCase(value2, "ACENTER"))
-    *vert_alignment = IUP_ALIGN_ACENTER;
-  else /* "ATOP" */
+  else if (iupStrEqualNoCase(value2, "ATOP"))
     *vert_alignment = IUP_ALIGN_ATOP;
+  else /* "ACENTER" (default) */
+    *vert_alignment = IUP_ALIGN_ACENTER;
 }
 
 static void iGLIconGetPosition(Ihandle* ih, int icon_width, int icon_height, int *x, int *y, int width, int height)

@@ -16,18 +16,6 @@
     <ClCompile Include="..\..\srclua5\ctrl\il_cells.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\srclua5\ctrl\il_colorbar.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\srclua5\ctrl\il_colorbrowser.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\srclua5\ctrl\il_dial.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\srclua5\ctrl\il_gauge.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\srclua5\ctrl\il_matrix.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -40,6 +28,9 @@
     <ClCompile Include="..\..\srclua5\ctrl\il_matrixlist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\srclua5\ctrl\il_matrixex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\srclua5\ctrl\iupluacontrols.def">
@@ -48,22 +39,13 @@
     <None Include="..\..\srclua5\ctrl\cells.lua">
       <Filter>Lua</Filter>
     </None>
-    <None Include="..\..\srclua5\ctrl\colorbar.lua">
-      <Filter>Lua</Filter>
-    </None>
-    <None Include="..\..\srclua5\ctrl\colorbrowser.lua">
-      <Filter>Lua</Filter>
-    </None>
-    <None Include="..\..\srclua5\ctrl\dial.lua">
-      <Filter>Lua</Filter>
-    </None>
-    <None Include="..\..\srclua5\ctrl\gauge.lua">
-      <Filter>Lua</Filter>
-    </None>
     <None Include="..\..\srclua5\ctrl\matrix.lua">
       <Filter>Lua</Filter>
     </None>
     <None Include="..\..\srclua5\ctrl\matrixlist.lua">
+      <Filter>Lua</Filter>
+    </None>
+    <None Include="..\..\srclua5\ctrl\matrixex.lua">
       <Filter>Lua</Filter>
     </None>
   </ItemGroup>

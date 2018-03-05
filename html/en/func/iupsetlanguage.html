@@ -19,6 +19,7 @@ iup.SetLanguage(<b>name</b>: string) [in Lua]</pre>
 <ul>
   <li>&quot;ENGLISH&quot; </li>
   <li>&quot;PORTUGUESE&quot; </li>
+	<li>&quot;SPANISH&quot; (since 3.22)</li>
 </ul>
 <p>default: &quot;ENGLISH&quot;. </p>
 <h3>Affects</h3>
@@ -31,21 +32,42 @@ strings are not defined) the new language name will be
 successfully stored so you can set your own strings and return a coherent value, 
 and the current defined string will not be changed.</p>
 <p>Here is a list of the pre-defined string names:</p>
-<pre>IUP_ERROR               IUP_HELP
-IUP_YES                 IUP_RED
-IUP_NO                  IUP_GREEN
-IUP_INVALIDDIR          IUP_BLUE
-IUP_FILEISDIR           IUP_HUE
-IUP_FILENOTEXIST        IUP_SATURATION
-IUP_FILEOVERWRITE       IUP_INTENSITY
-IUP_CREATEFOLDER        IUP_OPACITY
-IUP_NAMENEWFOLDER       IUP_PALETTE
-IUP_SAVEAS              IUP_TRUE
-IUP_OPEN                IUP_FALSE
-IUP_SELECTDIR           IUP_FAMILY
-IUP_OK                  IUP_STYLE
-IUP_CANCEL              IUP_SIZE
-IUP_GETCOLOR            IUP_SAMPLE
+<pre>IUP_ERROR
+IUP_ATTENTION (since 3.22)
+IUP_YES
+IUP_NO
+IUP_INVALIDDIR
+IUP_FILEISDIR
+IUP_FILENOTEXIST
+IUP_FILEOVERWRITE
+IUP_CREATEFOLDER
+IUP_NAMENEWFOLDER
+IUP_SAVEAS
+IUP_OPEN
+IUP_SELECTDIR
+IUP_OK
+IUP_CANCEL
+IUP_RETRY
+IUP_APPLY
+IUP_RESET
+IUP_GETCOLOR
+IUP_HELP
+IUP_RED
+IUP_GREEN
+IUP_BLUE
+IUP_HUE
+IUP_SATURATION
+IUP_INTENSITY
+IUP_OPACITY
+IUP_PALETTE
+IUP_TRUE
+IUP_FALSE
+IUP_FAMILY
+IUP_STYLE
+IUP_SIZE
+IUP_SAMPLE
+IUP_ERRORFILEOPEN (since 3.22)
+IUP_ERRORFILESAVE (since 3.22)
 </pre>
 <h3>Examples</h3>
 <pre>#include &quot;iup.h&quot;

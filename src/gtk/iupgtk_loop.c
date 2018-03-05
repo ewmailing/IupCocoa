@@ -12,6 +12,7 @@
 #include "iup.h"
 #include "iupcbs.h"
 
+#include "iup_str.h"
 
 /* local variables */
 static IFidle gtk_idle_cb = NULL;
@@ -54,8 +55,12 @@ void iupdrvSetIdleFunction(Icallback f)
 
 void IupExitLoop(void)
 {
-  if (gtk_main_iteration_do(FALSE)==FALSE)
-    gtk_main_quit();
+  char* exit_loop = IupGetGlobal("EXITLOOP");
+  if (gtk_main_level() > 1 || !exit_loop || iupStrBoolean(exit_loop))
+  {
+    if (gtk_main_iteration_do(FALSE) == FALSE)
+      gtk_main_quit();
+  }
 }
 
 int IupMainLoopLevel(void)

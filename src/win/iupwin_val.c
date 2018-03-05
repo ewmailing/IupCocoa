@@ -252,6 +252,7 @@ static int winValMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT *r
           return 1;
         }
       }
+
       return 0;
     }
   }

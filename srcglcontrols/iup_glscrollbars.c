@@ -1,5 +1,5 @@
 /** \file
- * \brief GL Scrollars base functions.
+ * \brief GL Scrollbars base functions.
  *
  * See Copyright Notice in "iup.h"
  */
@@ -284,7 +284,9 @@ void iupGLScrollbarsChildLayoutUpdate(Ihandle *ih)
     int sb_posy = iupAttribGetInt(ih, "POSY");
 
     iupBaseSetPosition(ih->firstchild, ih->x - sb_posx, ih->y - sb_posy);
-    iupLayoutUpdate(ih->firstchild);
+
+    if (ih->firstchild->handle)
+      iupLayoutUpdate(ih->firstchild);
   }
 }
 
@@ -507,7 +509,7 @@ static int iGLScrollbarsSetPosYAttrib(Ihandle *ih, const char *value)
     return 0;
 
   ymin = iupAttribGetInt(ih, "YMIN");
-  ymax = iupAttribGetInt(ih, "YMAY");
+  ymax = iupAttribGetInt(ih, "YMAX");
   dy = iupAttribGetInt(ih, "DY");
 
   if (posy < ymin) posy = ymin;
@@ -623,6 +625,9 @@ void iupGLScrollbarsRegisterAttrib(Iclass* ic)
   iupClassRegisterAttribute(ic, "DY", NULL, NULL, "10", NULL, IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "SCROLLBARSIZE", NULL, NULL, IUPAF_SAMEASSYSTEM, "11", IUPAF_NO_INHERIT);
+
+  /* behave as AUTOHIDE is always Yes (unused) */
+  /* behave as SCROLLBAR is always Yes (unused) */
 
   iupClassRegisterAttribute(ic, "HIGHCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "90 190 255", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "110 210 230", IUPAF_NO_INHERIT);

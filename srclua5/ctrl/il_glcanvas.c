@@ -60,6 +60,8 @@ int iupglcanvaslua_open(lua_State * L)
 }
 
  
+int iupglbackgroundboxlua_open(lua_State * L);
+
 int iupgllua_open(lua_State * L)
 {
   if (iuplua_opencall_internal(L))

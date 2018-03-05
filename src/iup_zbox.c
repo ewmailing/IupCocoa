@@ -17,6 +17,7 @@
 #include "iup_drvfont.h"
 #include "iup_stdcontrols.h"
 #include "iup_layout.h"
+#include "iup_varg.h"
 
 
 enum{IZBOX_ALIGN_NORTH, IZBOX_ALIGN_SOUTH, IZBOX_ALIGN_WEST, IZBOX_ALIGN_EAST,
@@ -327,18 +328,19 @@ Ihandle *IupZboxv(Ihandle **children)
   return IupCreatev("zbox", (void**)children);
 }
 
+Ihandle*  IupZboxV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("zbox", child, arglist);
+}
+
 Ihandle *IupZbox(Ihandle* child, ...)
 {
-  Ihandle **children;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("zbox", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("zbox", (void**)children);
-  free(children);
 
   return ih;
 }
