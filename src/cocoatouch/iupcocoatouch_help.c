@@ -14,6 +14,7 @@
 
 int IupHelp(const char *url)
 {
+#if 0
   char *cmd;
   int ret;
   char *browser = getenv("IUP_HELPAPP");
@@ -43,4 +44,6 @@ int IupHelp(const char *url)
   if (ret == -1)
     return -1;
   return 1;
+#endif
+	return -1;
 }

@@ -117,7 +117,7 @@ static void ButtonTextView()
 	//  IupSetAttribute(text_view_result, "SIZE", "500x100");
 	IupSetAttribute(text_view_result, "VISIBLECOLUMNS", "40");
 	IupSetAttribute(text_view_result, "VISIBLELINES", "10");
-	//	IupSetAttribute(text_view_result, "EXPAND", "YES");
+	IupSetAttribute(text_view_result, "EXPAND", "HORIZONTAL");
 	//	IupSetAttribute(text_view_result, "READONLY", "YES");
 	IupSetAttribute(text_view_result, "VALUE", "Welcome to the wonderful world");
 	
