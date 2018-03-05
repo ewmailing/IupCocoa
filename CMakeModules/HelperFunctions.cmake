@@ -160,6 +160,10 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 	#				SOVERSION ${LUA_SOVERSION}
 					COMPILE_FLAGS "${library_c_flags}"
 				)
+			ELSE(ANDROID)
+				SET_TARGET_PROPERTIES(${library_name} PROPERTIES
+					COMPILE_FLAGS "${library_c_flags}"
+				)
 			ENDIF(NOT ANDROID)
 		
 		ELSEIF(WIN32)
