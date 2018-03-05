@@ -377,7 +377,7 @@ int SimplePaint::ItemPasteActionCallback(Ihandle*)
 
     if (!new_image)
     {
-      show_error("Invalid Clipboard Data", 1);
+      IupMessageError(NULL, "Invalid Clipboard Data");
       return IUP_DEFAULT;
     }
 

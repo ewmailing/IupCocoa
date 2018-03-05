@@ -62,11 +62,11 @@ void iupdrvSetVisible(Ihandle* ih, int enable);
  * \ingroup drv */
 void iupdrvSetActive(Ihandle* ih, int enable);
 
-/** Post a redraw of a control.
+/** Post a redraw of a control and children.
  * \ingroup drv */
 void iupdrvPostRedraw(Ihandle *ih);
 
-/** Force a redraw of a control.
+/** Force a redraw of a control and children.
  * \ingroup drv */
 void iupdrvRedrawNow(Ihandle *ih);
 

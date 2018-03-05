@@ -119,15 +119,15 @@ static int gtkButtonSetAlignmentAttrib(Ihandle* ih, const char* value)
     xalign = 1.0f;
     alignment = PANGO_ALIGN_RIGHT;
   }
-  else if (iupStrEqualNoCase(value1, "ACENTER"))
-  {
-    xalign = 0.5f;
-    alignment = PANGO_ALIGN_CENTER;
-  }
-  else /* "ALEFT" */
+  else if (iupStrEqualNoCase(value1, "ALEFT"))
   {
     xalign = 0;
     alignment = PANGO_ALIGN_LEFT;
+  }
+  else /* ACENTER (default) */
+  {
+    xalign = 0.5f;
+    alignment = PANGO_ALIGN_CENTER;
   }
 
   if (iupStrEqualNoCase(value2, "ABOTTOM"))
@@ -159,11 +159,8 @@ static int gtkButtonSetPaddingAttrib(Ihandle* ih, const char* value)
   iupStrToIntInt(value, &ih->data->horiz_padding, &ih->data->vert_padding, 'x');
   if (ih->handle)
   {
-#if GTK_CHECK_VERSION(3, 14, 0)
-    g_object_set(G_OBJECT(ih->handle), "margin-bottom", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-top", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-left", ih->data->horiz_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-right", ih->data->horiz_padding, NULL);
+#if GTK_CHECK_VERSION(3, 4, 0)
+    iupgtkSetMargin(ih->handle, ih->data->horiz_padding, ih->data->vert_padding, 0);
 #else
     if (ih->data->type == IUP_BUTTON_TEXT)   /* text only */
     {
@@ -220,7 +217,8 @@ static int gtkButtonSetFgColorAttrib(Ihandle* ih, const char* value)
 
 static int gtkButtonSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {

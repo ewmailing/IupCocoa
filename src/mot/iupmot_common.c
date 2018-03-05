@@ -85,7 +85,7 @@ void iupmotSetPosition(Widget widget, int x, int y)
     XmNy, (XtArgVal)y,
     NULL);
 
-  /* to position ouside parent area */
+  /* to position outside parent area */
   {
     int new_x, new_y;
     XtVaGetValues(widget,
@@ -223,7 +223,7 @@ int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value)
   if (iupdrvIsVisible(ih))
   {
     Widget widget = (Widget)iupAttribGet(ih, "_IUP_EXTRAPARENT");
-  if (!widget) widget = ih->handle;
+    if (!widget) widget = ih->handle;
 
     if (iupStrEqualNoCase(value, "TOP"))
       XRaiseWindow(iupmot_display, XtWindow(widget));

@@ -103,11 +103,8 @@ static void gtkTabsUpdatePagePadding(Ihandle* ih)
     GtkWidget* tab_label = (GtkWidget*)iupAttribGet(child, "_IUPGTK_TABLABEL");
     if (tab_label)
     {
-#if GTK_CHECK_VERSION(3, 14, 0)
-      g_object_set(G_OBJECT(tab_label), "margin-bottom", ih->data->vert_padding, NULL);
-      g_object_set(G_OBJECT(tab_label), "margin-top", ih->data->vert_padding, NULL);
-      g_object_set(G_OBJECT(tab_label), "margin-left", ih->data->horiz_padding, NULL);
-      g_object_set(G_OBJECT(tab_label), "margin-right", ih->data->horiz_padding, NULL);
+#if GTK_CHECK_VERSION(3, 4, 0)
+      iupgtkSetMargin(tab_label, ih->data->horiz_padding, ih->data->vert_padding, 1);
 #else
       gtk_misc_set_padding((GtkMisc*)tab_label, ih->data->horiz_padding, ih->data->vert_padding);
 #endif
@@ -233,7 +230,8 @@ int iupdrvTabsIsTabVisible(Ihandle* child, int pos)
 
 static int gtkTabsSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
   if (ih->handle)
     gtkTabsUpdatePageFont(ih);
   return 1;
@@ -267,25 +265,6 @@ static int gtkTabsSetBgColorAttrib(Ihandle* ih, const char* value)
 /* ------------------------------------------------------------------------- */
 /* gtkTabs - Callbacks                                                       */
 /* ------------------------------------------------------------------------- */
-
-static void gtkTabsSwitchManual(Ihandle* ih, Ihandle* prev_child, int prev_pos)
-{
-  IFnnn cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
-  int pos = iupdrvTabsGetCurrentTab(ih);
-
-  Ihandle* child = IupGetChild(ih, pos);
-  GtkWidget* tab_container = (GtkWidget*)iupAttribGet(child, "_IUPTAB_CONTAINER");
-  if (tab_container) gtk_widget_show(tab_container);   /* show new page, if any */
-
-  if (cb)
-    cb(ih, child, prev_child);
-  else
-  {
-    IFnii cb2 = (IFnii)IupGetCallback(ih, "TABCHANGEPOS_CB");
-    if (cb2)
-      cb2(ih, pos, prev_pos);
-  }
-}
 
 static void gtkTabsSwitchPage(GtkNotebook* notebook, void* page, int pos, Ihandle* ih)
 {
@@ -575,11 +554,7 @@ static void gtkTabsChildRemovedMethod(Ihandle* ih, Ihandle* child, int pos)
       iupAttribSet(child, "_IUPTAB_CONTAINER", NULL);
       iupAttribSet(child, "_IUPTAB_PAGE", NULL);
 
-      if (iupAttribGet(ih, "_IUPGTK_IGNORE_SWITCHPAGE"))
-      {
-        gtkTabsSwitchManual(ih, child, pos);
-        iupAttribSet(ih, "_IUPGTK_IGNORE_SWITCHPAGE", NULL);
-      }
+      iupAttribSet(ih, "_IUPGTK_IGNORE_SWITCHPAGE", NULL);
     }
   }
 }
@@ -614,8 +589,18 @@ static int gtkTabsMapMethod(Ihandle* ih)
   if (ih->firstchild)
   {
     Ihandle* child;
+    Ihandle* current_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
+
     for (child = ih->firstchild; child; child = child->brother)
       gtkTabsChildAddedMethod(ih, child);
+
+    if (current_child)
+    {
+      IupSetAttribute(ih, "VALUE_HANDLE", (char*)current_child);
+
+      /* current value is now given by the native system */
+      iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
+    }
   }
 
   return IUP_NOERROR;

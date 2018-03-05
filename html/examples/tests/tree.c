@@ -118,6 +118,19 @@ static int togglestate(void)
   return IUP_DEFAULT;
 }
 
+static int togglemarkmode(void)
+{
+  char *value;
+  Ihandle* tree = IupGetHandle("tree");
+  value = IupGetAttribute(tree, "MARKMODE");
+  if (strcmp(value, "SINGLE") == 0)
+    IupSetAttribute(tree, "MARKMODE", "MULTIPLE");
+  else
+    IupSetAttribute(tree, "MARKMODE", "SINGLE");
+  printf("MARKMODE=%s\n", IupGetAttribute(tree, "MARKMODE"));
+  return IUP_DEFAULT;
+}
+
 static int text_cb(Ihandle* ih, int c, char *after)
 {
   if (c == K_ESC)
@@ -339,11 +352,26 @@ static int selectnode(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
-static int marknode(Ihandle* ih)
+static int markednode(Ihandle* ih)
 {
   Ihandle* tree = IupGetHandle("tree");
   int id = IupGetInt(tree, "VALUE");
   IupSetAttributeId(tree, "MARKED", id, IupGetAttribute(ih, "TITLE"));
+  return IUP_DEFAULT;
+}
+
+static int markstart(Ihandle* ih)
+{
+  Ihandle* tree = IupGetHandle("tree");
+  int id = IupGetInt(tree, "VALUE");
+  IupSetInt(tree, "MARKSTART", id);
+  return IUP_DEFAULT;
+}
+
+static int marknode(Ihandle* ih)
+{
+  Ihandle* tree = IupGetHandle("tree");
+  IupSetAttribute(tree, "MARK", IupGetAttribute(ih, "TITLE"));
   return IUP_DEFAULT;
 }
 
@@ -380,7 +408,6 @@ static int nodeinfo(Ihandle* ih)
 static int rightclick_cb(Ihandle* ih, int id)
 {
   Ihandle *popup_menu;
-  char attr[50];
 
   popup_menu = IupMenu(
     IupItem ("Node Info","nodeinfo"),
@@ -394,32 +421,41 @@ static int rightclick_cb(Ihandle* ih, int id)
     IupItem ("Remove Children","removechild"),
     IupItem ("Remove Marked","removemarked"),
     IupItem ("Remove All","removeall"),
+    IupSeparator(),
     IupItem ("Toggle State","togglestate"),
     IupItem ("Expand All","expandall"),
     IupItem ("Contract All","contractall"),
-    IupSubmenu("Focus", IupMenu(
+    IupSubmenu("Focus (VALUE)", IupMenu(
       IupItem ("ROOT", "selectnode"),
       IupItem ("LAST", "selectnode"),
       IupItem ("PGUP", "selectnode"),
       IupItem ("PGDN", "selectnode"),
       IupItem ("NEXT", "selectnode"),
       IupItem ("PREVIOUS", "selectnode"),
+      IupItem("CLEAR", "selectnode"),
       NULL)),
-    IupSubmenu("Mark", IupMenu(
-      IupItem("Yes", "marknode"),
-      IupItem("No", "marknode"),
+    IupItem ("Toggle Mark Mode","togglemarkmode"),
+    IupSubmenu("Marked", IupMenu(
+      IupItem("Yes", "markednode"),
+      IupItem("No", "markednode"),
+      NULL)),
+    IupSubmenu("Mark (multiple)", IupMenu(
+      IupItem("INVERT", "marknode"),
+      IupItem ("BLOCK", "marknode"),
+      IupItem ("CLEARALL", "marknode"),
+      IupItem ("MARKALL", "marknode"),
+      IupItem ("INVERTALL", "marknode"),
       IupSeparator(),
-      IupItem("INVERT", "selectnode"),
-      IupItem ("BLOCK", "selectnode"),
-      IupItem ("CLEARALL", "selectnode"),
-      IupItem ("MARKALL", "selectnode"),
-      IupItem ("INVERTALL", "selectnode"),
+      IupItem("MARKSTART", "markstart"),
       NULL)),
     NULL);
     
   IupSetFunction("nodeinfo", (Icallback) nodeinfo);
   IupSetFunction("selectnode", (Icallback) selectnode);
   IupSetFunction("marknode", (Icallback)marknode);
+  IupSetFunction("markednode", (Icallback)markednode);
+  IupSetFunction("markstart", (Icallback)markstart);
+  IupSetFunction("togglemarkmode", (Icallback)togglemarkmode);
   IupSetFunction("addleaf", (Icallback)addleaf);
   IupSetFunction("addbranch",  (Icallback) addbranch);
   IupSetFunction("insertleaf",    (Icallback) insertleaf);
@@ -502,12 +538,15 @@ static void init_tree_nodes(void)
   IupSetAttribute(tree, "INSERTBRANCH2","parallelogram");  /* same depth as id=2, new id=6 */
   IupSetAttribute(tree, "ADDLEAF6",     "square very long string at tree node");
   IupSetAttribute(tree, "ADDLEAF7",     "diamond");
-  IupSetAttribute(tree, "INSERTLEAF6","2D");  /* new id=9 */
+  IupSetAttribute(tree, "INSERTLEAF6", "2D");  /* new id=9 */
   IupSetAttribute(tree, "INSERTBRANCH9","3D");
   if (IupGetInt(NULL, "UTF8MODE"))
     IupSetAttribute(tree, "INSERTBRANCH10","Other (Γ§Γ£ΓµΓ΅Γ³Γ©)");
   else
     IupSetAttribute(tree, "INSERTBRANCH10","Other (ηγυασι)");
+  IupSetAttribute(tree, "ADDLEAF11", "Depth 1");
+  IupSetAttribute(tree, "ADDBRANCH12", "Folder");
+  IupSetAttribute(tree, "ADDLEAF13", "Depth 2");
 #endif
 
   IupSetAttribute(tree, "TOGGLEVALUE2", "ON");
@@ -595,6 +634,11 @@ static void init_tree(void)
   //  IupSetAttribute(tree, "TIPBGCOLOR", "255 128 128");
 //  IupSetAttribute(tree, "TIPFGCOLOR", "0 92 255");
 //  IupSetAttribute(tree, "HLCOLOR", "240 116 64");
+
+//  IupSetAttribute(tree, "ADDROOT", "NO");
+//  IupSetAttribute(tree, "IMAGELEAF", "IMGEMPTY");
+//  IupSetAttribute(tree, "IMAGEBRANCHCOLLAPSED", "IMGEMPTY");
+//  IupSetAttribute(tree, "IMAGEBRANCHEXPANDED", "IMGEMPTY");
 
   // Windows Only  
 //  IupSetAttribute(tree, "TIPBALLOON", "YES");

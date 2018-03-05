@@ -39,13 +39,6 @@ static HWND win_findwindow = NULL;
 static HHOOK win_OldGetMessageHook = NULL;
 
 
-int iupdrvCheckMainScreen(int *w, int *h)
-{
-  (void)w;
-  (void)h;
-  return 0;
-}
-
 static int winGlobalSetMutex(const char* name)
 {
   if (win_singleintance)

@@ -63,9 +63,6 @@
     <ClCompile Include="..\src\mot\iupmot_clipboard.c">
       <Filter>src_controls</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\mot\iupmot_colordlg.c">
-      <Filter>src_controls</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\mot\iupmot_dialog.c">
       <Filter>src_controls</Filter>
     </ClCompile>

@@ -19,6 +19,10 @@ LIBS = iup
 
 DEFINES += STATIC_BUILD SCI_LEXER SCI_NAMESPACE
 
+# Used only in Linux
+LINKER = $(CPPC)
+LD = $(CPPC)
+
 # Supported only in Windows and GTK
 
 ifeq ($(findstring Win, $(TEC_SYSNAME)), )
@@ -33,28 +37,42 @@ ifndef GTK_DEFAULT
   endif
 endif
 
+ifdef SCINTILLA_OLD
+  # CentOS 5
+  SCINTILLA := scintilla353
+else
+  SCINTILLA := scintilla
+endif
+ifdef SCINTILLA_NEW
+  # minimum GCC 4.8 (Linux313_64) and MSVC 2015 (vc14)
+  # Needs C++ 11 support
+  USE_CPP11 = Yes
+  SCINTILLA := scintilla375
+endif
+
+INCLUDES += $(SCINTILLA)/lexlib $(SCINTILLA)/src $(SCINTILLA)/include
+
 ifdef USE_GTK
   CHECK_GTK = Yes
-  DEFINES += NO_CXX11_REGEX
+  ifndef USE_CPP11
+    DEFINES += NO_CXX11_REGEX
+  endif
   DEFINES += GTK GTK_DISABLE_DEPRECATED 
   ifdef USE_GTK3
     DEFINES += GDK_DISABLE_DEPRECATED GSEAL_ENABLE G_HAVE_ISO_VARARGS
   endif
-  INCLUDES += ../src/gtk lexlib src include gtk
-  INCLUDES += gtk
+  INCLUDES += ../src/gtk $(SCINTILLA)/gtk
   ifneq ($(findstring cygw, $(TEC_UNAME)), )
     INCLUDES += $(GTK)/include/cairo
     LIBS += pangocairo-1.0 cairo
   endif
 else
-  INCLUDES += ../src/win lexlib src include win32
-  INCLUDES += win
+  INCLUDES += ../src/win $(SCINTILLA)/win32
   LIBS += imm32
   DEFINES += UNICODE
   
   ifneq ($(findstring gcc, $(TEC_UNAME)), )
     DEFINES += _WIN32 DISABLE_D2D NO_CXX11_REGEX
-    #FLAGS = -std=c++11
   endif
   ifneq ($(findstring dllg, $(TEC_UNAME)), )
     DEFINES += _WIN32 DISABLE_D2D NO_CXX11_REGEX
@@ -94,27 +112,49 @@ SRCSCINTILLA += lexers/LexA68k.cxx lexers/LexAbaqus.cxx lexers/LexAda.cxx lexers
 				lexers/LexSpice.cxx lexers/LexSQL.cxx lexers/LexTACL.cxx lexers/LexTADS3.cxx lexers/LexTAL.cxx \
 				lexers/LexTCL.cxx lexers/LexTCMD.cxx lexers/LexTeX.cxx lexers/LexTxt2tags.cxx lexers/LexVB.cxx \
 				lexers/LexVerilog.cxx lexers/LexVHDL.cxx lexers/LexVisualProlog.cxx lexers/LexYAML.cxx \
-        lexers/LexKVIrc.cxx lexers/LexLaTeX.cxx lexers/LexSTTXT.cxx lexers/LexRust.cxx \
-        lexers/LexDMAP.cxx lexers/LexDMIS.cxx lexers/LexBibTeX.cxx lexers/LexHex.cxx lexers/LexAsm.cxx \
-        lexers/LexRegistry.cxx lexers/LexBatch.cxx lexers/LexDiff.cxx lexers/LexErrorList.cxx \
-        lexers/LexMake.cxx lexers/LexNull.cxx lexers/LexProps.cxx lexers/LexJSON.cxx
-				
+				lexers/LexKVIrc.cxx lexers/LexLaTeX.cxx lexers/LexSTTXT.cxx lexers/LexRust.cxx \
+				lexers/LexDMAP.cxx lexers/LexDMIS.cxx lexers/LexBibTeX.cxx lexers/LexHex.cxx lexers/LexAsm.cxx \
+				lexers/LexRegistry.cxx
+        
+ifdef SCINTILLA_OLD
+  SRCSCINTILLA += lexers/LexOthers.cxx
+else
+  SRCSCINTILLA += lexers/LexBatch.cxx lexers/LexDiff.cxx lexers/LexErrorList.cxx \
+				lexers/LexMake.cxx lexers/LexNull.cxx lexers/LexProps.cxx lexers/LexJSON.cxx
+endif
+ifdef SCINTILLA_NEW
+  SRCSCINTILLA += lexers/LexEDIFACT.cxx lexers/LexIndent.cxx
+endif
+
 SRCSCINTILLA += lexlib/Accessor.cxx lexlib/CharacterSet.cxx lexlib/LexerBase.cxx lexlib/LexerModule.cxx \
                 lexlib/LexerNoExceptions.cxx lexlib/LexerSimple.cxx lexlib/PropSetSimple.cxx \
                 lexlib/StyleContext.cxx lexlib/WordList.cxx lexlib/CharacterCategory.cxx
 
 ifdef USE_GTK
   SRCSCINTILLA += gtk/PlatGTK.cxx gtk/ScintillaGTK.cxx gtk/scintilla-marshal.c
+  ifdef SCINTILLA_NEW
+    SRCSCINTILLA += gtk/ScintillaGTKAccessible.cxx
+  endif
 else
-  SRCSCINTILLA += win32/PlatWin.cxx win32/ScintillaWin.cxx win32/HanjaDic.cxx
+  SRCSCINTILLA += win32/PlatWin.cxx win32/ScintillaWin.cxx
+  ifndef SCINTILLA_OLD
+    SRCSCINTILLA += win32/HanjaDic.cxx
+  endif
 endif
+
+SRCSCINTILLA := $(addprefix $(SCINTILLA)/, $(SRCSCINTILLA))
 
 SRC = $(SRCSCINTILLA) iupsci_clipboard.c iupsci_folding.c iupsci_lexer.c iupsci_margin.c \
       iupsci_overtype.c iupsci_scrolling.c iupsci_selection.c iupsci_style.c iupsci_tab.c \
       iupsci_text.c iupsci_wordwrap.c iupsci_markers.c iupsci_bracelight.c iupsci_cursor.c \
-      iupsci_whitespace.c iupsci_annotation.c iup_scintilla.cpp iupsci_autocompletion.c \
-      iupsci_searching.c
-      
+      iupsci_whitespace.c iupsci_annotation.c iupsci_autocompletion.c iupsci_searching.c  \
+      iupsci_print.c iupsci_indicator.c iup_scintilla.c iup_scintilladlg.c 
+ifdef USE_GTK
+  SRC += iup_scintilla_gtk.c 
+else
+  SRC += iup_scintilla_win.c 
+endif
+
 ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   ifneq ($(TEC_SYSMINOR), 4)
     BUILD_DYLIB=Yes

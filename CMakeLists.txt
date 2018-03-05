@@ -57,6 +57,8 @@ ENDIF()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/" ${CMAKE_MODULE_PATH})
 INCLUDE(HelperFunctions)
 
+OPTION(IUP_OPTION_LUA "Build Lua if available" ON)
+
 IF(EMSCRIPTEN)
 		OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
 		OPTION(IUP_OPTION_COCOA "Use Cocoa backend" OFF)
@@ -100,6 +102,7 @@ ELSEIF(ANDROID)
 	OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
 	OPTION(IUP_OPTION_WIN32 "Use Win32 backend" OFF)
 
+	MESSAGE("In android")
 
 ELSEIF(WIN32)
 	OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
@@ -175,6 +178,9 @@ ELSEIF(IUP_OPTION_GTK2)
 	endif()
 
 	pkg_check_modules(WEBKIT QUIET webkit-1.0)
+	if(NOT WEBKIT_FOUND)
+		pkg_check_modules(WEBKIT QUIET webkitgtk-2.0)
+	endif()
 
 ELSEIF(IUP_OPTION_GTK3)
 	SET(IUP_USE_GTK3 1)
@@ -191,6 +197,9 @@ ELSEIF(IUP_OPTION_GTK3)
 	endif()
 
 	pkg_check_modules(WEBKIT QUIET webkit-1.0)
+	if(NOT WEBKIT_FOUND)
+		pkg_check_modules(WEBKIT QUIET webkitgtk-3.0)
+	endif()
 
 ELSEIF(IUP_OPTION_MOTIF)
 	SET(IUP_USE_MOTIF 1)
@@ -215,6 +224,19 @@ ENDIF()
 # Not sure what the default should be for this, and if it should be backend dependent
 OPTION(IUPIMGLIB_OPTION_USE_IMGLIB_LARGE "Include images larger than 48x48 (inclusive) for imglib" ON)
 
+SET(IUP_USE_LUA 0)
+IF(IUP_OPTION_LUA)
+message("init LUA_LIBRARY: ${LUA_LIBRARY}")
+message("init LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+	MESSAGE("finding lua package")
+	FIND_PACKAGE(Lua QUIET)
+	IF(LUA_FOUND)
+		SET(IUP_USE_LUA 1)
+		MESSAGE("Lua found")
+	ELSE()
+		MESSAGE("Lua not found")
+	ENDIF()
+ENDIF()
 
 # RPATH stuff. This MUST be set before any targets that use it are declared.
 # Only affects shared libraries.
@@ -225,15 +247,19 @@ endif()
 
 SET(IUP_C_FLAGS "")
 SET(IUPIMGLIB_C_FLAGS "")
+SET(IUPOLE_C_FLAGS "")
+# Do we need CXX flags for web because of Windows?
 SET(IUPWEB_C_FLAGS "")
+SET(IUPLUA_C_FLAGS "")
+SET(IUPLUAWEB_C_FLAGS "")
 SET(IUPEXE_C_FLAGS "")
 SET(IUPEXE_LINK_FLAGS "")
 
 MESSAGE("CMAKE_C_COMPILER_ID ${CMAKE_C_COMPILER_ID}")
-IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+IF("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
 	SET(CMAKE_C_FLAGS "-Wno-invalid-source-encoding ${CMAKE_C_FLAGS}")
 	SET(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding ${CMAKE_CXX_FLAGS}")
-ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+ELSEIF("${CMAKE_C_COMPILER_ID}" MATCHES "GNU")
 	SET(CMAKE_C_FLAGS "-Wno-invalid-source-encoding ${CMAKE_C_FLAGS}")
 	SET(CMAKE_CXX_FLAGS "-Wno-invalid-source-encoding ${CMAKE_CXX_FLAGS}")
 ENDIF()
@@ -256,21 +282,31 @@ IF(IUP_USE_EMSCRIPTEN)
 
 
 ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
-	IF("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+	IF("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -fvisibility=hidden")
+		SET(IUPOLE_C_FLAGS "${IUPOLE_C_FLAGS} -fvisibility=hidden")
 		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -fvisibility=hidden")
-	ELSEIF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+		SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -fvisibility=hidden")
+		SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -fvisibility=hidden")
+
+	ELSEIF("${CMAKE_C_COMPILER_ID}" MATCHES "GNU")
 		SET(IUP_C_FLAGS "${IUP_C_FLAGS} -fvisibility=hidden")
 		SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -fvisibility=hidden")
+		SET(IUPOLE_C_FLAGS "${IUPOLE_C_FLAGS} -fvisibility=hidden")
 		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -fvisibility=hidden")
+		SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -fvisibility=hidden")
+
 	ENDIF()
 	
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
 		
 	# Yes, IUP_BUILD_LIBRARY and not IUPIMG_BUILD_LIBRARY because the header is in iup.h
 	SET(IUPIMGLIB_C_FLAGS "${IUPIMGLIB_C_FLAGS} -DIUP_BUILD_LIBRARY -DIUP_DLL")
+	SET(IUPOLE_C_FLAGS "${IUPOLE_C_FLAGS} -DIUPOLE_BUILD_LIBRARY")
 	SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -DIUPWEB_BUILD_LIBRARY")
+	SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -DIUPLUA_BUILD_LIBRARY")
+	SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -DIUPLUAWEB_BUILD_LIBRARY")
 
 ENDIF()
 
@@ -292,12 +328,25 @@ SET(IUP_PUBLIC_HEADERS
 	${CMAKE_SOURCE_DIR}/include/iupdraw.h
 	${CMAKE_SOURCE_DIR}/include/iupkey.h
 	${CMAKE_SOURCE_DIR}/include/iup_config.h
+	${CMAKE_SOURCE_DIR}/include/iup_varg.h
 )
 SET(IUPIMGLIB_PUBLIC_HEADERS
+)
+SET(IUPOLE_PUBLIC_HEADERS
+	${CMAKE_SOURCE_DIR}/include/iupole.h
 )
 SET(IUPWEB_PUBLIC_HEADERS
 	${CMAKE_SOURCE_DIR}/include/iupweb.h
 )
+
+SET(IUPLUA_PUBLIC_HEADERS
+	${CMAKE_SOURCE_DIR}/include/iuplua.h
+)
+
+SET(IUPLUAWEB_PUBLIC_HEADERS
+	${CMAKE_SOURCE_DIR}/include/iupluaweb.h
+)
+
 
 SET(IUP_COMMON_SOURCE_FILES 
 	# ${CMAKE_SOURCE_DIR}/src/iup.def
@@ -326,10 +375,15 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_classattrib.c
 	${CMAKE_SOURCE_DIR}/src/iup_classbase.c
 	${CMAKE_SOURCE_DIR}/src/iup_classbase.h
+	${CMAKE_SOURCE_DIR}/src/iup_colorbar.c
+	${CMAKE_SOURCE_DIR}/src/iup_colorbrowser.c
 	${CMAKE_SOURCE_DIR}/src/iup_colordlg.c
+	${CMAKE_SOURCE_DIR}/src/iup_colorhsi.c
+	${CMAKE_SOURCE_DIR}/src/iup_colorhsi.h
 	${CMAKE_SOURCE_DIR}/src/iup_config.c
 #	${CMAKE_SOURCE_DIR}/src/iup_datepick.c
 	${CMAKE_SOURCE_DIR}/src/iup_detachbox.c
+	${CMAKE_SOURCE_DIR}/src/iup_dial.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.c
 	${CMAKE_SOURCE_DIR}/src/iup_dialog.h
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.c
@@ -344,6 +398,9 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_fill.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatbutton.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatframe.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.h
+	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbox.c
 	${CMAKE_SOURCE_DIR}/src/iup_flattabs.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.h
@@ -353,6 +410,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_frame.h
 	${CMAKE_SOURCE_DIR}/src/iup_func.c
 	${CMAKE_SOURCE_DIR}/src/iup_func.h
+	${CMAKE_SOURCE_DIR}/src/iup_gauge.c
 	${CMAKE_SOURCE_DIR}/src/iup_getparam.c
 	${CMAKE_SOURCE_DIR}/src/iup_globalattrib.c
 	${CMAKE_SOURCE_DIR}/src/iup_globalattrib.h
@@ -435,6 +493,8 @@ SET(IUPIMGLIB_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/srcimglib/iup_image_library.c
 	${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_circleprogress.c
 )
+SET(IUPOLE_COMMON_SOURCE_FILES 
+)
 SET(IUPWEB_COMMON_SOURCE_FILES 
 	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.c
 	${CMAKE_SOURCE_DIR}/srcweb/iup_webbrowser.h
@@ -447,6 +507,10 @@ SET(IUP_FOREIGN_SOURCE_FILES "")
 SET(IUPIMGLIB_LINK_LIBRARIES "iup")
 SET(IUPIMGLIB_SOURCE_FILES ${IUPIMGLIB_COMMON_SOURCE_FILES})
 SET(IUPIMGLIB_FOREIGN_SOURCE_FILES "")
+
+SET(IUPOLE_LINK_LIBRARIES "")
+SET(IUPOLE_SOURCE_FILES ${IUPOLE_COMMON_SOURCE_FILES})
+SET(IUPOLE_FOREIGN_SOURCE_FILES "")
 
 SET(IUPWEB_LINK_LIBRARIES "iup")
 SET(IUPWEB_SOURCE_FILES ${IUPWEB_COMMON_SOURCE_FILES})
@@ -722,6 +786,8 @@ ELSEIF(IUP_USE_COCOA)
 
 		${CMAKE_SOURCE_DIR}/src/cocoa/IUPCocoaVerticalAlignmentTextFieldCell.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IUPCocoaVerticalAlignmentTextFieldCell.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/IUPTextSpinnerFilesOwner.h
+		${CMAKE_SOURCE_DIR}/src/cocoa/IUPTextSpinnerFilesOwner.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.h
 		${CMAKE_SOURCE_DIR}/src/cocoa/IupAppDelegate.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_button.m
@@ -791,7 +857,7 @@ ELSEIF(IUP_USE_COCOA)
 
 	FIND_LIBRARY(APPLE_WEBKIT_LIBRARY WebKit)
 	SET(IUPWEB_COCOA_SOURCE_FILES
-		${CMAKE_SOURCE_DIR}/srcweb/iupcocoatouch_webbrowser.m
+		${CMAKE_SOURCE_DIR}/srcweb/iupcocoa_webbrowser.m
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_COCOA_SOURCE_FILES}
@@ -801,6 +867,7 @@ ELSEIF(IUP_USE_COCOA)
 	)
 	SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
 
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/cocoa)
 ELSEIF(IUP_USE_WIN32)
 
 
@@ -874,10 +941,6 @@ ELSEIF(IUP_USE_WIN32)
 	LIST(APPEND IUP_LINK_LIBRARIES 
 		ole32 comdlg32 comctl32 gdi32
 	)	
-	# Use explicit names instead
-	LIST(APPEND IUPWEB_LINK_LIBRARIES 
-		iupole comsuppw
-	)
 
 	# FIXME: The other build systems pass -DNOTREEVIEW, but searching the codebase, it seems to only exist in one place and it is to #undef NOTREEVIEW. Maybe this flag can be removed.
 	SET(IUP_C_FLAGS "${IUP_C_FLAGS} -D_WIN32_WINNT=0x0501 -D_WIN32_IE=0x0600 -DWINVER=0x0501 -DNOTREEVIEW")
@@ -906,13 +969,48 @@ ELSEIF(IUP_USE_WIN32)
 		${IUPIMGLIB_WIN32_SOURCE_FILES}
 	)
 
+	SET(IUPOLE_WIN32_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srcole/iup_olecontrol.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tAmbientProperties.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tAmbientProperties.h
+		${CMAKE_SOURCE_DIR}/srcole/tDispatch.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tDispatch.h
+		${CMAKE_SOURCE_DIR}/srcole/tLegacy.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tLegacy.h
+		${CMAKE_SOURCE_DIR}/srcole/tOleClientSite.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tOleClientSite.h
+		${CMAKE_SOURCE_DIR}/srcole/tOleControlSite.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tOleControlSite.h
+		${CMAKE_SOURCE_DIR}/srcole/tOleHandler.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tOleHandler.h
+		${CMAKE_SOURCE_DIR}/srcole/tOleInPlaceFrame.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tOleInPlaceFrame.h
+		${CMAKE_SOURCE_DIR}/srcole/tOleInPlaceSite.cpp
+		${CMAKE_SOURCE_DIR}/srcole/tOleInPlaceSite.h
+	)
+	LIST(APPEND IUPOLE_SOURCE_FILES
+		${IUPOLE_WIN32_SOURCE_FILES}
+	)
+	IF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+		LIST(APPEND IUPOLE_LINK_LIBRARIES 
+			iup uuid gdi32 oleaut32 ole32
+		)
+	ELSE()
+		LIST(APPEND IUPOLE_LINK_LIBRARIES 
+			iup gdi32 ole32
+		)
+	ENDIF()
+
 	SET(IUPWEB_WIN32_SOURCE_FILES
 		${CMAKE_SOURCE_DIR}/srcweb/iupwin_webbrowser.cpp
 	)
 	LIST(APPEND IUPWEB_SOURCE_FILES
 		${IUPWEB_WIN32_SOURCE_FILES}
 	)
-
+	# Use explicit names instead
+	LIST(APPEND IUPWEB_LINK_LIBRARIES 
+		iupole comsuppw
+	)
 
 
 ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
@@ -1127,8 +1225,12 @@ HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWO
 
 HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMGLIB_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.pucrio.tecgraf.iup")
 
+if(WIN32)
+	HELPER_CREATE_LIBRARY(iupole "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPOLE_SOURCE_FILES}" "${IUPOLE_PUBLIC_HEADERS}" "" "" "${IUPOLE_FOREIGN_SOURCE_FILES}" "${IUPOLE_LINK_LIBRARIES}" "${IUPOLE_C_FLAGS}" "br.pucrio.tecgraf.iupole")
+endif()
+
 if(IUP_SHOULD_BUILD_IUPWEB)
-	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.pucrio.tecgraf.iupweb")
+	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUPWEB_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.pucrio.tecgraf.iupweb")
 
 	# Having problem with include paths on Android, partly because everything is spread out
 	IF(ANDROID)
@@ -1245,6 +1347,80 @@ function(BUILD_DEV_TEST exe_name source_list)
 	)
 endfunction()
 
+
+IF(IUP_USE_LUA)
+
+	FILE(GLOB LUA_IL_FILES ${CMAKE_SOURCE_DIR}/srclua5/elem/*.c)
+	
+	#	   SET(CMAKE_MODULE_LINKER_FLAGS
+	#   "${CMAKE_MODULE_LINKER_FLAGS} -flat_namespace -undefined suppress")
+
+	SET(IUPLUA_SOURCE_FILES
+#		${CMAKE_SOURCE_DIR}/srclua5/il.h
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua.c
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_api.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_config.c 		
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_draw.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_getcolor.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_getparam.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_scanf.c 
+		${CMAKE_SOURCE_DIR}/srclua5/iuplua_tree_aux.c 
+		${LUA_IL_FILES}
+	)
+
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/srclua5 ${CMAKE_SOURCE_DIR}/srclua5/lh ${LUA_INCLUDE_DIR})
+	SET(IUPLUA_LINK_LIBRARIES "")
+	LIST(APPEND IUPLUA_LINK_LIBRARIES 
+		iup
+		${LUA_LIBRARY}
+	)
+
+	SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -DIUPLUA_USELH")
+	#ADD_DEFINITIONS("-DIUPLUA_USELH")
+	#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
+	
+	SET(IUPLUA_LIBRARY_NAME "iuplua")
+	SET(IUP_LUA_VERSION_SUFFIX "${LUA_VERSION_MAJOR}${LUA_VERSION_MINOR}")
+	#	MESSAGE("IUP_LUA_VERSION_SUFFIX ${IUP_LUA_VERSION_SUFFIX}")
+	#SET(IUPLUA_LIBRARY_NAME "iuplua${IUPLUA_VERSION_SUFFIX}")
+
+	#HELPER_CREATE_MODULE(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.pucrio.tecgraf.iuplua")
+	HELPER_CREATE_LIBRARY(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.pucrio.tecgraf.iuplua")
+
+
+	# FIXME: We must add a IUPLUAWEB_EXPORT for the lua/web open functions, but there is no obvious place to add it
+	SET(IUPLUAWEB_SOURCE_FILES
+		${CMAKE_SOURCE_DIR}/srclua5/ctrl/il_webbrowser.c
+		${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
+		${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
+	)
+
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/srclua5 ${CMAKE_SOURCE_DIR}/srclua5/lh ${LUA_INCLUDE_DIR})
+	SET(IUPLUAWEB_LINK_LIBRARIES "")
+	LIST(APPEND IUPLUAWEB_LINK_LIBRARIES 
+		${IUPLUA_LIBRARY_NAME}
+		iupweb
+		iup
+		${LUA_LIBRARY}
+	)
+
+	SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -DIUPLUA_USELH")
+	#ADD_DEFINITIONS("-DIUPLUA_USELH")
+	#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
+	
+	SET(IUPLUAWEB_LIBRARY_NAME "iupluaweb")
+	#SET(IUPLUAWEB_LIBRARY_NAME "${IUPLUAWEB_LIBRARY_NAME}${IUPLUA_VERSION_SUFFIX}")
+#	HELPER_CREATE_MODULE(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.pucrio.tecgraf.iupluaweb")
+
+	IF(IUP_SHOULD_BUILD_IUPWEB)
+		HELPER_CREATE_LIBRARY(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.pucrio.tecgraf.iupluaweb")
+	ENDIF()
+
+
+
+ENDIF(IUP_USE_LUA)
+
+
 # Hack: Used to build simple test programs as we bootstrap each new implementation
 if(IUP_USE_EMSCRIPTEN)
 	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
@@ -1277,9 +1453,17 @@ elseif(IUP_USE_ANDROID)
 
 	ENDIF()
 
+	# TODO: Need a new main.c launcher app to drive Lua programs. Also need to bundle Lua scripts.
+#	IF(IUPLUA_ANDROID_BUILD_TEST_LIBRARY)
+#
+#		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+#		)
+#	target_link_libraries(MyIupProgramLua iupluaweb iuplua iupweb iup)
+#
+#	ENDIF()
 
 endif()
-
 
 
 # For uninstall

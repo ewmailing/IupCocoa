@@ -30,7 +30,7 @@ be used if you set the element handle to NULL.</p>
 <h3><strong><a name="LANGUAGE">LANGUAGE</a></strong></h3>
 <p>The
   language used by some pre-defined dialogs.</p>
-<p>Can have the values ENGLISH and PORTUGUESE. 
+<p>Can have the values ENGLISH, SPANISH (since 3.22) and PORTUGUESE. 
     Default: ENGLISH. Can also be set by <a href="../func/iupsetlanguage.html">IupSetLanguage</a>.</p>
 <h3><strong><a name="version">VERSION</a></strong> (read-only)</h3>
 <p>Returns the name of IUP's version.</p>
@@ -52,6 +52,12 @@ be used if you set the element handle to NULL.</p>
 <p>When the last visible dialog is closed the <b>IupExitLoop</b> function is called. To avoid that set 
 LOCKLOOP=YES before hiding the last dialog. Possible values: &quot;YES&quot; or &quot;NO&quot;. 
 Default: &quot;NO&quot;. </p>
+<h3><strong>EXITLOOP<span class="style2"> (since 3.23)</span></strong></h3>
+<p>Disable the <b>IupExitLoop</b> function when <strong>IupMainLoopLevel</strong> 
+is 1. Used when the application runs 
+secondary dialogs that behave as full applications but sharing the same IUP 
+environment, like in &quot;iupluascripter&quot;. Possible values: &quot;YES&quot; or &quot;NO&quot;. 
+Default: &quot;YES&quot;. </p>
 <h3>LASTERROR [Windows Only]<span class="style2">&nbsp; (read-only) (since 3.6)</span></h3>
 <p>If an error is found, returns a string with the system error description.</p>
 <h3><strong><a name="UTF8MODE">UTF8MODE</a></strong> [Windows and GTK Only]</h3>
@@ -96,7 +102,7 @@ increased and decreased. Images are not changed.</span></font></p>
 <p>Automatically scale all images, except stock images, by a given real factor. 
 If &quot;DPI&quot; value is used then the factor will be automatically calculated from the 
 ratio between screen resolution and IMAGESDPI. Only images with BPP &gt; 8 are scaled. </p>
-<h3>IMAGESDPI<span class="style2"> (since 3.16)</span></h3>
+<h3><a name="IMAGESDPI">IMAGESDPI</a><span class="style2"> (since 3.16)</span></h3>
 <p>Defines the resolution of the images of the application. Common values are 
 96, 144, 192, and 288 DPI. Default: 96. Used when IMAGEAUTOSCALE=DPI.</p>
 <h3>IMAGESTOCKSIZE <b><span class="style2">(since 3.16)</span></b></h3>

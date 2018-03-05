@@ -21,7 +21,7 @@ void FlatFrameTest(void)
           (
             IupVbox
             (
-              IupSetAttributes(IupLabel("Label4"), "EXPAND=HORIZONTAL"),
+              IupSetAttributes(IupText(NULL), "EXPAND=HORIZONTAL"),
               IupLabel("Label5"),
               IupLabel("Label6"),
               NULL

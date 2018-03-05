@@ -33,6 +33,7 @@
 <dl>
   <dl>
 	<pre>int IupGetParam(const char* <b>title</b>, Iparamcb <b>action</b>, void* <b>user_data</b>, const char* <b>format</b>,...); [in C]
+int IupGetParamV(const char* <strong>title</strong>, Iparamcb <strong>action</strong>, void* <strong>user_data</strong>, const char* <strong>format</strong>, va_list <strong>arglist</strong>); [in C]
 int IupGetParamv(const char* <b>title</b>, Iparamcb <b>action</b>, void* <b>user_data</b>, const char* <b>format</b>, int <strong>param_count</strong>, int <strong>param_extra</strong>, void** <strong>param_data</strong>); [in C]
 iup.GetParam(<b>title</b>: string, <b>action</b>: function, <b>format</b>: string,...) -&gt; (<strong>status</strong>: boolean, ...) [in Lua]</pre>
 	<b>

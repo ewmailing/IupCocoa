@@ -87,8 +87,26 @@ also accepted.</p>
 <a href="../call/iup_unmap_cb.html">UNMAP_CB</a>,
 <a href="../call/iup_destroy_cb.html">DESTROY_CB</a>:  common callbacks are 
 supported.</p>
+
+  
+<p><b><a name="FOCUS_CB">FOCUS_CB</a></b>: Called when a child of the container gets or looses the focus. It is called 
+  only if PROPAGATEFOCUS is defined in the child. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle *<b>ih</b>, int <b>focus</b>); [in C]<br><b>ih</b>:focus_cb(<b>focus</b>: number) -&gt; (ret: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br>
+
+    <strong>focus</strong>: is non zero if the canvas is getting the focus, is zero 
+    if it is loosing the focus.</p>
+
   
 
+  
 <h3><a name="Notes">Notes</a></h3>
 
 <p>

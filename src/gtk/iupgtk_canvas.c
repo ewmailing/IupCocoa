@@ -108,16 +108,16 @@ static gboolean gtkCanvasScrollHorizChangeValue(GtkRange *range, GtkScrollType s
 
 static void gtkCanvasAdjustHorizValueChanged(GtkAdjustment *adjustment, Ihandle *ih)
 {
-  float posx, posy, xmin, xmax, dx;
+  double posx, posy, xmin, xmax, dx;
   IFniff cb;
 
-  posx = (float)gtk_adjustment_get_value(adjustment);
+  posx = gtk_adjustment_get_value(adjustment);
   if (ih->data->posx==posx)
     return;
 
-  xmin = iupAttribGetFloat(ih, "XMIN");
-  xmax = iupAttribGetFloat(ih, "XMAX");
-  dx = iupAttribGetFloat(ih, "DX");
+  xmin = iupAttribGetDouble(ih, "XMIN");
+  xmax = iupAttribGetDouble(ih, "XMAX");
+  dx = iupAttribGetDouble(ih, "DX");
   if (posx < xmin) posx = xmin;
   if (posx > xmax-dx) posx = xmax-dx;
   ih->data->posx = posx;
@@ -136,7 +136,7 @@ static void gtkCanvasAdjustHorizValueChanged(GtkAdjustment *adjustment, Ihandle 
     if (op == -1)
       return;
 
-    cb(ih, op, posx, posy);
+    cb(ih, op, (float)posx, (float)posy);
 
     iupAttribSet(ih, "_IUPGTK_SBOP", NULL);
   }
@@ -144,7 +144,11 @@ static void gtkCanvasAdjustHorizValueChanged(GtkAdjustment *adjustment, Ihandle 
   {
     IFnff cb = (IFnff)IupGetCallback(ih,"ACTION");
     if (cb)
-      cb (ih, posx, posy);
+    {
+      /* REDRAW Now (since 3.24) - to allow a full native redraw process */
+      iupdrvRedrawNow(ih);
+      /* cb(ih, (float)posx, (float)posy); - OLD method */
+    }
   }
 }
 
@@ -159,16 +163,16 @@ static gboolean gtkCanvasScrollVertChangeValue(GtkRange *range, GtkScrollType sc
 
 static void gtkCanvasAdjustVertValueChanged(GtkAdjustment *adjustment, Ihandle *ih)
 {
-  float posx, posy, ymin, ymax, dy;
+  double posx, posy, ymin, ymax, dy;
   IFniff cb;
 
-  posy = (float)gtk_adjustment_get_value(adjustment);
+  posy = gtk_adjustment_get_value(adjustment);
   if (ih->data->posy==posy)
     return;
 
-  ymin = iupAttribGetFloat(ih, "YMIN");
-  ymax = iupAttribGetFloat(ih, "YMAX");
-  dy = iupAttribGetFloat(ih, "DY");
+  ymin = iupAttribGetDouble(ih, "YMIN");
+  ymax = iupAttribGetDouble(ih, "YMAX");
+  dy = iupAttribGetDouble(ih, "DY");
   if (posy < ymin) posy = ymin;
   if (posy > ymax-dy) posy = ymax-dy;
   ih->data->posy = posy;
@@ -187,7 +191,7 @@ static void gtkCanvasAdjustVertValueChanged(GtkAdjustment *adjustment, Ihandle *
     if (op == -1)
       return;
 
-    cb(ih, op, posx, posy);
+    cb(ih, op, (float)posx, (float)posy);
 
     iupAttribSet(ih, "_IUPGTK_SBOP", NULL);
   }
@@ -195,7 +199,11 @@ static void gtkCanvasAdjustVertValueChanged(GtkAdjustment *adjustment, Ihandle *
   {
     IFnff cb = (IFnff)IupGetCallback(ih,"ACTION");
     if (cb)
-      cb (ih, posx, posy);
+    {
+      /* REDRAW Now (since 3.24) - to allow a full native redraw process */
+      iupdrvRedrawNow(ih);
+      /* cb(ih, (float)posx, (float)posy); - OLD method */
+    }
   }
 }
 
@@ -223,22 +231,22 @@ static gboolean gtkCanvasScrollEvent(GtkWidget *widget, GdkEventScroll *evt, Iha
 
     if (evt->direction==GDK_SCROLL_UP || evt->direction==GDK_SCROLL_DOWN)
     {
-      float posy = ih->data->posy;
-      posy -= delta*iupAttribGetFloat(ih, "DY")/10.0f;
-      IupSetFloat(ih, "POSY", posy);
+      double posy = ih->data->posy;
+      posy -= delta*iupAttribGetDouble(ih, "DY")/10.0;
+      IupSetDouble(ih, "POSY", posy);
     }
     else
     {
-      float posx = ih->data->posx;
-      posx -= delta*iupAttribGetFloat(ih, "DX")/10.0f;
-      IupSetFloat(ih, "POSX", posx);
+      double posx = ih->data->posx;
+      posx -= delta*iupAttribGetDouble(ih, "DX")/10.0;
+      IupSetDouble(ih, "POSX", posx);
     }
 
     if (scb)
     {
       int scroll_gtk2iup[4] = {IUP_SBUP, IUP_SBDN, IUP_SBLEFT, IUP_SBRIGHT};
       int op = scroll_gtk2iup[evt->direction];
-      scb(ih,op,ih->data->posx,ih->data->posy);
+      scb(ih, op, (float)ih->data->posx, (float)ih->data->posy);
     }
   }
   (void)widget;
@@ -249,12 +257,34 @@ static gboolean gtkCanvasButtonEvent(GtkWidget *widget, GdkEventButton *evt, Iha
 {
   if (evt->type == GDK_BUTTON_PRESS)
   {
+    gtk_grab_add(widget);
+
     /* Force focus on canvas click */
     if (iupAttribGetBoolean(ih, "CANFOCUS"))
       gtk_widget_grab_focus(ih->handle);
   }
+  else  /* GDK_BUTTON_RELEASE */
+  {
+    gtk_grab_remove(widget);
+  }
 
-  return iupgtkButtonEvent(widget, evt, ih);
+  iupgtkButtonEvent(widget, evt, ih);
+
+  return TRUE; /* stop other handlers from being invoked */
+}
+
+static gboolean gtkCanvasMotionNotifyEvent(GtkWidget *widget, GdkEventMotion *evt, Ihandle *ih)
+{
+  iupgtkMotionNotifyEvent(widget, evt, ih);
+  return TRUE; /* stop other handlers from being invoked */
+}
+
+gboolean gtkCanvasFocusOutEvent(GtkWidget *widget, GdkEventFocus *evt, Ihandle *ih)
+{
+  if (widget == gtk_grab_get_current())
+    gtk_grab_remove(widget);
+
+  return iupgtkFocusInOutEvent(widget, evt, ih);
 }
 
 static int gtkCanvasSetBgColorAttrib(Ihandle* ih, const char* value);
@@ -285,7 +315,7 @@ static gboolean gtkCanvasExposeEvent(GtkWidget *widget, GdkEventExpose *evt, Iha
     iupAttribSetStrf(ih, "CLIPRECT", "%d %d %d %d", evt->area.x, evt->area.y, evt->area.x+evt->area.width-1, evt->area.y+evt->area.height-1);
 #endif
 
-    cb(ih, ih->data->posx, ih->data->posy);
+    cb(ih, (float)ih->data->posx, (float)ih->data->posy);
 
     iupAttribSet(ih, "CLIPRECT", NULL);
     iupAttribSet(ih, "CAIRO_CR", NULL);
@@ -383,17 +413,17 @@ static int gtkCanvasSetDXAttrib(Ihandle* ih, const char *value)
   if (ih->data->sb & IUP_SB_HORIZ)
   {
     double xmin, xmax, linex;
-    float dx;
+    double dx;
     int value_changed;
     GtkAdjustment* sb_horiz_adjust;
     GtkWidget* sb_horiz = (GtkWidget*)iupAttribGet(ih, "_IUPGTK_SBHORIZ");
     if (!sb_horiz) return 1;
 
-    if (!iupStrToFloatDef(value, &dx, 0.1f))
+    if (!iupStrToDoubleDef(value, &dx, 0.1))
       return 1;
 
-    xmin = iupAttribGetFloat(ih, "XMIN");
-    xmax = iupAttribGetFloat(ih, "XMAX");
+    xmin = iupAttribGetDouble(ih, "XMIN");
+    xmax = iupAttribGetDouble(ih, "XMAX");
 
     if (!iupAttribGet(ih,"LINEX"))
     {
@@ -402,7 +432,7 @@ static int gtkCanvasSetDXAttrib(Ihandle* ih, const char *value)
         linex = 1;
     }
     else
-      linex = iupAttribGetFloat(ih,"LINEX");
+      linex = iupAttribGetDouble(ih,"LINEX");
 
     sb_horiz_adjust = gtk_range_get_adjustment(GTK_RANGE(sb_horiz));
 
@@ -421,7 +451,7 @@ static int gtkCanvasSetDXAttrib(Ihandle* ih, const char *value)
       else
         gtk_widget_set_sensitive(sb_horiz, FALSE);
 
-      ih->data->posx = (float)xmin;
+      ih->data->posx = xmin;
       gtkCanvasAdjustmentSetValue(ih, sb_horiz_adjust, xmin);
     }
     else
@@ -465,17 +495,17 @@ static int gtkCanvasSetDYAttrib(Ihandle* ih, const char *value)
   if (ih->data->sb & IUP_SB_VERT)
   {
     double ymin, ymax, liney;
-    float dy;
+    double dy;
     int value_changed;
     GtkAdjustment* sb_vert_adjust;
     GtkWidget* sb_vert = (GtkWidget*)iupAttribGet(ih, "_IUPGTK_SBVERT");
     if (!sb_vert) return 1;
 
-    if (!iupStrToFloatDef(value, &dy, 0.1f))
+    if (!iupStrToDoubleDef(value, &dy, 0.1))
       return 1;
 
-    ymin = iupAttribGetFloat(ih, "YMIN");
-    ymax = iupAttribGetFloat(ih, "YMAX");
+    ymin = iupAttribGetDouble(ih, "YMIN");
+    ymax = iupAttribGetDouble(ih, "YMAX");
 
     if (!iupAttribGet(ih,"LINEY"))
     {
@@ -484,7 +514,7 @@ static int gtkCanvasSetDYAttrib(Ihandle* ih, const char *value)
         liney = 1;
     }
     else
-      liney = iupAttribGetFloat(ih,"LINEY");
+      liney = iupAttribGetDouble(ih,"LINEY");
 
     sb_vert_adjust = gtk_range_get_adjustment(GTK_RANGE(sb_vert));
 
@@ -503,7 +533,7 @@ static int gtkCanvasSetDYAttrib(Ihandle* ih, const char *value)
       else
         gtk_widget_set_sensitive(sb_vert, FALSE);
 
-      ih->data->posy = (float)ymin;
+      ih->data->posy = ymin;
       gtkCanvasAdjustmentSetValue(ih, sb_vert_adjust, ymin);
     }
     else
@@ -546,17 +576,17 @@ static int gtkCanvasSetPosXAttrib(Ihandle* ih, const char *value)
 {
   if (ih->data->sb & IUP_SB_HORIZ)
   {
-    float posx, xmin, xmax, dx;
+    double posx, xmin, xmax, dx;
     GtkAdjustment* sb_horiz_adjust;
     GtkWidget* sb_horiz = (GtkWidget*)iupAttribGet(ih, "_IUPGTK_SBHORIZ");
     if (!sb_horiz) return 1;
 
-    if (!iupStrToFloat(value, &posx))
+    if (!iupStrToDouble(value, &posx))
       return 1;
 
-    xmin = iupAttribGetFloat(ih, "XMIN");
-    xmax = iupAttribGetFloat(ih, "XMAX");
-    dx = iupAttribGetFloat(ih, "DX");
+    xmin = iupAttribGetDouble(ih, "XMIN");
+    xmax = iupAttribGetDouble(ih, "XMAX");
+    dx = iupAttribGetDouble(ih, "DX");
 
     if (posx < xmin) posx = xmin;
     if (posx > (xmax - dx)) posx = xmax - dx;
@@ -572,17 +602,17 @@ static int gtkCanvasSetPosYAttrib(Ihandle* ih, const char *value)
 {
   if (ih->data->sb & IUP_SB_VERT)
   {
-    float posy, ymin, ymax, dy;
+    double posy, ymin, ymax, dy;
     GtkAdjustment* sb_vert_adjust;
     GtkWidget* sb_vert = (GtkWidget*)iupAttribGet(ih, "_IUPGTK_SBVERT");
     if (!sb_vert) return 1;
 
-    if (!iupStrToFloat(value, &posy))
+    if (!iupStrToDouble(value, &posy))
       return 1;
 
-    ymin = iupAttribGetFloat(ih, "YMIN");
-    ymax = iupAttribGetFloat(ih, "YMAX");
-    dy = iupAttribGetFloat(ih, "DY");
+    ymin = iupAttribGetDouble(ih, "YMIN");
+    ymax = iupAttribGetDouble(ih, "YMAX");
+    dy = iupAttribGetDouble(ih, "DY");
 
     if (posy < ymin) posy = ymin;
     if (posy > (ymax - dy)) posy = ymax - dy;
@@ -713,7 +743,7 @@ static int gtkCanvasMapMethod(Ihandle* ih)
   iupgtkAddToParent(ih);
 
   g_signal_connect(G_OBJECT(ih->handle), "focus-in-event",     G_CALLBACK(iupgtkFocusInOutEvent), ih);
-  g_signal_connect(G_OBJECT(ih->handle), "focus-out-event",    G_CALLBACK(iupgtkFocusInOutEvent), ih);
+  g_signal_connect(G_OBJECT(ih->handle), "focus-out-event",    G_CALLBACK(gtkCanvasFocusOutEvent), ih);
   g_signal_connect(G_OBJECT(ih->handle), "key-press-event",    G_CALLBACK(iupgtkKeyPressEvent),   ih);
   g_signal_connect(G_OBJECT(ih->handle), "key-release-event",  G_CALLBACK(iupgtkKeyReleaseEvent), ih);
   g_signal_connect(G_OBJECT(ih->handle), "enter-notify-event", G_CALLBACK(iupgtkEnterLeaveEvent), ih);
@@ -727,7 +757,7 @@ static int gtkCanvasMapMethod(Ihandle* ih)
 #endif
   g_signal_connect(G_OBJECT(ih->handle), "button-press-event", G_CALLBACK(gtkCanvasButtonEvent), ih);
   g_signal_connect(G_OBJECT(ih->handle), "button-release-event",G_CALLBACK(gtkCanvasButtonEvent), ih);
-  g_signal_connect(G_OBJECT(ih->handle), "motion-notify-event",G_CALLBACK(iupgtkMotionNotifyEvent), ih);
+  g_signal_connect(G_OBJECT(ih->handle), "motion-notify-event", G_CALLBACK(gtkCanvasMotionNotifyEvent), ih);
   g_signal_connect(G_OBJECT(ih->handle), "scroll-event",G_CALLBACK(gtkCanvasScrollEvent), ih);
 
   g_signal_connect(G_OBJECT(ih->handle), "size-allocate", G_CALLBACK(gtkCanvasSizeAllocate), ih);
@@ -833,14 +863,9 @@ void iupdrvCanvasInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "DRAWABLE", gtkCanvasGetDrawableAttrib, NULL, NULL, NULL, IUPAF_NO_STRING);
 
   /* IupCanvas Windows or X only */
-#ifndef GTK_MAC
-  #ifdef WIN32                                 
-    iupClassRegisterAttribute(ic, "HWND", iupgtkGetNativeWindowHandle, NULL, NULL, NULL, IUPAF_NO_STRING|IUPAF_NO_INHERIT);
-  #else
-    iupClassRegisterAttribute(ic, "XWINDOW", iupgtkGetNativeWindowHandle, NULL, NULL, NULL, IUPAF_NO_INHERIT|IUPAF_NO_STRING);
+  iupClassRegisterAttribute(ic, iupgtkGetNativeWindowHandleName(), iupgtkGetNativeWindowHandleAttrib, NULL, NULL, NULL, IUPAF_NO_STRING | IUPAF_NO_INHERIT);
+  if (iupdrvGetDisplay())
     iupClassRegisterAttribute(ic, "XDISPLAY", (IattribGetFunc)iupdrvGetDisplay, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT|IUPAF_NO_STRING);
-  #endif
-#endif
 
   /* Not Supported */
   iupClassRegisterAttribute(ic, "BACKINGSTORE", NULL, NULL, "YES", NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);

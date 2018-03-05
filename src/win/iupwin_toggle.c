@@ -141,14 +141,14 @@ static void winToggleGetAlignment(Ihandle* ih, int *horiz_alignment, int *vert_a
     *horiz_alignment = IUP_ALIGN_ARIGHT;
   else if (iupStrEqualNoCase(value1, "ALEFT"))
     *horiz_alignment = IUP_ALIGN_ALEFT;
-  else /* "ACENTER" */
+  else /* "ACENTER" (default) */
     *horiz_alignment = IUP_ALIGN_ACENTER;
 
   if (iupStrEqualNoCase(value2, "ABOTTOM"))
     *vert_alignment = IUP_ALIGN_ABOTTOM;
   else if (iupStrEqualNoCase(value2, "ATOP"))
     *vert_alignment = IUP_ALIGN_ATOP;
-  else /* "ACENTER" */
+  else /* "ACENTER" (default) */
     *vert_alignment = IUP_ALIGN_ACENTER;
 }
 

@@ -395,6 +395,7 @@ static int motDialogSetFullScreen(Ihandle* ih, int fullscreen)
 int iupdrvDialogSetPlacement(Ihandle* ih)
 {
   char* placement;
+  int old_state = ih->data->show_state;
   ih->data->show_state = IUP_SHOW;
 
   if (iupAttribGetBoolean(ih, "FULLSCREEN"))
@@ -402,7 +403,11 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
   
   placement = iupAttribGet(ih, "PLACEMENT");
   if (!placement)
+  {
+    if (old_state == IUP_MAXIMIZE || old_state == IUP_MINIMIZE)
+      ih->data->show_state = IUP_RESTORE;
     return 0;
+  }
 
   if (iupStrEqualNoCase(placement, "MINIMIZED"))
   {
@@ -419,6 +424,7 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
       XtMapWidget(ih->handle);
       XIconifyWindow(iupmot_display, XtWindow(ih->handle), iupmot_screen);
     }
+    ih->data->show_state = IUP_MINIMIZE;
   }
   else if (iupStrEqualNoCase(placement, "MAXIMIZED"))
   {
@@ -430,6 +436,7 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
     }
 
     motDialogChangeWMState(ih, maxatoms[0], maxatoms[1], 1);
+    ih->data->show_state = IUP_MAXIMIZE;
   }
   else if (iupStrEqualNoCase(placement, "FULL"))
   {
@@ -454,6 +461,9 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
       XmNwidth, (XtArgVal)width,  /* client size */
       XmNheight, (XtArgVal)height,
       NULL);
+
+    if (old_state == IUP_MAXIMIZE || old_state == IUP_MINIMIZE)
+      ih->data->show_state = IUP_RESTORE;
   }
 
   iupAttribSet(ih, "PLACEMENT", NULL); /* reset to NORMAL */

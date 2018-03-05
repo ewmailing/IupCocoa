@@ -19,6 +19,7 @@
 #include "iup_ledlex.h"
 #include "iup_attrib.h"
 #include "iup_assert.h"
+#include "iup_varg.h"
 
 
 #define iupATTRIB_LANGUAGE_STRING(_v)  (_v && _v[0] == '_' && _v[1] == '@') 
@@ -386,6 +387,14 @@ void IupGetRGBId(Ihandle *ih, const char* name, int id, unsigned char *r, unsign
   iupStrToRGB(IupGetAttributeId(ih, name, id), r, g, b);
 }
 
+void IupSetStrfIdV(Ihandle* ih, const char* name, int id, const char* f, va_list arglist)
+{
+  int size;
+  char* value = iupStrGetLargeMem(&size);
+  vsnprintf(value, size, f, arglist);
+  IupStoreAttributeId(ih, name, id, value);
+}
+
 void IupSetStrfId(Ihandle *ih, const char* name, int id, const char* f, ...)
 {
   int size;
@@ -468,6 +477,14 @@ double IupGetDoubleId2(Ihandle* ih, const char* name, int lin, int col)
 void IupGetRGBId2(Ihandle *ih, const char* name, int lin, int col, unsigned char *r, unsigned char *g, unsigned char *b)
 {
   iupStrToRGB(IupGetAttributeId2(ih, name, lin, col), r, g, b);
+}
+
+void IupSetStrfId2V(Ihandle* ih, const char* name, int lin, int col, const char* f, va_list arglist)
+{
+  int size;
+  char* value = iupStrGetLargeMem(&size);
+  vsnprintf(value, size, f, arglist);
+  IupStoreAttributeId2(ih, name, lin, col, value);
 }
 
 void IupSetStrfId2(Ihandle* ih, const char* name, int lin, int col, const char* f, ...)
@@ -744,6 +761,14 @@ void IupGetRGB(Ihandle *ih, const char* name, unsigned char *r, unsigned char *g
   iupStrToRGB(IupGetAttribute(ih, name), r, g, b);
 }
 
+void IupSetStrfV(Ihandle* ih, const char* name, const char* f, va_list arglist)
+{
+  int size;
+  char* value = iupStrGetLargeMem(&size);
+  vsnprintf(value, size, f, arglist);
+  IupStoreAttribute(ih, name, value);
+}
+
 void IupSetStrf(Ihandle *ih, const char* name, const char* f, ...)
 {
   int size;
@@ -883,21 +908,27 @@ Ihandle* IupGetAttributeHandleId2(Ihandle *ih, const char* name, int lin, int co
   return IupGetAttributeHandle(ih, nameid);
 }
 
-Ihandle* IupSetAtt(const char* handle_name, Ihandle* ih, const char* name, ...)
+Ihandle* IupSetAttV(const char* handle_name, Ihandle* ih, const char* name, va_list arglist)
 {
   const char *attr, *val;
-  va_list arg;
-  va_start (arg, name);
   attr = name;
   while (attr)
   {
-    val = va_arg(arg, const char*);
+    val = va_arg(arglist, const char*);
     IupSetAttribute(ih, attr, val);
-    attr = va_arg(arg, const char*);
+    attr = va_arg(arglist, const char*);
   }
-  va_end(arg);
   if (handle_name)
     IupSetHandle(handle_name, ih);
+  return ih;
+}
+
+Ihandle* IupSetAtt(const char* handle_name, Ihandle* ih, const char* name, ...)
+{
+  va_list arglist;
+  va_start(arglist, name);
+  IupSetAttV(handle_name, ih, name, arglist);
+  va_end(arglist);
   return ih;
 }
 
@@ -1155,6 +1186,20 @@ int iupAttribGetInt(Ihandle* ih, const char* name)
     }
   }
   return i;
+}
+
+int iupAttribGetIntInt(Ihandle *ih, const char* name, int *i1, int *i2, char sep)
+{
+  int _i1 = 0, _i2 = 0;
+  char *value = iupAttribGetStr(ih, name);
+  if (value)
+  {
+    int count = iupStrToIntInt(value, &_i1, &_i2, sep);
+    if (i1) *i1 = _i1;
+    if (i2) *i2 = _i2;
+    return count;
+  }
+  return 0;
 }
 
 float iupAttribGetFloat(Ihandle* ih, const char* name)

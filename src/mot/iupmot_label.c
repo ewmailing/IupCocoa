@@ -82,7 +82,7 @@ static int motLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
       align = XmALIGNMENT_END;
     else if (iupStrEqualNoCase(value1, "ACENTER"))
       align = XmALIGNMENT_CENTER;
-    else /* "ALEFT" */
+    else /* "ALEFT" (default) */
       align = XmALIGNMENT_BEGINNING;
 
     XtVaSetValues(ih->handle, XmNalignment, align, NULL);

@@ -76,6 +76,10 @@ BUTTON_CB(but=1 (0), x=154, y=83 [  1       ])
     BUTTON_CB(but=1 (0), x=154, y=83 [  1       ])     (in GTK only)
 BUTTON_CB(but=1 (1), x=154, y=83 [  1  D    ])
 BUTTON_CB(but=1 (0), x=154, y=83 [  1       ])</pre>
+<p>Between press and release all mouse events are redirected only to this 
+control, even if the cursor moves outside the element. So the BUTTON_CB callback 
+when released and the MOTION_CB callback can be called with coordinates outside 
+the element rectangle.</p>
 <h3>Affects</h3>
 <p><a href="../elem/iupcanvas.html">IupCanvas</a>,
   <a href="../elem/iupbutton.html">IupButton</a>,

@@ -171,7 +171,7 @@ iupPlotDataSet::iupPlotDataSet(bool strXdata)
   mMultibarIndex(-1), mMultibarCount(0), mBarOutlineColor(0), mBarShowOutline(false), mBarSpacingPercent(10),
   mPieStartAngle(0), mPieRadius(0.95), mPieContour(false), mPieHole(0), mPieSliceLabelPos(0.95),
   mHighlightedSample(-1), mHighlightedCurve(false), mBarMulticolor(false), mOrderedX(false),
-  mPieSliceLabel(IUP_PLOT_NONE), mMode(IUP_PLOT_LINE), mName(NULL), mHasSelected(false)
+  mPieSliceLabel(IUP_PLOT_NONE), mMode(IUP_PLOT_LINE), mName(NULL), mHasSelected(false), mUserData(0)
 {
   if (strXdata)
     mDataX = (iupPlotDataBase*)(new iupPlotDataString());
@@ -1150,7 +1150,7 @@ iupPlot::iupPlot(Ihandle* _ih, int inDefaultFontStyle, int inDefaultFontSize)
    mGrid(true), mGridMinor(false), mViewportSquare(false), mScaleEqual(false), mHighlightMode(IUP_PLOT_HIGHLIGHT_NONE),
    mDefaultFontSize(inDefaultFontSize), mDefaultFontStyle(inDefaultFontStyle), mScreenTolerance(5),
    mAxisX(inDefaultFontStyle, inDefaultFontSize), mAxisY(inDefaultFontStyle, inDefaultFontSize),
-   mCrossHairX(0), mCrossHairY(0), mShowSelectionBand(false), mDataSetListMax(20)
+   mCrossHairX(0), mCrossHairY(0), mShowSelectionBand(false), mDataSetListMax(20), mDataSetClipping(IUP_PLOT_CLIPAREA)
 {
   mDataSetList = (iupPlotDataSet**)malloc(sizeof(iupPlotDataSet*)* mDataSetListMax); /* use malloc because we will use realloc */
   memset(mDataSetList, 0, sizeof(iupPlotDataSet*)* mDataSetListMax);
@@ -1534,6 +1534,33 @@ iupPlotDataSet* iupPlot::HasPie()
   return NULL;
 }
 
+void iupPlot::DataSetClipArea(cdCanvas* canvas, int xmin, int xmax, int ymin, int ymax)
+{
+  if (mDataSetClipping == IUP_PLOT_CLIPAREAOFFSET)
+  {
+    if (!mAxisY.HasZoom())
+    {
+      int yoff = (ymax - ymin) / 50; // 2%
+      if (yoff < 10) yoff = 10;
+
+      ymin -= yoff;
+      ymax += yoff;
+    }
+
+    if (!mAxisX.HasZoom())
+    {
+      int xoff = (xmax - xmin) / 50; // 2%
+      if (xoff < 10) xoff = 10;
+
+      xmin -= xoff;
+      xmax += xoff;
+    }
+  }
+
+  if (mDataSetClipping != IUP_PLOT_CLIPNONE)
+    cdCanvasClipArea(canvas, xmin, xmax, ymin, ymax);
+}
+
 bool iupPlot::Render(cdCanvas* canvas)
 {
   if (!mRedraw)
@@ -1620,8 +1647,8 @@ bool iupPlot::Render(cdCanvas* canvas)
   if (mBox.mShow)
     mBox.Draw(theDataSetArea, canvas);
 
-  // draw the datasets, legend, crosshair and selection restricted to the dataset area
-  cdCanvasClipArea(canvas, theDataSetArea.mX, theDataSetArea.mX + theDataSetArea.mWidth - 1, theDataSetArea.mY, theDataSetArea.mY + theDataSetArea.mHeight - 1);
+  // draw the datasets restricted to the dataset area with options
+  DataSetClipArea(canvas, theDataSetArea.mX, theDataSetArea.mX + theDataSetArea.mWidth - 1, theDataSetArea.mY, theDataSetArea.mY + theDataSetArea.mHeight - 1);
 
   IFniiddi drawsample_cb = (IFniiddi)IupGetCallback(ih, "DRAWSAMPLE_CB");
 
@@ -1642,6 +1669,9 @@ bool iupPlot::Render(cdCanvas* canvas)
 
     dataset->DrawData(mAxisX.mTrafo, mAxisY.mTrafo, canvas, &theNotify);
   }
+
+  // draw the legend, crosshair and selection restricted to the dataset area
+  cdCanvasClipArea(canvas, theDataSetArea.mX, theDataSetArea.mX + theDataSetArea.mWidth - 1, theDataSetArea.mY, theDataSetArea.mY + theDataSetArea.mHeight - 1);
 
   if (mCrossHairH)
     DrawCrossHairH(theDataSetArea, canvas);

@@ -104,7 +104,7 @@ static XFontStruct* motLoadFont(const char* foundry, const char *typeface, int s
     double res = ((double)DisplayWidth(iupmot_display, iupmot_screen) / (double)DisplayWidthMM(iupmot_display, iupmot_screen)); /* pixels/mm */
     /* 1 point = 1/72 inch     1 inch = 25.4 mm */
     /* pixel = ((point/72)*25.4)*pixel/mm */
-    size = (int)((-size/res)*2.83464567 + 0.5); /* from pixels to points */
+    size = iupRound((-size / res)*2.83464567); /* from pixels to points */
   }
 
   size *= 10; /* convert to deci-points */
@@ -348,7 +348,7 @@ int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
 {
   ImotFont *motfont = motFontCreateNativeFont(ih, value);
   if (!motfont) 
-    return 1;
+    return 0;
 
   /* If FONT is changed, must update the SIZE attribute */
   iupBaseUpdateAttribFromFont(ih);
@@ -383,11 +383,10 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
   return XTextWidth(fontstruct, str, len);
 }
 
-void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h)
+static void motFontGetTextSize(ImotFont* motfont, const char* str, int *w, int *h)
 {
   int max_w = 0;
 
-  ImotFont* motfont = motGetFont(ih);
   if (!motfont)
   {
     if (w) *w = 0;
@@ -425,6 +424,19 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
   if (h) *h = motfont->charheight * iupStrLineCount(str);
 }
 
+void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h)
+{
+  ImotFont* motfont = motGetFont(ih);
+  if (motfont)
+    motFontGetTextSize(motfont, str, w, h);
+}
+
+void iupdrvFontGetTextSize(const char* font, const char* str, int *w, int *h)
+{
+  ImotFont *motfont = motFindFont(NULL, font);
+  if (motfont)
+    motFontGetTextSize(motfont, str, w, h);
+}
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
 {
