@@ -410,6 +410,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_frame.h
 	${CMAKE_SOURCE_DIR}/src/iup_func.c
 	${CMAKE_SOURCE_DIR}/src/iup_func.h
+	${CMAKE_SOURCE_DIR}/src/iup_gauge.c
 	${CMAKE_SOURCE_DIR}/src/iup_getparam.c
 	${CMAKE_SOURCE_DIR}/src/iup_globalattrib.c
 	${CMAKE_SOURCE_DIR}/src/iup_globalattrib.h
