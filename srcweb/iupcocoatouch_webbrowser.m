@@ -463,6 +463,9 @@ static void cocoaTouchWebBrowserComputeNaturalSizeMethod(Ihandle* ih, int *w, in
 	*w = 480;
 	*h = 640;
 */
+	// FIXME: Iup is not expanding and making the visible height 1 row. Screen size routines never seem to be hit.
+	*w = 480;
+	*h = 480;
 }
 
 static int cocoaTouchWebBrowserCreateMethod(Ihandle* ih, void **params)

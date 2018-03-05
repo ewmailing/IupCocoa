@@ -102,30 +102,27 @@ void iupdrvAddScreenOffset(int *x, int *y, int add)
 // How is this different than iupdrvGetFullSize? Is this supposed to subtract the menu and dock?
 void iupdrvGetScreenSize(int *width, int *height)
 {
-#if 0
-	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
-	
+#if 1
+	// TODO: iPhone X notch safe area
+	// nativeBounds is always portrait, bounds depends on device orientation
+//	CGRect screen_rect = [[UIScreen mainScreen] nativeBounds];
+	CGRect screen_rect = [[UIScreen mainScreen] bounds];
+
 	// Points vs. Pixels in Cocoa
 	//  int w_size = CGDisplayPixelsWide(kCGDirectMainDisplay);
 	//  int h_size = CGDisplayPixelsHigh(kCGDirectMainDisplay);
 	if (width) *width = screen_rect.size.width;
 	if (height) *height = screen_rect.size.height;
 #endif
-	
 }
 
 void iupdrvGetFullSize(int *width, int *height)
 {
-#if 0
-	/*
-  CGRect rect;
-	 
-  rect = CGDisplayBounds(kCGDirectMainDisplay);
-	 
-  *width  = (int)CGRectGetWidth(rect);
-  *height = (int)CGRectGetHeight(rect);
-	 */
-	NSRect screen_rect = [[NSScreen mainScreen] frame];
+#if 1
+	// TODO: iPhone X notch safe area
+	// nativeBounds is always portrait, bounds depends on device orientation
+	//	CGRect screen_rect = [[UIScreen mainScreen] nativeBounds];
+	CGRect screen_rect = [[UIScreen mainScreen] bounds];
 	
 	// Points vs. Pixels in Cocoa
 	//  int w_size = CGDisplayPixelsWide(kCGDirectMainDisplay);
