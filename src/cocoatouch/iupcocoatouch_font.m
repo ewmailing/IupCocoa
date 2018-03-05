@@ -80,13 +80,13 @@ int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
-void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int* h)
+
+static void helperFontGetMultiLineStringSize(UIFont* the_font, const char* str, int *w, int *h)
 {
 	CGRect bounding_rect = CGRectZero;
-	id native_object = ih->handle;
 	if (str)
 	{
-		UIFont* the_font = cocoaFontFromHandle(ih);
+//		UIFont* the_font = cocoaFontFromHandle(ih);
 		if (the_font == nil)
 		{
 			the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
@@ -113,6 +113,21 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int*
 			context:nil
 		];
 	}
+	if (w) *w = (int)(bounding_rect.size.width + 0.5f);
+	if (h) *h = (int)(bounding_rect.size.height + 0.5f);
+}
+
+void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int* h)
+{
+	id native_object = ih->handle;
+	int temp_w = 0;
+	int temp_h = 0;
+	if(str)
+	{
+		UIFont* the_font = cocoaFontFromHandle(ih);
+		helperFontGetMultiLineStringSize(the_font, str, &temp_w, &temp_h);
+	}
+	
 	CGSize margin = CGSizeZero;
 	if ([native_object isKindOfClass:[UIButton class]])
 	{
@@ -123,8 +138,8 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int* w, int*
 		margin = CGSizeMake(5, 5);
 	}
 	// Should I always round up or to the nearest?
-	if (w) *w = (int)(bounding_rect.size.width + 0.5f + margin.width);
-	if (h) *h = (int)(bounding_rect.size.height + 0.5f + margin.height);
+	if (w) *w = temp_w + (int)(0.5f + margin.width);
+	if (h) *h = temp_h + (int)(0.5f + margin.height);
 
 }
 
@@ -153,6 +168,22 @@ void iupdrvFontGetCharSize(Ihandle* ih, int* charwidth, int* charheight)
 	if (charwidth) *charwidth = 17;
 	if (charheight) *charheight = 17;
 
+}
+
+void iupdrvFontGetTextSize(const char* font, const char* str, int *w, int *h)
+{
+	// FIXME: FindFont was skipped to get things going
+//	UIFont* the_font = cocoaTouchFindFont(ih);
+	// hardcoded
+//	UIFont* the_font = [UIFont fontWithName:[NSString stringWithUTF8String:font] size:0];
+	UIFont* the_font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+
+	if (the_font)
+	{
+		// FIXME: quick and dirty fix to get around Iup internal API changes
+		helperFontGetMultiLineStringSize(the_font, str, w, h);
+	}
+	
 }
 
 void iupdrvFontInit(void)

@@ -12,7 +12,7 @@
  Mac OS Carbon system headers. */
 
 #import <UIKit/UIKit.h>
-//#include <Carbon/Carbon.h>
+#include <asl.h>
 
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -142,7 +142,7 @@ int iupdrvGetScreenDepth(void)
 }
 
 // I think this is not going to work on Cocoa. Apple does everything in their power to hide this for retina.
-float iupdrvGetScreenDpi(void)
+double iupdrvGetScreenDpi(void)
 {
 #if 0
 	CGRect rect = CGDisplayBounds(kCGDirectMainDisplay);
@@ -430,6 +430,66 @@ int iupdrvGetPreferencePath(char *filename, int str_len, const char* app_name)
 	filename[0] = '\0';
 	return 0;
 }
+
+
+void IupLogV(const char* type, const char* format, va_list arglist)
+{
+	int priority = ASL_LEVEL_NOTICE;
+/*
+#define ASL_LEVEL_EMERG   0
+#define ASL_LEVEL_ALERT   1
+#define ASL_LEVEL_CRIT    2
+#define ASL_LEVEL_ERR     3
+#define ASL_LEVEL_WARNING 4
+#define ASL_LEVEL_NOTICE  5
+#define ASL_LEVEL_INFO    6
+#define ASL_LEVEL_DEBUG   7
+*/
+	if (iupStrEqualNoCase(type, "DEBUG"))
+	{
+		priority = ASL_LEVEL_DEBUG;
+	}
+	else if (iupStrEqualNoCase(type, "ERROR"))
+	{
+		priority = ASL_LEVEL_ERR;
+	}
+	else if (iupStrEqualNoCase(type, "WARNING"))
+	{
+		priority = ASL_LEVEL_WARNING;
+	}
+	else if (iupStrEqualNoCase(type, "INFO"))
+	{
+		priority = ASL_LEVEL_INFO;
+	}
+	// Extras: (not officially documented)
+	else if (iupStrEqualNoCase(type, "EMERGENCY"))
+	{
+		priority = ASL_LEVEL_EMERG;
+	}
+	else if (iupStrEqualNoCase(type, "ALERT"))
+	{
+		priority = ASL_LEVEL_ALERT;
+	}
+	else if (iupStrEqualNoCase(type, "CRITICAL"))
+	{
+		priority = ASL_LEVEL_CRIT;
+	}
+	else if (iupStrEqualNoCase(type, "NOTICE"))
+	{
+		priority = ASL_LEVEL_NOTICE;
+	}
+
+	asl_vlog(NULL, NULL, priority, format, arglist);
+}
+
+void IupLog(const char* type, const char* format, ...)
+{
+  va_list arglist;
+  va_start(arglist, format);
+  IupLogV(type, format, arglist);
+  va_end(arglist);
+}
+
 
 char* iupdrvLocaleInfo(void)
 {
