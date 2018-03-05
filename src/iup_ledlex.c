@@ -150,15 +150,7 @@ float iupLexFloat(void)
 
 char* iupLexGetName(void)
 {
-  if (ilex.name)
-    return iupStrDup(ilex.name);
-  else
-    return NULL;
-}
-
-char* iupLexName(void)
-{
-  return ilex.name;
+  return iupStrDup(ilex.name);
 }
 
 float iupLexGetNumber(void)
@@ -232,7 +224,7 @@ static int iLexToken(int *erro)
         char class_name[50];
         iLexUngetc(c);
         iLexUngetc(iLexCapture ("=[](), \t\n\r\f\v"));
-        iupStrLower(class_name, iupLexName());
+        iupStrLower(class_name, ilex.name);
         ilex.ic = iupRegisterFindClass(class_name);
         if (ilex.ic)
           return IUPLEX_TK_FUNC;

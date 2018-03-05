@@ -63,7 +63,7 @@ static unsigned char pixmap_cursor [ ] =
 #ifdef WIN32
 #include <windows.h>
 
-static int customframe_cb(Ihandle *ih)
+static int customframedraw_cb(Ihandle *ih)
 {
   RECT rect;
   int w, h;
@@ -232,7 +232,7 @@ static int k_any(Ihandle *ih, int c)
     new_dialog(6, "FULLSCREEN");
     break;
   case K_7:
-    new_dialog(7, "CUSTOMFRAME");
+    new_dialog(7, "CUSTOMFRAMEDRAW");
     break;
   case K_p:
     {
@@ -444,7 +444,7 @@ static void new_dialog(int test, char* tip)
   }
   else if (test == 5)
   {
-    IupPopup(dlg, IUP_CURRENT, IUP_CURRENT);
+    IupPopup(dlg, IUP_MOUSEPOS, IUP_MOUSEPOS);
   }
   else if (test == 6)
   {
@@ -454,10 +454,10 @@ static void new_dialog(int test, char* tip)
   else if (test == 7)
   {
 #ifdef WIN32
-    IupSetAttribute(dlg, "CUSTOMFRAME", "YES");
+    IupSetAttribute(dlg, "CUSTOMFRAMEDRAW", "YES");
     IupSetAttribute(dlg, "CUSTOMFRAMECAPTIONLIMITS", "0:30");
       //IupSetAttribute(dlg, "BGCOLOR", "255 0 255");
-    IupSetCallback(dlg, "CUSTOMFRAME_CB", customframe_cb);
+    IupSetCallback(dlg, "CUSTOMFRAMEDRAW_CB", customframedraw_cb);
 //    IupSetAttribute(dlg, "MINSIZE", "1260x760"); // not does work
 //    IupSetAttribute(dlg, "RASTERSIZE", "1260x760");
 

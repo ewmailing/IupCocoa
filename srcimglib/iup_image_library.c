@@ -29,8 +29,10 @@ void IupImageLibOpen(void)
 #elif defined(__EMSCRIPTEN__)
 #elif defined(__APPLE__)
 #elif defined(__ANDROID__)
+#elif defined(GTK3)
+  iupImglibBaseLibGtk324x24Open();
 #else
-  iupImglibBaseLibGtk16x16Open();
+  iupImglibBaseLibGtk24x24Open();
 #endif  
 
   /***************** Logos *****************/
@@ -61,6 +63,8 @@ void IupImageLibOpen(void)
 #elif defined(__EMSCRIPTEN__)
 #elif defined(__APPLE__)
 #elif defined(__ANDROID__)
+#elif defined(GTK3)
+  iupImglibIconsGtk348x48Open();
 #else
   iupImglibIconsGtk48x48Open();
 #endif  

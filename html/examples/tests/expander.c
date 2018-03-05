@@ -496,8 +496,12 @@ void ExpanderTest(void)
   IupSetAttribute(_frm_3,"TITLE","IupExpander");
   IupSetAttribute(_frm_3,"FORECOLOR","255 255 255");
   IupSetAttribute(_frm_3,"BACKCOLOR","100 150 250");
+  IupSetAttribute(_frm_3, "FRAME", "YES");
+  IupSetAttribute(_frm_3, "FRAMEWIDTH", "3");
+  IupSetAttribute(_frm_3, "FRAMECOLOR", "255 255 255");
   IupSetAttribute(_frm_3, "ANIMATION", "SLIDE");
-  //  IupSetAttribute(_frm_3, "BARSIZE", "50");
+//  IupSetAttribute(_frm_3, "FRAMETIME", "300");
+    IupSetAttribute(_frm_3, "BARSIZE", "50");
     IupSetAttribute(_frm_3, "TITLEEXPAND", "Yes");
     IupSetAttribute(_frm_3, "HIGHCOLOR", "192 192 192");
   //  IupSetAttribute(_frm_3, "OPENCOLOR", "0 0 192");
@@ -521,20 +525,20 @@ void ExpanderTest(void)
   IupSetAttributeHandle(_frm_3, "IMAGEEXTRAPRESS3", image_open);
   IupSetAttributeHandle(_frm_3, "IMAGEEXTRAHIGHLIGHT3", image_high);
 
-  if (0)
+  if (1)
   {
     Ihandle* hbox = IupGetChild(IupGetChild(_frm_3, 0), 0);
-    Ihandle* expand_button = IupGetChild(hbox, 0);
-    Ihandle* title_label = IupGetChild(hbox, 1);
-    Ihandle* extra_button1 = IupGetChild(IupGetChild(hbox, 2), 0);
-    IupSetAttribute(hbox, "MARGIN", "0x0");
-    IupSetAttribute(hbox, "GAP", "0");
-    hbox = IupGetChild(hbox, 2);
-    IupSetAttribute(hbox, "MARGIN", "0x0");
-    IupSetAttribute(hbox, "GAP", "0");
-    IupSetAttribute(expand_button, "EXPAND", "VERTICAL");
-    IupSetAttribute(title_label, "EXPAND", "Yes");
-    IupSetAttribute(extra_button1, "EXPAND", "VERTICAL");
+    //Ihandle* expand_button = IupGetChild(hbox, 0);
+    //Ihandle* title_label = IupGetChild(hbox, 1);
+    //Ihandle* extra_button1 = IupGetChild(IupGetChild(hbox, 2), 0);
+    IupSetAttribute(hbox, "MARGIN", "5x5");
+    //IupSetAttribute(hbox, "GAP", "0");
+    //hbox = IupGetChild(hbox, 2);
+    //IupSetAttribute(hbox, "MARGIN", "0x0");
+    //IupSetAttribute(hbox, "GAP", "0");
+    //IupSetAttribute(expand_button, "EXPAND", "VERTICAL");
+    //IupSetAttribute(title_label, "EXPAND", "Yes");
+    //IupSetAttribute(extra_button1, "EXPAND", "VERTICAL");
   }
 
   _text_1 = IupText( NULL);

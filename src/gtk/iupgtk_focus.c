@@ -44,6 +44,9 @@ gboolean iupgtkFocusInOutEvent(GtkWidget *widget, GdkEventFocus *evt, Ihandle *i
 {
   (void)widget;
 
+  if (!iupObjectCheck(ih))
+    return TRUE;
+
   if (evt->in)
   {
     /* even when ACTIVE=NO the dialog gets this evt */

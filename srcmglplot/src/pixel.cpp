@@ -2182,7 +2182,7 @@ void mglCanvas::arrow_plot_3d(long n1, long n2, char st, float ll)
 			trig_plot(k3,k4,k5);	trig_plot(k1,k4,k5);	break;
 		case 'K':
 			k1=setPp(q,p0+kt);	k2=setPp(q,p0+kz);
-			k3=setPp(q,p0-kt);	k4=setPp(q,p0-kz);	quad_plot(k1,k2,k4,k3);
+			k3=setPp(q,p0-kt);	k4=setPp(q,p0-kz);	quad_plot(k1,k2,k4,k3);	break;
 		case 'A':
 			k1=setPp(q,p0-2.*kl+kt);	k2=setPp(q,p0-2.*kl+kz);	k3=setPp(q,p0-2.*kl-kt);
 			k4=setPp(q,p0-2.*kl-kz);	k5=setPp(q,p0-1.5*kl);

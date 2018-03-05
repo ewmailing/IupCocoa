@@ -55,12 +55,27 @@ void iupCanvasCalcScrollRealPos(double min, double max, double *pos,
 
 char* iupCanvasGetPosXAttrib(Ihandle* ih)
 {
-  return iupStrReturnFloat(ih->data->posx);
+  return iupStrReturnDouble(ih->data->posx);
 }
 
 char* iupCanvasGetPosYAttrib(Ihandle* ih)
 {
-  return iupStrReturnFloat(ih->data->posy);
+  return iupStrReturnDouble(ih->data->posy);
+}
+
+static char* iCanvasGetScrollbarAttrib(Ihandle* ih)
+{
+  if (!ih->handle)
+    return NULL; /* get from the hash table */
+
+  if (ih->data->sb & IUP_SB_HORIZ && ih->data->sb & IUP_SB_VERT)
+    return "YES";
+  else if (ih->data->sb & IUP_SB_HORIZ)
+    return "HORIZONTAL";
+  else if (ih->data->sb & IUP_SB_VERT)
+    return "VERTICAL";
+  else
+    return "NO";
 }
 
 static int iCanvasCreateMethod(Ihandle* ih, void** params)
@@ -149,18 +164,23 @@ Iclass* iupCanvasNewClass(void)
 
   /* IupCanvas only */
   iupClassRegisterAttribute(ic, "CURSOR", NULL, iupdrvBaseSetCursorAttrib, IUPAF_SAMEASSYSTEM, "ARROW", IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
+
   iupClassRegisterAttribute(ic, "XMIN", NULL, NULL, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "XMAX", NULL, NULL, IUPAF_SAMEASSYSTEM, "1", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "YMIN", NULL, NULL, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "YMAX", NULL, NULL, IUPAF_SAMEASSYSTEM, "1", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "LINEX", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "LINEY", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "YAUTOHIDE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "SCROLLBAR", iCanvasGetScrollbarAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "YAUTOHIDE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "XAUTOHIDE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "XHIDDEN", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "YHIDDEN", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+
   iupClassRegisterAttribute(ic, "BORDER", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
-  iupClassRegisterAttribute(ic, "SCROLLBAR", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "DRAWFONT", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "DRAWCOLOR", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "DRAWSTYLE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 

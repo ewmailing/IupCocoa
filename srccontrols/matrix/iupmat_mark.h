@@ -25,7 +25,7 @@ int iupMatrixSetMarkAttrib(Ihandle* ih, int lin, int col, const char* value);
 
 void iupMatrixMarkClearAll(Ihandle* ih, int check);
 
-int iupMatrixMarkCellGet(Ihandle* ih, int lin, int col, IFnii mark_cb);
+int iupMatrixGetMark(Ihandle* ih, int lin, int col, IFnii mark_cb);
 
 int iupMatrixColumnIsMarked(Ihandle* ih, int col);
 int iupMatrixLineIsMarked  (Ihandle* ih, int lin);

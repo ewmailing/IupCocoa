@@ -60,6 +60,8 @@ public:
 #endif
     SINK_ENTRY_EX(0, DIID_DWebBrowserEvents2, DISPID_NAVIGATEERROR, NavigateError)
     SINK_ENTRY_EX(0, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, DocumentComplete)
+    SINK_ENTRY_EX(0, DIID_DWebBrowserEvents2, DISPID_COMMANDSTATECHANGE, CommandStateChange)
+    
   END_SINK_MAP()
 
   void STDMETHODCALLTYPE BeforeNavigate2(IDispatch *pDisp, VARIANT *url, VARIANT *Flags, VARIANT *TargetFrameName,
@@ -134,8 +136,51 @@ public:
     }
     (void)pDisp;
   }
+
+  void STDMETHODCALLTYPE CommandStateChange(LONG Command, VARIANT_BOOL Enable)
+  {
+    if (Command == CSC_NAVIGATEFORWARD)
+    {
+      if (Enable == VARIANT_TRUE)
+        iupAttribSet(ih, "CANGOFORWARD", "YES");
+      else
+        iupAttribSet(ih, "CANGOFORWARD", "NO");
+    }
+    else if (Command == CSC_NAVIGATEBACK)
+    {
+      if (Enable == VARIANT_TRUE)
+        iupAttribSet(ih, "CANGOBACK", "YES");
+      else
+        iupAttribSet(ih, "CANGOBACK", "NO");
+    }
+  }
 };
 
+static void VariantBStr(VARIANT *var, WCHAR* wstr)
+{
+  VariantInit(var);
+  var->vt = VT_BSTR;
+  var->bstrVal = wstr;
+}
+
+static void VariantLong(VARIANT *var, LONG val)
+{
+  VariantInit(var);
+  var->vt = VT_I4;
+  var->lVal = val;
+}
+
+static SAFEARRAY* VariantSafeArray(const WCHAR* wstr)
+{
+  VARIANT *param;
+  SAFEARRAY *sfArray;
+  sfArray = SafeArrayCreateVector(VT_VARIANT, 0, 1);    // must call SafeArrayDestroy
+  SafeArrayAccessData(sfArray,(LPVOID*) &param);
+  param->vt = VT_BSTR;
+  param->bstrVal = SysAllocString(wstr);
+  SafeArrayUnaccessData(sfArray);
+  return sfArray;
+}
 
 /********************************************************************************/
 
@@ -215,13 +260,7 @@ static int winWebBrowserSetHTMLAttrib(Ihandle* ih, const char* value)
 
   WCHAR* wvalue = iupwinStrChar2Wide(value);
 
-  VARIANT *param;
-  SAFEARRAY *sfArray;
-  sfArray = SafeArrayCreateVector(VT_VARIANT, 0, 1);
-  SafeArrayAccessData(sfArray,(LPVOID*) &param);
-  param->vt = VT_BSTR;
-	param->bstrVal = SysAllocString(wvalue);
-	SafeArrayUnaccessData(sfArray);
+  SAFEARRAY *sfArray = VariantSafeArray(wvalue);
 
 	htmlDoc2->write(sfArray);
 	htmlDoc2->close();
@@ -268,10 +307,9 @@ static int winWebBrowserSetZoomAttrib(Ihandle* ih, const char* value)
     IWebBrowser2 *pweb = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
 
     VARIANT var;
-    VariantInit(&var);  /* Initialize our variant */
-    var.vt = VT_I4;
-    var.ulVal = zoom;
+    VariantLong(&var, (LONG)zoom);
 
+    // OLECMDID_OPTICAL_ZOOM = VT_I4 (LONG) parameter in the range of 10 to 1000 (percent).
     pweb->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DONTPROMPTUSER, &var, NULL);
   }
   return 0;
@@ -282,12 +320,187 @@ static char* winWebBrowserGetZoomAttrib(Ihandle* ih)
   IWebBrowser2 *pweb = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
 
   VARIANT var;
-  VariantInit(&var);  /* Initialize our variant */
-  var.vt = VT_I4;
+  VariantLong(&var, 0);
 
   pweb->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DONTPROMPTUSER, NULL, &var);
-  int zoom = var.ulVal;
-  return iupStrReturnInt(zoom);
+
+  return iupStrReturnInt((int)var.lVal);
+}
+
+static IHTMLElement* winWebBrowserFindElement(Ihandle* ih, const char* element_id)
+{
+  HRESULT hr;
+  IDispatch* pHtmlDocDispatch = NULL;
+  IHTMLDocument2 * pHtmlDoc = NULL;
+  IWebBrowser2 *m_pWebBrowser = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
+
+  // Retrieve the document object.
+  hr = m_pWebBrowser->get_Document(&pHtmlDocDispatch);
+  if (SUCCEEDED(hr) && (pHtmlDocDispatch != NULL))
+  {
+    hr = pHtmlDocDispatch->QueryInterface(IID_IHTMLDocument2, (void**)&pHtmlDoc);
+    if (SUCCEEDED(hr) && (pHtmlDoc != NULL))
+    {
+      IHTMLElementCollection* pColl = NULL;
+      hr = pHtmlDoc->get_all(&pColl);
+
+      if (SUCCEEDED(hr) && (pColl != NULL))
+      {
+        // Obtained the Anchor Collection...
+        long nLength = 0;
+        pColl->get_length(&nLength);
+
+        for (int i = 0; i < nLength; i++)
+        {
+          VARIANT vIdx;
+          VariantLong(&vIdx, (LONG)i);
+
+          IDispatch* pElemDispatch = NULL;
+          IHTMLElement * pElem = NULL;
+
+          hr = pColl->item(vIdx, vIdx, &pElemDispatch);
+
+          if (SUCCEEDED(hr) && (pElemDispatch != NULL))
+          {
+            hr = pElemDispatch->QueryInterface(IID_IHTMLElement, (void**)&pElem);
+
+            if (SUCCEEDED(hr) && (pElem != NULL))
+            {
+              BSTR bstrId;
+              if (!FAILED(pElem->get_id(&bstrId)))
+              {
+                char* str = iupwinStrWide2Char(bstrId);
+                SysFreeString(bstrId);
+
+                if (iupStrEqual(str, element_id))
+                {
+                  free(str);
+                  pElemDispatch->Release();
+                  pColl->Release();
+                  pHtmlDoc->Release();
+                  pHtmlDocDispatch->Release();
+
+                  return pElem;
+                }
+
+                free(str);
+              }
+
+              pElem->Release();
+            }
+            pElemDispatch->Release();
+          }
+        }
+        pColl->Release();
+      }
+      pHtmlDoc->Release();
+    }
+    pHtmlDocDispatch->Release();
+  }
+
+  return NULL;
+}
+
+static int winWebBrowserSetInnerTextAttrib(Ihandle* ih, const char* value)
+{
+  if (value)
+  {
+    char* element_id = iupAttribGet(ih, "ELEMENT_ID");
+    if (element_id)
+    {
+      IHTMLElement* pElem = winWebBrowserFindElement(ih, element_id);
+      if (pElem)
+      {
+        WCHAR* wvalue = iupwinStrChar2Wide(value);
+        pElem->put_innerText(wvalue);
+        free(wvalue);
+        pElem->Release();
+      }
+    }
+  }
+  return 0;
+}
+
+static char* winWebBrowserGetInnerTextAttrib(Ihandle* ih)
+{
+  char* element_id = iupAttribGet(ih, "ELEMENT_ID");
+  if (element_id)
+  {
+    IHTMLElement* pElem = winWebBrowserFindElement(ih, element_id);
+    if (pElem)
+    {
+      WCHAR* wvalue = NULL;
+      if (!FAILED(pElem->get_innerText(&wvalue)))
+      {
+        char* str = iupwinStrWide2Char(wvalue);
+        char* value = iupStrReturnStr(str);
+        SysFreeString(wvalue);
+        free(str);
+        pElem->Release();
+        return value;
+      }
+      pElem->Release();
+    }
+  }
+
+  return NULL;
+}
+
+static int winWebBrowserSetAttributeAttrib(Ihandle* ih, const char* value)
+{
+  if (value)
+  {
+    char* element_id = iupAttribGet(ih, "ELEMENT_ID");
+    char* attribute_name = iupAttribGet(ih, "ATTRIBUTE_NAME");
+    if (element_id && attribute_name)
+    {
+      IHTMLElement* pElem = winWebBrowserFindElement(ih, element_id);
+      if (pElem)
+      {
+        WCHAR* wname = iupwinStrChar2Wide(attribute_name);
+        WCHAR* wvalue = iupwinStrChar2Wide(value);
+
+        VARIANT var;
+        VariantBStr(&var, wvalue);
+
+        pElem->setAttribute(wname, var, 1);  // case sensitive search
+
+        free(wvalue);
+        free(wname);
+        pElem->Release();
+      }
+    }
+  }
+  return 0;
+}
+
+static char* winWebBrowserGetAttributeAttrib(Ihandle* ih)
+{
+  char* element_id = iupAttribGet(ih, "ELEMENT_ID");
+  char* attribute_name = iupAttribGet(ih, "ATTRIBUTE_NAME");
+  if (element_id && attribute_name)
+  {
+    IHTMLElement* pElem = winWebBrowserFindElement(ih, element_id);
+    if (pElem)
+    {
+      WCHAR* wname = iupwinStrChar2Wide(attribute_name);
+      VARIANT var;
+      VariantInit(&var);
+      if (!FAILED(pElem->getAttribute(wname, 1, &var)) && var.bstrVal)  // case sensitive search
+      {
+        char* str = iupwinStrWide2Char(var.bstrVal);
+        char* value = iupStrReturnStr(str);
+        free(str);
+        free(wname);
+        pElem->Release();
+        return value;
+      }
+      free(wname);
+      pElem->Release();
+    }
+  }
+
+  return NULL;
 }
 
 static int winWebBrowserSetBackForwardAttrib(Ihandle* ih, const char* value)
@@ -310,6 +523,22 @@ static int winWebBrowserSetBackForwardAttrib(Ihandle* ih, const char* value)
     }
   }
 
+  return 0; /* do not store value in hash table */
+}
+
+static int winWebBrowserSetGoBackAttrib(Ihandle* ih, const char* value)
+{
+  IWebBrowser2 *pweb = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
+  pweb->GoBack();
+  (void)value;
+  return 0; /* do not store value in hash table */
+}
+
+static int winWebBrowserSetGoForwardAttrib(Ihandle* ih, const char* value)
+{
+  IWebBrowser2 *pweb = (IWebBrowser2*)iupAttribGet(ih, "_IUPWEB_BROWSER");
+  pweb->GoForward();
+  (void)value;
   return 0; /* do not store value in hash table */
 }
 
@@ -460,8 +689,10 @@ Iclass* iupWebBrowserNewClass(void)
 
   /* Attributes */
   iupClassRegisterAttribute(ic, "VALUE", winWebBrowserGetValueAttrib, winWebBrowserSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "BACKFORWARD", NULL, winWebBrowserSetBackForwardAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "STOP", NULL, winWebBrowserSetStopAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BACKFORWARD", NULL, winWebBrowserSetBackForwardAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "GOBACK", NULL, winWebBrowserSetGoBackAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "GOFORWARD", NULL, winWebBrowserSetGoForwardAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "STOP", NULL, winWebBrowserSetStopAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "RELOAD", NULL, winWebBrowserSetReloadAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "HTML", NULL, winWebBrowserSetHTMLAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "STATUS", winWebBrowserGetStatusAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
@@ -469,6 +700,12 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "SELECTALL", NULL, winWebBrowserSetSelectAllAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ZOOM", winWebBrowserGetZoomAttrib, winWebBrowserSetZoomAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "PRINT", NULL, winWebBrowserSetPrintAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CANGOBACK", NULL, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CANGOFORWARD", NULL, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ELEMENT_ID", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "INNERTEXT", winWebBrowserGetInnerTextAttrib, winWebBrowserSetInnerTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ATTRIBUTE_NAME", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ATTRIBUTE", winWebBrowserGetAttributeAttrib, winWebBrowserSetAttributeAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
   if (!iweb_module)
   {

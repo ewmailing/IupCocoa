@@ -102,14 +102,6 @@ void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h)
   if (h) *h = dc->h;
 }
 
-void iupdrvDrawParentBackground(IdrawCanvas* dc)
-{
-  unsigned char r=0, g=0, b=0;
-  char* color = iupBaseNativeParentGetBgColorAttrib(dc->ih);
-  iupStrToRGB(color, &r, &g, &b);
-  iupdrvDrawRectangle(dc, 0, 0, dc->w-1, dc->h-1, r, g, b, IUP_DRAW_FILL);
-}
-
 static void iDrawSetLineStyle(IdrawCanvas* dc, int style)
 {
   XGCValues gcval;
@@ -131,32 +123,52 @@ static void iDrawSetLineStyle(IdrawCanvas* dc, int style)
   XChangeGC(iupmot_display, dc->pixmap_gc, GCLineStyle, &gcval);
 }
 
-void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
+static void iDrawSetLineWidth(IdrawCanvas* dc, int line_width)
 {
-  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(r, g, b));
+  XGCValues gcval;
+
+  if (line_width == 1)
+    gcval.line_width = 0;
+  else
+    gcval.line_width = line_width;
+
+  XChangeGC(iupmot_display, dc->pixmap_gc, GCLineWidth, &gcval);
+}
+
+void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
+{
+  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
+
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
 
   if (style==IUP_DRAW_FILL)
-    XFillRectangle(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2-x1+1, y2-y1+1);
+    XFillRectangle(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2 - x1 + 1, y2 - y1 + 1);
   else
   {
+    iDrawSetLineWidth(dc, line_width);
     iDrawSetLineStyle(dc, style);
 
-    XDrawRectangle(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2-x1, y2-y1);
+    XDrawRectangle(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2 - x1, y2 - y1);
   }
 }
 
-void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
 {
-  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(r, g, b));
+  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
 
+  iDrawSetLineWidth(dc, line_width);
   iDrawSetLineStyle(dc, style);
 
   XDrawLine(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2, y2);
 }
 
-void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width)
 {
-  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(r, g, b));
+  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
+
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
 
   if (style==IUP_DRAW_FILL)
   {
@@ -165,13 +177,14 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
   }
   else
   {
+    iDrawSetLineWidth(dc, line_width);
     iDrawSetLineStyle(dc, style);
 
-    XDrawArc(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2 - x1 + 1, y2 - y1 + 1, iupRound(a1 * 64), iupRound((a2 - a1) * 64));
+    XDrawArc(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2 - x1 + 1, y2 - y1 + 1, iupRound(a1 * 64), iupRound((a2 - a1) * 64));   /* angle = 1/64ths of a degree */
   }
 }
 
-void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int style, int line_width)
 {
   int i;
   XPoint* pnt = (XPoint*)malloc(count*sizeof(XPoint)); /* XPoint uses short for coordinates */
@@ -182,12 +195,13 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r,
     pnt[i].y = (short)points[2*i+1];
   }
 
-  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(r, g, b));
+  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
 
   if (style==IUP_DRAW_FILL)
     XFillPolygon(iupmot_display, dc->pixmap, dc->pixmap_gc, pnt, count, Complex, CoordModeOrigin);
   else
   {
+    iDrawSetLineWidth(dc, line_width);
     iDrawSetLineStyle(dc, style);
 
     XDrawLines(iupmot_display, dc->pixmap, dc->pixmap_gc, pnt, count, CoordModeOrigin);
@@ -199,10 +213,15 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r,
 void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
   XRectangle rect;
-  rect.x      = (short)x1;
+
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
+  rect.x = (short)x1;
   rect.y      = (short)y1;
-  rect.width  = (unsigned short)(x2-x1+1);
-  rect.height = (unsigned short)(y2-y1+1);
+  rect.width = (unsigned short)(x2 - x1 + 1);
+  rect.height = (unsigned short)(y2 - y1 + 1);
+
   XSetClipRectangles(iupmot_display, dc->pixmap_gc, 0, 0, &rect, 1, Unsorted);
 }
 
@@ -211,17 +230,35 @@ void iupdrvDrawResetClip(IdrawCanvas* dc)
   XSetClipMask(iupmot_display, dc->pixmap_gc, None);
 }
 
-void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, unsigned char r, unsigned char g, unsigned char b, const char* font)
+void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, int w, int h, long color, const char* font, int align)
 {
-  int num_line;
+  int num_line, width, off_x;
   XFontStruct* xfont = (XFontStruct*)iupmotGetFontStruct(font);
-  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(r, g, b));
+  (void)h;  /* unused */
+
+  XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
   XSetFont(iupmot_display, dc->pixmap_gc, xfont->fid);
 
   num_line = iupStrLineCount(text);
 
   if (num_line == 1)
-    XDrawString(iupmot_display, dc->pixmap, dc->pixmap_gc, x, y+xfont->ascent, text, len);
+  {
+    off_x = 0;
+    if (align == IUP_ALIGN_ARIGHT)
+    {
+      width = XTextWidth(xfont, text, len);
+      off_x = w - width;
+      if (off_x < 0) off_x = 0;
+    }
+    else if (align == IUP_ALIGN_ACENTER)
+    {
+      width = XTextWidth(xfont, text, len);
+      off_x = (w - width) / 2;
+      if (off_x < 0) off_x = 0;
+    }
+
+    XDrawString(iupmot_display, dc->pixmap, dc->pixmap_gc, x + off_x, y + xfont->ascent, text, len);
+  }
   else
   {
     int i, line_height, len;
@@ -238,8 +275,22 @@ void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, un
       else
         len = (int)strlen(p);  /* use the remaining characters */
 
+      off_x = 0;
+      if (align == IUP_ALIGN_ARIGHT)
+      {
+        width = XTextWidth(xfont, p, len);
+        off_x = w - width;
+        if (off_x < 0) off_x = 0;
+      }
+      else if (align == IUP_ALIGN_ACENTER)
+      {
+        width = XTextWidth(xfont, p, len);
+        off_x = (w - width) / 2;
+        if (off_x < 0) off_x = 0;
+      }
+
       /* Draw the line */
-      XDrawString(iupmot_display, dc->pixmap, dc->pixmap_gc, x, y + xfont->ascent, p, len);
+      XDrawString(iupmot_display, dc->pixmap, dc->pixmap_gc, x + off_x, y + xfont->ascent, p, len);
 
       /* Advance the string */
       if (q)
@@ -267,6 +318,9 @@ void iupdrvDrawImage(IdrawCanvas* dc, const char* name, int make_inactive, int x
 
 void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
   XSetFunction(iupmot_display, dc->pixmap_gc, GXxor);
   XSetForeground(iupmot_display, dc->pixmap_gc, iupmotColorGetPixel(255, 255, 255));
   XFillRectangle(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2 - x1 + 1, y2 - y1 + 1);
@@ -278,5 +332,8 @@ void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 
 void iupdrvDrawFocusRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
   XmeDrawHighlight(iupmot_display, dc->pixmap, dc->pixmap_gc, x1, y1, x2 - x1 + 1, y2 - y1 + 1, 1);
 }

@@ -270,6 +270,19 @@ static int winTreeIsItemExpanded(Ihandle* ih, HTREEITEM hItem)
   return (item.state & TVIS_EXPANDED) != 0;
 }
 
+static int winTreeIsBranch(Ihandle* ih, HTREEITEM hItem)
+{
+  TVITEM item;
+  winTreeItemData* itemData;
+
+  item.mask = TVIF_HANDLE | TVIF_PARAM;
+  item.hItem = hItem;
+  SendMessage(ih->handle, TVM_GETITEM, 0, (LPARAM)(LPTVITEM)&item);
+  itemData = (winTreeItemData*)item.lParam;
+
+  return (itemData->kind == ITREE_BRANCH);
+}
+
 static void winTreeExpandItem(Ihandle* ih, HTREEITEM hItem, int expand)
 {
   TVITEM item;
@@ -798,7 +811,11 @@ static int winTreeCallBranchLeafCb(Ihandle* ih, HTREEITEM hItem)
   /* Get Children: branch or leaf */
   item.mask = TVIF_HANDLE|TVIF_PARAM|TVIF_STATE; 
   item.hItem = hItem;
-  SendMessage(ih->handle, TVM_GETITEM, 0, (LPARAM)(LPTVITEM)&item);
+
+  /* check if item still exists */
+  if (!SendMessage(ih->handle, TVM_GETITEM, 0, (LPARAM)(LPTVITEM)&item))
+    return IUP_IGNORE;  
+  
   itemData = (winTreeItemData*)item.lParam;
 
   if (itemData->kind == ITREE_BRANCH)
@@ -1486,6 +1503,26 @@ static char* winTreeGetChildCountAttrib(Ihandle* ih, int id)
   return iupStrReturnInt(count);
 }
 
+static char* winTreeGetRootCountAttrib(Ihandle* ih)
+{
+  int count;
+  HTREEITEM hItem = iupTreeGetNode(ih, 0);
+  if (!hItem)
+    return "0";
+
+  count = 1;
+  hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hItem);
+  while (hItem != NULL)
+  {
+    count++;
+
+    /* Go to next sibling item */
+    hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hItem);
+  }
+
+  return iupStrReturnInt(count);
+}
+
 static char* winTreeGetKindAttrib(Ihandle* ih, int id)
 {
   TVITEM item; 
@@ -1516,6 +1553,64 @@ static char* winTreeGetParentAttrib(Ihandle* ih, int id)
     return NULL;
 
   return iupStrReturnInt(iupTreeFindNodeId(ih, hItem));
+}
+
+static char* winTreeGetNextAttrib(Ihandle* ih, int id)
+{
+  HTREEITEM hItem = iupTreeGetNode(ih, id);
+  if (!hItem)
+    return NULL;
+
+  hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hItem);
+  if (!hItem)
+    return NULL;
+
+  return iupStrReturnInt(iupTreeFindNodeId(ih, hItem));
+}
+
+static char* winTreeGetLastAttrib(Ihandle* ih, int id)
+{
+  HTREEITEM hItemLast = NULL;
+  HTREEITEM hItem = iupTreeGetNode(ih, id);
+  if (!hItem)
+    return NULL;
+
+  while (hItem)
+  {
+    hItemLast = hItem;
+    hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hItem);
+  }
+
+  return iupStrReturnInt(iupTreeFindNodeId(ih, hItemLast));
+}
+
+static char* winTreeGetPreviousAttrib(Ihandle* ih, int id)
+{
+  HTREEITEM hItem = iupTreeGetNode(ih, id);
+  if (!hItem)
+    return NULL;
+
+  hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_PREVIOUS, (LPARAM)hItem);
+  if (!hItem)
+    return NULL;
+
+  return iupStrReturnInt(iupTreeFindNodeId(ih, hItem));
+}
+
+static char* winTreeGetFirstAttrib(Ihandle* ih, int id)
+{
+  HTREEITEM hItemFirst = NULL;
+  HTREEITEM hItem = iupTreeGetNode(ih, id);
+  if (!hItem)
+    return NULL;
+
+  while (hItem)
+  {
+    hItemFirst = hItem;
+    hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_PREVIOUS, (LPARAM)hItem);
+  }
+
+  return iupStrReturnInt(iupTreeFindNodeId(ih, hItemFirst));
 }
 
 static void winTreeRemoveItemData(Ihandle* ih, HTREEITEM hItem, IFns cb, int id)
@@ -1979,6 +2074,13 @@ static int winTreeSetValueAttrib(Ihandle* ih, const char* value)
     hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_NEXTVISIBLE, (LPARAM)hItemFocus);
   else if(iupStrEqualNoCase(value, "PREVIOUS"))
     hItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_PREVIOUSVISIBLE, (LPARAM)hItemFocus);
+  else if (iupStrEqualNoCase(value, "CLEAR"))
+  {
+    winTreeSelectNode(ih, hItemFocus, 0);
+
+    if (ih->data->mark_mode == ITREE_MARK_SINGLE)
+      iupAttribSet(ih, "_IUP_UNSELECTEDNODE", (char*)hItemFocus);
+  }
   else
     hItem = iupTreeGetNodeFromString(ih, value);
 
@@ -2352,7 +2454,13 @@ static int winTreeMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT *
       {
         HTREEITEM hItemFocus = iupdrvTreeGetFocusNode(ih);
         if (winTreeCallBranchLeafCb(ih, hItemFocus) != IUP_IGNORE)
-          winTreeExpandItem(ih, hItemFocus, -1);
+        {
+          if (winTreeIsBranch(ih, hItemFocus))
+          {
+            int expanded = winTreeIsItemExpanded(ih, hItemFocus);
+            winTreeExpandItem(ih, hItemFocus, !expanded);
+          }
+        }
 
         *result = 0;
         return 1;
@@ -2760,6 +2868,8 @@ static int winTreeWmNotify(Ihandle* ih, NMHDR* msg_info, int *result)
       if (!itemData)
         return 0;
 
+      /* disabled state is not being reported by uItemState, so it is ignored here */
+
       if (customdraw->nmcd.uItemState & CDIS_SELECTED)
       {
         iupwinGetColor(iupAttribGetStr(ih, "HLCOLOR"), &customdraw->clrTextBk);
@@ -3111,12 +3221,18 @@ void iupdrvTreeInitClass(Iclass* ic)
   iupClassRegisterAttributeId(ic, "DEPTH",  winTreeGetDepthAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "KIND",   winTreeGetKindAttrib,   NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "PARENT", winTreeGetParentAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttributeId(ic, "TITLE",  winTreeGetTitleAttrib,  winTreeSetTitleAttrib, IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "NEXT", winTreeGetNextAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "PREVIOUS", winTreeGetPreviousAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "LAST", winTreeGetLastAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "FIRST", winTreeGetFirstAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "TITLE", winTreeGetTitleAttrib, winTreeSetTitleAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "CHILDCOUNT", winTreeGetChildCountAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "COLOR", winTreeGetColorAttrib, winTreeSetColorAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TITLEFONT", winTreeGetTitleFontAttrib, winTreeSetTitleFontAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TOGGLEVALUE", winTreeGetToggleValueAttrib, winTreeSetToggleValueAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TOGGLEVISIBLE", winTreeGetToggleVisibleAttrib, winTreeSetToggleVisibleAttrib, IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "ROOTCOUNT", winTreeGetRootCountAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
 
   /* IupTree Attributes - MARKS */
   iupClassRegisterAttributeId(ic, "MARKED", winTreeGetMarkedAttrib, winTreeSetMarkedAttrib, IUPAF_NO_INHERIT);

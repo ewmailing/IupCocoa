@@ -28,6 +28,9 @@
     <Filter Include="CPP">
       <UniqueIdentifier>{78b2e9e2-f43b-441f-b287-57053de8a2e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="7GUI">
+      <UniqueIdentifier>{20c2e22c-3dfd-4cf8-9092-c0a705668c7d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\html\examples\C\alarm.c">
@@ -413,6 +416,27 @@
     </ClCompile>
     <ClCompile Include="..\html\examples\C\gridbox2.c">
       <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\examples\C\progressdlg.c">
+      <Filter>C</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\en\7gui\flight_booker.c">
+      <Filter>7GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\en\7gui\temperature_converter.c">
+      <Filter>7GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\en\7gui\timer.c">
+      <Filter>7GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\en\7gui\cells.c">
+      <Filter>7GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\en\7gui\counter.c">
+      <Filter>7GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\html\en\7gui\circle_drawer.c">
+      <Filter>7GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

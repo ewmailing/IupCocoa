@@ -75,12 +75,12 @@ static int iScintillaSetAutoCCancelAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetAutoCActiveAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_AUTOCACTIVE, 0, 0));
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_AUTOCACTIVE, 0, 0));
 }
 
 static char* iScintillaGetAutoCPosStartAttrib(Ihandle* ih)
 {
-  return iupStrReturnInt(IupScintillaSendMessage(ih, SCI_AUTOCPOSSTART, 0, 0));
+  return iupStrReturnInt((int)IupScintillaSendMessage(ih, SCI_AUTOCPOSSTART, 0, 0));
 }
 
 static int iScintillaSetAutoCCompleteAttrib(Ihandle* ih, const char* value)
@@ -92,7 +92,7 @@ static int iScintillaSetAutoCCompleteAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetAutoCSelectedIndexAttrib(Ihandle* ih)
 {
-  return iupStrReturnInt(IupScintillaSendMessage(ih, SCI_AUTOCGETCURRENT, 0, 0));
+  return iupStrReturnInt((int)IupScintillaSendMessage(ih, SCI_AUTOCGETCURRENT, 0, 0));
 }
 
 static int iScintillaSetAutoCSelectAttrib(Ihandle* ih, const char* value)
@@ -103,7 +103,7 @@ static int iScintillaSetAutoCSelectAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetAutoCDropRestOfWordAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_AUTOCGETDROPRESTOFWORD, 0, 0));
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_AUTOCGETDROPRESTOFWORD, 0, 0));
 }
 
 static int iScintillaSetAutoCDropRestOfWordAttrib(Ihandle* ih, const char* value)
@@ -118,7 +118,7 @@ static int iScintillaSetAutoCDropRestOfWordAttrib(Ihandle* ih, const char* value
 
 static char* iScintillaGetAutoCMaxHeightAttrib(Ihandle* ih)
 {
-  return iupStrReturnInt(IupScintillaSendMessage(ih, SCI_AUTOCGETMAXHEIGHT, 0, 0));
+  return iupStrReturnInt((int)IupScintillaSendMessage(ih, SCI_AUTOCGETMAXHEIGHT, 0, 0));
 }
 
 static int iScintillaSetAutoCMaxHeightAttrib(Ihandle* ih, const char* value)
@@ -138,7 +138,7 @@ static int iScintillaSetAutoCMaxHeightAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetAutoCMaxWidthAttrib(Ihandle* ih)
 {
-  return iupStrReturnInt(IupScintillaSendMessage(ih, SCI_AUTOCGETMAXWIDTH, 0, 0));
+  return iupStrReturnInt((int)IupScintillaSendMessage(ih, SCI_AUTOCGETMAXWIDTH, 0, 0));
 }
 
 static int iScintillaSetAutoCMaxWidthAttrib(Ihandle* ih, const char* value)

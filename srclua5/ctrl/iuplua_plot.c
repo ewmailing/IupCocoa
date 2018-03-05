@@ -33,7 +33,7 @@ static void ShowFormulaError(Ihandle* ih, lua_State *L)
   const char* error = lua_tostring(L, -1);
   char msg[1024];
   sprintf(msg, "%s\n  Lua error: %s", str_message, error);
-  iupShowError(IupGetDialog(ih), msg);
+  IupMessageError(IupGetDialog(ih), msg);
 }
 
 int IupPlotSetFormula(Ihandle* ih, int sample_count, const char* formula, const char* init)
@@ -111,7 +111,7 @@ int IupPlotSetFormula(Ihandle* ih, int sample_count, const char* formula, const 
     if (!lua_isnumber(L, -1))
     {
       const char* str_message = IupGetLanguageString("IUP_ERRORINVALIDFORMULA");
-      iupShowError(IupGetDialog(ih), str_message);
+      IupMessageError(IupGetDialog(ih), str_message);
       lua_close(L);
       return -1;
     }
@@ -121,7 +121,7 @@ int IupPlotSetFormula(Ihandle* ih, int sample_count, const char* formula, const 
       if (!lua_isnumber(L, -2))
       {
         const char* str_message = IupGetLanguageString("IUP_ERRORINVALIDFORMULA");
-        iupShowError(IupGetDialog(ih), str_message);
+        IupMessageError(IupGetDialog(ih), str_message);
         lua_close(L);
         return -1;
       }

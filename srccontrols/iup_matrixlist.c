@@ -668,7 +668,10 @@ static int iMatrixListSetTitleAttrib(Ihandle* ih, const char* value)
   if (!ih->handle)
     iupAttribSetId2(ih, "", 0, mtxList->label_col, value);
   else
+  {
     iupMatrixSetValue(ih, 0, mtxList->label_col, value, 0);
+    IupSetfAttribute(ih, "REDRAW", "L%d", 0);
+  }
   return 0;
 }
 
@@ -686,7 +689,10 @@ static int iMatrixListSetIdValueAttrib(Ihandle* ih, int lin, const char* value)
   ImatrixListData* mtxList = (ImatrixListData*)iupAttribGet(ih, "_IUPMTXLIST_DATA");
 
   if (iupMatrixCheckCellPos(ih, lin, mtxList->label_col))
+  {
     iupMatrixSetValue(ih, lin, mtxList->label_col, value, 0);
+    IupSetfAttribute(ih, "REDRAW", "L%d", lin);
+  }
   return 0;
 }
 
@@ -711,8 +717,11 @@ static int iMatrixListSetValueAttrib(Ihandle* ih, const char* value)
 
   if (ih->data->editing)
     IupStoreAttribute(ih->data->datah, "VALUE", value);
-  else 
+  else
+  {
     iupMatrixSetValue(ih, ih->data->lines.focus_cell, mtxList->label_col, value, 0);
+    IupSetfAttribute(ih, "REDRAW", "L%d", ih->data->lines.focus_cell);
+  }
   return 0;
 }
 

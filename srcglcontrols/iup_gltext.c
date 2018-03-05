@@ -60,6 +60,15 @@ static int iGLTextACTION(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
+static void iGLTextSetTextAlignemnt(Ihandle* ih, Ihandle* text)
+{
+  char value1[30], value2[30];
+  char* value = iupAttribGetStr(ih, "ALIGNMENT");
+  iupStrToStrStr(value, value1, value2, ':');
+  if (value1[0] == 0) strcpy(value1, "ALEFT");
+  IupSetStrAttribute(text, "ALIGNMENT", value1);
+}
+
 static int iGLTextBUTTON_CB(Ihandle* ih, int button, int pressed, int x, int y, char* status)
 {
   if (button == IUP_BUTTON1)
@@ -79,7 +88,9 @@ static int iGLTextBUTTON_CB(Ihandle* ih, int button, int pressed, int x, int y, 
 
       iupClassObjectLayoutUpdate(text);
 
-      IupSetAttribute(text, "FONT", IupGetAttribute(ih, "FONT"));
+      iGLTextSetTextAlignemnt(ih, text);
+      IupSetStrAttribute(text, "PADDING", iupAttribGetStr(ih, "PADDING"));
+      IupSetStrAttribute(text, "FONT", IupGetAttribute(ih, "FONT"));
       IupSetAttribute(text, "VISIBLE", "YES");
       IupSetAttribute(text, "ACTIVE", "YES");
       IupSetFocus(text);
@@ -98,7 +109,7 @@ static int iGLTextBUTTON_CB(Ihandle* ih, int button, int pressed, int x, int y, 
 static int iGLTextEditKILLFOCUS_CB(Ihandle* text)
 {
   Ihandle* ih = text->parent;
-  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
   IupSetAttribute(text, "VISIBLE", "NO");
   IupSetAttribute(text, "ACTIVE", "NO");
   IupSetAttribute(gl_parent, "REDRAW", NULL);  /* redraw the whole box */
@@ -151,6 +162,7 @@ static int iGLTextCreateMethod(Ihandle* ih, void** params)
   Ihandle* text = IupText(NULL);
   text->currentwidth = 20;  /* just to avoid initial size 0x0 */
   text->currentheight = 10;
+  text->flags |= IUP_INTERNAL;
   iupChildTreeAppend(ih, text);
 
   IupSetCallback(text, "VALUECHANGED_CB", (Icallback)iGLTextEditVALUECHANGED_CB);
@@ -220,7 +232,7 @@ Iclass* iupGLTextNewClass(void)
 
   /* replace default value */
   iupClassRegisterAttribute(ic, "PADDING", NULL, NULL, IUPAF_SAMEASSYSTEM, "2x2", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, NULL, IUPAF_SAMEASSYSTEM, "ALEFT:ABOTTOM", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, NULL, IUPAF_SAMEASSYSTEM, "ALEFT:ATOP", IUPAF_NO_INHERIT);
 
   return ic;
 }

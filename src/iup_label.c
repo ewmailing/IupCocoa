@@ -108,6 +108,7 @@ static int iLabelCreateMethod(Ihandle* ih, void** params)
   ih->data = iupALLOCCTRLDATA();
 
   /* used only by the Windows driver */
+  ih->data->horiz_alignment = IUP_ALIGN_ALEFT;
   ih->data->vert_alignment = IUP_ALIGN_ACENTER;
   return IUP_NOERROR;
 }

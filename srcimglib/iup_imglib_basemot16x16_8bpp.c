@@ -32,18 +32,12 @@ void iupImglibBaseLibMot16x16Open(void)
   iupImageStockSet("IUP_EditRedo", load_image_EditRedo8, 0);
   iupImageStockSet("IUP_EditUndo", load_image_EditUndo8, 0);
   iupImageStockSet("IUP_FileClose", load_image_FileClose8, 0);
-  iupImageStockSet("IUP_FileCloseAll", load_image_FileCloseAll8, 0);
   iupImageStockSet("IUP_FileNew", load_image_FileNew8, 0);
   iupImageStockSet("IUP_FileOpen", load_image_FileOpen8, 0);
   iupImageStockSet("IUP_FileProperties", load_image_FileProperties8, 0);
   iupImageStockSet("IUP_FileSave", load_image_FileSave8, 0);
-  iupImageStockSet("IUP_FileSaveAll", load_image_FileSaveAll8, 0);
-  iupImageStockSet("IUP_FileText", load_image_FileText8, 0);
-  iupImageStockSet("IUP_FontBold", load_image_FontBold8, 0);
-  iupImageStockSet("IUP_FontDialog", load_image_FontDialog8, 0);
-  iupImageStockSet("IUP_FontItalic", load_image_FontItalic8, 0);
   iupImageStockSet("IUP_MediaForward", load_image_MediaForward8, 0);
-  iupImageStockSet("IUP_MediaGotoBegin", load_image_MediaGoToBegin8, 0);
+  iupImageStockSet("IUP_MediaGoToBegin", load_image_MediaGoToBegin8, 0);
   iupImageStockSet("IUP_MediaGoToEnd", load_image_MediaGoToEnd8, 0);
   iupImageStockSet("IUP_MediaPause", load_image_MediaPause8, 0);
   iupImageStockSet("IUP_MediaPlay", load_image_MediaPlay8, 0);
@@ -63,12 +57,22 @@ void iupImglibBaseLibMot16x16Open(void)
   iupImageStockSet("IUP_ToolsSortAscend", load_image_ToolsSortAscend8, 0);
   iupImageStockSet("IUP_ToolsSortDescend", load_image_ToolsSortDescend8, 0);
   iupImageStockSet("IUP_ViewFullScreen", load_image_ViewFullScreen8, 0);
-  iupImageStockSet("IUP_Webcam", load_image_Webcam8, 0);
-  iupImageStockSet("IUP_WindowsCascade", load_image_WindowsCascade8, 0);
-  iupImageStockSet("IUP_WindowsTile", load_image_WindowsTile8, 0);
-  iupImageStockSet("IUP_Zoom", load_image_Zoom8, 0);
   iupImageStockSet("IUP_ZoomActualSize", load_image_ZoomActualSize8, 0);
   iupImageStockSet("IUP_ZoomIn", load_image_ZoomIn8, 0);
   iupImageStockSet("IUP_ZoomOut", load_image_ZoomOut8, 0);
   iupImageStockSet("IUP_ZoomSelection", load_image_ZoomSelection8, 0);
+
+  iupImageStockSet("IUP_Webcam", load_image_Webcam8, 0);
+
+#ifdef IUP_IMGLIB_OLD
+  iupImageStockSet("IUP_FileCloseAll", load_image_FileCloseAll8, 0);
+  iupImageStockSet("IUP_FileSaveAll", load_image_FileSaveAll8, 0);
+  iupImageStockSet("IUP_FileText", load_image_FileText8, 0);
+  iupImageStockSet("IUP_FontBold", load_image_FontBold8, 0);
+  iupImageStockSet("IUP_FontDialog", load_image_FontDialog8, 0);
+  iupImageStockSet("IUP_FontItalic", load_image_FontItalic8, 0);
+  iupImageStockSet("IUP_WindowsCascade", load_image_WindowsCascade8, 0);
+  iupImageStockSet("IUP_WindowsTile", load_image_WindowsTile8, 0);
+  iupImageStockSet("IUP_Zoom", load_image_Zoom8, 0);
+#endif
 }

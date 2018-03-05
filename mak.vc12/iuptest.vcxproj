@@ -76,7 +76,7 @@
       <AdditionalIncludeDirectories>..\etc</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_scintilla.lib;Imm32.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_plot.lib;iup_mglplot.lib;vld.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupmatrixex.lib;iupole.lib;iupweb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_scintilla.lib;Imm32.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_plot.lib;iup_mglplot.lib;vld.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupole.lib;iupweb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib\Debug;..\..\cd\lib\Debug;..\..\im\lib\Debug;..\..\freetype\lib\Debug;..\..\ftgl\lib\Debug;..\..\zlib\lib\Debug;D:\LNG\vld\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -114,7 +114,7 @@
       <AdditionalIncludeDirectories>..\etc</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_scintilla.lib;Imm32.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_plot.lib;iup_mglplot.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupmatrixex.lib;iupole.lib;iupweb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdiplus.lib;cdcontextplus.lib;comctl32.lib;ole32.lib;opengl32.lib;glu32.lib;iup.lib;iupgl.lib;iupcontrols.lib;iupglcontrols.lib;iupimglib.lib;iup_scintilla.lib;Imm32.lib;cd.lib;freetype6.lib;zlib1.lib;iupcd.lib;iup_plot.lib;iup_mglplot.lib;cdgl.lib;ftgl.lib;iupim.lib;im.lib;im_process.lib;iupole.lib;iupweb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib\Debug_64;..\..\cd\lib\Debug_64;..\..\im\lib\Debug_64;..\..\freetype\lib\Debug_64;..\..\ftgl\lib\Debug_64;..\..\zlib\lib\Debug_64;d:\lng\vld\lib\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -153,9 +153,11 @@
     <ClCompile Include="..\html\examples\tests\detachbox.c" />
     <ClCompile Include="..\html\examples\tests\dial.c" />
     <ClCompile Include="..\html\examples\tests\dialog.c" />
+    <ClCompile Include="..\html\examples\tests\dial_led.c" />
     <ClCompile Include="..\html\examples\tests\expander.c" />
     <ClCompile Include="..\html\examples\tests\flatbutton.c" />
     <ClCompile Include="..\html\examples\tests\flatframe.c" />
+    <ClCompile Include="..\html\examples\tests\flatscrollbox.c" />
     <ClCompile Include="..\html\examples\tests\flattabs.c" />
     <ClCompile Include="..\html\examples\tests\frame.c" />
     <ClCompile Include="..\html\examples\tests\gauge.c" />
