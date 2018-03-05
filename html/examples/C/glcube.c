@@ -134,6 +134,7 @@ Ihandle* initDialog(void)
 
   IupSetAttribute(canvas,"RASTERSIZE","640x480");   /* define the initial size in pixels */
   IupSetAttribute(canvas, "BUFFER","DOUBLE");      /* define that this OpenGL _canvas has double buffer (front and back) */
+  IupSetAttribute(canvas, "DEPTH_SIZE", "16");
 
   /* bind callback actions with callback functions */
   IupSetCallback(canvas, "ACTION", (Icallback) repaint_cb);  

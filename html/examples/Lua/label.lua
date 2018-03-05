@@ -24,10 +24,10 @@ img_star = iup.image {
 }
 
 -- Creates a label and sets all the attributes of label lbl, except for image
-lbl = iup.label { title = "This label has the following attributes set:\nBGCOLOR = 255 255 0\nFGCOLOR = 0 0 255\nFONT = COURIER_NORMAL_14\nTITLE = All text contained here\nALIGNMENT = ACENTER", 
+lbl = iup.label { title = "This label has the following attributes set:\nBGCOLOR = 255 255 0\nFGCOLOR = 0 0 255\nFONT = Courier, 14\nTITLE = All text contained here\nALIGNMENT = ACENTER", 
                   bgcolor = "255 255 0", 
                   fgcolor = "0 0 255", 
-                  font = "COURIER_NORMAL_14", 
+                  font = "Courier, 14", 
                   alignment = "ACENTER" }
   
 -- Creates a label to explain that the label on the right has an image

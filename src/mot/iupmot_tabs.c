@@ -277,7 +277,8 @@ static int motTabsSetFgColorAttrib(Ihandle* ih, const char* value)
 
 static int motTabsSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
   if (ih->handle)
     motTabsUpdatePageFont(ih);
   return 1;
@@ -358,29 +359,10 @@ int iupdrvTabsIsTabVisible(Ihandle* child, int pos)
 }
 
 
-
 /* ------------------------------------------------------------------------- */
 /* motTabs - Callback                                                        */
 /* ------------------------------------------------------------------------- */
 
-static void motTabsPageChangedManual(Ihandle* ih, Ihandle* prev_child, int prev_pos)
-{
-  IFnnn cb = (IFnnn)IupGetCallback(ih, "TABCHANGE_CB");
-  int pos = iupdrvTabsGetCurrentTab(ih);
-
-  Ihandle* child = IupGetChild(ih, pos);
-  Widget tab_container = (Widget)iupAttribGet(child, "_IUPTAB_CONTAINER");
-  if (tab_container) XtMapWidget(tab_container);  /* show new page, if any */
-
-  if (cb)
-    cb(ih, child, prev_child);
-  else
-  {
-    IFnii cb2 = (IFnii)IupGetCallback(ih, "TABCHANGEPOS_CB");
-    if (cb2)
-      cb2(ih, pos, prev_pos);
-  }
-}
 
 static void motTabsPageChangedCallback(Widget w, Ihandle* ih, XmNotebookCallbackStruct *nptr)
 {
@@ -441,7 +423,8 @@ static void motTabsConfigureNotify(Widget w, XEvent *evt, String* s, Cardinal *c
   XtVaGetValues(w, XmNuserData, &child, NULL);
   if (!child) return;
 
-  iupLayoutUpdate(child);
+  if (child->handle)
+    iupLayoutUpdate(child);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -600,11 +583,7 @@ static void motTabsChildRemovedMethod(Ihandle* ih, Ihandle* child, int pos)
       iupAttribSet(child, "_IUPMOT_TABBUTTON", NULL);
       iupAttribSet(child, "_IUPMOT_TABNUMBER", NULL);
 
-      if (iupAttribGet(ih, "_IUPMOT_IGNORE_PAGECHANGE"))
-      {
-        motTabsPageChangedManual(ih, child, pos);
-        iupAttribSet(ih, "_IUPMOT_IGNORE_PAGECHANGE", NULL);
-      }
+      iupAttribSet(ih, "_IUPMOT_IGNORE_PAGECHANGE", NULL);
     }
   }
 }
@@ -660,9 +639,6 @@ static int motTabsMapMethod(Ihandle* ih)
   /* update Tab position */
   motTabsUpdateTabType(ih);
 
-  /* current value is now given by the native system */
-  iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
-
   /* initialize the widget */
   XtRealizeWidget(ih->handle);
 
@@ -670,8 +646,18 @@ static int motTabsMapMethod(Ihandle* ih)
   if (ih->firstchild)
   {
     Ihandle* child;
+    Ihandle* current_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
+
     for (child = ih->firstchild; child; child = child->brother)
       motTabsChildAddedMethod(ih, child);
+
+    if (current_child)
+    {
+      IupSetAttribute(ih, "VALUE_HANDLE", (char*)current_child);
+
+      /* current value is now given by the native system */
+      iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
+    }
   }
 
   return IUP_NOERROR;

@@ -9,6 +9,7 @@
 
 #include <stdarg.h>
 #include "iup_class.h"
+#include "iup_export.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,17 +25,17 @@ extern "C" {
 
 /* SIZE to RASTERSIZE
  * \ingroup object */
-#define iupWIDTH2RASTER(_w, _cw) ((int)((_w * _cw)/4.0 + 0.5))
+#define iupWIDTH2RASTER(_w, _cw) iupRound((_w * _cw)/4.0)
 /* SIZE to RASTERSIZE
  * \ingroup object */
-#define iupHEIGHT2RASTER(_h, _ch) ((int)((_h * _ch)/8.0 + 0.5))
+#define iupHEIGHT2RASTER(_h, _ch) iupRound((_h * _ch)/8.0)
 
 /* RASTERSIZE to SIZE
  * \ingroup object */
-#define iupRASTER2WIDTH(_w, _cw) ((int)((_w * 4.0)/_cw + 0.5))
+#define iupRASTER2WIDTH(_w, _cw) iupRound((_w * 4.0)/_cw)
 /* RASTERSIZE to SIZE
  * \ingroup object */
-#define iupRASTER2HEIGHT(_h, _ch) ((int)((_h * 8.0)/_ch + 0.5))
+#define iupRASTER2HEIGHT(_h, _ch) iupRound((_h * 8.0)/_ch)
 
 
 /** Expand configuration
@@ -126,12 +127,12 @@ Ihandle* iupObjectCreate(Iclass* ic, void** params);
 /** Utility that returns an array of parameters. Must call free for the returned value after usage.
  * Used by the creation functions of objects that receives a NULL terminated array of parameters.
  * \ingroup object */
-void** iupObjectGetParamList(void* first, va_list arglist);
+IUP_EXPORTI void** iupObjectGetParamList(void* first, va_list arglist);
  
 /** Checks if the handle is still valid based on the signature.
  * But if the handle was destroyed still can access invalid memory.
  * \ingroup object */
-int iupObjectCheck(Ihandle* ih);
+IUP_EXPORTI int iupObjectCheck(Ihandle* ih);
 
 
 /* Other functions declared in <iup.h> and implemented here. 

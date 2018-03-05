@@ -70,7 +70,7 @@ bool SimplePaintFile::SaveCheck()
 {
   if (dirty)
   {
-    switch (IupAlarm("Warning", "File not saved! Save it now?", "Yes", "No", "Cancel"))
+    switch (IupMessageAlarm(0, "Attention!", "File not saved. Save it now?", "YESNOCANCEL"))
     {
     case 1:  /* save the changes and continue */
       SaveFile();

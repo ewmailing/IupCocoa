@@ -326,27 +326,27 @@ static void winTextParseCharacterFormat(Ihandle* formattag, CHARFORMAT2 *charfor
   format = iupAttribGet(formattag, "FONTSCALE");
   if (format && charformat->yHeight != 0)
   {
-    float fval = 0;
+    double fval = 0;
     if (iupStrEqualNoCase(format, "XX-SMALL"))
-      fval = 0.5787037037037f;
+      fval = 0.5787037037037;
     else if (iupStrEqualNoCase(format, "X-SMALL"))
-      fval = 0.6444444444444f;
+      fval = 0.6444444444444;
     else if (iupStrEqualNoCase(format, "SMALL"))
-      fval = 0.8333333333333f;
+      fval = 0.8333333333333;
     else if (iupStrEqualNoCase(format, "MEDIUM"))
-      fval = 1.0f;
+      fval = 1.0;
     else if (iupStrEqualNoCase(format, "LARGE"))
-      fval = 1.2f;
+      fval = 1.2;
     else if (iupStrEqualNoCase(format, "X-LARGE"))
-      fval = 1.4399999999999f;
+      fval = 1.4399999999999;
     else if (iupStrEqualNoCase(format, "XX-LARGE"))
-      fval = 1.728f;
+      fval = 1.728;
     else 
-      iupStrToFloat(format, &fval);
+      iupStrToDouble(format, &fval);
 
     if (fval > 0)
     {
-      fval = ((float)charformat->yHeight)*fval;
+      fval = charformat->yHeight * fval;
       charformat->yHeight = iupROUND(fval);
     }
   }
@@ -822,7 +822,10 @@ static int winTextSetSelectedTextAttrib(Ihandle* ih, const char* value)
       return 0;
 
     str = winTextStrConvertToSystem(ih, value);
+
+    ih->data->disable_callbacks = 1;
     SendMessage(ih->handle, EM_REPLACESEL, (WPARAM)TRUE, (LPARAM)str);
+    ih->data->disable_callbacks = 0;
   }
   return 0;
 }
@@ -1020,7 +1023,11 @@ static int winTextSetInsertAttrib(Ihandle* ih, const char* value)
   if (!ih->handle)  /* do not do the action before map */
     return 0;
   if (value)
+  {
+    ih->data->disable_callbacks = 1;
     SendMessage(ih->handle, EM_REPLACESEL, (WPARAM)TRUE, (LPARAM)winTextStrConvertToSystem(ih, value));
+    ih->data->disable_callbacks = 0;
+  }
   return 0;
 }
 
@@ -1038,7 +1045,9 @@ static int winTextSetAppendAttrib(Ihandle* ih, const char* value)
   wpos = GetWindowTextLength(ih->handle)+1;
   SendMessage(ih->handle, EM_SETSEL, (WPARAM)wpos, (LPARAM)wpos);
 
-  if (ih->data->is_multiline && ih->data->append_newline && wpos!=1)
+  ih->data->disable_callbacks = 1;
+
+  if (ih->data->is_multiline && ih->data->append_newline && wpos != 1)
   {
     if (ih->data->has_formatting)
       SendMessage(ih->handle, EM_REPLACESEL, (WPARAM)FALSE, (LPARAM)TEXT("\r"));
@@ -1046,6 +1055,8 @@ static int winTextSetAppendAttrib(Ihandle* ih, const char* value)
       SendMessage(ih->handle, EM_REPLACESEL, (WPARAM)FALSE, (LPARAM)TEXT("\r\n"));
   }
   SendMessage(ih->handle, EM_REPLACESEL, (WPARAM)TRUE, (LPARAM)str);
+
+  ih->data->disable_callbacks = 0;
 
   return 0;
 }
@@ -1814,7 +1825,7 @@ static int winTextMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRESULT *
         return 1;
       }
       else
-        return 0;  /* already processed at the begining of this function */
+        return 0;  /* already processed at the beginning of this function */
     }
   case WM_KEYUP:
     {

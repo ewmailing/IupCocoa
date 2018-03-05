@@ -68,7 +68,8 @@ Lua control
 <h3>Guide</h3>
 <p>The control can contain more than one plot in a rectangular grid. Each plot 
 will then has an exclusive plot area inside the control. When it is just one 
-plot this area will occupy the whole control area.</p>
+plot this area will occupy the whole control area. The plot attributes are set 
+based on the current plot.</p>
 <p>Each plot can contain 2 <b>axis</b> (X and Y), a <b>title</b>, a <b>
 legend</b> <b>box</b>, a <b>grid</b>, a <b>dataset</b> <b>area</b> and as many
 <b>datasets</b> you want. </p>
@@ -77,7 +78,8 @@ parameters are configured by attributes. <strong>IupPlot</strong> support plots
 of
 <strong style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
 linear</strong><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);"><span class="Apple-converted-space">&nbsp;</span>sequential 
-data, as a sequence of 2D samples ([x1,y1],[x2,y2],...) coordinates.</span></p>
+data, as a sequence of 2D samples ([x1,y1],[x2,y2],...) coordinates. The dataset 
+attributes are set based on the current dataset.</span></p>
 <p>If no attribute is set, the default values were selected to best display 
 the plot.</p>
 <p>When setting attributes the plot is NOT redrawn until the REDRAW attribute is 
@@ -166,7 +168,10 @@ Properties...           (only when MENUITEMPROPERTIES=Yes)
 <p>The "Data Set Values..." dialog is available only if the
 <a href="iupmatrixex.html">IupMatrixEx</a> control is initialized and ready to 
 be used. Also the dialog in read-only by default, to enable the editing of 
-values on the dialog set EDITABLEVALUES=Yes. (since 3.21)</p>
+values on the dialog set EDITABLEVALUES=Yes. It is shown for the current 
+Dataset. (since 3.21)</p>
+<p>The "Data Set Properties..." dialog is shown for the current Dataset. The 
+"Properties..." dialog is shown for the current Plot.</p>
 <p>Context menu behavior can be controlled using the respective
 <a href="#Callbacks">callbacks</a>.</p>
 <h3><a name="Creation">Creation</a></h3>
@@ -521,6 +526,11 @@ scale. (since 3.13)</p>
 <p><strong>BACKIMAGE_XMIN, BACKIMAGE_XMAX, BACKIMAGE_YMIN, BACKIMAGE_YMAX</strong>: 
 coordinates in plot scale to position the background image. The anchors in the 
 image are the left-bottom and the top-right corners. (since 3.13) </p>
+<p><strong>DATASETCLIPPING</strong>: controls the clipping the dataset drawing. 
+Can be: NONE, AREA or AREAOFFSET. Default: AREA. When AREA clipping is set to 
+the regular dataset area. When AREAOFFSET clipping area is extended by a 2% 
+offset or at least 10 pixels, but only when not in zoom. When NONE area is 
+extended up to the plot limits. (since 3.22)</p>
 <h4>Title Configuration </h4>
 <p><b>TITLE:</b> the title. If NULL will not be displayed.</p>
 <p><b>TITLECOLOR</b>: title color. Default: FGCOLOR.</p>
@@ -570,7 +580,7 @@ specific axis at the major ticks. Can be: YES (both), HORIZONTAL, VERTICAL or NO
 and <b>GRIDLINEWIDTH</b>: are the same attributes for a grid at the minor ticks, 
 but they are visible only if the major ticks grid are visible too. (since 3.13)</p>
 <h4>Box Configuration </h4>
-<p><b>BOX</b>: draws a bounding box around the dataset area. Default: NO.</p>
+<p><b>BOX</b>: draws a box around the dataset area. Default: NO.</p>
 <p><b>BOXCOLOR</b>: box line color. Default: FGCOLOR.</p>
 <p><b>BOXLINESTYLE</b>: line style of the grid. Can be: "CONTINUOUS", "DASHED", 
 "DOTTED", "DASH_DOT", "DASH_DOT_DOT". Default is "CONTINUOUS".</p>
@@ -775,37 +785,6 @@ MAXSIZE</a>,
 also accepted.&nbsp;</p>
 <h3><a name="Callbacks">Callbacks</a></h3>
 
-<p><b>DELETE_CB</b>:
-  Action generated when the Del key is pressed to removed a sample from a 
-dataset.
-    If multiple samples are selected it is called once for each selected sample.</p>
-  
-    <pre>int function(Ihandle *<strong>ih</strong>, int <b>ds_index</b>, int <b>sample_index</b>, double <strong>x</strong>, double <strong>y</strong>); [in C]
-<strong>ih</strong>:delete_cb(<b>ds_index, sample_index, x, y</b>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
-    <p class="info"><strong>ih</strong>:
-  identifier of the element that activated the 
-  event.<br> <b>ds_index</b>: index of the dataset<br>
-    <b>sample_index</b>: index of the sample in the dataset<strong><br>
-    x</strong>: X coordinate value of the sample<br>
-    <strong>y</strong>: Y coordinate value of the sample</p>
-    <p class="info">
-    <span class="style2">Returns:</span>
-    If IUP_IGNORE then the sample is not deleted.</p>
-  
-<p><b>DELETEBEGIN_CB, DELETEEND_CB</b>: Actions generated when a delete operation 
-will begin or end. But they are called only if DELETE_CB is also defined.</p>
-  
-    <pre>int function(Ihandle *<strong>ih</strong>); [in C]
-<strong>ih</strong>:deletebegin_cb() -&gt; (<strong>ret</strong>: number) [in Lua]
-<strong>ih</strong>:deleteend_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
-    <p class="info"><strong>ih</strong>:
-  identifier of the element that activated the 
-  event.</p>
-    <p class="info">
-    <span class="style2">Returns:</span>
-    If DELETEBEGIN_CB returns IUP_IGNORE the delete operation for 
-    all the selected samples are aborted.</p>
-  
   
     
 <p><b>CLICKSAMPLE_CB</b>:
@@ -820,7 +799,8 @@ conflict with zoom and context menu situations. The sample is searched using
   identifier of the element that activated the 
   event.<br> <b>ds_index</b>: index of the dataset<br>
     <b>sample_index</b>: index of the sample in the dataset<strong><br>
-    x</strong>: X coordinate value of the sample<br>
+    x</strong>: X coordinate value of the sample. When DS_STRXDATA=Yes, contains 
+	just the sample_index.<br>
     <strong>y</strong>: Y coordinate value of the sample<br>
 <strong>button</strong>: identifies the activated mouse button<br>
 	&nbsp;&nbsp;&nbsp;&nbsp;IUP_BUTTON1 - left mouse button (button 1)<br>
@@ -854,6 +834,54 @@ callback is ignored. The segment is searched using <a href="#IupPlotFindSegment"
 	&nbsp;&nbsp;&nbsp;&nbsp;IUP_BUTTON2 - middle mouse button (button 2)<br>
 	&nbsp;&nbsp;&nbsp;&nbsp;IUP_BUTTON3 - right mouse button (button 3)</p>
   
+<p><b>EDITSAMPLE_CB</b>:
+  Action generated when a sample coordinates are changed in the "Data Set 
+Values..." dialog if EDITABLEVALUES=Yes. (since 3.24)</p>
+  
+    <pre>int function(Ihandle *<strong>ih</strong>, int <b>ds_index</b>, int <b>sample_index</b>, double <strong>x</strong>, double <strong>y</strong>); [in C]
+<strong>ih</strong>:delete_cb(<b>ds_index, sample_index, x, y</b>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+    <p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br> <b>ds_index</b>: index of the dataset<br>
+    <b>sample_index</b>: index of the sample in the dataset<strong><br>
+    x</strong>: X coordinate value of the sample. When DS_STRXDATA=Yes, contains 
+	just the sample_index.<br>
+    <strong>y</strong>: Y coordinate value of the sample</p>
+
+<p><b>DELETE_CB</b>:
+  Action generated when the Del key is pressed to removed a sample from a 
+dataset.
+    If multiple samples are selected it is called once for each selected sample.</p>
+  
+    <pre>int function(Ihandle *<strong>ih</strong>, int <b>ds_index</b>, int <b>sample_index</b>, double <strong>x</strong>, double <strong>y</strong>); [in C]
+<strong>ih</strong>:delete_cb(<b>ds_index, sample_index, x, y</b>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+    <p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br> <b>ds_index</b>: index of the dataset<br>
+    <b>sample_index</b>: index of the sample in the dataset<strong><br>
+    x</strong>: X coordinate value of the sample. When DS_STRXDATA=Yes, contains 
+	just the sample_index.<br>
+    <strong>y</strong>: Y coordinate value of the sample</p>
+    <p class="info">
+    <span class="style2">Returns:</span>
+    If IUP_IGNORE then the sample is not deleted.</p>
+  
+<p><b>DELETEBEGIN_CB, DELETEEND_CB</b>: Actions generated when a delete operation 
+will begin or end. But they are called only if DELETE_CB is also defined.</p>
+  
+    <pre>int function(Ihandle *<strong>ih</strong>); [in C]
+<strong>ih</strong>:deletebegin_cb() -&gt; (<strong>ret</strong>: number) [in Lua]
+<strong>ih</strong>:deleteend_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+    <p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+    <p class="info">
+    <span class="style2">Returns:</span>
+    If DELETEBEGIN_CB returns IUP_IGNORE the delete operation for 
+    all the selected samples are aborted.</p>
+  
+  
+    
 <p><b>DRAWSAMPLE_CB</b>:
   Action generated when  a sample is drawn. When the plot is redraw, it is called for 
 each sample, then 
@@ -865,7 +893,8 @@ it is called again for all selected samples, and this repeats for each data set.
   identifier of the element that activated the 
   event.<br><strong>index</strong>: index of the dataset<br>
     <b>sample_index</b>: index of the sample in the dataset<strong><br>
-    x</strong>: X coordinate value of the sample<br>
+    x</strong>: X coordinate value of the sample. When DS_STRXDATA=Yes, contains 
+	just the sample_index.<br>
     <strong>y</strong>: Y coordinate value of the sample<br>
     <b>select</b>: indicates if the sample is 
     selected.</p>
@@ -894,6 +923,24 @@ with no Ctrl nor Shift keys. Only shown if MENUCONTEXT=Yes.</p>
 
 <p><strong>MENUCONTEXTCLOSE_CB</strong>: Same as MENUCONTEXT_CB, but called 
 after the context menu is closed. Only shown if MENUCONTEXT=Yes.</p>
+<p><strong>DSPROPERTIESCHANGED_CB</strong>: Called when the user changed some 
+dataset attributes using the "Data Set Properties..." dialog. (since 3.24)</p>
+  
+    <pre>int function(Ihandle *<strong>ih</strong>, int <b>ds_index</b>); [in C]
+<strong>ih</strong>:dspropertieschanged_cb(<b>ds_index</b>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+    <p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br> <b>ds_index</b>: index of the dataset</p>
+    <p><strong>PROPERTIESCHANGED_CB</strong>: Called when the user changed some 
+	plot attributes using the "Properties..." dialog. (since 3.24)</p>
+
+  
+    
+    <pre>int function(Ihandle *<strong>ih</strong>); [in C]
+<strong>ih</strong>:propertieschanged_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+    <p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
 
   
     
@@ -909,7 +956,8 @@ It is called only if the selection state of the sample is about to be changed.</
   identifier of the element that activated the 
   event.<br> <b>ds_index</b>: index of the dataset<br>
     <b>sample_index</b>: index of the sample in the dataset<strong><br>
-    x</strong>: X coordinate value of the sample<br>
+    x</strong>: X coordinate value of the sample. When DS_STRXDATA=Yes, contains 
+	just the sample_index.<br>
     <strong>y</strong>: Y coordinate value of the sample<br>
     <b>select</b>: indicates if the sample is 
     to be selected.</p>

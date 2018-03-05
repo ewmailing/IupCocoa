@@ -34,11 +34,11 @@ extern "C" {
 
 /** Returns true if the attribute name is a known pointer. \n
  * \ingroup attrib */
-int iupAttribIsNotString(Ihandle* ih, const char *name);
+IUP_EXPORTI int iupAttribIsNotString(Ihandle* ih, const char *name);
 
 /** Returns true if the attribute name is a known Ihandle*. \n
 * \ingroup attrib */
-int iupAttribIsIhandle(Ihandle* ih, const char *name);
+IUP_EXPORTI int iupAttribIsIhandle(Ihandle* ih, const char *name);
 
 
 
@@ -139,6 +139,11 @@ char* iupAttribGetStr(Ihandle* ih, const char* name);
  * \ingroup attrib */
 int iupAttribGetInt(Ihandle* ih, const char* name);
 
+/** Same as \ref iupAttribGetInt but returns two integer numbers. \n
+ * Returns the number of valid integers: 0, 1 or 2.
+ * \ingroup attrib */
+int iupAttribGetIntInt(Ihandle *ih, const char* name, int *i1, int *i2, char sep);
+
 /** Same as \ref iupAttribGetStr but checks for boolean values.
  * Use \ref iupStrBoolean.
  * \ingroup attrib */
@@ -210,11 +215,11 @@ char* iupAttribGetLocal(Ihandle* ih, const char* name);
 
 /** Set an internal name to a handle.
  * \ingroup attrib */
-void iupAttribSetHandleName(Ihandle *ih);
+IUP_EXPORTI void iupAttribSetHandleName(Ihandle *ih);
 
 /** Returns the internal name if set.
  * \ingroup attrib */
-char* iupAttribGetHandleName(Ihandle *ih);
+IUP_EXPORTI char* iupAttribGetHandleName(Ihandle *ih);
 
 
 

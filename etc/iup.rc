@@ -5,8 +5,8 @@ CURSOR_PEN CURSOR "pen.cur"
 /* Applications can change or remove this */
 
 1 VERSIONINFO
- FILEVERSION 3,21,0,0
- PRODUCTVERSION 3,21,0,0
+ FILEVERSION 3,24,0,0
+ PRODUCTVERSION 3,24,0,0
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
@@ -15,11 +15,11 @@ BEGIN
             VALUE "Comments", "www.tecgraf.puc-rio.br/iup\0"
             VALUE "CompanyName", "Tecgraf/PUC-Rio\0"
             VALUE "FileDescription", "IUP - Portable User Interface\0"
-            VALUE "FileVersion", "3.21.0\0"
+            VALUE "FileVersion", "3.24.0\0"
             VALUE "LegalCopyright", "Copyright © 1994-2017 Tecgraf/PUC-Rio.\0"
             VALUE "OriginalFilename", "iup.dll\0"
             VALUE "ProductName", "IUP for Windows\0"
-            VALUE "ProductVersion", "3.21.0\0"
+            VALUE "ProductVersion", "3.24.0\0"
         END
     END
 END

@@ -55,7 +55,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\src;..\src\gtk;..\include;d:\lng\gtk2\include\atk-1.0;d:\lng\gtk2\include\cairo;d:\lng\gtk2\include\glib-2.0;d:\lng\gtk2\include\gtk-2.0;d:\lng\gtk2\include\pango-1.0;d:\lng\gtk2\lib\gtk-2.0\include;d:\lng\gtk2\lib\glib-2.0\include;d:\lng\gtk2\include\gdk-pixbuf-2.0;..\srcscintilla\include;..\srcscintilla\lexlib;..\srcscintilla\src;..\srcscintilla\gtk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src;..\src\gtk;..\include;d:\lng\gtk2\include\atk-1.0;d:\lng\gtk2\include\cairo;d:\lng\gtk2\include\glib-2.0;d:\lng\gtk2\include\gtk-2.0;d:\lng\gtk2\include\pango-1.0;d:\lng\gtk2\lib\gtk-2.0\include;d:\lng\gtk2\lib\glib-2.0\include;d:\lng\gtk2\include\gdk-pixbuf-2.0;..\srcscintilla\scintilla\include;..\srcscintilla\scintilla\lexlib;..\srcscintilla\scintilla\src;..\srcscintilla\scintilla\gtk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;IUP_ASSERT;_CRT_SECURE_NO_DEPRECATE;GTK;_USE_MATH_DEFINES;STATIC_BUILD;SCI_LEXER;GTK_DISABLE_DEPRECATED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -75,7 +75,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\src;..\src\gtk;..\include;d:\lng\gtk2_x64\include\atk-1.0;d:\lng\gtk2_x64\include\cairo;d:\lng\gtk2_x64\include\glib-2.0;d:\lng\gtk2_x64\include\gtk-2.0;d:\lng\gtk2_x64\include\pango-1.0;d:\lng\gtk2_x64\lib\gtk-2.0\include;d:\lng\gtk2_x64\lib\glib-2.0\include;d:\lng\gtk2_x64\include\gdk-pixbuf-2.0;..\srcscintilla\include;..\srcscintilla\lexlib;..\srcscintilla\src;..\srcscintilla\gtk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src;..\src\gtk;..\include;d:\lng\gtk2_x64\include\atk-1.0;d:\lng\gtk2_x64\include\cairo;d:\lng\gtk2_x64\include\glib-2.0;d:\lng\gtk2_x64\include\gtk-2.0;d:\lng\gtk2_x64\include\pango-1.0;d:\lng\gtk2_x64\lib\gtk-2.0\include;d:\lng\gtk2_x64\lib\glib-2.0\include;d:\lng\gtk2_x64\include\gdk-pixbuf-2.0;..\srcscintilla\scintilla\include;..\srcscintilla\scintilla\lexlib;..\srcscintilla\scintilla\src;..\srcscintilla\scintilla\gtk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;IUP_ASSERT;_CRT_SECURE_NO_DEPRECATE;GTK;_USE_MATH_DEFINES;STATIC_BUILD;SCI_LEXER;GTK_DISABLE_DEPRECATED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -95,17 +95,14 @@
     <CustomBuildStep Include="..\include\iup_scintilla.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\srcscintilla\gtk\PlatGTK.cxx" />
-    <ClCompile Include="..\srcscintilla\gtk\scintilla-marshal.c" />
-    <ClCompile Include="..\srcscintilla\gtk\ScintillaGTK.cxx" />
-    <ClCompile Include="..\srcscintilla\iup_scintilla.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-    </ClCompile>
+    <ClCompile Include="..\srcscintilla\scintilla\gtk\PlatGTK.cxx" />
+    <ClCompile Include="..\srcscintilla\scintilla\gtk\scintilla-marshal.c" />
+    <ClCompile Include="..\srcscintilla\scintilla\gtk\ScintillaGTK.cxx" />
+    <ClCompile Include="..\srcscintilla\iup_scintilla_gtk.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\srcscintilla\gtk\Converter.h" />
-    <ClInclude Include="..\srcscintilla\gtk\scintilla-marshal.h" />
+    <ClInclude Include="..\srcscintilla\scintilla\gtk\Converter.h" />
+    <ClInclude Include="..\srcscintilla\scintilla\gtk\scintilla-marshal.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

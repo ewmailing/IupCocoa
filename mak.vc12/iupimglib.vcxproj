@@ -103,12 +103,20 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="..\srcimglib\iup_imglib_basegtk324x24.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\srcimglib\iup_imglib_basemot16x16_8bpp.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\srcimglib\iup_imglib_basewin16x16.h" />
     <ClInclude Include="..\srcimglib\iup_imglib_basewin32x32.h" />
+    <ClInclude Include="..\srcimglib\iup_imglib_iconsgtk348x48.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\srcimglib\iup_imglib_iconswin48x48.h" />
     <ClInclude Include="..\srcimglib\iup_imglib_logos32x32.h" />
     <ClInclude Include="..\srcimglib\iup_imglib_logos32x32_8bpp.h">
@@ -123,7 +131,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\srcimglib\iup_image_library.c" />
-    <ClCompile Include="..\srcimglib\iup_imglib_basegtk16x16.c">
+    <ClCompile Include="..\srcimglib\iup_imglib_basegtk24x24.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\srcimglib\iup_imglib_basegtk324x24.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -137,6 +149,10 @@
     </ClCompile>
     <ClCompile Include="..\srcimglib\iup_imglib_basewin32x32.c" />
     <ClCompile Include="..\srcimglib\iup_imglib_circleprogress.c" />
+    <ClCompile Include="..\srcimglib\iup_imglib_iconsgtk348x48.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\srcimglib\iup_imglib_iconsgtk48x48.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

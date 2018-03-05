@@ -1,5 +1,5 @@
 /** \file
- * \brief global attributes enviroment
+ * \brief global attributes environment
  *
  * See Copyright Notice in "iup.h"
  */
@@ -11,11 +11,13 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 /* called only in IupOpen and IupClose */
 void iupGlobalAttribInit(void);
 void iupGlobalAttribFinish(void);
 
-int iupGlobalIsPointer(const char* name);
+IUP_EXPORTI int iupGlobalIsPointer(const char* name);
 
 int iupGlobalDefaultColorChanged(const char *name);    /* check if user changed */
 void iupGlobalSetDefaultColorAttrib(const char* name, int r, int g, int b);  /* internal change method */

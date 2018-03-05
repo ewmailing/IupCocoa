@@ -14,17 +14,10 @@ extern "C" {
 
 int  IupControlsOpen(void);
 
-Ihandle* IupColorbar(void);
 Ihandle* IupCells(void);
-Ihandle *IupColorBrowser(void);
-Ihandle *IupGauge(void);
-Ihandle *IupDial(const char* type);
 Ihandle* IupMatrix(const char *action);
 Ihandle* IupMatrixList(void);
-
-/* Used by IupColorbar */
-#define IUP_PRIMARY -1
-#define IUP_SECONDARY -2
+Ihandle* IupMatrixEx(void);
 
 /* available only when linking with "iupluamatrix" */
 void IupMatrixSetFormula(Ihandle* ih, int col, const char* formula, const char* init);

@@ -672,7 +672,7 @@ void MglPlotTest(void)
   IupSetAttribute(tgg1, "VALUE", "ON");
 
   f1 = IupFrame( IupVbox(boxdial1, tgg1, NULL) );
-  IupSetAttribute(f1, "TITLE", "Y Zoom");
+  IupSetAttribute(f1, "TITLE", "Y Min-Max");
 
   /* X zooming */
   dial2 = IupDial("HORIZONTAL");
@@ -701,7 +701,7 @@ void MglPlotTest(void)
   IupSetCallback(tgg2, "ACTION", (Icallback)tgg2_cb);
 
   f2 = IupFrame( IupVbox(boxdial2, tgg2, NULL) );
-  IupSetAttribute(f2, "TITLE", "X Zoom");
+  IupSetAttribute(f2, "TITLE", "X Min-Max");
 
   lbl1 = IupLabel("");
   IupSetAttribute(lbl1, "SEPARATOR", "HORIZONTAL");

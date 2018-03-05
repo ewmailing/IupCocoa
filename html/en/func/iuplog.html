@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupLog</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	text-decoration: underline;
+}
+.auto-style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+
+<h2>IupLog<span class="auto-style1"> (since 3.23)</span></h2>
+<p>Writes a message to the system log.</p>
+<p>In Windows, writes to the &quot;<strong>Application</strong>&quot; event log. Except if 
+type is DEBUG, in this case uses <strong>OutputDebugString</strong> to write to 
+the current debugger. If the application has no debugger and the system debugger 
+is not active, it does nothing. When running from Visual Studio the message is 
+displayed in the Output panel only when when debugging the application. To view 
+the other messages run the <strong>Event Viewer</strong> management console in 
+Administrative Tools.</p>
+<p>In Linux, write to the <strong>Syslog</strong>. When type is DEBUG, it will 
+also <span>write to the calling process' <strong>Standard Error</strong> stream. 
+If fails to submit a message to Syslog writes the message instead to system 
+console.&nbsp;To view the messages in Ubuntu use the <strong>File Log Viewer</strong> 
+application, or you can directly read the content of the /var/log/syslog file. 
+It is common to grab the last lines of the file using &quot;tail -n 10 /var/log/syslog&quot;. 
+You can also filter messages using grep and the filename of the application.
+</span></p>
+<h3>
+Parameters/Return</h3>
+<pre>void IupLog(const char* <strong>type, </strong>const char* <strong>format, ...</strong>); [in C]
+void IupLogV(const char* <strong>type</strong>, const char* <strong>format</strong>, va_list <strong>arglist</strong>); [in C]
+iup.Log(<strong>type, str</strong>: string) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+<p><strong>type</strong>: type of the log. Can be DEBUG, INFO, ERROR and 
+WARNING.<br><strong>format</strong>: uses the same format specification as the 
+<b>sprintf</b> function in C. <br><strong>str</strong>: the message string in 
+Lua</p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>

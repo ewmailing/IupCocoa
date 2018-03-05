@@ -40,7 +40,7 @@
   
 <p>
   Creates an interface element that is a 
-  canvas - a working area for your application.</p>
+  canvas - a drawing area for your application.</p>
 
 
 <h3><a name="Creation">Creation</a></h3>
@@ -83,6 +83,8 @@ the first redraw will be lost. Default: "255 255 255".</p>
 
 <p><strong>CANFOCUS</strong> (creation only)<strong> </strong>(<font size="3">non inheritable</font>): enables the focus traversal of the control. In Windows the canvas will respect CANFOCUS 
 differently to some other controls. Default: YES. (since 3.0)</p>
+
+<p><strong>PROPAGATEFOCUS</strong>(<font size="3">non inheritable</font>): enables the focus callback forwarding to the next native parent with FOCUS_CB defined. Default: NO. (since 3.23)</p>
 
 <p><b>CAIRO_CR</b> [GTK Only] (<font size="3">non inheritable</font>): 
 Contains the &quot;cairo_t*&quot; parameter of the internal GTK callback. Valid 
@@ -217,10 +219,12 @@ canvas needs to be redrawn.</p>
   event.<br>
 
     <strong>posx</strong>:
-    thumb position in the horizontal scrollbar. The POSX attribute value.<br>
+    thumb position in the horizontal scrollbar. The POSX attribute value. Old 
+parameter in float format, use POSX attribute to get the value in double format.<br>
 
     <strong>posy</strong>:
-    thumb position in the vertical scrollbar. The POSY attribute value.</p>
+    thumb position in the vertical scrollbar. The POSY attribute value. Old 
+parameter in float format, use POSX attribute to get the value in double format.</p>
 
   
   
@@ -360,6 +364,11 @@ RESIZE_CB()
 ACTION()</pre>
 <p>When the canvas is resized the ACTION callback is always called after the 
 RESIZE_CB callback.</p>
+<p>The <a href="../func/iupdraw.html">IupDraw</a> API can be used to draw in the 
+canvas. But the ACTION callback function can NOT be called manually from inside 
+the application, it must be invoked by the system, so if you need to redraw then 
+call <a href="../func/iupredraw.html">IupRedraw</a> or
+<a href="../func/iupupdate.html">IupUpdate</a>.</p>
 <h3>Using with the CD library</h3>
 <p>When using the <a href="http://www.tecgraf.puc-rio.br/cd/" target="_blank">CD</a> 
 library to draw in a IupCanvas, you can use the callbacks to manage the canvas. 

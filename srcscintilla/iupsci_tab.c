@@ -43,7 +43,7 @@ SCI_GETHIGHLIGHTGUIDE
 static char* iScintillaGetTabSizeAttrib(Ihandle *ih)
 {
   int widthInChars;
-  widthInChars = IupScintillaSendMessage(ih, SCI_GETTABWIDTH, 0, 0);
+  widthInChars = (int)IupScintillaSendMessage(ih, SCI_GETTABWIDTH, 0, 0);
   return iupStrReturnInt(widthInChars);
 }
 
@@ -62,7 +62,7 @@ static int iScintillaSetTabSizeAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetHighlightGuideAttrib(Ihandle *ih)
 {
-  int col = IupScintillaSendMessage(ih, SCI_GETHIGHLIGHTGUIDE, 0, 0);
+  int col = (int)IupScintillaSendMessage(ih, SCI_GETHIGHLIGHTGUIDE, 0, 0);
   return iupStrReturnInt(col);
 }
 
@@ -79,7 +79,7 @@ static int iScintillaSetHighlightGuideAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetIndentationGuidesAttrib(Ihandle *ih)
 {
-  int indentView = IupScintillaSendMessage(ih, SCI_GETINDENTATIONGUIDES, 0, 0);
+  int indentView = (int)IupScintillaSendMessage(ih, SCI_GETINDENTATIONGUIDES, 0, 0);
   char* str[] = {"NONE", "REAL", "LOOKFORWARD", "LOOKBOTH"};
   return str[indentView];
 }
@@ -110,7 +110,7 @@ static int iScintillaSetUseTabsAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetUseTabsAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_GETUSETABS, 0, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_GETUSETABS, 0, 0)); 
 }
 
 void iupScintillaRegisterTab(Iclass* ic)

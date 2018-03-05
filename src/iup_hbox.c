@@ -19,6 +19,7 @@
 #include "iup_layout.h"
 #include "iup_box.h"
 #include "iup_normalizer.h"
+#include "iup_varg.h"
 
 
 static int iHboxSetRasterSizeAttrib(Ihandle* ih, const char* value)
@@ -213,8 +214,8 @@ static void iHboxSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
         char* weight_str = iupAttribGet(child, "EXPANDWEIGHT");
         if (weight_str)
         {
-          float weight; 
-          if (iupStrToFloat(weight_str, &weight))
+          double weight;
+          if (iupStrToDouble(weight_str, &weight))
             empty = iupRound(empty * weight);
         }
         iupBaseSetCurrentSize(child, child->naturalwidth+empty, client_height, shrink);
@@ -272,18 +273,19 @@ Ihandle *IupHboxv(Ihandle **children)
   return IupCreatev("hbox", (void**)children);
 }
 
+Ihandle* IupHboxV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("hbox", child, arglist);
+}
+
 Ihandle *IupHbox(Ihandle* child, ...)
 {
-  Ihandle **children;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("hbox", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("hbox", (void**)children);
-  free(children);
 
   return ih;
 }

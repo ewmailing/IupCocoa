@@ -15,6 +15,8 @@
 #include "iup_config.h"
 #include "iup_linefile.h"
 #include "iup_str.h"
+#include "iup_attrib.h"
+#include "iup_assert.h"
 #include "iup_drvinfo.h"
 
 #define GROUPKEYSIZE 100
@@ -126,7 +128,10 @@ int IupConfigLoad(Ihandle* ih)
 
   line_file = iupLineFileOpen(filename);
   if (!line_file)
+  {
+    iupLineFileClose(line_file);
     return -1;
+  }
 
   do
   {
@@ -134,7 +139,10 @@ int IupConfigLoad(Ihandle* ih)
 
     int line_len = iupLineFileReadLine(line_file);
     if (line_len == -1)
+    {
+      iupLineFileClose(line_file);
       return -2;
+    }
 
     line_buffer = iupLineFileGetBuffer(line_file);
 
@@ -160,7 +168,7 @@ int IupConfigLoad(Ihandle* ih)
       if (!value)                    
         value = line_buffer;
       else
-        value++;  // Skip =
+        value++;  /* Skip '=' */
 
       IupConfigSetVariableStr(ih, group, key, value);
     }
@@ -338,36 +346,117 @@ double IupConfigGetVariableDoubleId(Ihandle* ih, const char* group, const char* 
   return IupConfigGetVariableDouble(ih, group, key_id);
 }
 
+void IupConfigCopy(Ihandle* ih1, Ihandle* ih2, const char* exclude_prefix)
+{
+  char *name;
+
+  iupASSERT(iupObjectCheck(ih1));
+  if (!iupObjectCheck(ih1))
+    return;
+
+  iupASSERT(iupObjectCheck(ih2));
+  if (!iupObjectCheck(ih2))
+    return;
+
+  name = iupTableFirst(ih1->attrib);
+  while (name)
+  {
+    if (!iupATTRIB_ISINTERNAL(name) && !iupStrEqualPartial(name, exclude_prefix))
+      iupTableSet(ih2->attrib, name, iupTableGet(ih1->attrib, name), IUPTABLE_STRING);
+
+    name = iupTableNext(ih1->attrib);
+  }
+}
 
 /******************************************************************/
 
 
+void IupConfigSetListVariable(Ihandle* ih, const char *group, const char* key, const char* value, int add)
+{
+  const char* value_id;
+  int last_id, found_id = 0;
+
+  /* First search for the value in the list */
+  int i = 1;
+  do
+  {
+    value_id = IupConfigGetVariableStrId(ih, group, key, i);
+
+    if (value_id && iupStrEqual(value_id, value))
+    {
+      found_id = i;
+      if (add)
+        return; /* nothing to do */
+      else
+        break;  /* remove later */
+    }
+
+    i++;
+  } while (value_id);
+
+  last_id = i - 2;
+
+  if (found_id)
+  {
+    /* remove found_id by moving last item to replace old item */
+    value_id = IupConfigGetVariableStrId(ih, group, key, last_id);
+    IupConfigSetVariableStrId(ih, group, key, found_id, value_id);
+    IupConfigSetVariableStrId(ih, group, key, last_id, NULL);
+  }
+  else
+  {
+    if (add)
+    {
+      /* add new item at the end */
+      IupConfigSetVariableStrId(ih, group, key, last_id + 1, value);
+    }
+    /* if remove, nothing to do */
+  }
+}
+
+
+/******************************************************************/
+
+static const char* iConfigGetRecentAttribName(const char* recent_name, const char* base_name)
+{
+  if (recent_name)
+  {
+    static char name[100];
+    sprintf(name, "%s%s", recent_name, base_name);
+    return name;
+  }
+  else
+    return base_name;
+}
+
 static int iConfigItemRecent_CB(Ihandle* ih_item)
 {
-  Ihandle* ih = (Ihandle*)IupGetAttribute(ih_item, "_IUP_CONFIG");
-  Icallback recent_cb = IupGetCallback(ih, "RECENT_CB");
+  Icallback recent_cb = IupGetCallback(ih_item, "RECENT_CB");
   if (recent_cb)
   {
+    Ihandle* ih = (Ihandle*)IupGetAttribute(ih_item, "_IUP_CONFIG");
     IupSetStrAttribute(ih, "TITLE", IupGetAttribute(ih_item, "TITLE"));
     ih->parent = ih_item;
+
     recent_cb(ih);
+
     ih->parent = NULL;
+    IupSetAttribute(ih, "TITLE", NULL);
   }
   return IUP_DEFAULT;
 }
 
-static void iConfigBuildRecent(Ihandle* ih)
+static void iConfigBuildRecent(Ihandle* ih, Ihandle* menu, int max_recent, const char* group_name, Icallback recent_cb)
 {
   /* add the new items, reusing old ones */
-  int max_recent = IupGetInt(ih, "RECENTMAX");
-  Ihandle* menu = (Ihandle*)IupGetAttribute(ih, "RECENTMENU");
-
+  int i;
   int mapped = IupGetAttribute(menu, "WID") != NULL ? 1 : 0;
   const char* value;
-  int i = 1;
+
+  i = 1;
   do
   {
-    value = IupConfigGetVariableStrId(ih, "Recent", "File", i);
+    value = IupConfigGetVariableStrId(ih, group_name, "File", i);
     if (value)
     {
       Ihandle* item = IupGetChild(menu, i - 1);
@@ -378,6 +467,7 @@ static void iConfigBuildRecent(Ihandle* ih)
         item = IupItem(value, NULL);
         IupSetAttribute(item, "_IUP_CONFIG", (char*)ih);
         IupSetCallback(item, "ACTION", iConfigItemRecent_CB);
+        IupSetCallback(item, "RECENT_CB", recent_cb);
         IupAppend(menu, item);
         if (mapped) IupMap(item);
       }
@@ -388,27 +478,38 @@ static void iConfigBuildRecent(Ihandle* ih)
 
 void IupConfigRecentInit(Ihandle* ih, Ihandle* menu, Icallback recent_cb, int max_recent)
 {
-  IupSetAttribute(ih, "RECENTMENU", (char*)menu);
-  IupSetCallback(ih, "RECENT_CB", recent_cb);
-  IupSetInt(ih, "RECENTMAX", max_recent);
+  char* recent_name = IupGetAttribute(ih, "RECENTNAME");
+  const char* group_name = recent_name;
+  if (!group_name) group_name = "Recent";
 
-  iConfigBuildRecent(ih);
+  IupSetAttribute(ih, iConfigGetRecentAttribName(recent_name, "RECENTMENU"), (char*)menu);
+  IupSetCallback(ih, iConfigGetRecentAttribName(recent_name, "RECENT_CB"), recent_cb);
+  IupSetInt(ih, iConfigGetRecentAttribName(recent_name, "RECENTMAX"), max_recent);
+
+  iConfigBuildRecent(ih, menu, max_recent, group_name, recent_cb);
 }
 
 void IupConfigRecentUpdate(Ihandle* ih, const char* filename)
 {
-  int max_recent = IupGetInt(ih, "RECENTMAX");
-  const char* value = IupConfigGetVariableStr(ih, "Recent", "File1");
+  const char* value;
+  char* recent_name = IupGetAttribute(ih, "RECENTNAME");
+  Ihandle* menu = (Ihandle*)IupGetAttribute(ih, iConfigGetRecentAttribName(recent_name, "RECENTMENU"));
+  Icallback recent_cb = IupGetCallback(ih, iConfigGetRecentAttribName(recent_name, "RECENT_CB"));
+  int max_recent = IupGetInt(ih, iConfigGetRecentAttribName(recent_name, "RECENTMAX"));
+  const char* group_name = recent_name;
+  if (!group_name) group_name = "Recent";
+
+  value = IupConfigGetVariableStr(ih, group_name, "File1");
   if (value && !iupStrEqual(value, filename))
   {
     /* must update the stack */
     int found = 0;
 
-    // First search for the new filename to avoid duplicates
+    /* First search for the new filename to avoid duplicates */
     int i = 1;
     do
     {
-      value = IupConfigGetVariableStrId(ih, "Recent", "File", i);
+      value = IupConfigGetVariableStrId(ih, group_name, "File", i);
 
       if (value && iupStrEqual(value, filename))
       {
@@ -419,24 +520,25 @@ void IupConfigRecentUpdate(Ihandle* ih, const char* filename)
       i++;
     } while (value && i <= max_recent);
 
-    // simply open space for the new filename
     if (found)
       i = found;
     else
       i = max_recent;
+
+    /* simply open space for the new filename */
     do
     {
-      value = IupConfigGetVariableStrId(ih, "Recent", "File", i - 1);
-      IupConfigSetVariableStrId(ih, "Recent", "File", i, value);
+      value = IupConfigGetVariableStrId(ih, group_name, "File", i - 1);
+      IupConfigSetVariableStrId(ih, group_name, "File", i, value);
 
       i--;
     } while (i > 1);
   }
 
   /* push new at start always */
-  IupConfigSetVariableStr(ih, "Recent", "File1", filename);
+  IupConfigSetVariableStr(ih, group_name, "File1", filename);
 
-  iConfigBuildRecent(ih);
+  iConfigBuildRecent(ih, menu, max_recent, group_name, recent_cb);
 }
 
 
@@ -455,37 +557,37 @@ void IupConfigDialogShow(Ihandle* ih, Ihandle* dialog, const char* name)
     return;
   }
 
+  /* set size only if dialog is resizable */
+  if (IupGetInt(dialog, "RESIZE"))
+  {
+    /* dialog size from Config */
+    int width = IupConfigGetVariableInt(ih, name, "Width");
+    int height = IupConfigGetVariableInt(ih, name, "Height");
+    if (width != 0 || height != 0)
+    {
+      int screen_width = 0, screen_height = 0;
+      IupGetIntInt(NULL, "SCREENSIZE", &screen_width, &screen_height);
+      if (width == 0)
+        width = screen_width;
+      if (height == 0)
+        height = screen_height;
+
+#ifdef WIN32
+      IupSetfAttribute(dialog, "RASTERSIZE", "%dx%d", width, height);
+#else
+      IupMap(dialog);
+      IupSetfAttribute(dialog, "CLIENTSIZE", "%dx%d", width, height);
+#endif
+      set_size = 1;
+    }
+  }
+
   if (IupConfigGetVariableIntDef(ih, name, "Maximized", 1) && IupGetInt(dialog, "RESIZE"))
   {
     IupSetAttribute(dialog, "PLACEMENT", "MAXIMIZED");
   }
   else
   {
-    /* set size only if dialog is resizable */
-    if (IupGetInt(dialog, "RESIZE"))
-    {
-      /* dialog size from Config */
-      int width = IupConfigGetVariableInt(ih, name, "Width");
-      int height = IupConfigGetVariableInt(ih, name, "Height");
-      if (width != 0 || height != 0)
-      {
-        int screen_width = 0, screen_height = 0;
-        IupGetIntInt(NULL, "SCREENSIZE", &screen_width, &screen_height);
-        if (width == 0)
-          width = screen_width;
-        if (height == 0)
-          height = screen_height;
-
-#ifdef WIN32
-        IupSetfAttribute(dialog, "RASTERSIZE", "%dx%d", width, height);
-#else
-        IupMap(dialog);
-        IupSetfAttribute(dialog, "CLIENTSIZE", "%dx%d", width, height);
-#endif
-        set_size = 1;
-      }
-    }
-
     /* dialog position from Config */
     if (IupConfigGetVariableStr(ih, name, "X"))
     {
@@ -544,10 +646,10 @@ void IupConfigDialogClosed(Ihandle* ih, Ihandle* dialog, const char* name)
     IupConfigSetVariableInt(ih, name, "Width", width);
     IupConfigSetVariableInt(ih, name, "Height", height);
 
-    maximized = IupGetInt(dialog, "MAXIMIZED"); // Windows Only
+    maximized = IupGetInt(dialog, "MAXIMIZED"); /* Windows Only */
     IupGetIntInt(NULL, "SCREENSIZE", &screen_width, &screen_height);
     if (maximized ||
-        ((x < 0 && (2 * x + width == screen_width)) &&    // Works only for the main screen
+        ((x < 0 && (2 * x + width == screen_width)) &&    /* Works only for the main screen */
         (y < 0 && (2 * y + height == screen_height))))
         IupConfigSetVariableInt(ih, name, "Maximized", 1);
     else

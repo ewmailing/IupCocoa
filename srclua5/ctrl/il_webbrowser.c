@@ -9,7 +9,7 @@
 
 #include "iup.h"
 #include "iuplua.h"
-#include "iupweb.h"
+#include "iupluaweb.h"
 #include "il.h"
 
 

@@ -52,7 +52,6 @@ void iupDialogLeaveModal(int popup_level);
 void iupDialogEnterModal(Ihandle* ih_popup, int popup_level);
 
 
-
 /*********************************************************************/
                         /* PRIVATE */
 /*********************************************************************/

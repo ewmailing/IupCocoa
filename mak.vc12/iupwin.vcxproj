@@ -122,7 +122,6 @@
     <ClCompile Include="..\src\win\iupwin_button.c" />
     <ClCompile Include="..\src\win\iupwin_canvas.c" />
     <ClCompile Include="..\src\win\iupwin_clipboard.c" />
-    <ClCompile Include="..\src\win\iupwin_colordlg.c" />
     <ClCompile Include="..\src\win\iupwin_dialog.c" />
     <ClCompile Include="..\src\win\iupwin_filedlg.c" />
     <ClCompile Include="..\src\win\iupwin_fontdlg.c" />

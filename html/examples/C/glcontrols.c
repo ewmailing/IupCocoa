@@ -528,6 +528,8 @@ void GLCanvasCubeTest(void)
     IupSetAttributes(gframe3, "MOVEABLE=Yes, POSITION=\"550,200\""),
     IupSetAttributes(vbox3, "MOVEABLE=Yes, POSITION=\"250,350\""),
     NULL);
+    
+  IupSetAttribute(canvas, "DEPTH_SIZE", "16");
 
   image_open = IupImage(16, 16, img_open);
   image_close = IupImage(16, 16, img_close);

@@ -50,7 +50,7 @@ struct _IcontrolData
 
 static void iGLExpanderOpenCloseChild(Ihandle* ih, int refresh, int callcb, int state)
 {
-  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
   Ihandle *child = ih->firstchild;
 
   if (callcb)
@@ -725,7 +725,7 @@ static char* iGLExpanderGetExtraButtonsAttrib(Ihandle* ih)
 
 static int iGLExpanderSetMoveableAttrib(Ihandle* ih, const char* value)
 {
-  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
   /* only a direct child of the canvabox can be moved */
   if (iupStrBoolean(value) && ih->parent == gl_parent)
     return 1;
