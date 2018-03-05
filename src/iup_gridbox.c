@@ -18,6 +18,7 @@
 #include "iup_stdcontrols.h"
 #include "iup_layout.h"
 #include "iup_normalizer.h"
+#include "iup_varg.h"
 
 
 /* Orientation */
@@ -923,11 +924,11 @@ static void iGridBoxSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
 
       if (ih->data->homogeneous_width && ih->data->homogeneous_height)
         iupBaseSetCurrentSize(child, ih->data->homogeneous_width, ih->data->homogeneous_height, shrink);
-      else if (ih->data->homogeneous_width)
+      else if (ih->data->homogeneous_width && lin_height)
         iupBaseSetCurrentSize(child, ih->data->homogeneous_width, lin_height[lin], shrink);
-      else if (ih->data->homogeneous_height)
+      else if (ih->data->homogeneous_height && col_width)
         iupBaseSetCurrentSize(child, col_width[col], ih->data->homogeneous_height, shrink);
-      else
+      else if (lin_height && col_width)
         iupBaseSetCurrentSize(child, col_width[col], lin_height[lin], shrink);
 
       i++;
@@ -1140,18 +1141,19 @@ Ihandle *IupGridBoxv(Ihandle **children)
   return IupCreatev("gridbox", (void**)children);
 }
 
+Ihandle*  IupGridBoxV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("gridbox", child, arglist);
+}
+
 Ihandle *IupGridBox(Ihandle* child, ...)
 {
-  Ihandle **children;
   Ihandle *ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle **)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("gridbox", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("gridbox", (void**)children);
-  free(children);
 
   return ih;
 }

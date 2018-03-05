@@ -132,6 +132,8 @@ DROPDOWN=Yes.</p>
 
 <p><strong>CANFOCUS</strong> (creation only) (<font size="3">non inheritable</font>): enables the focus traversal of the control. In Windows the control will still get the focus when clicked. Default: YES. (since 3.0)</p>
 
+<p><strong>PROPAGATEFOCUS</strong>(<font size="3">non inheritable</font>): enables the focus callback forwarding to the next native parent with FOCUS_CB defined. Default: NO. (since 3.23)</p>
+
 <p><strong>COUNT</strong> (read-only) (<font size="3">non inheritable</font>): returns the number of items. Before 
 mapping it counts the number of non NULL items before the first NULL item. 
 (since 3.0)</p>
@@ -266,17 +268,17 @@ at the top left of the item always. Valid only when DROPDOWN=NO. (since 3.0)</p>
 
 		<li>EDITBOX=YES: Text entered by the user.</li>
 
-		<li>DROPDOWN=YES or MULTIPLE=NO: Integer number representing the selected 
-    item in the list (begins at 1). It can be zero if there is no selected item. 
-The value can be NULL for no item 
-selected (since 3.0) (In Motif when DROPDOWN=YES there is always an item 
-		selected, except only when the list is empty).</li>
-
 		<li>MULTIPLE=YES: Sequence of '+' and '-' symbols indicating 
     the state of each item. When setting this value, the user must provide the same amount of '+' and '-' symbols as the 
     amount of items in the list, otherwise the specified items will be deselected.</li>
-		<li>Obs: always returns a non NULL value, event if the list is empty or 
-		the text box is empty.</li>
+
+		<li>Others: Integer number representing the selected 
+    item in the list (begins at 1). It can be zero if there is no selected item. 
+(In Motif when DROPDOWN=YES there is always an item 
+		selected, except when the list is empty).</li>
+
+		<li>Should return a non NULL value, even when the list is empty or 
+		the text box is empty. It can be NULL when no item selected (since 3.0).</li>
 
 </ul>
 
@@ -412,7 +414,7 @@ Called only when DROPDOWN=NO. (since 3.0)</p>
 
   
     
-<pre>int function (Ihandle *<strong>ih</strong>, int <strong>item</strong>, char *<strong>text</strong>); [in C]<br><strong>ih</strong>:action(<strong>item</strong>: number<b>, text</b>: string) -&gt; (ret: number) [in Lua]</pre>
+<pre>int function (Ihandle *<strong>ih</strong>, int <strong>item</strong>, char *<strong>text</strong>); [in C]<br><strong>ih</strong>:dblclick_cb(<strong>item</strong>: number<b>, text</b>: string) -&gt; (ret: number) [in Lua]</pre>
 
 <p class="info"><strong>ih</strong>:
   identifier of the element that activated the 
@@ -453,7 +455,7 @@ Called only when DROPDOWN=YES. (since 3.0)</p>
 
   
     
-<pre>int function (Ihandle *<strong>ih</strong>, int <strong>state</strong>); [in C]<br><strong>ih</strong>:action(<strong>state</strong>: boolean) -&gt; (ret: number) [in Lua]</pre>
+<pre>int function (Ihandle *<strong>ih</strong>, int <strong>state</strong>); [in C]<br><strong>ih</strong>:dropdown_cb(<strong>state</strong>: boolean) -&gt; (ret: number) [in Lua]</pre>
 
 <p class="info"><strong>ih</strong>:
   identifier of the element that activated the 

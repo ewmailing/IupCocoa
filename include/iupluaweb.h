@@ -28,13 +28,8 @@ extern "C" {
         #define IUPLUAWEB_EXPORT
 #endif /* IUPLUA_EXPORT */
 
-#ifdef LUA_NOOBJECT  /* Lua 3 */
-IUPLUAWEB_EXPORT int iupweblua_open(void);
-#endif
 
-#ifdef LUA_TNONE  /* Lua 5 */
 IUPLUAWEB_EXPORT int iupweblua_open (lua_State * L);
-#endif
 
 #ifdef __cplusplus
 }

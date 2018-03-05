@@ -12,16 +12,16 @@
 <p>Shows a modal dialog containing a message. It simply creates and popup a <b>IupMessageDlg</b>.</p>
 <h3>Creation and Show</h3>
 <pre>void IupMessage(const char *<strong>title</strong>, const char *<strong>message</strong>); [in C]
+void IupMessagef(const char *<strong>title</strong>, const char *<strong>format, ...</strong>); [in C]
+void IupMessageV(const char *<strong>title</strong>, const char *<strong>format</strong>, va_list <strong>arglist</strong>); [in C]
 iup.Message(<strong>title</strong>: string, <strong>message</strong>: string) [in Lua]</pre>
 <p><strong>title</strong>: dialog title<br>
-<strong>message</strong>: text message contents</p>
+<strong>message</strong>: text message contents<br><strong>format</strong>: same 
+format as the C sprintf function</p>
 <h3>Notes</h3>
 <p>The <b>IupMessage</b> function shows a dialog centralized on the screen, showing the message and the &#8220;OK&#8221; 
   button. The &#8216;\n&#8217; character can be added to the message to indicate line change. 
 </p>
-<p>In C there is an utility function to help build the message string, it accepts the same format as the C 
-<b>sprintf</b>:</p>
-<pre>void <b>IupMessagef</b>(const char *<strong>title</strong>, const char *<strong>format, ...</strong>); [in C]</pre>
 <p>The dialog uses a global attribute called &quot;PARENTDIALOG&quot; as the parent dialog if it is defined. It also uses a 
   global attribute called &quot;ICON&quot; as the dialog icon if it is defined (used only in Motif, in Windows MessageBox does not 
   have an icon in the title bar).</p>

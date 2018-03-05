@@ -142,6 +142,7 @@ static Ihandle* load_image_iupgtk_close_all(void)
   Ihandle* image = IupImageRGBA(16, 16, imgdata);
   return image;
 }
+#endif
 
 static Ihandle* load_image_iupgtk_webcam(void)
 {
@@ -174,4 +175,3 @@ static Ihandle* load_image_iupgtk_webcam(void)
   Ihandle* image = IupImageRGBA(24, 24, imgdata);
   return image;
 }
-#endif

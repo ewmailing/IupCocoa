@@ -1,5 +1,5 @@
 /** \file
- * \brief global attributes enviroment
+ * \brief global attributes environment
  *
  * See Copyright Notice in "iup.h"
  */
@@ -218,8 +218,8 @@ char* IupGetGlobal(const char *name)
   }
   if (iupStrEqual(name, "SCREENDPI"))
   {
-    float dpi = iupdrvGetScreenDpi();
-    return iupStrReturnFloat(dpi);
+    double dpi = iupdrvGetScreenDpi();
+    return iupStrReturnDouble(dpi);
   }
   if (iupStrEqual(name, "SYSTEMLOCALE"))
     return iupdrvLocaleInfo();

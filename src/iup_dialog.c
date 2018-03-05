@@ -341,7 +341,7 @@ static void iDialogSetChildrenPositionMethod(Ihandle* ih, int x, int y)
 
     if (offset) iupStrToIntInt(offset, &x, &y, 'x');
 
-    if (iupAttribGetBoolean(ih, "CUSTOMFRAME"))
+    if (iupAttribGetBoolean(ih, "CUSTOMFRAMEDRAW"))  /* Windows Only */
     {
       int border, caption, menu;
       iupdrvDialogGetDecoration(ih, &border, &caption, &menu);
@@ -373,22 +373,22 @@ static void iDialogAfterShow(Ihandle* ih)
 {
   Ihandle* old_focus;
   IFni show_cb;
-  int show_state;
+  int old_show_state;
 
   /* process all pending messages, make sure the dialog is visible */
   IupFlush();
 
   old_focus = IupGetFocus();
-  show_state = ih->data->show_state;
+  old_show_state = ih->data->show_state;
 
   show_cb = (IFni)IupGetCallback(ih, "SHOW_CB");
-  if (show_cb && show_cb(ih, show_state) == IUP_CLOSE)
+  if (show_cb && show_cb(ih, ih->data->show_state) == IUP_CLOSE)
   {
     IupExitLoop();
     return;
   }
 
-  if (show_state == IUP_SHOW)
+  if (old_show_state == IUP_SHOW)
   {
     if (show_cb)
       IupFlush();  /* again to update focus */
@@ -487,13 +487,13 @@ static void iDialogModalLoop(Ihandle* ih)
   hide the dialog if still visible. */
   if (iupObjectCheck(ih))
   {
-    iupAttribSet(ih, "_IUP_WAS_MODAL", "1");
+    iupAttribSet(ih, "_IUPDLG_WAS_MODAL", "1");
 
     iDialogUnSetModal(ih);
     iupDialogHide(ih);
 
     if (iupObjectCheck(ih))
-      iupAttribSet(ih, "_IUP_WAS_MODAL", NULL);
+      iupAttribSet(ih, "_IUPDLG_WAS_MODAL", NULL);
   }
   else
     iDialogListCheckLastVisible(1);
@@ -548,7 +548,7 @@ int iupDialogShowXY(Ihandle* ih, int x, int y)
 
 void iupDialogHide(Ihandle* ih)
 {
-  int was_modal = iupAttribGet(ih, "_IUP_WAS_MODAL") != NULL;
+  int was_modal = iupAttribGet(ih, "_IUPDLG_WAS_MODAL") != NULL;
 
   /* hidden at the system and marked hidden in IUP */
   if (!iupdrvDialogIsVisible(ih) && ih->data->show_state == IUP_HIDE) 
@@ -759,7 +759,7 @@ void iupDialogGetDecorSize(Ihandle* ih, int *decorwidth, int *decorheight)
   int border, caption, menu;
   iupdrvDialogGetDecoration(ih, &border, &caption, &menu);
 
-  if (iupAttribGetBoolean(ih, "CUSTOMFRAMEEX"))
+  if (iupAttribGetBoolean(ih, "CUSTOMFRAME"))
   {
     *decorwidth = 0;
     *decorheight = 0;
@@ -936,6 +936,7 @@ Iclass* iupDialogNewClass(void)
   iupClassRegisterCallback(ic, "SHOW_CB", "i");
   iupClassRegisterCallback(ic, "RESIZE_CB", "ii");
   iupClassRegisterCallback(ic, "CLOSE_CB", "");
+  iupClassRegisterCallback(ic, "FOCUS_CB", "i");
 
   /* Common Callbacks */
   iupBaseRegisterCommonCallbacks(ic);

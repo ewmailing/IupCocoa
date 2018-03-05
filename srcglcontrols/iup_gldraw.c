@@ -571,7 +571,7 @@ static void iGLDrawText(Ihandle* ih, const char* str, int max_len, int x, int y)
     glTranslated(0.0, (double)-lineheight, 0.0);
 
     curstr = nextstr;
-  } while (*nextstr);
+  } while (nextstr && *nextstr);
 
   glPopMatrix();
 }

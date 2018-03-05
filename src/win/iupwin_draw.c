@@ -333,8 +333,8 @@ void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h)
 
   rect.left = x;  
   rect.top = y;  
-  rect.right = x+w;  
-  rect.bottom = y+h;
+  rect.right = x + w;  
+  rect.bottom = y + h;
 
   DrawFocusRect(hDC, &rect);
   (void)ih;
@@ -342,10 +342,9 @@ void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h)
 
 void iupwinDrawParentBackground(Ihandle* ih, HDC hDC, RECT* rect)
 {
-  unsigned char r=0, g=0, b=0;
-  char* color = iupBaseNativeParentGetBgColorAttrib(ih);
-  iupStrToRGB(color, &r, &g, &b);
-  SetDCBrushColor(hDC, RGB(r,g,b));
+  char* color_str = iupBaseNativeParentGetBgColorAttrib(ih);
+  long color = iupDrawStrToColor(color_str, 0);
+  SetDCBrushColor(hDC, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
   FillRect(hDC, rect, (HBRUSH)GetStockObject(DC_BRUSH));
 }
 
@@ -504,14 +503,6 @@ void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h)
   if (h) *h = dc->h;
 }
 
-void iupdrvDrawParentBackground(IdrawCanvas* dc)
-{
-  unsigned char r=0, g=0, b=0;
-  char* color = iupBaseNativeParentGetBgColorAttrib(dc->ih);
-  iupStrToRGB(color, &r, &g, &b);
-  iupdrvDrawRectangle(dc, 0, 0, dc->w-1, dc->h-1, r, g, b, IUP_DRAW_FILL);
-}
-
 static int iDrawGetLineStyle(int style)
 {
   if (style == IUP_DRAW_STROKE_DASH)
@@ -522,26 +513,30 @@ static int iDrawGetLineStyle(int style)
     return PS_SOLID;
 }
 
-void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
 {
-  SetDCBrushColor(dc->hBitmapDC, RGB(r,g,b));
+  SetDCBrushColor(dc->hBitmapDC, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
 
   if (style == IUP_DRAW_FILL)
   {
     RECT rect;
-    SetRect(&rect, x1, y1, x2+1, y2+1);
+    iupDrawCheckSwapCoord(x1, x2);
+    iupDrawCheckSwapCoord(y1, y2);
+    SetRect(&rect, x1, y1, x2 + 1, y2 + 1);
     FillRect(dc->hBitmapDC, &rect, (HBRUSH)GetStockObject(DC_BRUSH));
   }
-  else if (style == IUP_DRAW_STROKE)
+  else if (style == IUP_DRAW_STROKE && line_width == 1)
   {
     RECT rect;
-    SetRect(&rect, x1, y1, x2+1, y2+1);
+    iupDrawCheckSwapCoord(x1, x2);
+    iupDrawCheckSwapCoord(y1, y2);
+    SetRect(&rect, x1, y1, x2 + 1, y2 + 1);
     FrameRect(dc->hBitmapDC, &rect, (HBRUSH)GetStockObject(DC_BRUSH));
   }
   else
   {
     POINT line_poly[5];
-    HPEN hPen = CreatePen(iDrawGetLineStyle(style), 1, RGB(r, g, b));
+    HPEN hPen = CreatePen(iDrawGetLineStyle(style), line_width, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
     HPEN hPenOld = SelectObject(dc->hBitmapDC, hPen);
     line_poly[0].x = x1;
     line_poly[0].y = y1;
@@ -559,10 +554,10 @@ void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsign
   }
 }
 
-void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
 {
   POINT line_poly[2];
-  HPEN hPen = CreatePen(iDrawGetLineStyle(style), 1, RGB(r, g, b));
+  HPEN hPen = CreatePen(iDrawGetLineStyle(style), line_width, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
   HPEN hPenOld = SelectObject(dc->hBitmapDC, hPen);
 
   line_poly[0].x = x1;
@@ -570,38 +565,43 @@ void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned ch
   line_poly[1].x = x2;
   line_poly[1].y = y2;
   Polyline(dc->hBitmapDC, line_poly, 2);
-  SetPixelV(dc->hBitmapDC, x2, y2, RGB(r, g, b));
+  SetPixelV(dc->hBitmapDC, x2, y2, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
 
   SelectObject(dc->hBitmapDC, hPenOld);
   DeleteObject(hPen);
 }
 
-#define IUP_DEG2RAD  0.01745329252  /* degrees to radians (rad = CD_DEG2RAD * deg) */
+#define IUP_DEG2RAD  0.01745329252  /* degrees to radians (rad = DEG2RAD * deg) */
 
-static int winDrawCalcArc(int c1, int c2, double a, int start)
+static int winDrawCalcArc(int c1, int c2, double a, int horiz)
 {
   double proj, off;
-  if (start)
+  if (horiz)
     proj = cos(IUP_DEG2RAD * a);
   else
-    proj = sin(IUP_DEG2RAD * a);
-  off = (c2+c1)/2.0 + (c2-c1+1)*proj/2.0;
+    proj = - sin(IUP_DEG2RAD * a);
+  off = (c2 + c1) / 2.0 + (c2 - c1 + 1) * proj / 2.0;
   return iupROUND(off);
 }
 
-void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width)
 {
-  int XStartArc = winDrawCalcArc(x1, x2, a1, 1);
-  int XEndArc = winDrawCalcArc(x1, x2, a2, 0);
-  int YStartArc = winDrawCalcArc(y1, y2, a1, 1);
-  int YEndArc = winDrawCalcArc(y1, y2, a2, 0);
+  int XStartArc, XEndArc, YStartArc, YEndArc;
+
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
+  XStartArc = winDrawCalcArc(x1, x2, a1, 1);
+  XEndArc = winDrawCalcArc(x1, x2, a2, 1);
+  YStartArc = winDrawCalcArc(y1, y2, a1, 0);
+  YEndArc = winDrawCalcArc(y1, y2, a2, 0);
 
   if (style==IUP_DRAW_FILL)
   {
-    HBRUSH hBrush = CreateSolidBrush(RGB(r,g,b));
+    HBRUSH hBrush = CreateSolidBrush(RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
     HPEN hBrushOld = SelectObject(dc->hBitmapDC, hBrush); 
     BeginPath(dc->hBitmapDC); 
-    Pie(dc->hBitmapDC, x1, y1, x2+1, y2+1, XStartArc, YStartArc, XEndArc, YEndArc);
+    Pie(dc->hBitmapDC, x1, y1, x2 + 1, y2 + 1, XStartArc, YStartArc, XEndArc, YEndArc);
     EndPath(dc->hBitmapDC);
     FillPath(dc->hBitmapDC);
     SelectObject(dc->hBitmapDC, hBrushOld);
@@ -609,19 +609,19 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
   }
   else
   {
-    HPEN hPen = CreatePen(iDrawGetLineStyle(style), 1, RGB(r, g, b));
+    HPEN hPen = CreatePen(iDrawGetLineStyle(style), line_width, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
     HPEN hPenOld = SelectObject(dc->hBitmapDC, hPen);
-    Arc(dc->hBitmapDC, x1, y1, x2+1, y2+1, XStartArc, YStartArc, XEndArc, YEndArc);
+    Arc(dc->hBitmapDC, x1, y1, x2 + 1, y2 + 1, XStartArc, YStartArc, XEndArc, YEndArc);
     SelectObject(dc->hBitmapDC, hPenOld);
     DeleteObject(hPen);
   }
 }
 
-void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int style, int line_width)
 {
   if (style==IUP_DRAW_FILL)
   {
-    HBRUSH hBrush = CreateSolidBrush(RGB(r,g,b));
+    HBRUSH hBrush = CreateSolidBrush(RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
     HPEN hBrushOld = SelectObject(dc->hBitmapDC, hBrush); 
     BeginPath(dc->hBitmapDC); 
     Polygon(dc->hBitmapDC, (POINT*)points, count);
@@ -632,7 +632,7 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r,
   }
   else
   {
-    HPEN hPen = CreatePen(iDrawGetLineStyle(style), 1, RGB(r, g, b));
+    HPEN hPen = CreatePen(iDrawGetLineStyle(style), line_width, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
     HPEN hPenOld = SelectObject(dc->hBitmapDC, hPen);
     Polyline(dc->hBitmapDC, (POINT*)points, count);
     SelectObject(dc->hBitmapDC, hPenOld);
@@ -642,7 +642,12 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r,
 
 void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
-  HRGN clip_hrgn = CreateRectRgn(x1, y1, x2+1, y2+1);
+  HRGN clip_hrgn;
+
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
+  clip_hrgn = CreateRectRgn(x1, y1, x2 + 1, y2 + 1);
   SelectClipRgn(dc->hBitmapDC, clip_hrgn);
   DeleteObject(clip_hrgn);
 }
@@ -652,51 +657,29 @@ void iupdrvDrawResetClip(IdrawCanvas* dc)
   SelectClipRgn(dc->hBitmapDC, NULL);
 }
 
-void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, unsigned char r, unsigned char g, unsigned char b, const char* font)
+void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, int w, int h, long color, const char* font, int align)
 {
-  int num_line;
+  RECT rect;
+  TCHAR* wtext;
+  UINT uFormat = DT_LEFT;
+
   HFONT hOldFont, hFont = (HFONT)iupwinGetHFont(font);
-  SetTextColor(dc->hBitmapDC, RGB(r, g, b));
+  SetTextColor(dc->hBitmapDC, RGB(iupDrawRed(color),iupDrawGreen(color),iupDrawBlue(color)));
   hOldFont = SelectObject(dc->hBitmapDC, hFont);
 
-  num_line = iupStrLineCount(text);
+  rect.left = x;
+  rect.right = x + w;
+  rect.top = y;
+  rect.bottom = y + h;
 
-  if (num_line == 1)
-  {
-    TCHAR* wtext = iupwinStrToSystemLen(text, &len);
-    TextOut(dc->hBitmapDC, x, y, wtext, len);
-  }
-  else
-  {
-    int i, line_height, len;
-    const char *p, *q;
-    TCHAR* wtext;
-    TEXTMETRIC tm;
+  wtext = iupwinStrToSystemLen(text, &len);
 
-    GetTextMetrics(dc->hBitmapDC, &tm);
-    line_height = tm.tmHeight;
+  if (align == IUP_ALIGN_ARIGHT)
+    uFormat = DT_RIGHT;
+  else if (align == IUP_ALIGN_ACENTER)
+    uFormat = DT_CENTER;
 
-    p = text;
-    for (i = 0; i < num_line; i++)
-    {
-      q = strchr(p, '\n');
-      if (q) 
-        len = (int)(q - p);  /* Cut the string to contain only one line */
-      else 
-        len = (int)strlen(p);  /* use the remaining characters */
-
-      /* Draw the line */
-      wtext = iupwinStrToSystemLen(p, &len);
-      TextOut(dc->hBitmapDC, x, y, wtext, len);
-
-      /* Advance the string */
-      if (q) 
-        p = q + 1;
-
-      /* Advance a line */
-      y += line_height;
-    }
-  }
+  DrawText(dc->hBitmapDC, wtext, len, &rect, uFormat);
 
   SelectObject(dc->hBitmapDC, hOldFont);
 }
@@ -723,6 +706,9 @@ void iupdrvDrawImage(IdrawCanvas* dc, const char* name, int make_inactive, int x
 
 void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
   BitBlt(dc->hBitmapDC, x1, y1, x2 - x1 + 1, y2 - y1 + 1, dc->hBitmapDC, x1, y1, DSTINVERT);
 }
 
@@ -730,10 +716,13 @@ void iupdrvDrawFocusRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
   RECT rect;
 
+  iupDrawCheckSwapCoord(x1, x2);
+  iupDrawCheckSwapCoord(y1, y2);
+
   rect.left = x1;  
-  rect.top = y1;  
-  rect.right = x2;  
-  rect.bottom = y2;
+  rect.right = x2 + 1;
+  rect.top = y1;
+  rect.bottom = y2 + 1;
 
   DrawFocusRect(dc->hBitmapDC, &rect);
 }

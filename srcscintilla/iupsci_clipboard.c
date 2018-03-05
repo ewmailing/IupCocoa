@@ -50,7 +50,7 @@ static int iScintillaSetClipboardAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetCanPasteAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_CANPASTE, 0, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_CANPASTE, 0, 0));
 }
 
 /***** Undo and Redo *****
@@ -70,6 +70,11 @@ static int iScintillaSetUndoAttrib(Ihandle *ih, const char *value)
 {
   if (iupStrBoolean(value))
     IupScintillaSendMessage(ih, SCI_UNDO, 0, 0);
+  else if (iupStrEqualNoCase(value, "ALL"))
+  {
+    while ((int)IupScintillaSendMessage(ih, SCI_CANUNDO, 0, 0))
+      IupScintillaSendMessage(ih, SCI_UNDO, 0, 0);
+  }
   else
     IupScintillaSendMessage(ih, SCI_EMPTYUNDOBUFFER, 0, 0);
   return 0;
@@ -77,13 +82,18 @@ static int iScintillaSetUndoAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetUndoAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_CANUNDO, 0, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_CANUNDO, 0, 0));
 }
 
 static int iScintillaSetRedoAttrib(Ihandle *ih, const char *value)
 {
   if (iupStrBoolean(value))
     IupScintillaSendMessage(ih, SCI_REDO, 0, 0);
+  else if (iupStrEqualNoCase(value, "ALL"))
+  {
+    while ((int)IupScintillaSendMessage(ih, SCI_CANREDO, 0, 0))
+      IupScintillaSendMessage(ih, SCI_REDO, 0, 0);
+  }
   else
     IupScintillaSendMessage(ih, SCI_EMPTYUNDOBUFFER, 0, 0);
   return 0;
@@ -91,7 +101,7 @@ static int iScintillaSetRedoAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetRedoAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_CANREDO, 0, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_CANREDO, 0, 0));
 }
 
 static int iScintillaSetUndoCollectAttrib(Ihandle *ih, const char *value)
@@ -105,7 +115,7 @@ static int iScintillaSetUndoCollectAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetUndoCollectAttrib(Ihandle* ih)
 {
-  return iupStrReturnBoolean (IupScintillaSendMessage(ih, SCI_GETUNDOCOLLECTION, 0, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_GETUNDOCOLLECTION, 0, 0));
 }
 
 static int iScintillaSetUndoActionAttrib(Ihandle *ih, const char *value)

@@ -28,7 +28,9 @@ local dialog = iup.dialog
 }
 
 dialog:show()
-iup.MainLoop()
 
-dialog:destroy()
-iup.Close()
+if (iup.MainLoopLevel()==0) then
+  iup.MainLoop()
+  dialog:destroy()
+  iup.Close()
+end

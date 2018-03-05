@@ -13,7 +13,6 @@
 #include "iupdraw.h"
 #include "iup_class_cbs.hpp"
 #include "iupcontrols.h"
-#include "iupmatrixex.h"
 #include "iupgl.h"
 #include "iupglcontrols.h"
 #include "iupim.h"
@@ -55,6 +54,7 @@ namespace Iup
   inline int PlayInput(const char* filename) { return IupPlayInput(filename); }
 
   inline int Help(const char* url) { return IupHelp(url); }
+  inline void Log(const char* type, const char* str) { IupLog(type, "%s", str); }
   inline const char* Load(const char *filename) { return IupLoad(filename); }
   inline const char* LoadBuffer(const char *buffer) { return IupLoadBuffer(buffer); }
 
@@ -281,6 +281,11 @@ namespace Iup
   inline Container Control::GetParent() { return Container(IupGetParent(ih)); }
   inline int Control::Reparent(const Container& new_parent, const Control& ref_child) { return IupReparent(ih, new_parent.GetHandle(), ref_child.GetHandle()); }
 
+  void MessageError(const Dialog& parent, const char* message)
+    { IupMessageError(parent.GetHandle(), message); }
+  int MessageAlarm(const Dialog& parent, const char* title, const char* message, const char* buttons)
+    { return IupMessageAlarm(parent.GetHandle(), title, message, buttons); }
+
   class Menu : public Container
   {
   public:
@@ -317,6 +322,7 @@ namespace Iup
 
     im::Image GetImage(void) { return im::Image(IupGetNativeHandleImage(GetUserData("NATIVEIMAGE"))); }
   };
+  //TODO imImage* IupImageToImImage(Ihandle* iup_image)
 #endif
   class User : public Element
   {
@@ -515,6 +521,14 @@ namespace Iup
     ScrollBox(const ScrollBox& container) : Container(container.GetHandle()) {}
     ScrollBox(Ihandle* _ih) : Container(_ih) {}
   };
+  class FlatScrollBox : public Container
+  {
+  public:
+    FlatScrollBox() : Container(IupFlatScrollBox(0)) {}
+    FlatScrollBox(Control child) : Container(IupFlatScrollBox(child.GetHandle())) {}
+    FlatScrollBox(const FlatScrollBox& container) : Container(container.GetHandle()) {}
+    FlatScrollBox(Ihandle* _ih) : Container(_ih) {}
+  };
   class Expander : public Container
   {
   public:
@@ -699,6 +713,17 @@ namespace Iup
   public:
     ProgressDlg() : Dialog(IupProgressDlg()) {}
   };
+  class ScintillaDlg : public Dialog
+  {
+  public:
+    ScintillaDlg() : Dialog(IupScintillaDlg()) {}
+  };
+#ifdef LUA_VERSION
+  public:
+    LuaScripterDlg(lua_State *L) : Dialog(IupLuaScripterDlg(L)) {}
+  };
+#endif
+
   class GLCanvas : public Control
   {
   public:
@@ -788,8 +813,6 @@ namespace Iup
     MatrixEx() : Control(IupMatrixEx()) {}
     MatrixEx(Ihandle* _ih) : Control(_ih) {}
     MatrixEx(const Element& elem) : Control(elem.GetHandle()) {}
-
-    static void Open() { IupMatrixExOpen(); }
   };
   class GLControls
   {
@@ -1056,6 +1079,10 @@ namespace Iup
     char* GetVariableStrIdDef(const char* group, const char* key, int id, const char* def) { return (char*)IupConfigGetVariableStrIdDef(ih, group, key, id, def); }
     int GetVariableIntIdDef(const char* group, const char* key, int id, int def) { return IupConfigGetVariableIntIdDef(ih, group, key, id, def); }
     double GetVariableDoubleIdDef(const char* group, const char* key, int id, double def) { return IupConfigGetVariableDoubleIdDef(ih, group, key, id, def); }
+
+    void Copy(const Config& config2, const char* exclude_prefix) { IupConfigCopy(ih, config2.GetHandle(), exclude_prefix); }
+
+    void SetListVariable(const char *group, const char* key, const char* value, int add) { IupConfigSetListVariable(ih, group, key, value, add); }
 
     void RecentInit(Menu menu, Icallback recent_cb, int max_recent) { IupConfigRecentInit(ih, menu.GetHandle(), recent_cb, max_recent); }
     void RecentUpdate(const char* filename) { IupConfigRecentUpdate(ih, filename); }

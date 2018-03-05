@@ -44,7 +44,7 @@ static int iScintillaSetAnnotationTextAttribId(Ihandle* ih, int line, const char
 
 static char* iScintillaGetAnnotationTextAttribId(Ihandle* ih, int line)
 {
-  int len = IupScintillaSendMessage(ih, SCI_ANNOTATIONGETTEXT, line, 0);
+  int len = (int)IupScintillaSendMessage(ih, SCI_ANNOTATIONGETTEXT, line, 0);
   char* str = iupStrGetMemory(len+1);
   IupScintillaSendMessage(ih, SCI_ANNOTATIONGETTEXT, line, (sptr_t)str);
   return str;
@@ -60,7 +60,7 @@ static int iScintillaSetAnnotationStyleAttribId(Ihandle* ih, int line, const cha
 
 static char* iScintillaGetAnnotationStyleAttribId(Ihandle* ih, int line)
 {
-  int style = IupScintillaSendMessage(ih, SCI_ANNOTATIONGETSTYLE, line, 0);
+  int style = (int)IupScintillaSendMessage(ih, SCI_ANNOTATIONGETSTYLE, line, 0);
   return iupStrReturnInt(style);
 }
 
@@ -74,7 +74,7 @@ static int iScintillaSetAnnotationStyleOffsetAttrib(Ihandle* ih, const char* val
 
 static char* iScintillaGetAnnotationStyleOffsetAttrib(Ihandle* ih)
 {
-  int style = IupScintillaSendMessage(ih, SCI_ANNOTATIONGETSTYLEOFFSET, 0, 0);
+  int style = (int)IupScintillaSendMessage(ih, SCI_ANNOTATIONGETSTYLEOFFSET, 0, 0);
   return iupStrReturnInt(style);
 }
 

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "iup.h"
+#include "iupim.h"
 
 
 #define TEST_IMAGE_SIZE 20
@@ -128,6 +129,7 @@ void LabelTest(void)
   IupAppend(box1, label);
 //  IupSetCallback(label, "ENTERWINDOW_CB", (Icallback)enterwindow_cb);
 //  IupSetCallback(label, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
+  IupSetAttribute(label, "PADDING", "20x20");
 
   label = IupLabel(NULL);
   IupSetAttribute(label, "SEPARATOR", "HORIZONTAL");
@@ -225,6 +227,8 @@ void LabelTest(void)
   IupAppend(box2, label);
 
   label = IupAnimatedLabel(NULL);
+  //label = IupAnimatedLabel(IupLoadAnimation("D:\\tecgraf\\iup\\html\\examples\\tests\\loading.gif"));
+  //IupSetAttributeHandle(label, "ANIMATION", IupLoadAnimation("D:\\tecgraf\iup\\html\\examples\\tests\\loading.gif"));
   IupSetAttribute(label, "ANIMATION", "IUP_CircleProgressAnimation");
   IupSetAttribute(label, "START", "Yes");
   IupAppend(box2, label);

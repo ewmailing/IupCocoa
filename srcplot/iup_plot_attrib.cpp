@@ -454,7 +454,8 @@ static int iPlotSetFGColorAttrib(Ihandle* ih, const char* value)
 
 static int iPlotSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   int size = 0;
   int is_bold = 0,
@@ -462,9 +463,6 @@ static int iPlotSetFontAttrib(Ihandle* ih, const char* value)
     is_underline = 0,
     is_strikeout = 0;
   char typeface[1024];
-
-  if (!value)
-    return 0;
 
   if (!iupGetFontInfo(value, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
     return 0;
@@ -1319,6 +1317,24 @@ static char* iPlotGetGraphicsModeAttrib(Ihandle* ih)
   return graphics_mode_str[ih->data->graphics_mode];
 }
 
+static int iPlotSetDataSetClippingAttrib(Ihandle* ih, const char* value)
+{
+  if (iupStrEqualNoCase(value, "AREAOFFSET"))
+    ih->data->current_plot->mDataSetClipping = IUP_PLOT_CLIPAREAOFFSET;
+  else if (iupStrEqualNoCase(value, "NONE"))
+    ih->data->current_plot->mDataSetClipping = IUP_PLOT_CLIPNONE;
+  else
+    ih->data->current_plot->mDataSetClipping = IUP_PLOT_CLIPAREA;
+
+  return 0;
+}
+
+static char* iPlotGetDataSetClippingAttrib(Ihandle* ih)
+{
+  char* dataset_clipping_str[] = { "NONE", "AREA", "AREAOFFSET" };
+  return dataset_clipping_str[ih->data->current_plot->mDataSetClipping];
+}
+
 static int iPlotSetUseImageRGBAttrib(Ihandle* ih, const char* value)
 {
   if (iupStrBoolean(value))
@@ -1762,7 +1778,7 @@ static int iPlotSetDSBarOutlineAttrib(Ihandle* ih, const char* value)
 {
   if (ih->data->current_plot->mCurrentDataSet < 0 ||
       ih->data->current_plot->mCurrentDataSet >= ih->data->current_plot->mDataSetListCount)
-      return NULL;
+      return 0;
 
   iupPlotDataSet* dataset = ih->data->current_plot->mDataSetList[ih->data->current_plot->mCurrentDataSet];
   dataset->mBarShowOutline = iupStrBoolean(value) ? true : false;
@@ -1784,7 +1800,7 @@ static int iPlotSetDSBarMulticolorAttrib(Ihandle* ih, const char* value)
 {
   if (ih->data->current_plot->mCurrentDataSet < 0 ||
       ih->data->current_plot->mCurrentDataSet >= ih->data->current_plot->mDataSetListCount)
-      return NULL;
+      return 0;
 
   iupPlotDataSet* dataset = ih->data->current_plot->mDataSetList[ih->data->current_plot->mCurrentDataSet];
   dataset->mBarMulticolor = iupStrBoolean(value) ? true : false;
@@ -3456,6 +3472,7 @@ void iupPlotRegisterAttributes(Iclass* ic)
   iupClassRegisterAttribute(ic, "TIPFORMAT", NULL, NULL, IUPAF_SAMEASSYSTEM, "%s (%s, %s)", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ZOOM", NULL, iPlotSetZoomAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "EDITABLEVALUES", NULL, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DATASETCLIPPING", iPlotGetDataSetClippingAttrib, iPlotSetDataSetClippingAttrib, IUPAF_SAMEASSYSTEM, "AREA", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "MARGINLEFTAUTO", iPlotGetMarginLeftAutoAttrib, iPlotSetMarginLeftAutoAttrib, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MARGINRIGHTAUTO", iPlotGetMarginRightAutoAttrib, iPlotSetMarginRightAutoAttrib, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);

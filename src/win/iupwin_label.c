@@ -185,15 +185,15 @@ static int winLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
       ih->data->horiz_alignment = IUP_ALIGN_ARIGHT;
     else if (iupStrEqualNoCase(value1, "ACENTER"))
       ih->data->horiz_alignment = IUP_ALIGN_ACENTER;
-    else /* "ALEFT" */
+    else /* "ALEFT" (default) */
       ih->data->horiz_alignment = IUP_ALIGN_ALEFT;
 
     if (iupStrEqualNoCase(value2, "ABOTTOM"))
       ih->data->vert_alignment = IUP_ALIGN_ABOTTOM;
-    else if (iupStrEqualNoCase(value2, "ACENTER"))
-      ih->data->vert_alignment = IUP_ALIGN_ACENTER;
-    else /* "ATOP" */
+    else if (iupStrEqualNoCase(value2, "ATOP"))
       ih->data->vert_alignment = IUP_ALIGN_ATOP;
+    else /* "ACENTER" (default) */
+      ih->data->vert_alignment = IUP_ALIGN_ACENTER;
 
     iupdrvRedrawNow(ih);
   }

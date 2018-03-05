@@ -88,7 +88,7 @@ static int iGLSizeBoxSetCursor(Ihandle* ih, int x, int y)
 
 static void iGLSizeBoxResizeChild(Ihandle* ih, int resizer, int w, int h)
 {
-  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "GL_CANVAS");
+  Ihandle* gl_parent = (Ihandle*)iupAttribGet(ih, "_IUP_GLCANVAS_PARENT");
   Ihandle* child = ih->firstchild;
   int redraw = 0;
 

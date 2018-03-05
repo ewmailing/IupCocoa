@@ -24,9 +24,6 @@
     <ClCompile Include="..\src\gtk\iupgtk_dragdrop.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_draw.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_focus.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -55,9 +52,6 @@
       <Filter>src_controls</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_clipboard.c">
-      <Filter>src_controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_colordlg.c">
       <Filter>src_controls</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_dialog.c">
@@ -131,6 +125,12 @@
     </ClCompile>
     <ClCompile Include="..\src\iup_datepick.c">
       <Filter>src_controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_draw_gdk.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mot\iupx11_info.c">
+      <Filter>unix</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

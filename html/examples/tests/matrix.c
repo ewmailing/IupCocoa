@@ -38,6 +38,19 @@ static unsigned char image_data_32 [TEST_IMAGE_SIZE*TEST_IMAGE_SIZE*4] =
 static int mousemove_cb(Ihandle *ih, int lin, int col)
 {
   printf("mousemove_cb(%d, %d)\n", lin, col);
+
+#if 0
+  {
+    char* value = IupGetAttributeId2(ih, "", lin, col);
+    char* tip = IupGetAttribute(ih, "TIP");
+    if (value && ((tip && strcmp(value, tip) != 0) || !tip))
+    {
+      IupSetStrAttribute(ih, "TIP", value);
+      IupSetAttribute(ih, "TIPVISIBLE", "Yes");
+    }
+   }
+#endif
+
   return IUP_DEFAULT;
 }
 
@@ -154,6 +167,8 @@ static Ihandle* create_matrix(void)
 //  IupSetAttribute(mat, "EXPAND", "NO");
 //  IupSetAttribute(mat, "ALIGNMENT", "ALEFT");
 
+  IupSetAttribute(mat, "FONTSTYLE0:1", "Bold");
+
 //  IupSetAttribute(mat, "MASK1:3", IUP_MASK_FLOAT);
 //  IupSetAttribute(mat, "MASK1:3", "[a-zA-Z][0-9a-zA-Z_]*");
 //  IupSetAttribute(mat, "MASKFLOAT1:3", "0.0:10.0");
@@ -165,6 +180,7 @@ static Ihandle* create_matrix(void)
   IupSetAttribute(mat, "TYPE4:2", "FILL");
   IupSetAttribute(mat, "4:2", "60");
   IupSetAttribute(mat, "SHOWFILLVALUE", "Yes");
+//  IupSetAttribute(mat, "FLAT", "Yes");
 
   {
     Ihandle* image = IupImageRGBA(TEST_IMAGE_SIZE, TEST_IMAGE_SIZE, image_data_32);
@@ -192,6 +208,11 @@ static Ihandle* create_matrix(void)
   IupSetAttribute(mat,"FRAMEVERTCOLOR*:4","0 255 0");
   IupSetAttribute(mat,"FRAMEVERTCOLOR*:5","BGCOLOR");
 
+//  IupSetAttribute(mat, "FRAMETITLEVERTCOLOR*:0", "0 255 0");
+//  IupSetAttribute(mat, "FRAMETITLEHORIZCOLOR0:4", "0 255 0");
+//  IupSetAttribute(mat, "FRAMEHORIZCOLOR0:4", "255 0 0");
+//  IupSetAttribute(mat, "FRAMETITLEHORIZCOLOR0:*", "0 255 0");
+
 //  IupSetAttribute(mat,"MARKMODE","LINCOL");
 
   //IupSetAttribute(mat, "NUMCOL_VISIBLE_LAST", "YES");
@@ -206,7 +227,12 @@ static Ihandle* create_matrix(void)
   IupSetAttribute(mat, "NUMCOL_VISIBLE", "3");
   IupSetAttribute(mat, "NUMLIN_VISIBLE", "5");
 //  IupSetAttribute(mat,"EDITNEXT","COLCR");
-//  IupSetAttribute(mat, "NUMCOL_NOSCROLL", "1");
+
+  IupSetAttribute(mat, "NUMCOL_NOSCROLL", "1");
+  IupSetAttribute(mat, "NOSCROLLASTITLE", "Yes");
+
+  IupSetAttributeId2(mat, "MERGE", 1, 2, "1:3");
+  IupSetAttributeId2(mat, "MERGE", 5, 2, "7:4");
 
 //  IupSetAttribute(mat, "LIMITEXPAND", "Yes");
 //  IupSetAttribute(mat, "XAUTOHIDE", "NO");
@@ -220,6 +246,9 @@ static Ihandle* create_matrix(void)
 
 //  IupSetAttribute(mat, "FRAMEBORDER", "Yes");
 
+//  IupSetAttribute(mat, "FLATSCROLLBAR", "Yes");
+//  IupSetAttribute(mat, "SHOWFLOATING", "Yes");
+
   /* test for custom matrix attributes */
   //{
   //  char* v;
@@ -232,7 +261,7 @@ static Ihandle* create_matrix(void)
   IupSetCallback(mat, "DROPCHECK_CB", (Icallback)dropcheck_cb);
   IupSetCallback(mat,"DROP_CB",(Icallback)drop);
 //  IupSetCallback(mat,"MENUDROP_CB",(Icallback)drop);
-//  IupSetCallback(mat, "MOUSEMOVE_CB", (Icallback)mousemove_cb);
+  IupSetCallback(mat, "MOUSEMOVE_CB", (Icallback)mousemove_cb);
 //  IupSetCallback(mat,"CLICK_CB",(Icallback)click);
 //  IupSetCallback(mat,"ENTERITEM_CB",(Icallback)enteritem_cb);
   IupSetCallback(mat,"TOGGLEVALUE_CB",(Icallback)togglevalue_cb);
@@ -250,11 +279,15 @@ void MatrixTest(void)
 
   dlg = IupDialog(box);
   IupSetAttribute(dlg, "TITLE", "IupMatrix Simple Test");
+
+
   IupShowXY(dlg, IUP_CENTER, IUP_CENTER);
 
-//        IupSetAttribute(mat, "ADDLIN", "1");
+//  IupSetAttributeId2(mat, "MERGE", 1, 2, "1:3");
+  //        IupSetAttribute(mat, "ADDLIN", "1");
 //        IupSetAttribute(mat,"4:0","Teste");
-//        IupSetAttribute(mat, "REDRAW", "ALL");
+//        IupSetAttribute(mat, "FONTSTYLE0:1", "Bold");
+//       IupSetAttribute(mat, "REDRAW", "ALL");
 }
 
 #ifndef BIG_TEST

@@ -35,8 +35,8 @@ SCI_SETMARGINLEFT(<unused>, int pixels)
 SCI_GETMARGINLEFT
 SCI_SETMARGINRIGHT(<unused>, int pixels)
 SCI_GETMARGINRIGHT
---SCI_SETFOLDMARGINCOLOUR(bool useSetting, int colour)
---SCI_SETFOLDMARGINHICOLOUR(bool useSetting, int colour)
+SCI_SETFOLDMARGINCOLOUR(bool useSetting, int colour)
+SCI_SETFOLDMARGINHICOLOUR(bool useSetting, int colour)
 SCI_MARGINSETTEXT(int line, char *text)
 SCI_MARGINGETTEXT(int line, char *text)
 SCI_MARGINSETSTYLE(int line, int style)
@@ -52,7 +52,7 @@ SCI_MARGINTEXTCLEARALL
 
 static char* iScintillaGetMarginTypeAttribId(Ihandle* ih, int margin)
 {
-  int type = IupScintillaSendMessage(ih, SCI_GETMARGINTYPEN, margin, 0);
+  int type = (int)IupScintillaSendMessage(ih, SCI_GETMARGINTYPEN, margin, 0);
 
   if (type == SC_MARGIN_NUMBER)
     return "NUMBER";
@@ -88,7 +88,7 @@ static int iScintillaSetMarginTypeAttribId(Ihandle* ih, int margin, const char* 
 
 static char* iScintillaGetMarginWidthAttribId(Ihandle* ih, int margin)
 {
-  int pixelWidth = IupScintillaSendMessage(ih, SCI_GETMARGINWIDTHN, margin, 0);
+  int pixelWidth = (int)IupScintillaSendMessage(ih, SCI_GETMARGINWIDTHN, margin, 0);
   return iupStrReturnInt(pixelWidth);
 }
 
@@ -104,7 +104,7 @@ static int iScintillaSetMarginWidthAttribId(Ihandle* ih, int margin, const char*
 
 static char* iScintillaGetMarginMaskFoldersAttribId(Ihandle* ih, int margin)
 {
-  int mask = IupScintillaSendMessage(ih, SCI_GETMARGINMASKN, margin, 0);
+  unsigned int mask = (unsigned int)IupScintillaSendMessage(ih, SCI_GETMARGINMASKN, margin, 0);
   return iupStrReturnBoolean(mask & SC_MASK_FOLDERS); 
 }
 
@@ -120,7 +120,7 @@ static int iScintillaSetMarginMaskFoldersAttribId(Ihandle* ih, int margin, const
 
 static char* iScintillaGetMarginSensitiveAttribId(Ihandle* ih, int margin)
 {
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_SETMARGINSENSITIVEN, margin, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_SETMARGINSENSITIVEN, margin, 0)); 
 }
 
 static int iScintillaSetMarginSensitiveAttribId(Ihandle* ih, int margin, const char* value)
@@ -135,7 +135,7 @@ static int iScintillaSetMarginSensitiveAttribId(Ihandle* ih, int margin, const c
 
 static char* iScintillaGetMarginLeftAttrib(Ihandle* ih)
 {
-  int pixels = IupScintillaSendMessage(ih, SCI_GETMARGINLEFT, 0, 0);
+  int pixels = (int)IupScintillaSendMessage(ih, SCI_GETMARGINLEFT, 0, 0);
   return iupStrReturnInt(pixels);
 }
 
@@ -151,7 +151,7 @@ static int iScintillaSetMarginLeftAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetMarginRightAttrib(Ihandle* ih)
 {
-  int pixels = IupScintillaSendMessage(ih, SCI_GETMARGINRIGHT, 0, 0);
+  int pixels = (int)IupScintillaSendMessage(ih, SCI_GETMARGINRIGHT, 0, 0);
   return iupStrReturnInt(pixels);
 }
 
@@ -167,7 +167,7 @@ static int iScintillaSetMarginRightAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetMarginTextAttribId(Ihandle* ih, int line)
 {
-  int len = IupScintillaSendMessage(ih, SCI_MARGINGETTEXT, line, 0);
+  int len = (int)IupScintillaSendMessage(ih, SCI_MARGINGETTEXT, line, 0);
   char* str = iupStrGetMemory(len+1);
   IupScintillaSendMessage(ih, SCI_MARGINGETTEXT, line, (sptr_t)str);
   return str;
@@ -188,7 +188,7 @@ static int iScintillaSetMarginTextClearAllAttrib(Ihandle* ih, const char* value)
 
 static char* iScintillaGetMarginTextStyleAttribId(Ihandle* ih, int line)
 {
-  int style = IupScintillaSendMessage(ih, SCI_MARGINGETSTYLE, line, 0);
+  int style = (int)IupScintillaSendMessage(ih, SCI_MARGINGETSTYLE, line, 0);
   return iupStrReturnInt(style);
 }
 
@@ -196,9 +196,8 @@ static int iScintillaSetMarginTextStyleAttribId(Ihandle* ih, int line, const cha
 {
   int style;
 
-  iupStrToInt(value, &style);
-  
-  IupScintillaSendMessage(ih, SCI_MARGINSETSTYLE, line, style);
+  if (iupStrToInt(value, &style))
+    IupScintillaSendMessage(ih, SCI_MARGINSETSTYLE, line, style);
 
   return 0;
 }
@@ -221,11 +220,63 @@ static int iScintillaSetMarginCursorAttribId(Ihandle* ih, int margin, const char
   return 0;
 }
 
+static int iScintillaSetFoldMarginColorAttrib(Ihandle* ih, const char* value)
+{
+  if (!value)
+    IupScintillaSendMessage(ih, SCI_SETFOLDMARGINCOLOUR, 0, 0);
+  else
+  {
+    unsigned char r, g, b;
+
+    if (!iupStrToRGB(value, &r, &g, &b))
+      return 0;
+
+    IupScintillaSendMessage(ih, SCI_SETFOLDMARGINCOLOUR, 1, iupScintillaEncodeColor(r, g, b));
+  }
+  return 0;
+}
+
+static int iScintillaSetFoldMarginHiColorAttrib(Ihandle* ih, const char* value)
+{
+  if (!value)
+    IupScintillaSendMessage(ih, SCI_SETFOLDMARGINHICOLOUR, 0, 0);
+  else
+  {
+    unsigned char r, g, b;
+
+    if (!iupStrToRGB(value, &r, &g, &b))
+      return 0;
+
+    IupScintillaSendMessage(ih, SCI_SETFOLDMARGINHICOLOUR, 1, iupScintillaEncodeColor(r, g, b));
+  }
+  return 0;
+}
+
+static char* iScintillaGetMarginMaskAttribId(Ihandle* ih, int margin)
+{
+  unsigned int mask = (unsigned int)IupScintillaSendMessage(ih, SCI_GETMARGINMASKN, margin, 0);
+  return iupStrReturnUInt(mask);
+}
+
+static int iScintillaSetMarginMaskAttribId(Ihandle* ih, int margin, const char* value)
+{
+  unsigned int markerMask;
+
+  if (iupStrToUInt(value, &markerMask))
+    IupScintillaSendMessage(ih, SCI_SETMARGINMASKN, margin, markerMask);
+
+  return 0;
+}
+
 void iupScintillaRegisterMargin(Iclass* ic)
 {
+  iupClassRegisterAttribute(ic, "FOLDMARGINCOLOR", NULL, iScintillaSetFoldMarginColorAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FOLDMARGINHICOLOR", NULL, iScintillaSetFoldMarginHiColorAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+ 
   iupClassRegisterAttributeId(ic, "MARGINTYPE", iScintillaGetMarginTypeAttribId, iScintillaSetMarginTypeAttribId, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "MARGINWIDTH", iScintillaGetMarginWidthAttribId, iScintillaSetMarginWidthAttribId, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "MARGINMASKFOLDERS", iScintillaGetMarginMaskFoldersAttribId, iScintillaSetMarginMaskFoldersAttribId, IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "MARGINMASK", iScintillaGetMarginMaskAttribId, iScintillaSetMarginMaskAttribId, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "MARGINSENSITIVE", iScintillaGetMarginSensitiveAttribId, iScintillaSetMarginSensitiveAttribId, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic,   "MARGINLEFT", iScintillaGetMarginLeftAttrib, iScintillaSetMarginLeftAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic,   "MARGINRIGHT", iScintillaGetMarginRightAttrib, iScintillaSetMarginRightAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);

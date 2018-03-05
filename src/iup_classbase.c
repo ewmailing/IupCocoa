@@ -515,6 +515,7 @@ void iupBaseRegisterCommonAttrib(Iclass* ic)
     iupClassRegisterAttribute(ic, "CANFOCUS", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
   else
     iupClassRegisterAttribute(ic, "CANFOCUS", NULL, NULL, IUPAF_SAMEASSYSTEM, "NO", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "PROPAGATEFOCUS", NULL, NULL, IUPAF_SAMEASSYSTEM, "NO", IUPAF_NO_INHERIT);
 
   /* if not native container, must set at children,
      native container will automatically hide its children. */

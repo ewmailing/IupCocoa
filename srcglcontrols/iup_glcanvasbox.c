@@ -21,6 +21,7 @@
 #include "iup_glcontrols.h"
 #include "iup_glfont.h"
 #include "iup_glsubcanvas.h"
+#include "iup_varg.h"
 
 
 
@@ -541,18 +542,19 @@ Ihandle* IupGLCanvasBoxv(Ihandle** children)
   return IupCreatev("glcanvasbox", (void**)children);
 }
 
+Ihandle* IupGLCanvasBoxV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("glcanvasbox", child, arglist);
+}
+
 Ihandle* IupGLCanvasBox(Ihandle* child, ...)
 {
-  Ihandle* *children;
   Ihandle* ih;
 
   va_list arglist;
   va_start(arglist, child);
-  children = (Ihandle**)iupObjectGetParamList(child, arglist);
+  ih = IupCreateV("glcanvasbox", child, arglist);
   va_end(arglist);
-
-  ih = IupCreatev("glcanvasbox", (void**)children);
-  free(children);
 
   return ih;
 }

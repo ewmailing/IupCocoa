@@ -418,7 +418,8 @@ static HRESULT STDMETHODCALLTYPE IwinDataObject_GetData(IwinDataObject* pThis, L
 
   /* fill data */
   cbDragData = (IFnsVi)IupGetCallback(pThis->ih, "DRAGDATA_CB");
-  cbDragData(pThis->ih, iupwinStrFromSystem(type), pData, size);
+  if (cbDragData)
+    cbDragData(pThis->ih, iupwinStrFromSystem(type), pData, size);
 
   GlobalUnlock(pStgMedium->hGlobal);
 
@@ -796,8 +797,6 @@ static void winGetClipboardFormatName(CLIPFORMAT cf, TCHAR* name, int len)
     lstrcpy(name, TEXT("METAFILEPICT"));
   else if (cf == CF_TIFF)
     lstrcpy(name, TEXT("TIFF"));
-  else if (cf == CF_TIFF)
-    lstrcpy(name, TEXT("TIFF"));
   else if (cf == CF_DIB)
     lstrcpy(name, TEXT("DIB"));
   else if (cf == CF_WAVE)
@@ -1083,6 +1082,7 @@ void iupwinDropFiles(HDROP hDrop, Ihandle *ih)
 {
   /* called for a WM_DROPFILES */
   TCHAR* filename;
+  char* str;
   int i, numFiles, numchar, ret;
   POINT point;
 
@@ -1101,7 +1101,11 @@ void iupwinDropFiles(HDROP hDrop, Ihandle *ih)
 
     DragQueryFile(hDrop, i, filename, numchar+1);
 
-    ret = cb(ih, iupwinStrFromSystemFilename(filename), numFiles-i-1, (int) point.x, (int) point.y); 
+    str = iupwinStrFromSystemFilename(filename);
+    memcpy(filename, str, strlen(str) + 1);
+    str = (char*)filename;
+
+    ret = cb(ih, str, numFiles-i-1, (int) point.x, (int) point.y); 
 
     free(filename);
 

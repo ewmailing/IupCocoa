@@ -26,8 +26,10 @@ void IupImageLibOpen(void)
   iupImglibBaseLibWin32x32Open();
 #elif defined(MOTIF)
   iupImglibBaseLibMot16x16Open();
+#elif defined(GTK3)
+  iupImglibBaseLibGtk324x24Open();
 #else
-  iupImglibBaseLibGtk16x16Open();
+  iupImglibBaseLibGtk24x24Open();
 #endif  
 
   /***************** Logos *****************/
@@ -49,6 +51,8 @@ void IupImageLibOpen(void)
 #ifdef WIN32
   iupImglibIconsWin48x48Open();
 #elif defined(MOTIF)
+#elif defined(GTK3)
+  iupImglibIconsGtk348x48Open();
 #else
   iupImglibIconsGtk48x48Open();
 #endif  

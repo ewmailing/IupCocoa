@@ -324,13 +324,11 @@ char *iupStrGetLargeMem(int *size)
   if (buffers_index == -1)
   {
     int i;
-
-    memset(buffers, 0, sizeof(char*)*LARGE_MAX_BUFFERS);
-    buffers_index = 0;
-
-    /* clear all memory only once */
+    /* clear all memory */
     for (i=0; i<LARGE_MAX_BUFFERS; i++)
       memset(buffers[i], 0, sizeof(char)*LARGE_SIZE);
+
+    buffers_index = 0;
   }
 
   /* DON'T clear memory everytime because the buffer is too large */
@@ -350,7 +348,7 @@ char *iupStrGetLargeMem(int *size)
 static char* iupStrGetSmallMem(void)
 {
 #define SMALL_MAX_BUFFERS 100
-#define SMALL_SIZE 80  /* maximum for iupStrReturnFloat */
+#define SMALL_SIZE 80  /* maximum for iupStrReturnFloat and iupStrReturnDouble */
   static char buffers[SMALL_MAX_BUFFERS][SMALL_SIZE];
   static int buffers_index = -1;
   char* ret_str;
@@ -358,7 +356,11 @@ static char* iupStrGetSmallMem(void)
   /* init buffers array */
   if (buffers_index == -1)
   {
-    memset(buffers, 0, sizeof(char*)*SMALL_MAX_BUFFERS);
+    int i;
+    /* clear all memory */
+    for (i = 0; i<SMALL_MAX_BUFFERS; i++)
+      memset(buffers[i], 0, sizeof(char)*SMALL_SIZE);
+    
     buffers_index = 0;
   }
 
@@ -474,6 +476,13 @@ char* iupStrReturnChecked(int check)
     return "ON";
   else
     return "OFF";
+}
+
+char* iupStrReturnUInt(unsigned int i)
+{
+  char* str = iupStrGetSmallMem();  /* 20 */
+  sprintf(str, "%u", i);
+  return str;
 }
 
 char* iupStrReturnInt(int i)
@@ -605,6 +614,13 @@ int iupStrToInt(const char *str, int *i)
 {
   if (!str) return 0;
   if (sscanf(str, "%d", i) != 1) return 0;
+  return 1;
+}
+
+int iupStrToUInt(const char *str, unsigned int *i)
+{
+  if (!str) return 0;
+  if (sscanf(str, "%u", i) != 1) return 0;
   return 1;
 }
 
@@ -749,13 +765,15 @@ int iupStrToDoubleDouble(const char *str, double *f1, double *f2, char sep)
 
 int iupStrToStrStr(const char *str, char *str1, char *str2, char sep)
 {
-  if (!str) 
+  str1[0] = 0;
+  str2[0] = 0;
+
+  if (!str)
     return 0;
 
-  if (iup_tolower(*str) == sep) /* no first value */
+  if (iup_tolower(*str) == sep) /* starts with separator, no first value */
   {
     str++; /* skip separator */
-    str1[0] = 0;
     strcpy(str2, str);
     return 1;
   }
@@ -766,14 +784,12 @@ int iupStrToStrStr(const char *str, char *str1, char *str2, char sep)
     if (!p_str)   /* no separator means no second value */
     {        
       strcpy(str1, str);
-      str2[0] = 0;
       return 1;
     }
-    else if (*str==0)    /* separator exists, but second value empty, also means no second value */
+    else if (*str==0)    /* separator exists, but no second value */
     {        
       strcpy(str1, p_str);
       free(p_str);
-      str2[0] = 0;
       return 1;
     }
     else

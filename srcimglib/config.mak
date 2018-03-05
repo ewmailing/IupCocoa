@@ -20,9 +20,15 @@ ifneq ($(findstring Win, $(TEC_SYSNAME)), )
   SRC += iup_imglib_iconswin48x48.c
 else
   ifdef GTK_DEFAULT
-    SRC += iup_imglib_basegtk16x16.c 
+    ifdef USE_GTK3
+      SRC += iup_imglib_basegtk324x24.c 
+      SRC += iup_imglib_iconsgtk348x48.c
+      DEFINES += GTK3
+    else
+      SRC += iup_imglib_basegtk24x24.c 
+      SRC += iup_imglib_iconsgtk48x48.c
+    endif
     SRC += iup_imglib_logos48x48.c iup_imglib_logos32x32.c
-    SRC += iup_imglib_iconsgtk48x48.c
   else
     SRC += iup_imglib_basemot16x16_8bpp.c
     SRC +=  iup_imglib_logos48x48_8bpp.c iup_imglib_logos32x32_8bpp.c

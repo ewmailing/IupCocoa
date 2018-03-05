@@ -116,7 +116,10 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 {
   if (ih->currentwidth > 0 && ih->currentheight > 0)
     SetWindowPos(ih->handle, NULL, ih->x, ih->y, ih->currentwidth, ih->currentheight,
-                 SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOOWNERZORDER);
+                 SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+  else /* move only */
+    SetWindowPos(ih->handle, NULL, ih->x, ih->y, 0, 0,
+                 SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 }
 
 void iupdrvRedrawNow(Ihandle *ih)
@@ -556,17 +559,29 @@ int iupwinBaseContainerMsgProc(Ihandle* ih, UINT msg, WPARAM wp, LPARAM lp, LRES
     }
   case WM_MOUSEWHEEL:
   {
-    HWND hChild;
-    POINT p;
-    p.x = GET_X_LPARAM(lp); p.y = GET_Y_LPARAM(lp);
-    ScreenToClient(ih->handle, &p);
-
-    hChild = ChildWindowFromPointEx(ih->handle, p, CWP_SKIPDISABLED|CWP_SKIPINVISIBLE|CWP_SKIPTRANSPARENT);
-    if (hChild)
+    /* if not a canvas based container, must forward the message to the canvas child under the mouse if any. 
+       when it is a canvas, the canvas will forward to the parent. */
+    if (!IupClassMatch(ih, "canvas"))
     {
-      Ihandle* child = iupwinHandleGet(hChild);
-      if (child && IupClassMatch(child, "canvas"))  /* will check of all canvas based control classes */
-        SendMessage(child->handle, WM_MOUSEWHEEL, wp, lp);
+      HWND hChild;
+      POINT p;
+
+      if (IupGetDialog(ih) == ih && iupAttribGet(ih, "_IUP_WHEEL_PROPAGATING")) /* to avoid the dialog to propagate again to the child */
+      {
+        iupAttribSet(ih, "_IUP_WHEEL_PROPAGATING", NULL);
+        break;
+      }
+
+      p.x = GET_X_LPARAM(lp); p.y = GET_Y_LPARAM(lp);
+      ScreenToClient(ih->handle, &p);
+
+      hChild = ChildWindowFromPointEx(ih->handle, p, CWP_SKIPDISABLED | CWP_SKIPINVISIBLE | CWP_SKIPTRANSPARENT);
+      if (hChild)
+      {
+        Ihandle* child = iupwinHandleGet(hChild);
+        if (child && IupClassMatch(child, "canvas"))  /* will check of all canvas based control classes */
+          SendMessage(child->handle, WM_MOUSEWHEEL, wp, lp);
+      }
     }
     break;
   }

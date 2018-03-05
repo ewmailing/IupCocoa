@@ -42,7 +42,7 @@ SCI_GETWRAPVISUALFLAGSLOCATION
 
 static char* iScintillaGetWordWrapAttrib(Ihandle *ih)
 {
-  int type = IupScintillaSendMessage(ih, SCI_GETWRAPMODE, 0, 0);
+  int type = (int)IupScintillaSendMessage(ih, SCI_GETWRAPMODE, 0, 0);
 
   if(type == SC_WRAP_WORD)
     return "WORD";
@@ -66,7 +66,7 @@ static int iScintillaSetWordWrapAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetWordWrapVisualFlagsAttrib(Ihandle *ih)
 {
-  int type = IupScintillaSendMessage(ih, SCI_GETWRAPVISUALFLAGS, 0, 0);
+  int type = (int)IupScintillaSendMessage(ih, SCI_GETWRAPVISUALFLAGS, 0, 0);
 
   if(type == SC_WRAPVISUALFLAG_MARGIN)
     return "MARGIN";

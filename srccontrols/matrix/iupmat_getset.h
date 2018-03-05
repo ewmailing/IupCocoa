@@ -33,6 +33,12 @@ char* iupMatrixGetFgColorStr(Ihandle* ih, int lin, int col);
 char* iupMatrixGetBgColorStr(Ihandle* ih, int lin, int col);
 char* iupMatrixGetFont(Ihandle* ih, int lin, int col);
 int   iupMatrixGetType(Ihandle* ih, int lin, int col);
+int   iupMatrixGetFrameHorizColor(Ihandle* ih, int lin, int col, long *framecolor, int check_title);
+int   iupMatrixGetFrameVertColor(Ihandle* ih, int lin, int col, long *framecolor, int check_title);
+int   iupMatrixGetColAlignmentLin0(Ihandle* ih);
+int   iupMatrixGetColAlignment(Ihandle* ih, int col);
+int   iupMatrixGetLinAlignment(Ihandle* ih, int lin);
+void  iupMatrixGetCellAlign(Ihandle* ih, int lin, int col, int *col_alignment, int *lin_alignment);
 
 void iupMatrixGetBgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned char *g, unsigned char *b, int mark, int active);
 void iupMatrixGetFgRGB(Ihandle* ih, int lin, int col, unsigned char *r, unsigned char *g, unsigned char *b, int mark, int active);
@@ -45,6 +51,12 @@ int   iupMatrixGetVisibleCellDim(Ihandle* ih, int lin, int col, int* x, int* y, 
 int   iupMatrixGetColumnWidth(Ihandle* ih, int col, int use_value);
 int   iupMatrixGetLineHeight (Ihandle* ih, int lin, int use_value);
 int   iupMatrixGetCellFromXY(Ihandle* ih, int x, int y, int* l, int* c);
+
+int  iupMatrixGetMerged(Ihandle* ih, int lin, int col);
+int  iupMatrixHasMerged(Ihandle* ih, int startLin, int endLin, int startCol, int endCol);
+void iupMatrixMergeRange(Ihandle* ih, int startLin, int endLin, int startCol, int endCol);
+void iupMatrixMergeSplitRange(Ihandle* ih, int merged);
+void iupMatrixGetMergedRect(Ihandle *ih, int merged, int *startLin, int *endLin, int *startCol, int *endCol);
 
 int iupMatrixCheckCellPos(Ihandle* ih, int lin, int col);
 
