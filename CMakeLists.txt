@@ -102,6 +102,7 @@ ELSEIF(ANDROID)
 	OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
 	OPTION(IUP_OPTION_WIN32 "Use Win32 backend" OFF)
 
+	MESSAGE("In android")
 
 ELSEIF(WIN32)
 	OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
@@ -225,9 +226,13 @@ OPTION(IUPIMGLIB_OPTION_USE_IMGLIB_LARGE "Include images larger than 48x48 (incl
 
 SET(IUP_USE_LUA 0)
 IF(IUP_OPTION_LUA)
+message("init LUA_LIBRARY: ${LUA_LIBRARY}")
+message("init LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+	MESSAGE("finding lua package")
 	FIND_PACKAGE(Lua QUIET)
 	IF(LUA_FOUND)
 		SET(IUP_USE_LUA 1)
+		MESSAGE("Lua found")
 	ELSE()
 		MESSAGE("Lua not found")
 	ENDIF()
@@ -405,6 +410,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_frame.h
 	${CMAKE_SOURCE_DIR}/src/iup_func.c
 	${CMAKE_SOURCE_DIR}/src/iup_func.h
+	${CMAKE_SOURCE_DIR}/src/iup_gauge.c
 	${CMAKE_SOURCE_DIR}/src/iup_getparam.c
 	${CMAKE_SOURCE_DIR}/src/iup_globalattrib.c
 	${CMAKE_SOURCE_DIR}/src/iup_globalattrib.h
@@ -1340,43 +1346,6 @@ function(BUILD_DEV_TEST exe_name source_list)
 	)
 endfunction()
 
-# Hack: Used to build simple test programs as we bootstrap each new implementation
-if(IUP_USE_EMSCRIPTEN)
-	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
-elseif(IUP_USE_COCOATOUCH)
-	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/XcodeiOS/iup/TestApp/main.c")
-elseif(IUP_USE_COCOA)
-	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
-elseif(IUP_USE_ANDROID)
-
-	# This is a hack to get around Android Studio/Gradle deficiencies.
-	# Being able to build an AAR, and then using it in the same project is horribly broken.
-	# After some hackery, I got the testapp target to refer to the AAR, but it only looks at the Java side.
-	# The CMake/NDK side can't find the libraries.
-	# So the hack is to force the NDK side to rebuild all the libraries, plus the libMyIupProgram.so library.
-	# But we don't want the libMyIupProgram.so built when just building the AAR, otherwise it goes into the AAR.
-	# So the build.gradle is required to set -DIUP_ANDROID_BUILD_TEST_LIBRARY=1 when building the testapp.
-	IF(IUP_ANDROID_BUILD_TEST_LIBRARY)
-		add_library(MyIupProgram SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
-		)
-		target_link_libraries(MyIupProgram iupimglib iup)
-	ENDIF()
-
-	IF(IUPWEB_ANDROID_BUILD_TEST_LIBRARY)
-
-		add_library(MyIupProgramWebBrowser SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
-		)
-		target_link_libraries(MyIupProgramWebBrowser iupweb iup)
-
-	ENDIF()
-
-
-endif()
-
-
-
 
 IF(IUP_USE_LUA)
 
@@ -1449,6 +1418,51 @@ IF(IUP_USE_LUA)
 
 
 ENDIF(IUP_USE_LUA)
+
+
+# Hack: Used to build simple test programs as we bootstrap each new implementation
+if(IUP_USE_EMSCRIPTEN)
+	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/src/emscripten/test/main_c.c")
+elseif(IUP_USE_COCOATOUCH)
+	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/XcodeiOS/iup/TestApp/main.c")
+elseif(IUP_USE_COCOA)
+	BUILD_DEV_TEST(dev_test "${CMAKE_SOURCE_DIR}/Xcode/iup/TestApp/main.c")
+elseif(IUP_USE_ANDROID)
+
+	# This is a hack to get around Android Studio/Gradle deficiencies.
+	# Being able to build an AAR, and then using it in the same project is horribly broken.
+	# After some hackery, I got the testapp target to refer to the AAR, but it only looks at the Java side.
+	# The CMake/NDK side can't find the libraries.
+	# So the hack is to force the NDK side to rebuild all the libraries, plus the libMyIupProgram.so library.
+	# But we don't want the libMyIupProgram.so built when just building the AAR, otherwise it goes into the AAR.
+	# So the build.gradle is required to set -DIUP_ANDROID_BUILD_TEST_LIBRARY=1 when building the testapp.
+	IF(IUP_ANDROID_BUILD_TEST_LIBRARY)
+		add_library(MyIupProgram SHARED EXCLUDE_FROM_ALL
+			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
+		)
+		target_link_libraries(MyIupProgram iupimglib iup)
+	ENDIF()
+
+	IF(IUPWEB_ANDROID_BUILD_TEST_LIBRARY)
+
+		add_library(MyIupProgramWebBrowser SHARED EXCLUDE_FROM_ALL
+			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+		)
+		target_link_libraries(MyIupProgramWebBrowser iupweb iup)
+
+	ENDIF()
+
+	# TODO: Need a new main.c launcher app to drive Lua programs. Also need to bundle Lua scripts.
+#	IF(IUPLUA_ANDROID_BUILD_TEST_LIBRARY)
+#
+#		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+#		)
+#	target_link_libraries(MyIupProgramLua iupluaweb iuplua iupweb iup)
+#
+#	ENDIF()
+
+endif()
 
 
 # For uninstall
