@@ -7,14 +7,14 @@
     <Filter Include="inc">
       <UniqueIdentifier>{bb5bc435-15dc-4e95-bee6-b954ea45919a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="colorbrowser">
-      <UniqueIdentifier>{6cb35ec6-aa99-40e2-b8d4-a2462ef054d6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="matrix">
       <UniqueIdentifier>{386d9a36-2756-40c8-bc10-683e353f0270}</UniqueIdentifier>
     </Filter>
     <Filter Include="matrix\inc">
       <UniqueIdentifier>{b0b0cf9e-6c1e-4bf8-8729-8bba489cf041}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="matrixex">
+      <UniqueIdentifier>{615d6521-6a58-4085-9986-57152985d345}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -23,9 +23,6 @@
     </ClInclude>
     <ClInclude Include="..\srccontrols\iup_controls.h">
       <Filter>inc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\srccontrols\color\iup_colorhsi.h">
-      <Filter>colorbrowser</Filter>
     </ClInclude>
     <ClInclude Include="..\srccontrols\matrix\iupmat_aux.h">
       <Filter>matrix\inc</Filter>
@@ -66,17 +63,11 @@
     <ClInclude Include="..\srccontrols\matrix\iupmat_scroll.h">
       <Filter>matrix\inc</Filter>
     </ClInclude>
+    <ClInclude Include="..\srccontrols\matrixex\iup_matrixex.h">
+      <Filter>matrixex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\srccontrols\color\iup_colorbrowser.c">
-      <Filter>colorbrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srccontrols\color\iup_colorbrowserdlg.c">
-      <Filter>colorbrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\srccontrols\color\iup_colorhsi.c">
-      <Filter>colorbrowser</Filter>
-    </ClCompile>
     <ClCompile Include="..\srccontrols\matrix\iupmat_aux.c">
       <Filter>matrix</Filter>
     </ClCompile>
@@ -114,14 +105,41 @@
       <Filter>matrix</Filter>
     </ClCompile>
     <ClCompile Include="..\srccontrols\iup_cells.c" />
-    <ClCompile Include="..\srccontrols\iup_colorbar.c" />
     <ClCompile Include="..\srccontrols\iup_controls.c" />
-    <ClCompile Include="..\srccontrols\iup_dial.c" />
-    <ClCompile Include="..\srccontrols\iup_gauge.c" />
     <ClCompile Include="..\srccontrols\matrix\iupmat_ex.c">
       <Filter>matrix</Filter>
     </ClCompile>
     <ClCompile Include="..\srccontrols\iup_matrixlist.c" />
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_sort.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_undo.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_units.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_visible.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iup_matrixex.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_busy.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_clipboard.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_copy.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_export.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\srccontrols\matrixex\iupmatex_find.c">
+      <Filter>matrixex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="..\srccontrols\iupcontrols.def" />

@@ -146,6 +146,9 @@ can use the functions with <strong>def</strong> to use a default value. </p>
 <strong>IupGetAttribute</strong> functions. Internally the variables are stored 
 as attributes using a &quot;&lt;GROUP&gt;.&lt;KEY&gt;&quot; combination, that's why group and key 
 names can not have periods &quot;.&quot;.</p>
+<pre>void <strong>IupConfigCopy</strong>(Ihandle* <strong>ih1</strong>, Ihandle* <strong>ih2</strong>, const char* <strong>exclude_prefix</strong>); (since 3.23)</pre>
+<p>Copy all the variables from config ih1 to ih2, but excludes groups that start 
+with the given prefix (it can be NULL). </p>
 <h3>Recent File Menu</h3>
 <pre>void <strong>IupConfigRecentInit</strong>(Ihandle* <strong>ih</strong>, Ihandle* <strong>menu</strong>, Icallback <strong>recent_cb</strong>, int <strong>max_recent</strong>);
 <span class="auto-style2"><strong>iup.</strong></span><strong>ConfigRecentInit</strong>(<b>ih, menu</b>: ihandle, <strong>max_recent</strong>: number)  [in Lua]
@@ -158,11 +161,13 @@ void <strong>IupConfigRecentUpdate</strong>(Ihandle* <strong>ih</strong>, const 
 </pre>
 
 <p><b>ih</b>: Identifier of the configuration database<br><strong>menu</strong>: 
-menu where the recent file items will be listed<br>
+menu where the recent file items will be listed. Sets the internal RECENTMENU 
+attribute.<br>
 
   <strong>recent_cb</strong>: callback that will be called when a recent file 
-item is selected on the menu<br>
-<strong>max_recent</strong>: the maximum number of recent file items.<br>
+item is selected on the menu. Sets the internal RECENT_CB callback.<br>
+<strong>max_recent</strong>: the maximum number of recent file items. Sets the 
+internal RECENTMAX attribute.<br>
 
 <strong>filename</strong>: name of the file that where just saved or open</p>
 <p>These functions store and manage a &quot;Recent Files&quot; menu for the application. 
@@ -174,6 +179,10 @@ list. </p>
 the ih handle is not the menu, it is the IupConfig handle. But also inside the 
 callback the IupConfig will inherit attributes from the menu as if it was its 
 parent. (since 3.15)</p>
+<p>The recent file list is stored by default in the group &quot;Recent&quot; in the 
+configuration file. To change the default set the internal attribute RECENTNAME, 
+when set all other internal attributes will be stored with this value as a 
+prefix. (since 3.23)</p>
 <h3>Dialog Position and Size</h3>
 <pre>void <strong>IupConfigDialogShow</strong>(Ihandle* <strong>ih</strong>, Ihandle* <strong>dialog</strong>, const char* <strong>name</strong>);
 <span class="auto-style2"><strong>iup.</strong></span><strong>ConfigDialogShow</strong>(<b>ih, dialog</b>: ihandle, <strong>name</strong>: string)  [in Lua]

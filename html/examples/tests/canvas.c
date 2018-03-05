@@ -64,7 +64,7 @@ static unsigned char pixmap_cursor [ ] =
 
 /* draw a rectangle that has w=600 always, white background and a red X */
 #ifdef USE_IUPDRAW
-static void drawTest(Ihandle *ih, int posx)
+static void drawTest(Ihandle *ih, int posx)  //_Lines
 {
   int w, h;
 
@@ -75,14 +75,62 @@ static void drawTest(Ihandle *ih, int posx)
   /* white background */
   IupSetAttribute(ih, "DRAWCOLOR", "255 255 255");
   IupSetAttribute(ih, "DRAWSTYLE", "FILL");
-  IupDrawRectangle(ih, 0, 0, w, h);
+  IupDrawRectangle(ih, 0, 0, w - 1, h - 1);
+
+  /* Guide Lines */
+  IupSetAttribute(ih, "DRAWCOLOR", "255 0 0");
+  IupDrawLine(ih, 10, 5, 10, 19);
+  IupDrawLine(ih, 14, 5, 14, 19);
+  IupDrawLine(ih, 5, 10, 19, 10);
+  IupDrawLine(ih, 5, 14, 19, 14);
+
+  /* Stroke or Fill Rectangle, both must cover guide lines */
+  IupSetAttribute(ih, "DRAWCOLOR", "0 0 0");
+  IupSetAttribute(ih, "DRAWSTYLE", "STROKE");
+  IupDrawRectangle(ih, 10, 10, 14, 14);
+
+  IupSetAttribute(ih, "DRAWCOLOR", "255 0 0");
+  IupDrawRectangle(ih, 30, 10, 50, 30);
+
+  IupSetAttribute(ih, "DRAWCOLOR", "0 0 0");
+  //  IupDrawArc(ih, 30, 10, 50, 30, 45, 135);
+  IupDrawArc(ih, 30, 10, 50, 30, 0, 360);
+
+  IupSetAttribute(ih, "DRAWCOLOR", "255 0 0");
+  IupDrawRectangle(ih, 60, 10, 80, 30);
+
+  IupSetAttribute(ih, "DRAWCOLOR", "0 0 0");
+  IupSetAttribute(ih, "DRAWSTYLE", "FILL");
+//  IupDrawArc(ih, 60, 10, 80, 30, 45, 135);
+  IupDrawArc(ih, 60, 10, 80, 30, 0, 360);
+
+  IupDrawEnd(ih);
+}
+
+static void drawTest1(Ihandle *ih, int posx)
+{
+  int w, h;
+
+  IupDrawBegin(ih);
+
+  IupDrawGetSize(ih, &w, &h);
+
+  /* white background */
+  IupSetAttribute(ih, "DRAWCOLOR", "255 255 255");
+  IupSetAttribute(ih, "DRAWSTYLE", "FILL");
+  IupDrawRectangle(ih, 0, 0, w - 1, h - 1);
 
   w = 600; /* virtual size */
 
   /* red X */
   IupSetAttribute(ih, "DRAWCOLOR", "255 0 0");
+  IupSetAttribute(ih, "DRAWLINEWIDTH", "3");
   IupDrawLine(ih, -posx, 0, w - posx, h);
   IupDrawLine(ih, -posx, h, w - posx, 0);
+
+  IupSetAttribute(ih, "DRAWCOLOR", "0 0 0");
+  IupSetAttribute(ih, "DRAWFONT", "Times, 28");
+  IupDrawText(ih, "This is a test", 0, w / 2, h / 2);
 
   IupDrawEnd(ih); 
 }
@@ -359,8 +407,10 @@ void CanvasTest(void)
   //IupSetAttribute (image, "HOTSPOT", "7:7");
 
   box = IupVbox(NULL);
+//  box = IupBackgroundBox(NULL);
   IupSetAttribute(box, "MARGIN", "5x5");
 //  IupSetAttribute(box, "CMARGIN", "30x30");
+//  IupSetAttribute(box, "RASTERSIZE", "150x100");
 
   canvas = IupCanvas(NULL);
   IupAppend(box, canvas);
@@ -396,7 +446,7 @@ void CanvasTest(void)
   IupSetCallback(canvas, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
 
   IupSetCallback(canvas, "BUTTON_CB",    (Icallback)button_cb);
-//  IupSetCallback(canvas, "MOTION_CB",    (Icallback)motion_cb);
+  IupSetCallback(canvas, "MOTION_CB",    (Icallback)motion_cb);
   IupSetCallback(canvas, "SCROLL_CB",  (Icallback)scroll_cb);
   IupSetCallback(canvas, "WHEEL_CB",    (Icallback)wheel_cb);
 

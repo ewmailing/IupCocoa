@@ -122,7 +122,7 @@ void iupMatrixColResMove(Ihandle* ih, int x)
     return;
 
   y1 = ih->data->lines.dt[0].size;  /* from the bottom of the line of titles */
-  y2 = ih->data->h-1;             /* to the bottom of the matrix */
+  y2 = iupMatrixGetHeight(ih) - 1;             /* to the bottom of the matrix */
 
   iupMatrixDrawUpdate(ih);
 

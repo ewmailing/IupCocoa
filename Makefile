@@ -2,8 +2,8 @@ ifeq ($(OS), Windows_NT)
   WINLIBS = iupole
 endif
 
-.PHONY: do_all iup iupgtk iupmot iupcd iupcontrols iupmatrixex iupgl iupglcontrols iup_plot iup_mglplot iup_scintilla iupim iupimglib ledc iupview iuplua5 iupconsole iupole iupweb iuptuio
-do_all: iup iupcd iupcontrols iupgl iupglcontrols iupmatrixex iup_plot iup_mglplot iup_scintilla iupim iupimglib $(WINLIBS) iupweb iuptuio ledc iupview iuplua5 iupconsole
+.PHONY: do_all iup iupgtk iupmot iupcd iupcontrols iupgl iupglcontrols iup_plot iup_mglplot iup_scintilla iupim iupimglib ledc iupview iuplua5 iupluaconsole iupluascripter iupole iupweb iuptuio
+do_all: iup iupcd iupcontrols iupgl iupglcontrols iup_plot iup_mglplot iup_scintilla iupim iupimglib $(WINLIBS) iupweb iuptuio ledc iupview iuplua5 iupluaconsole iupluascripter
 
 iup iupgtk iupmot:
 	@$(MAKE) --no-print-directory -C ./src/ $@
@@ -11,8 +11,6 @@ iupcd:
 	@$(MAKE) --no-print-directory -C ./srccd/
 iupcontrols:
 	@$(MAKE) --no-print-directory -C ./srccontrols/
-iupmatrixex:
-	@$(MAKE) --no-print-directory -C ./srcmatrixex/
 iup_plot:
 	@$(MAKE) --no-print-directory -C ./srcplot/
 iup_mglplot:
@@ -35,8 +33,10 @@ iupimglib:
 	@$(MAKE) --no-print-directory -C ./srcimglib/
 iuplua5:
 	@$(MAKE) --no-print-directory -C ./srclua5/
-iupconsole:
-	@$(MAKE) --no-print-directory -C ./srcconsole/
+iupluaconsole:
+	@$(MAKE) --no-print-directory -C ./srcluaconsole/
+iupluascripter:
+	@$(MAKE) --no-print-directory -C ./srcluascripter/
 ledc:
 	@$(MAKE) --no-print-directory -C ./srcledc/
 iupview: iupcontrols iup

@@ -166,10 +166,10 @@ static int motToggleSetAlignmentAttrib(Ihandle* ih, const char* value)
 
   if (iupStrEqualNoCase(value1, "ARIGHT"))
     align = XmALIGNMENT_END;
-  else if (iupStrEqualNoCase(value1, "ACENTER"))
-    align = XmALIGNMENT_CENTER;
-  else /* "ALEFT" */
+  else if (iupStrEqualNoCase(value1, "ALEFT"))
     align = XmALIGNMENT_BEGINNING;
+  else /* "ACENTER" (default) */
+    align = XmALIGNMENT_CENTER;
 
   XtVaSetValues (ih->handle, XmNalignment, align, NULL);
   return 1;

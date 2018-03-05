@@ -112,7 +112,7 @@ static char* iScintillaGetBraceMatchAttribId(Ihandle* ih, int pos)
   if (pos < 0)
     return "-1";
 
-  return iupStrReturnInt(IupScintillaSendMessage(ih, SCI_BRACEMATCH, pos, 0));
+  return iupStrReturnInt((int)IupScintillaSendMessage(ih, SCI_BRACEMATCH, pos, 0));
 }
 
 void iupScintillaRegisterBraceLight(Iclass* ic)

@@ -116,7 +116,7 @@ static int gtkLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
       xalign = 0.5f;
       alignment = PANGO_ALIGN_CENTER;
     }
-    else /* "ALEFT" */
+    else /* "ALEFT" (default) */
     {
       xalign = 0;
       alignment = PANGO_ALIGN_LEFT;
@@ -147,11 +147,8 @@ static int gtkLabelSetPaddingAttrib(Ihandle* ih, const char* value)
 
   if (ih->handle && ih->data->type != IUP_LABEL_SEP_HORIZ && ih->data->type != IUP_LABEL_SEP_VERT)
   {
-#if GTK_CHECK_VERSION(3, 14, 0)
-    g_object_set(G_OBJECT(ih->handle), "margin-bottom", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-top", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-left", ih->data->horiz_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-right", ih->data->horiz_padding, NULL);
+#if GTK_CHECK_VERSION(3, 4, 0)
+    iupgtkSetMargin(ih->handle, ih->data->horiz_padding, ih->data->vert_padding, 1);
 #else
     GtkMisc* misc = (GtkMisc*)ih->handle;
     gtk_misc_set_padding(misc, ih->data->horiz_padding, ih->data->vert_padding);

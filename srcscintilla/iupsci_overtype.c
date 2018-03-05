@@ -25,7 +25,7 @@
 
 static char* iScintillaGetOvertypeAttrib(Ihandle *ih)
 {
-  return iupStrReturnChecked(IupScintillaSendMessage(ih, SCI_GETOVERTYPE, 0, 0));
+  return iupStrReturnChecked((int)IupScintillaSendMessage(ih, SCI_GETOVERTYPE, 0, 0));
 }
 
 static int iScintillaSetOvertypeAttrib(Ihandle *ih, const char *value)

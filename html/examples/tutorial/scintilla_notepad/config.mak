@@ -12,8 +12,10 @@ IUP = ../../../..
 PROJDIR = ../../../..
 #DBG = Yes
 OPT=Yes
+LINKER = g++
 
 SRC = scintilla_notepad.c
+#SRC = scintilladlg_notepad.c
 
 ifdef DBG_DIR
   SFX=d

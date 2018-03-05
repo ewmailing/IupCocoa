@@ -2,6 +2,7 @@ EXPORTS
   IupGLControlsOpen
   IupGLCanvasBoxv
   IupGLCanvasBox
+  IupGLCanvasBoxV
   IupGLSubCanvas
   IupGLLabel
   IupGLSeparator

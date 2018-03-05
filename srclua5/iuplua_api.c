@@ -385,7 +385,15 @@ static int GetName(lua_State *L)
 static int Help(lua_State *L)
 {
   const char *url = luaL_checkstring(L,1);
-  IupHelp(url);
+  lua_pushinteger(L, IupHelp(url));
+  return 1;
+}
+
+static int Log(lua_State *L)
+{
+  const char *type = luaL_checkstring(L, 1);
+  const char *str = luaL_checkstring(L, 2);
+  IupLog(type, "%s", str);
   return 0;
 }
 
@@ -393,16 +401,16 @@ static int Execute(lua_State *L)
 {
   const char *filename = luaL_checkstring(L, 1);
   const char *parameters = luaL_optstring(L, 2, NULL);
-  IupExecute(filename, parameters);
-  return 0;
+  lua_pushinteger(L, IupExecute(filename, parameters));
+  return 1;
 }
 
 static int ExecuteWait(lua_State *L)
 {
   const char *filename = luaL_checkstring(L, 1);
   const char *parameters = luaL_optstring(L, 2, NULL);
-  IupExecuteWait(filename, parameters);
-  return 0;
+  lua_pushinteger(L, IupExecuteWait(filename, parameters));
+  return 1;
 }
 
 static int Hide(lua_State *L)
@@ -491,6 +499,25 @@ static int Message(lua_State *L)
   const char *message = luaL_checkstring(L,2);
   IupMessage(title, message);
   return 0;
+}
+
+static int MessageError(lua_State *L)
+{
+  Ihandle* parent = iuplua_checkihandleornil(L, 1);
+  const char *message = luaL_checkstring(L, 2);
+  IupMessageError(parent, message);
+  return 0;
+}
+
+static int MessageAlarm(lua_State *L)
+{
+  Ihandle* parent = iuplua_checkihandleornil(L, 1);
+  const char *title = luaL_checkstring(L, 2);
+  const char *message = luaL_checkstring(L, 3);
+  const char *buttons = luaL_checkstring(L, 4);
+  int n = IupMessageAlarm(parent, title, message, buttons);
+  lua_pushinteger(L, n);
+  return 1;
 }
 
 static int Alarm(lua_State *L)
@@ -1051,6 +1078,7 @@ void iupluaapi_open(lua_State * L)
     {"GetLanguage", GetLanguage},
     {"GetName", GetName},
     {"Help", Help},
+    {"Log", Log},
     {"Execute", Execute},
     {"ExecuteWait", ExecuteWait},
     {"Hide", Hide},
@@ -1066,6 +1094,8 @@ void iupluaapi_open(lua_State * L)
     {"Map", Map},
     {"Unmap", Unmap},
     {"Message", Message},
+    {"MessageError", MessageError},
+    {"MessageAlarm", MessageAlarm},
     {"Alarm", Alarm},  
     {"ListDialog", ListDialog},
     {"GetText", GetText},

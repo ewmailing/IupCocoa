@@ -507,21 +507,24 @@ static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wPa
         Ihandle* ih = (Ihandle*)GetWindowLongPtr(hWnd, DWLP_USER);
         /* callback here always exists */
         IFnss cb = (IFnss)IupGetCallback(ih, "FILE_CB");
-        TCHAR filename[IUP_MAX_FILENAME_SIZE];
-        iupAttribSet(ih, "PREVIEWDC", (char*)lpDrawItem->hDC);
-        iupAttribSet(ih, "HDC_WMPAINT", (char*)lpDrawItem->hDC);
-
-        if (winFileDlgGetSelectedFile(ih, hWnd, filename))
+        if (cb)
         {
-          if (winIsFile(filename))
-            cb(ih, iupwinStrFromSystemFilename(filename), "PAINT");
+          TCHAR filename[IUP_MAX_FILENAME_SIZE];
+          iupAttribSet(ih, "PREVIEWDC", (char*)lpDrawItem->hDC);
+          iupAttribSet(ih, "HDC_WMPAINT", (char*)lpDrawItem->hDC);
+
+          if (winFileDlgGetSelectedFile(ih, hWnd, filename))
+          {
+            if (winIsFile(filename))
+              cb(ih, iupwinStrFromSystemFilename(filename), "PAINT");
+            else
+              cb(ih, NULL, "PAINT");
+          }
           else
             cb(ih, NULL, "PAINT");
+          iupAttribSet(ih, "PREVIEWDC", NULL);
+          iupAttribSet(ih, "HDC_WMPAINT", NULL);
         }
-        else
-          cb(ih, NULL, "PAINT");
-        iupAttribSet(ih, "PREVIEWDC", NULL);
-        iupAttribSet(ih, "HDC_WMPAINT", NULL);
       }
       break;
     }
@@ -548,7 +551,7 @@ static UINT_PTR CALLBACK winFileDlgPreviewHook(HWND hWnd, UINT uiMsg, WPARAM wPa
       Ihandle* ih = (Ihandle*)GetWindowLongPtr(hWnd, DWLP_USER);
       /* callback here always exists */
       IFnss cb = (IFnss)IupGetCallback(ih, "FILE_CB");
-      cb(ih, NULL, "FINISH");
+      if (cb) cb(ih, NULL, "FINISH");
       break;
     }
   case WM_XBUTTONDBLCLK:

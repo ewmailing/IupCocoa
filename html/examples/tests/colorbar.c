@@ -6,7 +6,6 @@
 #include "cd.h"
 #include "cd_old.h"
 #include "cdiup.h"
-#include "iupcontrols.h"
 
 static Ihandle  *canvas = NULL;
 static cdCanvas *cdcanvas = NULL;
@@ -40,14 +39,13 @@ static int extended_cb(Ihandle* ih, int cell)
 static char* cell_cb(Ihandle* ih, int cell)
 {
   int ri, gi, bi;
+  unsigned char r, g, b;
   static char str[30];
 
   sprintf(str, "CELL%d", cell);
   sscanf(IupGetAttribute(ih, str), "%d %d %d", &ri, &gi, &bi);
   printf("cell_cb(%d): %d, %d, %d\n", cell, ri, gi, bi);
 
-/*  
-  unsigned char r, g, b;
   r = (unsigned char)ri;
   g = (unsigned char)gi;
   b = (unsigned char)bi;
@@ -59,7 +57,7 @@ static char* cell_cb(Ihandle* ih, int cell)
     redraw_cb(canvas);
     return str;
   }
-*/
+
   return NULL;
 }
 
@@ -107,28 +105,36 @@ void ColorbarTest(void)
 {
   Ihandle *dlg, *cb;
   
-  IupControlsOpen();
-
   /* Creates a canvas associated with the redraw action */
   canvas = IupCanvas(NULL) ;
   IupSetCallback(canvas, "ACTION", (Icallback)redraw_cb);
   IupSetAttribute(canvas, "RASTERSIZE", "200x300");
 
   cb = IupColorbar(); 
-  IupSetAttribute(cb, "RASTERSIZE",     "70x");
+#if 1
+  IupSetAttribute(cb, "RASTERSIZE",     "140x");
   IupSetAttribute(cb, "EXPAND",         "VERTICAL");
+  dlg = IupDialog(IupHbox(canvas, cb, NULL));
+#else
+  IupSetAttribute(cb, "ORIENTATION", "HORIZONTAL");
+  IupSetAttribute(cb, "RASTERSIZE", "x140");
+  IupSetAttribute(cb, "EXPAND", "HORIZONTAL");
+  dlg = IupDialog(IupVbox(canvas, cb, NULL));
+#endif
   IupSetAttribute(cb, "NUM_PARTS",      "2");
   IupSetAttribute(cb, "SHOW_SECONDARY", "YES");
-  IupSetAttribute(cb, "PREVIEW_SIZE",   "60");
+//  IupSetAttribute(cb, "SHOW_PREVIEW", "NO");
+//  IupSetAttribute(cb, "SQUARED", "NO");
+//  IupSetAttribute(cb, "SHADOWED", "NO");
+  //  IupSetAttribute(cb, "PREVIEW_SIZE",   "60");
 //  IupSetAttribute(cb, "ACTIVE",   "NO");
-//  IupSetAttribute(cb, "BGCOLOR",   "128 0 255");
+//  IupSetAttribute(cb, "TRANSPARENCY", "128 128 0");
 
   IupSetCallback(cb, "SELECT_CB", (Icallback)select_cb);
   IupSetCallback(cb, "CELL_CB",   (Icallback)cell_cb);
   IupSetCallback(cb, "SWITCH_CB", (Icallback)switch_cb);
   IupSetCallback(cb, "EXTENDED_CB", (Icallback)extended_cb);
 
-  dlg = IupDialog(IupHbox(canvas, cb, NULL));
   IupSetAttribute(dlg, "MARGIN", "5x5");
   
   IupSetAttribute(dlg, "TITLE", "IupColorbar");

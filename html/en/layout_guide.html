@@ -276,8 +276,9 @@ IupGetChild</a> or
 <a href="func/iupgetnextchild.html">IupGetNextChild</a>. To get just the next control with the same parent use 
 <a href="func/iupgetbrother.html">IupGetBrother</a>. To get the parent of a 
 control call <a href="func/iupgetparent.html">IupGetParent</a>.</p>
-<p>In Lua, if the element was created in Lua, you can access any child of the 
-element using the notation &quot;elem[n][n]....&quot;, where n is the index of the child. 
+<p>In Lua, if the container was created in Lua and children specified during the 
+creating, you can access any child of the 
+element using the notation &quot;elem[n]&quot;, where n is the index of the child. 
 For example:</p>
 <pre>
 dlg = iup.dialog
@@ -288,8 +289,12 @@ dlg = iup.dialog
     iup.button{title="Cancel&quot;},
   }
 }
-cancel_button = dlg[1][2]
-</pre>
+cancel_button = dlg[1][2]</pre>
+<p>
+But this will not work for dynamically modified containers, for instance when 
+iup.Append or iup.Deatch are used to add or remove elements from the container. 
+For those containers use the API functions like iup.GetChild.<br>
+</p>
 <h3>Layout <a name="Display">Display</a></h3>
 <p>The layout size and positioning is automatically updated by <b>IupMap</b>.
   <b>IupMap</b> also updates the dialog layout 

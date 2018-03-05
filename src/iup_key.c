@@ -409,8 +409,10 @@ int iupKeyProcessNavigation(Ihandle* ih, int code, int shift)
   {
     Ihandle* bt = IupGetAttributeHandle(IupGetDialog(ih), "DEFAULTESC");
     if (iupObjectCheck(bt) && (IupClassMatch(bt, "button") || IupClassMatch(bt, "flatbutton")))
+    {
       iupKeyActivate(bt);
-    return 1;
+      return 1;
+    }
   }
   else if (code==K_CR || code==K_cCR)
   {
@@ -421,8 +423,10 @@ int iupKeyProcessNavigation(Ihandle* ih, int code, int shift)
     {
       Ihandle* bt = IupGetAttributeHandle(IupGetDialog(ih), "DEFAULTENTER");
       if (iupObjectCheck(bt) && (IupClassMatch(bt, "button") || IupClassMatch(bt, "flatbutton")))
+      {
         iupKeyActivate(bt);
-      return 1;
+        return 1;
+      }
     }
   }
   else if (iup_isCtrlXkey(code) && iup_isShiftXkey(code) && iup_isAltXkey(code) && iup_XkeyBase(code) == K_L)

@@ -106,12 +106,12 @@ void iupUpdateFontAttrib(Ihandle* ih)
 
 int iupGetFontInfo(const char* font, char *typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout)
 {
-  if (size) *size = 0;
-  if (is_bold) *is_bold = 0;
-  if (is_italic) *is_italic = 0; 
-  if (is_underline) *is_underline = 0;
-  if (is_strikeout) *is_strikeout = 0;
-  if (typeface) *typeface = 0;
+  *size = 0;
+  *is_bold = 0;
+  *is_italic = 0; 
+  *is_underline = 0;
+  *is_strikeout = 0;
+  *typeface = 0;
   
   /* parse the old Windows format first */
   if (!iupFontParseWin(font, typeface, size, is_bold, is_italic, is_underline, is_strikeout))
@@ -597,7 +597,7 @@ int iupFontParseWin(const char *value, char *typeface, int *size, int *bold, int
   if (!iupStrToInt(value, size))
     return 0;
 
-  if (size == 0)
+  if (*size == 0)
     return 0;
 
   return 1;

@@ -27,7 +27,7 @@ char* iupCanvasGetPosYAttrib(Ihandle* ih);
 struct _IcontrolData 
 {
   int sb;    /* scrollbar configuration, valid only after map, use iupBaseGetScrollbar before map */
-  float posx, posy;
+  double posx, posy;
   int inside_resize;
 };
 

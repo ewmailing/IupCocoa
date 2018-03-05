@@ -8,9 +8,10 @@ local ctrl = {
   creation = "-",
   funcname = "FlatTabs",
   callback = {
-    tabchange_cb = "ii",
-    tabchangepos_cb = "nn",
-    tabclose_cb = "n",
+    --tabchange_cb = "ii", -- already implemented in IupTabs, same definition
+    --tabchangepos_cb = "nn", -- already implemented in IupTabs, same definition
+    --tabclose_cb = "n", -- already implemented in IupTabs, same definition
+    --extrabutton_cb = "nn", -- already implemented in IupExpander, same definition
     --rightclick_cb = "n", -- already implemented in IupTree, same definition
   },
 }

@@ -504,14 +504,14 @@ bool iupPlot::CalculateTickSpacing(const iupPlotRect &inRect, cdCanvas* canvas)
   if (theXRange <= 0 || theYRange < 0)
     return false;
 
-  if ((mAxisY.mMax != 0 && fabs(theYRange / mAxisY.mMax) < kRangeVerySmall) || theYRange == 0)
+  // YRange can be 0, must adjust
+  if (mAxisY.mAutoScaleMax && ((mAxisY.mMax != 0 && fabs(theYRange / mAxisY.mMax) < kRangeVerySmall) || theYRange == 0))
   {
     double delta = 0.1;
     if (mAxisY.mMax != 0)
       delta *= fabs(mAxisY.mMax);
 
     mAxisY.mMax += delta;
-    mAxisY.mMin -= delta;
     theYRange = mAxisY.mMax - mAxisY.mMin;
   }
 

@@ -42,7 +42,6 @@ unsigned char iupLexByte (void);
 int     iupLexInt        (void);
 float   iupLexFloat      (void);
 char*   iupLexGetName    (void);
-char*   iupLexName       (void);
 float   iupLexGetNumber  (void);
 int     iupLexError      (int n, ...);
 Iclass* iupLexGetClass   (void);

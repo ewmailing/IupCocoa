@@ -110,7 +110,7 @@ int iupdrvOpen(int *argc, char ***argv)
   }
 
   iupwin_comctl32ver6 = (iupwinGetComCtl32Version() >= 0x060000)? 1: 0;
-  if (iupwin_comctl32ver6 && !iupwinIsAppThemed())  /* When the user selected the Windows Classic theme */
+  if (iupwin_comctl32ver6 && !iupwinIsAppThemed())  /* When the user selected the Windows Classic theme or visual styles not active */
     iupwin_comctl32ver6 = 0;
 
   IupSetGlobal("SYSTEMLANGUAGE", iupwinGetSystemLanguage());

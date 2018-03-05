@@ -1,0 +1,40 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupMessageError</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.auto-style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+
+<h2>IupMessageError <span class="auto-style1">(since 3.22)</span></h2>
+<p>Shows a modal dialog containing an error message. It simply creates and popup a <b>IupMessageDlg</b> 
+with DIALOGTYPE=ERROR.</p>
+<h3>Creation and Show</h3>
+<pre>void IupMessageError(Ihandle* <strong>parent</strong>, const char *<strong>message</strong>); [in C]
+iup.MessageError(<strong>parent</strong>: ihandle, <strong>message</strong>: string) [in Lua]</pre>
+<p><strong>parent</strong>: parent dialog, can be NULL.<br>
+<strong>message</strong>: text message contents. It can be a language 
+pre-defined string without the "_@" prefix.</p>
+<h3>Notes</h3>
+<p>If parent is NULL the title defaults to "Error!" and tries the global 
+attribute "PARENTDIALOG" as the parent dialog.</p>
+<p>The dialog title will be the same title of the parent dialog. </p>
+<p>The dialog is shown centered relative to its parent.</p>
+<h3><a name="Examples">Examples</a></h3>
+<p><a href="../../examples/">Browse for Example Files</a></p>
+<h3>See Also</h3>
+<p><a href="iupgetfile.html">IupGetFile</a>, <a href="iupscanf.html">IupScanf</a>,
+  <a href="iuplistdialog.html">IupListDialog</a>, <a href="iupalarm.html">IupAlarm</a>,
+<a href="iupmessage.html">IupMessage</a>,
+<a href="iupmessagedlg.html">IupMessageDlg</a></p>
+
+</body>
+
+</html>

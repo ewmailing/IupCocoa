@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>Code Lite Guide</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.auto-style3 {
+	text-indent: 0;
+}
+.auto-style4 {
+	text-align: center;
+}
+.auto-style5 {
+	border-style: solid;
+	border-width: 2px;
+}
+</style>
+</head>
+
+<body>
+
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm'>
+	<h2 align=center style='margin-right:0cm;
+'><span lang=EN-US>CodeLite IDE 10.0 Project Properties Guide</span></h2>
+</div>
+<div style='border:solid gray 1.0pt;padding:0cm 0cm 0cm 0cm;background:#E1E1E1'>
+	<h3 align=center style='border-style: none; border-color: inherit; border-width: medium; margin-right:0cm;
+ background:#E1E1E1;
+ padding:0cm'><span lang=EN-US><a href="https://www.codelite.org">https://www.codelite.org</a></span></h3>
+</div>
+<p style='margin-right:0cm;padding-bottom:0cm;border-bottom:
+0cm none black'><span lang=EN-US>This guide was created using CodeLite 10.0 IDE in Windows 10 x64
+bit OS (but similar configuration also tested in Linux). CodeLite is free cross
+platform, open source C, C++, PHP and Node.js IDE developed by Eran Ifrah. It
+was created especially for wxWidgets GUI projects development, but it also
+could be used for IUP, IM, CD project. </span></p>
+<p class=MsoNormal style='margin-right:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>To create a new
+project one would have to create a new &quot;Workspace&quot; using &quot;File
+-&gt; New -&gt; New Workspace&quot; and then create a new project in that
+workspace using  &quot;File -&gt; New -&gt; New Project&quot; and select either
+&quot;Executable GUI GTK 3.0/C&quot; or &quot;Executable GUI GTK 2.4/C&quot;
+option:</span></p>
+<p class=auto-style4 style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-top:0cm;
+padding-bottom:0cm;border-bottom:0cm none black'>
+<a href="codelite1.png">
+<img 
+src="codelite1_small.png" class="auto-style5" height="122" width="200" xthumbnail-orig-image="codelite1.png"></a></p>
+<p class=MsoNormal style='margin-right:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US> You can choose
+which compiler to use, for this tutorial we will choose the MinGW_TDM x64
+compiler (Please note that in CodeLite it would be listed as &quot;MinGW (
+TDM_GCC-32 )&quot; even if you use x64 version of compiler !). Just use the
+respective IUP/CD/IM dynamic library package: &quot;dllw4_64&quot; or compile
+required libraries yourself (we will be using dynamic library linking - for
+static libraries things would be quite similar, but do not forget about proper
+library order in that case)</span></p>
+<p class=MsoNormal style='margin-right:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>CodeLite would
+create default main.c file designed for GTK libraries usage. Remove default
+content of that file and replace it with required one for IUP/CD/Project or add
+your own file to the.</span></p>
+<p class=MsoNormal style='margin-right:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+<span
+lang=EN-US>After creating
+the project you must configure it use IUP include files and libraries. Select
+your project and use option &quot;Settings...&quot;, that would be available
+when one press right mouse button (MB3).</span></p>
+<p class=MsoNormal style='margin-right:0cm;padding-top:0cm'><span lang=EN-US>First of all configure &quot;Compiler&quot;
+options:</span></p>
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm;margin-left:30.0pt;
+margin-right:0cm'>
+	<p class=auto-style3 style='margin-right:0cm;
+padding-bottom:
+0cm;border-bottom:0cm none black'><span lang=EN-US>·</span><span lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Remove: &quot;; $(shell pkg-config --cflags gtk+-2.0)&quot; in
+&quot;C Compiler Option&quot;</span></p>
+	<p class=auto-style3 style='margin-right:0cm;
+padding-top:0cm'><span
+lang=EN-US>·</span><span
+lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Add required IUP/CD/IM directories with include
+files:</span></p>
+</div>
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm;margin-left:12.0pt;
+margin-right:0cm'>
+	<p class=auto-style4 style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-bottom:0cm;
+border-bottom:0cm none black'>
+	<a href="codelite2.png">
+	<img src="codelite2_small.png" class="auto-style5" height="123" width="200" xthumbnail-orig-image="codelite2.png"></a></p>
+	<p class=MsoNormal style='margin-right:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+	<span
+lang=EN-US>Do not forget
+that same procedure would have to be repeated for both Debug and Release
+configurations. They got different settings !.</span></p>
+	<p class=MsoNormal style='margin-right:0cm;padding-top:0cm'>
+	<span lang=EN-US>To configure library files location once again
+got to the project settings (MB3 on project and select option &quot;Settings...&quot;)
+and then edit &quot;Linker&quot; options:</span></p>
+</div>
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm;margin-left:30.0pt;
+margin-right:0cm'>
+	<p class=auto-style3 style='margin-right:0cm;
+padding-bottom:
+0cm;border-bottom:0cm none black'><span lang=EN-US>·</span><span lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Remove &quot;$(shell pkg-config --libs gtk+-2.0)&quot; from Linker
+Options line</span></p>
+	<p class=auto-style3 style='margin-right:0cm;
+padding-top:0cm;
+padding-bottom:0cm;border-bottom:0cm none black'><span lang=EN-US>·</span><span lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Add required path entries to the &quot;Libraries
+Search Path&quot;</span></p>
+	<p class=auto-style3 style='margin-right:0cm;
+padding-top:0cm'><span
+lang=EN-US>·</span><span
+lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Add required libraries that would be required
+for your project in &quot;Libraries&quot; line.</span></p>
+</div>
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm;margin-left:12.0pt;
+margin-right:0cm'>
+	<p class=auto-style4 style='margin-top:12.0pt;margin-right:0cm;
+margin-bottom:15.6pt;margin-left:0cm;padding-bottom:0cm;
+border-bottom:0cm none black'>
+	<a href="codelite3.png">
+	<img 
+src="codelite3_small.png" class="auto-style5" height="122" width="200" xthumbnail-orig-image="codelite3.png"></a></p>
+	<p class=MsoNormal style='margin-right:0cm;padding-top:0cm;padding-bottom:0cm;border-bottom:0cm none black'>
+	<span
+lang=EN-US>Another possible
+option is to add required libraries path and include files path in global
+CodeLite settings: &quot;Settings -&gt; Build Settings -&gt; Compilers -&gt;
+Advanced&quot;   and set required &quot;Include Path&quot; and &quot;Libraries
+Path&quot;</span></p>
+	<p style='margin-right:0cm;
+padding-top:0cm' class="auto-style4"><span
+lang=EN-US><a href="http://iup.sourceforge.net/en/ide_guide/codeblocks4.png">
+	</a></span>
+	<a href="codelite4.png">
+	<img src="codelite4_small.png" class="auto-style5" height="122" width="200" xthumbnail-orig-image="codelite4.png"></a></p>
+</div>
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm'>
+	<p class=MsoNormal><span lang=EN-US>Additional hint:</span></p>
+</div>
+<div style='border:none black 1.0pt;padding:0cm 0cm 0cm 0cm;margin-left:18.05pt;
+margin-right:0cm'>
+	<p class=auto-style3><span
+lang=EN-US>·</span><span
+lang=EN-US>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+In Windows steps mentioned above would allow you
+to build IUP/CD/IM applications. But if you would try to use &quot;Run&quot;
+option - system would unable to execute your new application because path to
+the required dll files would not be found. To overcame this problem one could
+put all required dll to the directory of your choice (in my case I use
+C:\Tools\IUP) and add this directory to the PATH Windows environment.</span></p>
+</div>
+
+</body>
+
+</html>

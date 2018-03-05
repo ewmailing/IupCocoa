@@ -108,9 +108,13 @@ In Ubuntu, the Lua run time package is:</p>
 <p>To use them, instead of using the directory &quot;/xxxx/lua5.1&quot; described above, you will have to define some environment variables before building IM, CD and 
 IUP:</p>
 <pre class="example">export LUA_SUFFIX=
-export LUA_INC=/usr/include/lua5.1</pre>
+export LUA_INC=/usr/include/lua5.1
+export LUA_LIB==/usr/lib          [not necessary, already included by gcc]</pre>
 <p>By default the Makefiles and Tecmake files will build for Lua 5.1. To build 
 for other Lua versions define USE_LUA_VERSION=52 or USE_LUA_VERSION=53 in the environment.</p>
+<p>If you need to rebuild the .lh files from the Lua files, then you will need 
+also the path to Lua executable. This can be configured using:</p>
+<pre>export LUA_BIN=/usr/bin</pre>
 <h3>Building</h3>
 
 <p>As a general rule (excluding system dependencies): IUP depends on CD and IM, 

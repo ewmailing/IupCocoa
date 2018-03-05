@@ -11,6 +11,7 @@
 
 #include "iup_object.h"
 #include "iup_assert.h"
+#include "iup_varg.h"
 
   
 char* iupGetCallbackName(Ihandle *ih, const char *name)
@@ -79,6 +80,26 @@ Icallback IupSetCallback(Ihandle *ih, const char *name, Icallback func)
   return old_func;
 }
 
+Ihandle*  IupSetCallbacksV(Ihandle* ih, const char *name, Icallback func, va_list arglist)
+{
+  iupASSERT(iupObjectCheck(ih));
+  if (!iupObjectCheck(ih))
+    return NULL;
+
+  IupSetCallback(ih, name, func);
+
+  name = va_arg(arglist, const char*);
+  while (name)
+  {
+    func = va_arg(arglist, Icallback);
+    IupSetCallback(ih, name, func);
+
+    name = va_arg(arglist, const char*);
+  }
+
+  return ih;
+}
+
 Ihandle* IupSetCallbacks(Ihandle* ih, const char *name, Icallback func, ...)
 {
   va_list arglist;
@@ -87,19 +108,8 @@ Ihandle* IupSetCallbacks(Ihandle* ih, const char *name, Icallback func, ...)
   if (!iupObjectCheck(ih))
     return NULL;
 
-  IupSetCallback(ih, name, func);
-
   va_start(arglist, func);
-
-  name=va_arg(arglist, const char*);
-  while (name)
-  {
-    func=va_arg(arglist, Icallback);
-    IupSetCallback(ih, name, func);
-
-    name=va_arg(arglist, const char*);
-  } 
-
+  IupSetCallbacksV(ih, name, func, arglist);
   va_end (arglist);
   return ih;
 }

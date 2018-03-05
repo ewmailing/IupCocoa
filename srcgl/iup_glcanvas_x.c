@@ -502,6 +502,8 @@ static int xGLCanvasIgnoreError(Display *param1, XErrorEvent *param2)
   return 0;
 }
 
+#define iglxColorScale(c)  (unsigned short)(c * 65535.0 + 0.5)
+
 void IupGLPalette(Ihandle* ih, int index, float r, float g, float b)
 {
   IGlControlData* gldata;
@@ -541,9 +543,9 @@ void IupGLPalette(Ihandle* ih, int index, float r, float g, float b)
     color.pixel = ((index << rShift) & vinfo->red_mask) |
                   ((index << gShift) & vinfo->green_mask) |
                   ((index << bShift) & vinfo->blue_mask);
-    color.red = (unsigned short)(r * 65535.0 + 0.5);
-    color.green = (unsigned short)(g * 65535.0 + 0.5);
-    color.blue = (unsigned short)(b * 65535.0 + 0.5);
+    color.red = iglxColorScale(r);
+    color.green = iglxColorScale(g);
+    color.blue = iglxColorScale(b);
     color.flags = DoRed | DoGreen | DoBlue;
     XStoreColor(gldata->display, gldata->colormap, &color);
     break;
@@ -552,9 +554,9 @@ void IupGLPalette(Ihandle* ih, int index, float r, float g, float b)
     if (index < vinfo->colormap_size) 
     {
       color.pixel = index;
-      color.red = (unsigned short)(r * 65535.0 + 0.5);
-      color.green = (unsigned short)(g * 65535.0 + 0.5);
-      color.blue = (unsigned short)(b * 65535.0 + 0.5);
+      color.red = iglxColorScale(r);
+      color.green = iglxColorScale(g);
+      color.blue = iglxColorScale(b);
       color.flags = DoRed | DoGreen | DoBlue;
       XStoreColor(gldata->display, gldata->colormap, &color);
     }

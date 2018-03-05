@@ -202,6 +202,21 @@
     <ClCompile Include="..\..\srclua5\elem\il_flattabs.c">
       <Filter>Source Files\controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_flatscrollbox.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_dial.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_gauge.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_colorbar.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_colorbrowser.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\srclua5\iuplua.def">
@@ -376,6 +391,21 @@
       <Filter>Lua\controls</Filter>
     </None>
     <None Include="..\..\srclua5\elem\flattabs.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\flatscrollbox.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\dial.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\gauge.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\colorbar.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\colorbrowser.lua">
       <Filter>Lua\controls</Filter>
     </None>
   </ItemGroup>
