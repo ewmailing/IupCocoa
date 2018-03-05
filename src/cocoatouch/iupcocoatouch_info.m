@@ -9,7 +9,7 @@
 #include <string.h>
 
 /* This module should depend only on IUP core headers and
- Mac OS Carbon system headers. */
+ iOS system headers. */
 
 #import <UIKit/UIKit.h>
 #include <asl.h>
@@ -24,6 +24,7 @@
 //#include <gtk/gtk.h>
 
 #include "iup.h"
+#include "iup_varg.h"
 
 #include "iup_str.h"
 #include "iup_drv.h"
