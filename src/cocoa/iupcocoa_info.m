@@ -137,7 +137,7 @@ int iupdrvGetScreenDepth(void)
 }
 
 // I think this is not going to work on Cocoa. Apple does everything in their power to hide this for retina.
-float iupdrvGetScreenDpi(void)
+double iupdrvGetScreenDpi(void)
 {
 	CGRect rect = CGDisplayBounds(kCGDirectMainDisplay);
 	int height = (int)CGRectGetHeight(rect);   /* pixels */

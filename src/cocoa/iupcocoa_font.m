@@ -283,29 +283,12 @@ int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
   return 1;
 }
 
-void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h)
+
+static void helperFontGetMultiLineStringSize(ImacFont* macfont, const char* str, int *w, int *h)
 {
-  int num_lin, max_w;
+	int num_lin, max_w;
 	int max_h;
 	
-	/* This won't work because other callbacks assume the string size and then add padding on top of it.
-	id native_object = ih->handle;
-	if([native_object respondsToSelector:@selector(sizeToFit)])
-   {
-//	   [native_object sizeToFit];
-	   NSRect the_rect = [native_object frame];
-	   
-	   if (w) *w = the_rect.size.width;
-	   if (h) *h = the_rect.size.height;
-	   
-	   return;
-   }
-*/
-
-	
-	
-	
-  ImacFont* macfont = macFontGet(ih);
   if (!macfont)
   {
     if (w) *w = 0;
@@ -390,6 +373,31 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	}
 }
 
+void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h)
+{
+
+	
+	/* This won't work because other callbacks assume the string size and then add padding on top of it.
+	id native_object = ih->handle;
+	if([native_object respondsToSelector:@selector(sizeToFit)])
+   {
+//	   [native_object sizeToFit];
+	   NSRect the_rect = [native_object frame];
+	 
+	   if (w) *w = the_rect.size.width;
+	   if (h) *h = the_rect.size.height;
+	 
+	   return;
+   }
+*/
+
+	
+	
+	
+  ImacFont* macfont = macFontGet(ih);
+	helperFontGetMultiLineStringSize(macfont, str, w, h);
+}
+
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 {
 	
@@ -446,6 +454,17 @@ void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
 
   if (charwidth)  *charwidth = macfont->charwidth;
   if (charheight) *charheight = macfont->charheight;
+}
+
+void iupdrvFontGetTextSize(const char* font, const char* str, int *w, int *h)
+{
+	ImacFont* macfont = macFindFont(font);
+	if (macfont)
+	{
+		// FIXME: quick and dirty fix to get around Iup internal API changes
+		helperFontGetMultiLineStringSize(macfont, str, w, h);
+	}
+	
 }
 
 void iupdrvFontInit(void)

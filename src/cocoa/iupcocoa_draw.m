@@ -99,12 +99,12 @@ void iupdrvDrawKillCanvas(IdrawCanvas* dc)
 
 
 
-
-void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width)
 {
+	unsigned char r = iupDrawRed(color), g = iupDrawGreen(color), b = iupDrawBlue(color), a = iupDrawAlpha(color);
 	CGContextRef cg_context = dc->cgContext;
 	
-	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, a);
 	
 	CGRect the_rectangle = CGRectMake(x1, y1, x2-x1+1, y2-y1+1);
 	CGContextAddRect(cg_context, the_rectangle);
@@ -118,7 +118,7 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
 		CGContextSetStrokeColorWithColor(cg_context, the_color);
 		coregraphicsSetLineStyle(dc, style);
 	}
-	
+	CGContextSetLineWidth(cg_context, (CGFloat)line_width);
 	
 
 	CGFloat w = x2-x1+1;
@@ -163,12 +163,13 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
 	}
 }
 
-void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int style, int line_width)
 {
-	CGContextRef cg_context = dc->cgContext;
+	unsigned char r = iupDrawRed(color), g = iupDrawGreen(color), b = iupDrawBlue(color), a = iupDrawAlpha(color);	CGContextRef cg_context = dc->cgContext;
 	
-	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
-	
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, a);
+	CGContextSetLineWidth(cg_context, (CGFloat)line_width);
+
 	if(IUP_DRAW_FILL == style)
 	{
 		CGContextSetFillColorWithColor(cg_context, the_color);
@@ -216,20 +217,22 @@ void iupdrvDrawResetClip(IdrawCanvas* dc)
 void iupdrvDrawParentBackground(IdrawCanvas* dc)
 {
 }
-void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, unsigned char r, unsigned char g, unsigned char b, const char* font)
+void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, int w, int h, long color, const char* font, int align)
 {
 }
 void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
 }
 
-void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
 {
+	unsigned char r = iupDrawRed(color), g = iupDrawGreen(color), b = iupDrawBlue(color), a = iupDrawAlpha(color);
 	CGContextRef cg_context = dc->cgContext;
 	
-	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, a);
 	CGContextSetStrokeColorWithColor(cg_context, the_color);
 	coregraphicsSetLineStyle(dc, style);
+	CGContextSetLineWidth(cg_context, (CGFloat)line_width);
 
 	CGContextMoveToPoint(cg_context, (CGFloat)x1, (CGFloat)y1);
 	CGContextAddLineToPoint(cg_context, (CGFloat)x2, (CGFloat)y2);
@@ -239,13 +242,14 @@ void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned ch
 void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
 }
-
-void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b, int style)
+void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
 {
+	unsigned char r = iupDrawRed(color), g = iupDrawGreen(color), b = iupDrawBlue(color), a = iupDrawAlpha(color);
 	CGContextRef cg_context = dc->cgContext;
 	
-	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, 255);
-	
+	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, a);
+	CGContextSetLineWidth(cg_context, (CGFloat)line_width);
+
 	if(IUP_DRAW_FILL == style)
 	{
 		CGRect the_rectangle = CGRectMake(x1, y1, x2-x1, y2-y1);
