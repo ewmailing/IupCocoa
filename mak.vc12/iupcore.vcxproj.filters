@@ -76,6 +76,9 @@
     <ClCompile Include="..\src\iup_ledparse.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\iup_loop.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\iup_mask.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -334,6 +337,9 @@
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="..\src\iup_ledlex.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\iup_loop.h">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="..\src\iup_mask.h">

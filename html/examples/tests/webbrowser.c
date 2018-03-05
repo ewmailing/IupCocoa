@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <iup.h>
-#include <iupweb.h>
+#include "iup.h"
+#include "iupweb.h"
 
 
 #ifndef WIN32
@@ -15,23 +15,31 @@ static int history_cb(Ihandle* ih)
 {
   int i;
   char str[50];
-  int back = IupGetInt(ih, "BACKCOUNT");
-  int fwrd = IupGetInt(ih, "FORWARDCOUNT");
+  Ihandle* web_ih = (Ihandle*)IupGetAttribute(ih, "MY_WEB");
+
+/*
+	IupSetAttribute(web_ih, "SELECTALL", NULL);
+	IupSetAttribute(web_ih, "COPY", NULL);
+	IupSetAttribute(web_ih, "PRINT", NULL);
+*/	
+	
+  int back = IupGetInt(web_ih, "BACKCOUNT");
+  int fwrd = IupGetInt(web_ih, "FORWARDCOUNT");
 
   printf("HISTORY ITEMS\n");
   for(i = -(back); i < 0; i++)
   {
     sprintf(str, "ITEMHISTORY%d", i);
-    printf("Backward %02d: %s\n", i, IupGetAttribute(ih, str));
+    printf("Backward %02d: %s\n", i, IupGetAttribute(web_ih, str));
   }
 
   sprintf(str, "ITEMHISTORY%d", 0);
-  printf("Current  %02d: %s\n", 0, IupGetAttribute(ih, str));
+  printf("Current  %02d: %s\n", 0, IupGetAttribute(web_ih, str));
 
   for(i = 1; i <= fwrd; i++)
   {
     sprintf(str, "ITEMHISTORY%d", i);
-    printf("Forward  %02d: %s\n", i, IupGetAttribute(ih, str));
+    printf("Forward  %02d: %s\n", i, IupGetAttribute(web_ih, str));
   }
 
   return IUP_DEFAULT;
@@ -151,7 +159,9 @@ void WebBrowserTest(void)
 
    //IupSetAttribute(web, "HTML", "<html><body><b>Hello</b>World!</body></html>");
 //   IupSetAttribute(txt, "VALUE", "My HTML");
-  IupSetAttribute(txt, "VALUE", "http://www.tecgraf.puc-rio.br/iup");
+  // Apple now forbids non-encrypted traffic. Need to use server with https.
+  IupSetAttribute(txt, "VALUE", "https://www.google.com");
+//  IupSetAttribute(txt, "VALUE", "http://www.tecgraf.puc-rio.br/iup");
 //  IupSetAttribute(txt, "VALUE", "file:///D:/tecgraf/iup/html/index.html");
   IupSetAttribute(web, "VALUE", IupGetAttribute(txt, "VALUE"));
   IupSetAttributeHandle(dlg, "DEFAULTENTER", btLoad);
@@ -164,6 +174,7 @@ void WebBrowserTest(void)
   IupSetCallback(btStop, "ACTION", (Icallback)stop_cb);
 #ifndef WIN32
   IupSetCallback(history, "ACTION", (Icallback)history_cb);
+  IupSetAttribute(history, "MY_WEB", (char*)web);
 #endif
 
   IupSetCallback(web, "NEWWINDOW_CB", (Icallback)newwindow_cb);
@@ -176,17 +187,32 @@ void WebBrowserTest(void)
 }
 
 #ifndef BIG_TEST
+static void IupExitPoint()
+{
+	IupClose();
+}
+
+void IupEntryPoint()
+{
+	IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
+	WebBrowserTest();
+}
+
 int main(int argc, char* argv[])
 {
-  IupOpen(&argc, &argv);
-  IupControlsOpen();      
-
-  WebBrowserTest();
-
-  IupMainLoop();
-
-  IupClose();
-
-  return EXIT_SUCCESS;
+	IupOpen(&argc, &argv);
+	
+#if 1 // new ENTRY_POINT callback
+	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+	IupMainLoop();
+	
+#else // legacy
+	IupEntryPoint();
+	IupMainLoop();
+	// legacy: New way should assume IupMainLoop may return immediately or this code is never reached.
+	IupClose();
+#endif
+	
+	return EXIT_SUCCESS;
 }
 #endif

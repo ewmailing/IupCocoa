@@ -62,16 +62,18 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
    (void)bulk;
  }
 
-void iupdrvTextAddSpin(int *w, int h)
+void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
   *w += h/2;
+  (void)ih;
 }
 
-void iupdrvTextAddBorders(int *w, int *h)
+void iupdrvTextAddBorders(Ihandle* ih, int *w, int *h)
 {
   int border_size = 2*5;
   (*w) += border_size;
   (*h) += border_size;
+  (void)ih;
 }
 
 static void motTextGetLinColFromPosition(const char *str, int pos, int *lin, int *col )

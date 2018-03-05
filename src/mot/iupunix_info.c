@@ -80,6 +80,25 @@ char* iupdrvGetCurrentDirectory(void)
   return NULL;
 }
 
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
+{
+  /* This implementation is copied from the original iConfigSetFilename */
+  /* Not using strlcpy, strlcat for compatibility reasons. */
+  char* home;
+  home = getenv("HOME");
+  if (home)
+  {
+    /* UNIX format */
+    strcpy(filename, home);
+    strcat(filename, "/");
+    return 1;
+  }
+  else
+  {
+    filename[0] = '\0';
+    return 0;
+  }
+}
 
 /**************************************************************************/
 

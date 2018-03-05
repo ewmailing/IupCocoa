@@ -39,7 +39,7 @@ static GtkWidget* gtk_button_get_image(GtkButton *button)
 }
 #endif
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
 #ifdef WIN32
@@ -51,6 +51,7 @@ void iupdrvButtonAddBorders(int *x, int *y)
   int border_size = 2*5+1; /* borders are not symmetric */
 #endif
 #endif
+  (void)ih;  
   (*x) += border_size;
   (*y) += border_size;
 }
@@ -394,7 +395,7 @@ static void gtkButtonLayoutUpdateMethod(Ihandle *ih)
     if (frame && GTK_IS_FRAME(frame))
     {
       int x = 0, y = 0;
-      iupdrvButtonAddBorders(&x, &y);
+      iupdrvButtonAddBorders(ih, &x, &y);
       if (ih->currentwidth - x > 0 && ih->currentheight - y > 0)
         gtk_widget_set_size_request(frame, ih->currentwidth-x, ih->currentheight-y);
     }

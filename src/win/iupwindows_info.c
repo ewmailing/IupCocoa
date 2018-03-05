@@ -11,6 +11,7 @@
    and Windows system headers. */
 
 #include <windows.h>
+#include <ShlObj.h> /* for SHGetFolderPath */
 
 #include "iup_str.h"
 #include "iup_drvinfo.h"
@@ -195,6 +196,100 @@ char *iupdrvGetUserName(void)
   GetUserNameA((LPSTR)str, &size);
   return (char*)str;
 }
+
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
+{
+  /*
+  The implementation IUP originally used does not correctly follow the official Windows conventions.
+  Also remember that the official location changed starting from Windows Vista.
+  SHGetFolderPath fortunately works on both. (It calls the new Vista SHGetKnownFolderPath under the hood.)
+  SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_CREATE, NULL, &winPath);
+  Vista+ directory: SHGetFolderPath CSIDL_APPDATA  C:\Users\patricka\AppData\Roaming
+  XP directory: SHGetFolderPath CSIDL_APPDATA  C:\Documents and Settings\XPMUser\Application Data
+  */
+
+
+  /* TODO: My version uses the 'A' version instead of the 'W'. This means we're affected by the MAX_PATH character limit. */
+  /* This is technically deprecated, but this is also Microsoft... */
+  BOOL ret_flag;
+  const char path_separator[] = "\\";
+  HRESULT the_result;
+
+  /*
+  To preserve backwards compatibility
+  We will use the old algorithm and look for the app_name.cfg (because this was the only thing in IUP using this information).
+  If it exists, it means the app is already using the old system and we want to preserve the legacy behavior.
+  If the file does not exist, nothing depends on the legacy code and we are free to use the santioned way.
+  */
+  BOOL use_legacy_mode = 0;
+  {
+    // 10240 was the hardcoded number IUP used originally.
+    char legacy_config_filename[10240] = "";
+    HANDLE find_handle;
+    WIN32_FIND_DATA find_file_data;
+  
+    /* This implementation is copied from the original iConfigSetFilename */
+    char* homedrive = getenv("HOMEDRIVE");
+    char* homepath = getenv("HOMEPATH");
+    if (homedrive && homepath)
+    {
+      /* bounds checks are skipped because Visual Studio has a bad track record of supporting safe versions. */
+      strcpy(filename, homedrive);
+      strcat(filename, homepath);
+      strcat(filename, path_separator);
+      /* filename is now the legacy path we should return if we are in legacy mode. */
+
+
+      /* Now test to see if the app_name.cfg is there. 
+         If it is, we need to use legacy mode.
+         Otherwise, we can go to non-legacy mode.
+      */
+      strcpy(legacy_config_filename, filename);
+      strcat(legacy_config_filename, app_name);
+      strcat(legacy_config_filename, ".cfg");      
+
+      find_handle = FindFirstFileA(legacy_config_filename, &find_file_data);
+      if (INVALID_HANDLE_VALUE == find_handle) 
+      {
+          use_legacy_mode = 0;
+      } 
+      else 
+      {
+          use_legacy_mode = 1;
+          return 1;
+      }
+    }
+  }
+  
+  /* If we get here, we are NOT in legacy mode. */
+
+  the_result = SHGetFolderPathA(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, filename);
+  if (S_OK != the_result)
+  {
+    filename[0] = '\0';
+    return 0;
+  }
+
+  /* Let's create a new subdirectory using the app_name because all programs dump to this same location. */
+  /* bounds checks are skipped because Visual Studio has a bad track record of supporting safe versions. */
+  strcat(filename, path_separator);
+  strcat(filename, app_name);
+  strcat(filename, path_separator);
+
+  ret_flag = CreateDirectoryA(filename, NULL);
+  if (0 == ret_flag)
+  {
+      if (GetLastError() != ERROR_ALREADY_EXISTS)
+      {
+          filename[0] = '\0';
+          return 0;
+      }
+  }
+
+  return 1;
+
+}
+
 
 int iupdrvSetCurrentDirectory(const char* path)
 {

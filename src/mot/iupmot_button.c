@@ -29,9 +29,10 @@
 #include "iupmot_drv.h"
 
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
   int border_size = 2*5;
+  (void)ih;  
   (*x) += border_size;
   (*y) += border_size;
 }

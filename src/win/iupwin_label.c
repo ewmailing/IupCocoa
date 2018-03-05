@@ -38,6 +38,12 @@
 #define DT_HIDEPREFIX   0x00100000
 #endif
 
+void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
+{
+  (void)ih;
+  (void)x;
+  (void)y;
+}
 
 static void winLabelDrawImage(Ihandle* ih, HDC hDC, int rect_width, int rect_height)
 {

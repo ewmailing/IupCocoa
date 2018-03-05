@@ -53,10 +53,18 @@ static GtkWidget* gtk_button_get_image(GtkButton *button)
 #endif
 #endif
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+/* reuses iupdrvButtonAddBorders */
+extern void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y);
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y)
+{
+  iupdrvButtonAddBorders(ih, x, y);
+}
+
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   int check_box = IUP_TOGGLE_BOX;
+  (void)ih;
 
   /* has margins too */
   (*x) += 2 + check_box + 2;

@@ -16,6 +16,7 @@
 #include "iup_object.h"
 #include "iup_attrib.h"
 #include "iup_str.h"
+#include "iup_loop.h"
 
 #include "iupwin_drv.h"
 #include "iupwin_handle.h"
@@ -71,8 +72,17 @@ int IupMainLoop(void)
 {
   MSG msg;
   int ret;
+  int return_code = IUP_NOERROR;
+  static int has_done_entry = 0;
+  static int has_done_exit = 0;
 
   win_main_loop++;
+
+  if (0 == has_done_entry)
+  {
+	  has_done_entry = 1;
+	  iupLoopCallEntryCb();
+  }
 
   do 
   {
@@ -83,16 +93,18 @@ int IupMainLoop(void)
       {
         if (winLoopProcessMessage(&msg) == IUP_CLOSE)
         {
-          win_main_loop--;
-          return IUP_CLOSE;
+          // win_main_loop will be decremented at the end of this function;
+          return_code = IUP_CLOSE;
+          break;
         }
       }
       else
       {
         if (winLoopCallIdle() == IUP_CLOSE)
         {
-          win_main_loop--;
-          return IUP_CLOSE;
+          // win_main_loop will be decremented at the end of this function;
+          return_code = IUP_CLOSE;
+          break;
         }
       }
     }
@@ -101,20 +113,30 @@ int IupMainLoop(void)
       ret = GetMessage(&msg, NULL, 0, 0);
       if (ret == -1) /* error */
       {
-        win_main_loop--;
-        return IUP_ERROR;
+        // win_main_loop will be decremented at the end of this function;
+        return_code = IUP_ERROR;
+        break;
       }
       if (ret == 0 || /* WM_QUIT */
           winLoopProcessMessage(&msg) == IUP_CLOSE)  /* ret != 0 */
       {
-        win_main_loop--;
-        return IUP_NOERROR;
+        // win_main_loop will be decremented at the end of this function;
+        return_code = IUP_NOERROR;
+        break;
       }
     }
   } while (ret);
 
-  win_main_loop--;   /* just for the record, should never pass here */
-  return IUP_NOERROR;
+  win_main_loop--;
+
+
+  if ((0 == win_main_loop) && (0 == has_done_exit))
+  {
+    has_done_exit = 1;
+    iupLoopCallExitCb();
+  }
+
+  return return_code;
 }
 
 int IupLoopStepWait(void)

@@ -34,7 +34,7 @@
 #define PANGO_WEIGHT_SEMIBOLD 600
 #endif
 
-void iupdrvTextAddSpin(int *w, int h)
+void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
 #if GTK_CHECK_VERSION(3, 0, 0)
   int spin_size = 2*22;
@@ -43,14 +43,16 @@ void iupdrvTextAddSpin(int *w, int h)
 #endif
   *w += spin_size;
   (void)h;
+  (void)ih;
 }
 
-void iupdrvTextAddBorders(int *x, int *y)
+void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 {
   /* LAYOUT_DECORATION_ESTIMATE */
   int border_size = 2 * 5;
   (*x) += border_size;
   (*y) += border_size;
+  (void)ih;
 }
 
 static void gtkTextParseParagraphFormat(Ihandle* formattag, GtkTextTag* tag)
