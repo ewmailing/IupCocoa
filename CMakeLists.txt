@@ -528,7 +528,7 @@ IF(IUP_USE_EMSCRIPTEN)
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_calendar.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_canvas.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_clipboard.c
-		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_colordlg.c
+#		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_colordlg.c # Needs to be deleted
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_common.c
 #		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_datepick.c
 		${CMAKE_SOURCE_DIR}/src/emscripten/iupemscripten_dialog.c
@@ -617,7 +617,7 @@ ELSEIF(IUP_USE_ANDROID)
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_calendar.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_canvas.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_clipboard.c
-		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_colordlg.c
+#		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_colordlg.c # Needs to be deleted
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_common.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_dialog.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_dragdrop.c
@@ -703,7 +703,7 @@ ELSEIF(IUP_USE_COCOATOUCH)
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_calendar.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_canvas.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_clipboard.m
-		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_colordlg.m
+#		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_colordlg.m # Needs to be deleted
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_common.m
 #		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_datepick.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_dialog.m
@@ -794,7 +794,7 @@ ELSEIF(IUP_USE_COCOA)
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_calendar.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_canvas.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_clipboard.m
-		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_colordlg.m
+#		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_colordlg.m # Needs to be deleted
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_common.m
 #		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_datepick.m
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupcocoa_dialog.m
@@ -878,7 +878,6 @@ ELSEIF(IUP_USE_WIN32)
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_calendar.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_canvas.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_clipboard.c
-		${CMAKE_SOURCE_DIR}/src/win/iupwin_colordlg.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_common.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_datepick.c
 		${CMAKE_SOURCE_DIR}/src/win/iupwin_dialog.c
@@ -1023,7 +1022,6 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_calendar.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_canvas.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_clipboard.c
-		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_colordlg.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_common.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_dialog.c
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_dragdrop.c
@@ -1057,7 +1055,7 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 	)
 
 	SET(IUP_GTK2_SOURCE_FILES
-		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw_gdk.c
 	)
 
 	SET(IUP_GTK3_SOURCE_FILES
@@ -1066,10 +1064,15 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 
 
 	SET(IUPIMGLIB_GTK_SOURCE_FILES
-		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basegtk16x16.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basegtk16x16.h
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basegtk24x24.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basegtk324x24.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_basegtk324x24.h
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_iconsgtk348x48.c
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_iconsgtk348x48.h
+		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_iconsgtk48x48.c
 		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos48x48.c 
 		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_logos32x32.c
-		${CMAKE_SOURCE_DIR}/srcimglib/iup_imglib_iconsgtk48x48.c
 	)
 	LIST(APPEND IUPIMGLIB_SOURCE_FILES
 		${IUPIMGLIB_GTK_SOURCE_FILES}
@@ -1154,7 +1157,6 @@ ELSEIF(IUP_USE_MOTIF)
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_clipboard.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_color.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_color.h
-		${CMAKE_SOURCE_DIR}/src/mot/iupmot_colordlg.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_common.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_dialog.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_dragdrop.c
