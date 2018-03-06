@@ -1058,10 +1058,12 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 
 	SET(IUP_GTK2_SOURCE_FILES
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupx11_info.c
 	)
 
 	SET(IUP_GTK3_SOURCE_FILES
 		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_draw_cairo.c
+		${CMAKE_SOURCE_DIR}/src/gtk/iupgtk_info.c
 	)
 
 
@@ -1185,6 +1187,7 @@ ELSEIF(IUP_USE_MOTIF)
 		${CMAKE_SOURCE_DIR}/src/mot/iupmot_val.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupunix_help.c
 		${CMAKE_SOURCE_DIR}/src/mot/iupunix_info.c
+		${CMAKE_SOURCE_DIR}/src/mot/iupx11_info.c
 	)
 	LIST(APPEND IUP_SOURCE_FILES
 		${IUP_MOTIF_SOURCE_FILES}
