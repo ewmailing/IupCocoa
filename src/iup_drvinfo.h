@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
+
 /** \defgroup drvinfo Driver Information Interface 
  * \par
  * Each driver must export the symbols defined here. 
@@ -27,25 +30,25 @@ extern "C" {
 
 /** Retrieve the main desktop full size (size of the main monitor).
  * \ingroup drvinfo */
-void iupdrvGetFullSize(int *width, int *height);
+IUP_EXPORTI void iupdrvGetFullSize(int *width, int *height);
 
 /** Retrieve the main desktop available size (full size less taskbar/menubar space).
  * \ingroup drvinfo */
-void iupdrvGetScreenSize(int *width, int *height);
+IUP_EXPORTI void iupdrvGetScreenSize(int *width, int *height);
 
 /** Adds the main desktop offset because of a taskbar/menubar positioning.
  * Only useful in Windows. In X-Windows the position of the origin 0,0 is already adjusted
  * to be after the taskbar/menubar.
  * \ingroup drvinfo */
-void iupdrvAddScreenOffset(int *x, int *y, int add);
+IUP_EXPORTI void iupdrvAddScreenOffset(int *x, int *y, int add);
 
 /** Retrieve the default desktop bits per pixel.
  * \ingroup drvinfo */
-int iupdrvGetScreenDepth(void);
+IUP_EXPORTI int iupdrvGetScreenDepth(void);
 
 /** Retrieve the default desktop resolution in dpi (dots or pixels per inch).
  * \ingroup drvinfo */
-double iupdrvGetScreenDpi(void);
+IUP_EXPORTI double iupdrvGetScreenDpi(void);
 
 /** Returns a string with the system version number.
  * \ingroup drvinfo */
@@ -57,22 +60,22 @@ char* iupdrvGetSystemName(void);
 
 /** Returns a string with the computer name.
  * \ingroup drvinfo */
-char* iupdrvGetComputerName(void);
+IUP_EXPORTI char* iupdrvGetComputerName(void);
 
 /** Returns a string with the user name.
  * \ingroup drvinfo */
-char* iupdrvGetUserName(void);
+IUP_EXPORTI char* iupdrvGetUserName(void);
 
 /** Returns the key state for Shift, Ctrl, Alt and sYs, in this order.
  * Left and right keys are considered.
  * Should declare "char key[5]".
  * Values could be space (" ") or "SCAY".
  * \ingroup drvinfo */
-void iupdrvGetKeyState(char* key);
+IUP_EXPORTI void iupdrvGetKeyState(char* key);
 
 /** Returns the current position of the mouse cursor.
  * \ingroup drvinfo */
-void iupdrvGetCursorPos(int *x, int *y);
+IUP_EXPORTI void iupdrvGetCursorPos(int *x, int *y);
 
 /** Returns the driver "Display" in UNIX and NULL in Windows.
  * Must be implemented somewhere else.
