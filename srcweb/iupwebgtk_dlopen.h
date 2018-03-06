@@ -135,6 +135,10 @@ static void iupgtkWebBrowser_ClearDLSymbols()
   webkit_web_view_get_uri = NULL;
   webkit_network_request_get_uri = NULL;
   webkit_web_view_new = NULL;
+  webkit_web_view_can_go_back = NULL;
+  webkit_web_view_can_go_forward = NULL;
+  webkit_web_view_go_back = NULL;
+  webkit_web_view_go_forward = NULL;
 }
 
 static void iupgtkWebBrowser_SetDLSymbols(void* webkit_library)
@@ -162,6 +166,10 @@ static void iupgtkWebBrowser_SetDLSymbols(void* webkit_library)
     webkit_web_view_get_uri = (webkit_web_view_get_uri_PROC)dlsym(webkit_library, "webkit_web_view_get_uri");
     webkit_network_request_get_uri = (webkit_network_request_get_uri_PROC)dlsym(webkit_library, "webkit_network_request_get_uri");
     webkit_web_view_new = (webkit_web_view_new_PROC)dlsym(webkit_library, "webkit_web_view_new");
+    webkit_web_view_can_go_back = (webkit_web_view_can_go_back_PROC)dlsym(webkit_library, "webkit_web_view_can_go_back");
+    webkit_web_view_can_go_forward = (webkit_web_view_can_go_forward_PROC)dlsym(webkit_library, "webkit_web_view_can_go_forward");
+    webkit_web_view_go_back = (webkit_web_view_go_back_PROC)dlsym(webkit_library, "webkit_web_view_go_back");
+    webkit_web_view_go_forward = (webkit_web_view_go_forward_PROC)dlsym(webkit_library, "webkit_web_view_go_forward");
   }
 }
 
