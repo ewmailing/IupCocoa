@@ -100,6 +100,18 @@ typedef GtkWidget* (*webkit_web_view_new_PROC)(void);
 static webkit_web_view_new_PROC webkit_web_view_new;
 
 
+typedef gboolean (*webkit_web_view_can_go_back_PROC)(WebKitWebView        *web_view);
+static webkit_web_view_can_go_back_PROC webkit_web_view_can_go_back;
+
+typedef gboolean (*webkit_web_view_can_go_forward_PROC)(WebKitWebView        *web_view);
+static webkit_web_view_can_go_forward_PROC webkit_web_view_can_go_forward;
+
+typedef void (*webkit_web_view_go_back_PROC)(WebKitWebView        *web_view);
+static webkit_web_view_go_back_PROC webkit_web_view_go_back;
+
+typedef void (*webkit_web_view_go_forward_PROC)(WebKitWebView        *web_view);
+static webkit_web_view_go_forward_PROC webkit_web_view_go_forward;
+
 static void iupgtkWebBrowser_ClearDLSymbols()
 {
   webkit_web_view_get_back_forward_list = NULL;
