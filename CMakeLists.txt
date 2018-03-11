@@ -1345,6 +1345,29 @@ function(BUILD_IUPWEB_TEST exe_name source_list)
 	endif()
 endfunction()
 
+function(BUILD_IUPLUA_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		if(IUP_USE_LUA)
+			HELPER_CREATE_EXECUTABLE(${exe_name} 
+				"${source_list}"
+				"${WANTS_BUILD_SHARED_LIBRARY}"
+				"iuplua;iupweb;iup"
+				"${IUP_LINK_LIBRARIES}"
+				"${IUPEXE_C_FLAGS}"
+				"${IUPEXE_LINK_FLAGS}"
+				"${_should_exclude_from_all}"
+			)
+		endif()
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
+endfunction()
 
 BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
 BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
@@ -1440,6 +1463,15 @@ IF(IUP_USE_LUA)
 
 	IF(IUP_SHOULD_BUILD_IUPWEB)
 		HELPER_CREATE_LIBRARY(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.pucrio.tecgraf.iupluaweb")
+
+		# IupLua depends on IupWeb
+		BUILD_IUPLUA_TEST(webbrowser "${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c")
+
+		# Android Studio/Gradle lacks a mechanism to copy pre-built libraries to be bundled in the .apk,
+		# so we need to manally copy the library into a staging area that Gradle will intercept.
+		file(COPY ${LUA_LIBRARY} DESTINATION ${CMAKE_SOURCE_DIR}/Android/iuptestapplua/build/jniLibs/${ANDROID_ABI}/)
+		
+
 	ENDIF()
 
 
@@ -1480,14 +1512,14 @@ elseif(IUP_USE_ANDROID)
 	ENDIF()
 
 	# TODO: Need a new main.c launcher app to drive Lua programs. Also need to bundle Lua scripts.
-#	IF(IUPLUA_ANDROID_BUILD_TEST_LIBRARY)
-#
-#		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
-#			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
-#		)
-#	target_link_libraries(MyIupProgramLua iupluaweb iuplua iupweb iup)
-#
-#	ENDIF()
+	IF(IUPLUA_ANDROID_BUILD_TEST_LIBRARY)
+
+		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
+			${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c
+		)
+	target_link_libraries(MyIupProgramLua iupluaweb iuplua iupweb iup)
+
+	ENDIF()
 
 endif()
 
