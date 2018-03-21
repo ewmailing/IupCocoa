@@ -58,6 +58,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/" ${CMAKE_MODULE_PATH})
 INCLUDE(HelperFunctions)
 
 OPTION(IUP_OPTION_LUA "Build Lua if available" ON)
+# I'm keeping this off by default for now, because of a cross-dependency problem of other iuplua* modules depending on symbols in iuplua.
+# http://lua-users.org/lists/lua-l/2015-05/msg00263.html
+# It's giving me a lot of pain on Mac, and I worry about iOS, Android, and Emscrpten, and how it affects portability of your code.
+# I worry some platforms may not be able to support modules at all.
+# And unfortunately, it seems that your setup code will need to differ depending on which you use,
+# which will make writing your cross-platform code more painful.
+OPTION(IUP_OPTION_LUA_BUILD_AS_MODULES "Build IupLua* as modules instead of dynamic libraries (when not static)" OFF)
 
 IF(EMSCRIPTEN)
 		OPTION(IUP_OPTION_ANDROID "Use Android backend" OFF)
@@ -1248,16 +1255,16 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_SOURCE_DIR}/src
 )
-HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUP_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUP_FOREIGN_SOURCE_FILES}" "${IUP_LINK_LIBRARIES}" "${IUP_C_FLAGS}" "br.pucrio.tecgraf.iup")
+HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUP_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUP_FOREIGN_SOURCE_FILES}" "${IUP_LINK_LIBRARIES}" "${IUP_C_FLAGS}" "br.puc-rio.tecgraf.iup")
 
-HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMGLIB_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.pucrio.tecgraf.iup")
+HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMGLIB_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.puc-rio.tecgraf.iupimglib")
 
 if(WIN32)
-	HELPER_CREATE_LIBRARY(iupole "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPOLE_SOURCE_FILES}" "${IUPOLE_PUBLIC_HEADERS}" "" "" "${IUPOLE_FOREIGN_SOURCE_FILES}" "${IUPOLE_LINK_LIBRARIES}" "${IUPOLE_C_FLAGS}" "br.pucrio.tecgraf.iupole")
+	HELPER_CREATE_LIBRARY(iupole "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPOLE_SOURCE_FILES}" "${IUPOLE_PUBLIC_HEADERS}" "" "" "${IUPOLE_FOREIGN_SOURCE_FILES}" "${IUPOLE_LINK_LIBRARIES}" "${IUPOLE_C_FLAGS}" "br.puc-rio.tecgraf.iupole")
 endif()
 
 if(IUP_SHOULD_BUILD_IUPWEB)
-	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUPWEB_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.pucrio.tecgraf.iupweb")
+	HELPER_CREATE_LIBRARY(iupweb "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPWEB_SOURCE_FILES}" "${IUPWEB_PUBLIC_HEADERS}" "" "" "${IUPWEB_FOREIGN_SOURCE_FILES}" "${IUPWEB_LINK_LIBRARIES}" "${IUPWEB_C_FLAGS}" "br.puc-rio.tecgraf.iupweb")
 
 	# Having problem with include paths on Android, partly because everything is spread out
 	IF(ANDROID)
@@ -1353,10 +1360,18 @@ function(BUILD_IUPLUA_TEST exe_name source_list)
 		endif()
 		
 		if(IUP_USE_LUA)
+			
+			IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
+				SET(_libs_to_link "${LUA_LIBRARY};iupweb;iup")
+			ELSE()
+				SET(_libs_to_link "${LUA_LIBRARY};${IUPLUAWEB_LIBRARY_NAME};${IUPLUA_LIBRARY_NAME};iupweb;iup")
+			ENDIF()
+
+
 			HELPER_CREATE_EXECUTABLE(${exe_name} 
 				"${source_list}"
 				"${WANTS_BUILD_SHARED_LIBRARY}"
-				"iuplua;iupweb;iup"
+				"${_libs_to_link}"
 				"${IUP_LINK_LIBRARIES}"
 				"${IUPEXE_C_FLAGS}"
 				"${IUPEXE_LINK_FLAGS}"
@@ -1421,58 +1436,85 @@ IF(IUP_USE_LUA)
 	SET(IUPLUA_LINK_LIBRARIES "")
 	LIST(APPEND IUPLUA_LINK_LIBRARIES 
 		iup
-		${LUA_LIBRARY}
 	)
 
 	SET(IUPLUA_C_FLAGS "${IUPLUA_C_FLAGS} -DIUPLUA_USELH")
 	#ADD_DEFINITIONS("-DIUPLUA_USELH")
 	#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
-	
+
 	SET(IUPLUA_LIBRARY_NAME "iuplua")
 	SET(IUP_LUA_VERSION_SUFFIX "${LUA_VERSION_MAJOR}${LUA_VERSION_MINOR}")
 	#	MESSAGE("IUP_LUA_VERSION_SUFFIX ${IUP_LUA_VERSION_SUFFIX}")
-	#SET(IUPLUA_LIBRARY_NAME "iuplua${IUPLUA_VERSION_SUFFIX}")
+	#SET(IUPLUA_LIBRARY_NAME "iuplua${IUPLUA_VERSION_SUFFIX}")	
 
-	#HELPER_CREATE_MODULE(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.pucrio.tecgraf.iuplua")
-	HELPER_CREATE_LIBRARY(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.pucrio.tecgraf.iuplua")
+	IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
+		# If building as a module, we must link to Lua on Windows, but not on ELF, Darwin.
+		IF(WIN32)
+			LIST(APPEND IUPLUA_LINK_LIBRARIES 
+				${LUA_LIBRARY}
+			)
+		ENDIF()
 
+		HELPER_CREATE_MODULE(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.puc-rio.tecgraf.iuplua")
+	ELSE()
+		# If building as a dynamic library, we can link directly for all platforms.
+		LIST(APPEND IUPLUA_LINK_LIBRARIES 
+			${LUA_LIBRARY}
+		)
 
-	# FIXME: We must add a IUPLUAWEB_EXPORT for the lua/web open functions, but there is no obvious place to add it
-	SET(IUPLUAWEB_SOURCE_FILES
-		${CMAKE_SOURCE_DIR}/srclua5/ctrl/il_webbrowser.c
-		${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
-		${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
-	)
+		HELPER_CREATE_LIBRARY(${IUPLUA_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUA_SOURCE_FILES}" "${IUPLUA_PUBLIC_HEADERS}" "" "" "${IUPLUA_FOREIGN_SOURCE_FILES}" "${IUPLUA_LINK_LIBRARIES}" "${IUPLUA_C_FLAGS}" "br.puc-rio.tecgraf.iuplua")
+	ENDIF()
 
-	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/srclua5 ${CMAKE_SOURCE_DIR}/srclua5/lh ${LUA_INCLUDE_DIR})
-	SET(IUPLUAWEB_LINK_LIBRARIES "")
-	LIST(APPEND IUPLUAWEB_LINK_LIBRARIES 
-		${IUPLUA_LIBRARY_NAME}
-		iupweb
-		iup
-		${LUA_LIBRARY}
-	)
-
-	SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -DIUPLUA_USELH")
-	#ADD_DEFINITIONS("-DIUPLUA_USELH")
-	#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
-	
-	SET(IUPLUAWEB_LIBRARY_NAME "iupluaweb")
-	#SET(IUPLUAWEB_LIBRARY_NAME "${IUPLUAWEB_LIBRARY_NAME}${IUPLUA_VERSION_SUFFIX}")
-#	HELPER_CREATE_MODULE(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.pucrio.tecgraf.iupluaweb")
 
 	IF(IUP_SHOULD_BUILD_IUPWEB)
-		HELPER_CREATE_LIBRARY(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.pucrio.tecgraf.iupluaweb")
+		# FIXME: We must add a IUPLUAWEB_EXPORT for the lua/web open functions, but there is no obvious place to add it
+		SET(IUPLUAWEB_SOURCE_FILES
+			${CMAKE_SOURCE_DIR}/srclua5/ctrl/il_webbrowser.c
+			${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
+			${CMAKE_SOURCE_DIR}/srclua5/lh/webbrowser.lh
+		)
+
+		INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/srclua5 ${CMAKE_SOURCE_DIR}/srclua5/lh ${LUA_INCLUDE_DIR})
+		SET(IUPLUAWEB_LINK_LIBRARIES "")
+
+		SET(IUPLUAWEB_C_FLAGS "${IUPLUAWEB_C_FLAGS} -DIUPLUA_USELH")
+		#ADD_DEFINITIONS("-DIUPLUA_USELH")
+		#SET(IUPLUA_C_FLAGS "-DIUPLUA_USELOH")
+		SET(IUPLUAWEB_LIBRARY_NAME "iupluaweb")
+
+		IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
+			# Modules cannot link to other modules, i.e. we don't link to iuplua
+			LIST(APPEND IUPLUAWEB_LINK_LIBRARIES 
+				iupweb
+				iup
+			)
+			# If building as a module, we must link to Lua on Windows, but not on ELF, Darwin.
+			IF(WIN32)
+				LIST(APPEND IUPLUAWEB_LINK_LIBRARIES 
+					${LUA_LIBRARY}
+				)
+			ENDIF()
+			HELPER_CREATE_MODULE(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.puc-rio.tecgraf.iupluaweb")
+
+		ELSE()
+			LIST(APPEND IUPLUAWEB_LINK_LIBRARIES 
+				${IUPLUA_LIBRARY_NAME}
+				iupweb
+				iup
+				${LUA_LIBRARY}
+			)
+			HELPER_CREATE_LIBRARY(${IUPLUAWEB_LIBRARY_NAME} "${WANTS_BUILD_SHARED_LIBRARY}" NO "${IUPLUAWEB_SOURCE_FILES}" "${IUPLUAWEB_PUBLIC_HEADERS}" "" "" "${IUPLUAWEB_FOREIGN_SOURCE_FILES}" "${IUPLUAWEB_LINK_LIBRARIES}" "${IUPLUAWEB_C_FLAGS}" "br.puc-rio.tecgraf.iupluaweb")
+		ENDIF()
 
 		# IupLua depends on IupWeb
-		BUILD_IUPLUA_TEST(webbrowser "${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c")
+		BUILD_IUPLUA_TEST(lua_c_app "${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c")
 
 		# Android Studio/Gradle lacks a mechanism to copy pre-built libraries to be bundled in the .apk,
 		# so we need to manally copy the library into a staging area that Gradle will intercept.
 		file(COPY ${LUA_LIBRARY} DESTINATION ${CMAKE_SOURCE_DIR}/Android/iuptestapplua/build/jniLibs/${ANDROID_ABI}/)
 		
 
-	ENDIF()
+	ENDIF(IUP_SHOULD_BUILD_IUPWEB)
 
 
 
@@ -1517,7 +1559,11 @@ elseif(IUP_USE_ANDROID)
 		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
 			${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c
 		)
-	target_link_libraries(MyIupProgramLua iupluaweb iuplua iupweb iup)
+		IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
+			target_link_libraries(MyIupProgramLua iupweb iup)
+		ELSE()
+			target_link_libraries(MyIupProgramLua ${IUPLUAWEB_LIBRARY_NAME} ${IUPLUA_LIBRARY_NAME} iupweb iup)
+		ENDIF()
 
 	ENDIF()
 

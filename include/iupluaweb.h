@@ -30,6 +30,7 @@ extern "C" {
 
 
 IUPLUAWEB_EXPORT int iupweblua_open (lua_State * L);
+IUPLUAWEB_EXPORT int luaopen_iupluaweb (lua_State * L);
 
 #ifdef __cplusplus
 }
