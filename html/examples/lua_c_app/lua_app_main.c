@@ -33,6 +33,10 @@ struct GlobalResources* g_globalResources = NULL;
 static _Bool s_isInit = 0;
 
 
+// If you are using modules, you may need to change the generated .h to call this instead.
+#define my_iuplua_dobuffer(L, b, n, s) \
+	(luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
+
 // Modify this function to suit your needs.
 static void LoadLuaScript()
 {
@@ -42,9 +46,12 @@ static void LoadLuaScript()
 	g_globalResources->luaState = L;
 
 	luaL_openlibs(L);
+	// If using dynamic or static libraries, call these open lines. If using modules, don't call these.
+#if 1
 	iuplua_open(L);
 	iupweblua_open(L);
-
+#endif
+	
 	// Start modifying here. bin2c.lua can make this simple.
 	#include "testscript.h"
 
