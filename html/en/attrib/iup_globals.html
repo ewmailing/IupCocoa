@@ -78,6 +78,13 @@ IupGetParam</strong>). Local attributes may overwrite the default. Default: 2.</
 output by some controls (<strong>IupMatrixEx,</strong> <strong>
 IupGetParam</strong> and <strong>IupPlot</strong>). Can be &quot;.&quot; or &quot;,&quot; only. 
 Default uses the one defined by the system locale.</p>
+<h3>SB_BGCOLOR [GTK and Motif Only]<span class="style2"> (since 3.25)</span></h3>
+<p>By default the scrollbars will not be affected by the BGCOLOR in native 
+controls. If set to Yes, the system will try to render scrollbars in the same 
+color of the BGCOLOR, but notice that this may affect scrollbars visibility. Up 
+to version 3.24, IUP by default changed the background color of the scrollbars 
+in GTK and Motif. This affects <strong>IupCanvas</strong>, <strong>IupList</strong>,
+<strong>IupText</strong> and <strong>IupTree</strong>.</p>
 <h3>SHOWMENUIMAGES [GTK Only] <span class="style2">(since 3.5)</span></h3>
 <p>Force the display of images in menus. Default: Yes</p>
 <h3>OVERLAYSCROLLBAR [GTK Only] <span class="style2">(since 3.19)</span></h3>
@@ -125,14 +132,14 @@ IupClose</strong> and returning from <em>main</em>.</p>
 <h3><strong><a name="cursorpos">CURSORPOS</a></strong></h3>
 <p>Controls and returns the cursor position in absolute coordinates relative to the 
 origin 
-of the main screen. The origin of the main screen is at the upper left corner, 
+of the main screen. The origin of the main screen is at the top-left corner, 
 in Windows it is affected by the position of the Start Menu when it is at the 
 top or left side of the screen. Accept values in the format &quot;X<b>x</b>Y&quot; (in C &quot;%dx%d), example &quot;200x200&quot;. 
 In GTK and Motif also generates mouse motion messages. (since GTK 2.8)</p>
 <h3><strong><a name="MOUSEBUTTON">MOUSEBUTTON</a> </strong>(write-only) 
 <span class="style2">(since 3.3)</span></h3>
 <p>Simulates a mouse button press, release or motion at the given coordinates. The position 
-is in absolute coordinates relative to the upper left corner 
+is in absolute coordinates relative to the top-left corner 
 of the screen. Accept values in the format &quot;X<b>x</b>Y button state&quot; 
 (in C &quot;%dx%d %c %d&quot;), example &quot;200x200 1 1&quot;. 
 <strong>button</strong> can be one of the IUP_BUTTON1,... definitions. <strong>
