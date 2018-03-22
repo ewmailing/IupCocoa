@@ -1401,13 +1401,13 @@ BUILD_IUPIMGLIB_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
 BUILD_IUPWEB_TEST(webbrowser "${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c")
 
 # 7GUI: TODO: Need to handle bundling images.
-BUILD_IUP_TEST(7gui_cells "${CMAKE_SOURCE_DIR}/html/html/en/7gui/cells.c")
-BUILD_IUP_TEST(7gui_circle_drawer "${CMAKE_SOURCE_DIR}/html/html/en/7gui/circle_drawer.c")
-BUILD_IUP_TEST(7gui_counter "${CMAKE_SOURCE_DIR}/html/html/en/7gui/counter.c")
-BUILD_IUP_TEST(7gui_crud "${CMAKE_SOURCE_DIR}/html/html/en/7gui/crud.c")
-BUILD_IUP_TEST(7gui_flight_booker "${CMAKE_SOURCE_DIR}/html/html/en/7gui/flight_booker.c")
-BUILD_IUP_TEST(7gui_temperature_converter "${CMAKE_SOURCE_DIR}/html/html/en/7gui/temperature_converter.c")
-BUILD_IUP_TEST(7gui_timer "${CMAKE_SOURCE_DIR}/html/html/en/7gui/timer.c")
+BUILD_IUP_TEST(7gui_cells "${CMAKE_SOURCE_DIR}/html/en/7gui/cells.c")
+BUILD_IUP_TEST(7gui_circle_drawer "${CMAKE_SOURCE_DIR}/html/en/7gui/circle_drawer.c")
+BUILD_IUP_TEST(7gui_counter "${CMAKE_SOURCE_DIR}/html/en/7gui/counter.c")
+BUILD_IUP_TEST(7gui_crud "${CMAKE_SOURCE_DIR}/html/en/7gui/crud.c")
+BUILD_IUP_TEST(7gui_flight_booker "${CMAKE_SOURCE_DIR}/html/en/7gui/flight_booker.c")
+BUILD_IUP_TEST(7gui_temperature_converter "${CMAKE_SOURCE_DIR}/html/en/7gui/temperature_converter.c")
+BUILD_IUP_TEST(7gui_timer "${CMAKE_SOURCE_DIR}/html/en/7gui/timer.c")
 
 
 function(BUILD_DEV_TEST exe_name source_list)
