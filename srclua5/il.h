@@ -68,6 +68,7 @@ int iupgaugelua_open(lua_State * L);
 int iupdiallua_open(lua_State * L);
 int iupcolorbarlua_open (lua_State * L);
 int iupcolorbrowserlua_open (lua_State * L);
+int iupflatlabellua_open(lua_State * L);
 
 void iupgetparamlua_open (lua_State * L);
 void iupconfiglua_open(lua_State * L);

@@ -25,7 +25,7 @@ static unsigned char pixmap [ ] =
 static int close(Ihandle* ih)
 {
   IupDestroy((Ihandle*)IupGetAttribute(ih, "_DIALOG"));
-  return IUP_DEFAULT;
+  return IUP_IGNORE;
 //  return IUP_CLOSE;
 }
 

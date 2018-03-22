@@ -465,19 +465,6 @@ static int winTogglePostRedrawSetAttrib(Ihandle* ih, const char* value)
   return 1;
 }
 
-static int winToggleSetBgColorAttrib(Ihandle* ih, const char* value)
-{
-  (void)value;
-  if (ih->data->type==IUP_TOGGLE_IMAGE)
-  {
-    /* update internal image cache for controls that have the IMAGE attribute */
-    iupAttribSet(ih, "BGCOLOR", value);
-    iupImageUpdateParent(ih);
-    iupdrvRedrawNow(ih);
-  }
-  return 1;
-}
-
 static char* winToggleGetBgColorAttrib(Ihandle* ih)
 {
   /* the most important use of this is to provide
@@ -781,7 +768,7 @@ void iupdrvToggleInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "ACTIVE", winToggleGetActiveAttrib, winToggleSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
   /* Visual */
-  iupClassRegisterAttribute(ic, "BGCOLOR", winToggleGetBgColorAttrib, winToggleSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE|IUPAF_DEFAULT);  
+  iupClassRegisterAttribute(ic, "BGCOLOR", winToggleGetBgColorAttrib, winTogglePostRedrawSetAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);
 
   /* Special */
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, winTogglePostRedrawSetAttrib, "DLGFGCOLOR", NULL, IUPAF_NOT_MAPPED);  /* force the new default value */  

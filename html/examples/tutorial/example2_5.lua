@@ -19,7 +19,6 @@ dlg = iup.dialog{
   vbox,
   title = "Hello World 5"
 }
-button.action = btn_exit_cb
 
 dlg:showxy(iup.CENTER,iup.CENTER)
 

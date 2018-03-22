@@ -438,6 +438,9 @@
     <ClCompile Include="..\html\en\7gui\circle_drawer.c">
       <Filter>7GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\html\en\7gui\crud.c">
+      <Filter>7GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\html\examples\Lua\alarm.wlua">
@@ -730,6 +733,27 @@
     </None>
     <None Include="..\html\examples\tutorial\simple_paint.lua">
       <Filter>Tutorial\Lua</Filter>
+    </None>
+    <None Include="..\html\en\7gui\flight_booker.lua">
+      <Filter>7GUI</Filter>
+    </None>
+    <None Include="..\html\en\7gui\temperature_converter.lua">
+      <Filter>7GUI</Filter>
+    </None>
+    <None Include="..\html\en\7gui\timer.lua">
+      <Filter>7GUI</Filter>
+    </None>
+    <None Include="..\html\en\7gui\cells.lua">
+      <Filter>7GUI</Filter>
+    </None>
+    <None Include="..\html\en\7gui\circle_drawer.lua">
+      <Filter>7GUI</Filter>
+    </None>
+    <None Include="..\html\en\7gui\counter.lua">
+      <Filter>7GUI</Filter>
+    </None>
+    <None Include="..\html\en\7gui\crud.lua">
+      <Filter>7GUI</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

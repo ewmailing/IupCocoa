@@ -38,6 +38,7 @@ void GLCanvasCubeTest(void);
 void HboxTest(void);
 void IdleTest(void);
 void LabelTest(void);
+void FlatLabelTest(void);
 void ListTest(void);
 void MatrixTest(void);
 void MatrixCbModeTest(void);
@@ -62,6 +63,7 @@ void TextSpinTest(void);
 void TextTest(void);
 void SpinTest(void);
 void SampleTest(void);
+void FlatSampleTest(void);
 void ProgressbarTest(void);
 void ProgressDlgTest(void);
 void PreDialogsTest(void);
@@ -154,7 +156,8 @@ static TestItems test_list[] = {
   {"Hbox", HboxTest},
   {"Idle", IdleTest},
   {"Label", LabelTest},
-  {"Link", LinkTest},
+  { "FlatLabel", FlatLabelTest },
+  { "Link", LinkTest },
   {"List", ListTest},
   {"Matrix", MatrixTest},
   {"MatrixCbMode", MatrixCbModeTest},
@@ -172,7 +175,8 @@ static TestItems test_list[] = {
   {"Progressbar", ProgressbarTest},
   {"ProgressDlg", ProgressDlgTest},
   {"Sample", SampleTest},
-  {"Sbox", SboxTest},
+  { "FlatSample", FlatSampleTest },
+  { "Sbox", SboxTest },
   { "Scintilla", ScintillaTest },
   {"ScrollBox", ScrollBoxTest},
   { "FlatScrollBox", FlatScrollBoxTest },

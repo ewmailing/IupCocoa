@@ -87,12 +87,13 @@ void DialTest(void)
 //  IupSetAttribute(dial_h, "SIZE", "160x40");
 //  IupSetAttribute(dial_v, "SIZE", "40x160");
 //  IupSetAttribute(dial_c, "SIZE", "160x160");
-//   IupSetAttribute(dial_h, "BGCOLOR", "255 0 128");
-//    IupSetAttribute(dial_v, "BGCOLOR", "255 0 128");
-  //  IupSetAttribute(dial_c, "BGCOLOR", "255 0 128");
 //  IupSetAttribute(dial_h, "FLAT", "Yes");
 //  IupSetAttribute(dial_v, "FLAT", "Yes");
 //  IupSetAttribute(dial_c, "FLAT", "Yes");
+  //   IupSetAttribute(dial_h, "BGCOLOR", "255 0 128");
+  //    IupSetAttribute(dial_v, "BGCOLOR", "255 0 128");
+//  IupSetAttribute(dlg, "BGCOLOR", "255 0 128");
+//  IupSetAttribute(dlg, "FLAT", "Yes");
 
   IupSetAttribute(dial_h, "EXPAND", "HORIZONTAL");
   IupSetAttribute(dial_v, "EXPAND", "VERTICAL");

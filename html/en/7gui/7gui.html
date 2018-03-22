@@ -148,7 +148,7 @@ reset</em> e <em>to zero.</em>&quot;</p>
 </iframe>
 <p class="example_image"><img alt="" src="timer.png"></p>
 <p>In the code we used <strong>IupGauge</strong>, but <strong>IupProgressBar</strong> can also be used. One 
-natural enhancement to the sample would be to display the duration of the timer, 
+natural enhancement to the sample would be to display the total duration of the timer, 
 only the position of the valuator is shown.</p>
 <h3>5. <a name="task5">CRUD</a></h3>
 <p>&quot;<strong><em>Challenges</em></strong>:<span><em>&nbsp;</em></span><em>separating 
@@ -201,7 +201,9 @@ the meantime.</em>&quot;</p>
 <iframe src="circle_drawer.c" id="task_6" name="circle_drawer" marginheight="0" marginwidth="0" style="height: 15em">
 </iframe>
 <p class="example_image"><img alt="" src="circle_drawer.png"></p>
-<p>&lt;comments&gt;</p>
+<p>All the undo/redo processing is manually implemented in our sample. There are 
+many possible enhancements for the sample, specially relative to direct 
+manipulation of the circles.</p>
 <h3>7. <a name="task7">Cells</a></h3>
 <p>&quot;<em><strong>Challenges</strong>:</em><span><em>&nbsp;</em></span><em>change 
 propagation, widget customization, implementing a more authentic/involved GUI 
@@ -225,6 +227,12 @@ reusable spreadsheet widget.</em>&quot;</p>
 <iframe src="cells.c" id="task_7" name="cells" marginheight="0" marginwidth="0" style="height: 15em">
 </iframe>
 <p class="example_image"><img alt="" src="cells.png"></p>
-<p>&lt;comments&gt;</p>
+<p>In the screnshot cell B0 value is &quot;=sum(B1:C4)&quot;. The values can be empty, a 
+number, a string or a formula. Formulas start with &quot;=&quot;. But for simplicity the 
+sample supports only the &quot;=sum(XY:XY)&quot; formula format.</p>
+<p>We used a pure <strong>IupMatrix</strong> control to implement a very simple 
+spreadsheet in this sample. It supports only to sum cell values. Using <strong>
+IupMatrixEx</strong> with formulas the spreadsheet is already available for IUP 
+applications.</p>
 </body>
 </html>

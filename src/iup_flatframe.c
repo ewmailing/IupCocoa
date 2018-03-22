@@ -63,47 +63,61 @@ static void iFlatFrameGetIconSize(Ihandle* ih, int *w, int *h)
   *h += 2 * vert_padding;
 }
 
-static int iFlatFrameGetTitleHeight(Ihandle* ih)
+static void iFlatFrameGetTitleSize(Ihandle* ih, int frame, int *width, int *height)
 {
-  int width, height;
-  iFlatFrameGetIconSize(ih, &width, &height);
+  iFlatFrameGetIconSize(ih, width, height);
 
-  if (height && iupAttribGetBoolean(ih, "TITLELINE"))
-    height += iupAttribGetInt(ih, "TITLELINEWIDTH");
+  if (frame != 2 && *height != 0 && iupAttribGetBoolean(ih, "TITLELINE"))
+    *height += iupAttribGetInt(ih, "TITLELINEWIDTH");
+}
 
-  return height;
+static int iFlatFrameGetFrame(Ihandle* ih)
+{
+  char* value = iupAttribGetStr(ih, "FRAME");
+  if (iupStrBoolean(value))
+    return 1;
+  else if (iupStrEqualNoCase(value, "CROSSTITLE"))
+    return 2;
+  else
+    return 0;
 }
 
 static int iFlatFrameRedraw_CB(Ihandle* ih)
 {
-  char* backcolor = iupAttribGet(ih, "BGCOLOR");
+  char* backcolor = iupAttribGet(ih, "BGCOLOR");  /* don't get with default value, if NULL will use from parent */
   int frame_width = iupAttribGetInt(ih, "FRAMEWIDTH");
-  int frame = iupAttribGetBoolean(ih, "FRAME");
+  int frame = iFlatFrameGetFrame(ih);
   IdrawCanvas* dc = iupdrvDrawCreateCanvas(ih);
-  int title_height = iFlatFrameGetTitleHeight(ih);
   char* text_align = iupAttribGetStr(ih, "TITLETEXTALIGNMENT");
   int active = IupGetInt(ih, "ACTIVE");
+  int title_w, title_h;
 
   if (!backcolor)
     backcolor = iupBaseNativeParentGetBgColorAttrib(ih);
 
+  /* draw background */
+  iupFlatDrawBox(dc, 0, ih->currentwidth - 1,
+                 0, ih->currentheight - 1, backcolor, NULL, 1);  /* background is always active */
+
+  iFlatFrameGetTitleSize(ih, frame, &title_w, &title_h);
+
   /* draw border - can still be disabled setting frame_width=0 */
-  if (frame)
+  if (frame != 0)
   {
     char* frame_color = iupAttribGetStr(ih, "FRAMECOLOR");
+    int frame_top = 0;
 
-    iupFlatDrawBorder(dc, 0, ih->currentwidth - 1,
-                          0, ih->currentheight - 1,
+    if (frame == 2 && title_h)
+      frame_top = frame_width + title_h/2;
+
+    iupFlatDrawBorder(dc, 0,         ih->currentwidth - 1,
+                          frame_top, ih->currentheight - 1,
                           frame_width, frame_color, NULL, active);
   }
   else
     frame_width = 0;
 
-  /* draw child area background */
-  iupFlatDrawBox(dc, frame_width, ih->currentwidth - 1 - frame_width,
-                     frame_width + title_height, ih->currentheight - 1 - frame_width, backcolor, NULL, 1);  /* background is always active */
-
-  if (title_height)
+  if (title_h)
   {
     char *titleimage = iupAttribGet(ih, "TITLEIMAGE");
     char* title = iupAttribGet(ih, "TITLE");
@@ -113,10 +127,10 @@ static int iFlatFrameRedraw_CB(Ihandle* ih)
     int img_position = iupFlatGetImagePosition(iupAttribGetStr(ih, "TITLEIMAGEPOSITION"));
     int spacing = iupAttribGetInt(ih, "TITLEIMAGESPACING");
     int horiz_padding, vert_padding;
-    int make_inactive = 0;
+    int make_inactive = 0, x_off = 0;
 
     int title_line = 0;
-    if (iupAttribGetBoolean(ih, "TITLELINE"))
+    if (frame != 2 && iupAttribGetBoolean(ih, "TITLELINE"))
       title_line = iupAttribGetInt(ih, "TITLELINEWIDTH");
 
     if (!active && titleimage)
@@ -129,25 +143,32 @@ static int iFlatFrameRedraw_CB(Ihandle* ih)
     IupGetIntInt(ih, "TITLEPADDING", &horiz_padding, &vert_padding);
 
     /* draw title background */
-    iupFlatDrawBox(dc, frame_width, ih->currentwidth - 1 - frame_width,
-                       frame_width, frame_width + title_height - 1 - title_line, titlebgcolor, NULL, 1); /* background is always active */
+    if (frame == 2)
+    {
+      title_alignment = IUP_ALIGN_ALEFT;
+      x_off = 6;
+      iupFlatDrawBox(dc, frame_width + x_off - 2, frame_width + x_off + title_w + 2,
+                         frame_width, frame_width + title_h - 1 - title_line, backcolor, NULL, 1); /* background is always active */
+    }
+    else if (titlebgcolor)
+      iupFlatDrawBox(dc, frame_width, ih->currentwidth - 1 - frame_width,
+                         frame_width, frame_width + title_h - 1 - title_line, titlebgcolor, NULL, 1); /* background is always active */
 
-    if (iupAttribGetBoolean(ih, "TITLELINE"))
+    if (frame != 2 && iupAttribGetBoolean(ih, "TITLELINE"))
     {
       int i;
       char* title_line_color = iupAttribGetStr(ih, "TITLELINECOLOR");
       long color = iupDrawStrToColor(title_line_color, 0);
 
       /* don't use DRAWLINEWIDTH so we can control spacing */
-
       for (i = 0; i < title_line; i++)
-        iupdrvDrawLine(dc, frame_width, frame_width + title_height - 1 - i,
-                           ih->currentwidth - 1 - frame_width, frame_width + title_height - 1 - i,
+        iupdrvDrawLine(dc, frame_width, frame_width + title_h - 1 - i,
+                           ih->currentwidth - 1 - frame_width, frame_width + title_h - 1 - i,
                            color, IUP_DRAW_STROKE, 1);
     }
 
-    iupFlatDrawIcon(ih, dc, frame_width, frame_width,
-                    ih->currentwidth - 2 * frame_width, title_height - title_line,
+    iupFlatDrawIcon(ih, dc, frame_width + x_off, frame_width,
+                    ih->currentwidth - 2 * frame_width, title_h - title_line,
                     img_position, spacing, title_alignment, IUP_ALIGN_ATOP, horiz_padding, vert_padding,
                     titleimage, make_inactive, title, text_align, titlecolor, NULL, active);
   }
@@ -167,14 +188,20 @@ static char* iFlatFrameGetDecorSizeAttrib(Ihandle* ih)
 {
   int height = 0;
   int width = 0;
+  int title_w, title_h;
+  int frame = iFlatFrameGetFrame(ih);
 
-  if (iupAttribGetBoolean(ih, "FRAME"))
+  if (frame != 0)
   {
-    width = 2 * iupAttribGetInt(ih, "FRAMEWIDTH") + 2 * iupAttribGetInt(ih, "FRAMESPACE");
+    int frame_width = iupAttribGetInt(ih, "FRAMEWIDTH");
+    int frame_space = iupAttribGetInt(ih, "FRAMESPACE");
+
+    width = 2 * frame_width + 2 * frame_space;
     height = width;
   }
 
-  height += iFlatFrameGetTitleHeight(ih);
+  iFlatFrameGetTitleSize(ih, frame, &title_w, &title_h);
+  height += title_h;
 
   return iupStrReturnIntInt(width, height, 'x');
 }
@@ -183,14 +210,20 @@ static char* iFlatFrameGetDecorOffsetAttrib(Ihandle* ih)
 {
   int dx = 0;
   int dy = 0;
+  int title_w, title_h;
+  int frame = iFlatFrameGetFrame(ih);
 
-  if (iupAttribGetBoolean(ih, "FRAME"))
+  if (frame != 0)
   {
-    dx = iupAttribGetInt(ih, "FRAMEWIDTH") + iupAttribGetInt(ih, "FRAMESPACE");
+    int frame_width = iupAttribGetInt(ih, "FRAMEWIDTH");
+    int frame_space = iupAttribGetInt(ih, "FRAMESPACE");
+
+    dx = frame_width + frame_space;
     dy = dx;
   }
 
-  dy += iFlatFrameGetTitleHeight(ih);
+  iFlatFrameGetTitleSize(ih, frame, &title_w, &title_h);
+  dy += title_h;
 
   return iupStrReturnIntInt(dx, dy, 'x');
 }
@@ -239,7 +272,7 @@ Iclass* iupFlatFrameNewClass(void)
   /* FlatFrame */
   iupClassRegisterAttribute(ic, "TITLE", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "TITLEBGCOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLEBGCOLOR", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLELINE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLELINECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLELINEWIDTH", NULL, NULL, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);

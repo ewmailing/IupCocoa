@@ -804,24 +804,6 @@ Ihandle* iupImageGetHandle(const char* name)
   return NULL;
 }
 
-void iupImageUpdateParent(Ihandle *ih)  /* ih here is the element that contains images */
-{
-  /* Called when BGCOLOR is changed */
-  /* it will re-create the image, if the case */
-
-  char* value = iupAttribGet(ih, "IMAGE");
-  if (value) 
-    iupAttribSetClassObject(ih, "IMAGE", value);
-
-  value = iupAttribGet(ih, "IMINACTIVE");
-  if (value) 
-    iupAttribSetClassObject(ih, "IMINACTIVE", value);
-
-  value = iupAttribGet(ih, "IMPRESS");
-  if (value) 
-    iupAttribSetClassObject(ih, "IMPRESS", value);
-}
-
 void iupImageRemoveFromCache(Ihandle* ih, void* handle)
 {
   char *name;

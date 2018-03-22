@@ -1112,7 +1112,7 @@ static char* gtkTextGetReadOnlyAttrib(Ihandle* ih)
 
 static int gtkTextSetBgColorAttrib(Ihandle* ih, const char* value)
 {
-  if (ih->data->is_multiline)
+  if (ih->data->is_multiline && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     GtkScrolledWindow* scrolled_window = (GtkScrolledWindow*)iupAttribGet(ih, "_IUP_EXTRAPARENT");
     unsigned char r, g, b;
