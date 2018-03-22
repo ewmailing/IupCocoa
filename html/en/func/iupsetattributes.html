@@ -35,6 +35,10 @@ IupSetCallbacks</a>.</p>
   defines Japan as the selected option.</p>
 <pre>Ihandle *list = IupList (NULL);
 IupSetAttributes(list,&quot;VALUE=3,1=Brazil,2=USA,3=Japan,4=France&quot;);</pre>
+<p>To set values that have spaces or that may interfere with the string parse, 
+use double quotes around the value with the backslash for C/Lua syntax. For 
+instance:</p>
+<pre>IupSetAttributes(list,&quot;1=Brazil,2=\&quot;United States\&quot;,3=Japan,4=\&quot;Dominican Republic\&quot;&quot;);</pre>
 <h3>See Also</h3>
 <p><a href="iupgetattribute.html">IupGetAttribute</a>, 
 <a href="iupsetattribute.html">IupSetAttribute</a>, 

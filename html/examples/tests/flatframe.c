@@ -4,7 +4,7 @@
 
 void FlatFrameTest(void)
 {
-  Ihandle *dlg, *frame1, *frame2, *frame3;
+  Ihandle *dlg, *frame1, *frame2, *frame3, *frame4;
 
   frame1 = IupFlatFrame
           (
@@ -21,7 +21,7 @@ void FlatFrameTest(void)
           (
             IupVbox
             (
-              IupSetAttributes(IupText(NULL), "EXPAND=HORIZONTAL"),
+              IupSetAttributes(IupText(NULL), "EXPAND=HORIZONTAL, VALUE=Text4"),
               IupLabel("Label5"),
               IupLabel("Label6"),
               NULL
@@ -35,6 +35,17 @@ void FlatFrameTest(void)
               IupLabel("Label7"),
               IupSetAttributes(IupLabel("Label8"), "SIZE=70x"),
               IupLabel("Label9"),
+              NULL
+            )
+          );
+
+  frame4 = IupFlatFrame
+          (
+            IupVbox
+            (
+              IupLabel("Label10"),
+              IupSetAttributes(IupLabel("Label11"), "SIZE=70x"),
+              IupLabel("Label12"),
               NULL
             )
           );
@@ -66,7 +77,11 @@ void FlatFrameTest(void)
   IupSetAttribute(frame3, "TITLELINE", "No");
   IupSetAttribute(frame3, "TITLEBGCOLOR", "64 128 255");
 
-  dlg = IupDialog(IupSetAttributes(IupHbox(frame1, frame2, frame3, NULL), "NMARGIN=10x10"));
+  IupSetAttribute(frame4, "FRAME", "CROSSTITLE");
+  IupSetAttribute(frame4, "TITLE", "Title Text");
+  IupSetAttribute(frame4, "FRAMECOLOR", "192 192 192");
+
+  dlg = IupDialog(IupSetAttributes(IupHbox(frame1, frame2, frame3, frame4, NULL), "NMARGIN=10x10"));
 
   IupSetAttribute(dlg, "TITLE", "IupFlatFrame Test");
   IupSetAttribute(dlg, "GAP", "5");

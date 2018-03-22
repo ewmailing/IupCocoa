@@ -348,63 +348,50 @@ void iupDrawSetColor(Ihandle *ih, const char* name, long color)
   iupAttribSetStr(ih, name, value);
 }
 
-static void iDrawBorderLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color)
-{
-  iupdrvDrawLine(dc, x1, y1, x2, y2, color, IUP_DRAW_STROKE, 1);
-}
-
 void iupDrawRaiseRect(Ihandle *ih, int x1, int y1, int x2, int y2, long light_shadow, long mid_shadow, long dark_shadow)
 {
-  IdrawCanvas* dc = (IdrawCanvas*)iupAttribGet(ih, "_IUP_DRAW_DC");
-  if (!dc) return;
+  iupDrawSetColor(ih, "DRAWCOLOR", light_shadow);
+  IupDrawLine(ih, x1, y1, x1, y2);
+  IupDrawLine(ih, x1, y1, x2, y1);
 
-  iupDrawCheckSwapCoord(x1, x2);
-  iupDrawCheckSwapCoord(y1, y2);
+  iupDrawSetColor(ih, "DRAWCOLOR", mid_shadow);
+  IupDrawLine(ih, x1 + 1, y2 - 1, x2 - 1, y2 - 1);
+  IupDrawLine(ih, x2 - 1, y1 + 1, x2 - 1, y2 - 1);
 
-  iDrawBorderLine(dc, x1, y1, x1, y2, light_shadow);
-  iDrawBorderLine(dc, x1, y1, x2, y1, light_shadow);
-
-  iDrawBorderLine(dc, x1 + 1, y2 - 1, x2 - 1, y2 - 1, mid_shadow);
-  iDrawBorderLine(dc, x2 - 1, y1 + 1, x2 - 1, y2 - 1, mid_shadow);
-
-  iDrawBorderLine(dc, x1, y2, x2, y2, dark_shadow);
-  iDrawBorderLine(dc, x2, y1, x2, y2, dark_shadow);
+  iupDrawSetColor(ih, "DRAWCOLOR", dark_shadow);
+  IupDrawLine(ih, x1, y2, x2, y2);
+  IupDrawLine(ih, x2, y1, x2, y2);
 }
 
 void iupDrawVertSunkenMark(Ihandle *ih, int x, int y1, int y2, long light_shadow, long dark_shadow)
 {
-  IdrawCanvas* dc = (IdrawCanvas*)iupAttribGet(ih, "_IUP_DRAW_DC");
-  if (!dc) return;
-
-  iDrawBorderLine(dc, x - 1, y1, x - 1, y2, dark_shadow);
-  iDrawBorderLine(dc, x, y1, x, y2, light_shadow);
+  iupDrawSetColor(ih, "DRAWCOLOR", dark_shadow);
+  IupDrawLine(ih, x - 1, y1, x - 1, y2);
+  iupDrawSetColor(ih, "DRAWCOLOR", light_shadow);
+  IupDrawLine(ih, x, y1, x, y2);
 }
 
 void iupDrawHorizSunkenMark(Ihandle *ih, int x1, int x2, int y, long light_shadow, long dark_shadow)
 {
-  IdrawCanvas* dc = (IdrawCanvas*)iupAttribGet(ih, "_IUP_DRAW_DC");
-  if (!dc) return;
-
-  iDrawBorderLine(dc, x1, y - 1, x2, y - 1, dark_shadow);
-  iDrawBorderLine(dc, x1, y, x2, y, light_shadow);
+  iupDrawSetColor(ih, "DRAWCOLOR", dark_shadow);
+  IupDrawLine(ih, x1, y - 1, x2, y - 1);
+  iupDrawSetColor(ih, "DRAWCOLOR", light_shadow);
+  IupDrawLine(ih, x1, y, x2, y);
 }
 
 void iupDrawSunkenRect(Ihandle *ih, int x1, int y1, int x2, int y2, long light_shadow, long mid_shadow, long dark_shadow)
 {
-  IdrawCanvas* dc = (IdrawCanvas*)iupAttribGet(ih, "_IUP_DRAW_DC");
-  if (!dc) return;
+  iupDrawSetColor(ih, "DRAWCOLOR", mid_shadow);
+  IupDrawLine(ih, x1, y1, x1, y2);
+  IupDrawLine(ih, x1, y1, x2, y1);
 
-  iupDrawCheckSwapCoord(x1, x2);
-  iupDrawCheckSwapCoord(y1, y2);
+  iupDrawSetColor(ih, "DRAWCOLOR", dark_shadow);
+  IupDrawLine(ih, x1 + 1, y1 + 1, x1 + 1, y2 - 1);
+  IupDrawLine(ih, x1 + 1, y1 + 1, x2 - 1, y1 + 1);
 
-  iDrawBorderLine(dc, x1, y1, x1, y2, mid_shadow);
-  iDrawBorderLine(dc, x1, y1, x2, y1, mid_shadow);
-
-  iDrawBorderLine(dc, x1 + 1, y1 + 1, x1 + 1, y2 - 1, dark_shadow);
-  iDrawBorderLine(dc, x1 + 1, y1 + 1, x2 - 1, y1 + 1, dark_shadow);
-
-  iDrawBorderLine(dc, x1, y2, x2, y2, light_shadow);
-  iDrawBorderLine(dc, x2, y1, x2, y2, light_shadow);
+  iupDrawSetColor(ih, "DRAWCOLOR", light_shadow);
+  IupDrawLine(ih, x1, y2, x2, y2);
+  IupDrawLine(ih, x2, y1, x2, y2);
 }
 
 void iupDrawCalcShadows(long bgcolor, long *light_shadow, long *mid_shadow, long *dark_shadow)

@@ -60,7 +60,10 @@ are calculated according FRAME, FRAMEWIDTH, FRAMESPACE and the title area.</p>
 use the background color of the native parent.</p>
 <p>
 <strong>FRAME</strong> (<font SIZE="3">non inheritable</font>): enables the frame line. Default: 
-Yes.</p>
+Yes. If value is CROSSTITLE the the frame at top crosses the title, like 
+traditional frames in native systems (since 3.25). When CROSSTITLE is used 
+TITLELINE and TITLEALIGNMENT are ignored, the title line is never drawn and 
+alignment is always left.</p>
 <p>
 <strong>FRAMECOLOR</strong> (<font SIZE="3">non inheritable</font>): frame line color. Default: 
 the global attribute DLGFGCOLOR.</p>
@@ -74,8 +77,9 @@ between frame line and child area. Used only when FRAME=Yes. Default: 2.</p>
   Text the user will see at the top of the frame. </p>
 <p><strong>TITLECOLOR</strong> (<font SIZE="3">non inheritable</font>): title text color. Default: the global 
 	attribute DLGFGCOLOR.</p>
-<p><strong>TITLEBGCOLOR</strong> (<font SIZE="3">non inheritable</font>): background color 
-of the title area. Default: the global attribute DLGBGCOLOR.</p>
+<p><strong>TITLEBGCOLOR</strong> (<font SIZE="3">non inheritable</font>): 
+background color of the title area. If not defined BGCOLOR will be used (since 
+3.25).</p>
 <p><strong>TITLELINE</strong> (<font SIZE="3">non inheritable</font>): enables 
 the title line. Horizontal line that separates the title area from the child 
 area. Default: Yes.</p>
@@ -105,6 +109,15 @@ horizontal text alignment for multiple lines. Can be: ALEFT, ARIGHT or ACENTER.
 Default: ALEFT. (since 3.22)</p>
 <p><strong>TITLEPADDING</strong> (<font SIZE="3">non inheritable</font>): title internal margin. 
 Default value: &quot;0x0&quot;.</p>
+
+
+<h3><a name="Notes">Notes</a></h3>
+
+
+<p>To replace a <strong>IupFrame</strong> by a <strong>IupFlatFrame</strong> you 
+must set TITLELINE=No, TITLEALIGNMENT=ALEFT and FRAMECOLOR=&quot;160 160 160&quot; (or a 
+lighter version of the DLGFGCOLOR). But the line can not be positioned in the 
+middle of the text like in IupFrame.&nbsp;</p>
 
 <h3><a name="Examples">Examples</a></h3>
 <p><a href="../../examples/">Browse for Example Files</a></p>

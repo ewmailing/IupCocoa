@@ -635,7 +635,7 @@ static int gtkCanvasSetBgColorAttrib(Ihandle* ih, const char* value)
     /* ignore given value, must use only from parent for the scrollbars */
     char* parent_value = iupBaseNativeParentGetBgColor(ih);
 
-    if (iupStrToRGB(parent_value, &r, &g, &b))
+    if (iupStrToRGB(parent_value, &r, &g, &b) && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
     {
       GtkWidget* sb;
 

@@ -1439,6 +1439,10 @@ wb_usr.tree =
               link= "elem/iuplabel.html"
             },
             {
+              name= {nl= "IupFlatLabel"},
+              link= "elem/iupflatlabel.html"
+            },
+            {
               name= {nl= "IupLink"},
               link= "elem/iuplink.html"
             },
