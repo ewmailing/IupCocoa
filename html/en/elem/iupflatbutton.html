@@ -125,6 +125,10 @@ Default use BORDERCOLOR. (since 3.19)</p>
 <p><strong>BORDERWIDTH</strong>: line width used for borders. Default: &quot;1&quot;. Any borders can be 
 hidden by simply setting 
 this value to 0. This is for the <strong>IupFlatButton</strong> drawn border.</p>
+<p><strong>SHOWBORDER</strong>: by default borders are drawn only when the 
+button is highlighted, if SHOWBORDER=Yes borders are always show. When 
+SHOWBORDER=Yes and BGCOLOR is not defined, the actual BGCOLOR will be a darker 
+version of the background color of the native parent. (since 3.25)</p>
 
 <p><strong>CANFOCUS</strong> (creation only)<strong> </strong>(<font size="3">non inheritable</font>): 
 enables the focus traversal of the control. In Windows the button will respect 
@@ -173,7 +177,9 @@ foreground image name of the element in pressed state. If it is not defined then
 the FRONTIMAGE is used.</p>
 <p><strong>HASFOCUS </strong> (read-only): returns the button state if has 
 focus. Can be Yes or No. (since 3.21)</p>
-<p><strong>HLCOLOR</strong>: color used to indicate a highlight state. Default: &quot;200 225 245&quot;.</p>
+<p><strong>HLCOLOR</strong>: background color used to indicate a highlight state. 
+Pre-defined to &quot;200 225 245&quot;. Can be set to NULL. If NULL BGCOLOR will 
+be used instead.</p>
 <p><strong>HIGHLIGHTED </strong> (read-only): returns the button state if 
 highlighted. Can be Yes or No. (since 3.21)</p>
 <p><strong>IMAGE</strong> (<font SIZE="3">non inheritable</font>):
@@ -205,7 +211,9 @@ LEFT, RIGHT, TOP, BOTTOM. Default: LEFT.</p>
 a different name to avoid inheritance problems. Default value: &quot;0x0&quot;.</p>
 <p><strong>PRESSED </strong> (read-only): returns the button state if pressed. 
 Can be Yes or No. (since 3.21)</p>
-<p><strong>PSCOLOR</strong>: color used to indicate a press state. Default: &quot;150 200 235&quot;.</p>
+<p><strong>PSCOLOR</strong>: background color used to indicate a press state. 
+Pre-defined to &quot;150 200 235&quot;. Can be set to NULL. If NULL BGCOLOR will 
+be used instead.</p>
 
 
 <p><strong>RADIO</strong> (read-only): returns if the toggle is inside a radio. 
@@ -338,6 +346,22 @@ changed. </p>
 <p>When TOGGLE=Yes, the button that is a child of an <strong>IupRadio</strong> automatically receives a name when 
 its is mapped into the native system. 
 (since 3.16)</p>
+<p>To replace a <strong>IupButton</strong> by a <strong>IupFlatButton</strong> 
+you must change the function call (<strong>IupFlatButton</strong> does not 
+includes the action callback in the constructor) and change the ACTION callback 
+name to FLAT_ACTION. </p>
+<p>To replace a <strong>IupToggle</strong> by a <strong>
+IupFlatButton</strong> you must do the same, and set TOGGLE=Yes. But notice that 
+there will be no check box nor radio button. </p>
+<p>Finally notice that the name of the 
+secondary image attributes are different (for instance IMINACTIVE is 
+IMAGEINACTIVE, IMPRESS is IMAGEPRESS, and so on). To define a button that only 
+shows a color, do the same as in <strong>IupButton</strong> and don't define 
+TITLE nor IMAGE, but instead of BGCOLOR use FGCOLOR to set the color of the 
+button.</p>
+<p>When the <strong>IupFlatButton</strong> displays only a text it will look 
+like a label, use SHOWBORDER=Yes to force the display of the borders all the 
+time.</p>
 
 
 <h3><a name="Examples">Examples</a></h3>

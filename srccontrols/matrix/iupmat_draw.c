@@ -1368,7 +1368,7 @@ void iupMatrixDrawCells(Ihandle* ih, int lin1, int col1, int lin2, int col2)
       /* If the cell is marked, then draw it with attenuation color */
       marked = iupMatrixGetMark(ih, lin, col, mark_cb);
 
-      if (ih->data->noscroll_as_title && lin < ih->data->lines.num_noscroll || col < ih->data->columns.num_noscroll)
+      if (ih->data->noscroll_as_title && (lin < ih->data->lines.num_noscroll || col < ih->data->columns.num_noscroll))
       {
         iMatrixDrawBackground(ih, x1, x2, y1, y2, marked, active, lin, 0);
         iMatrixDrawFrameRectTitle(ih, lin, col, x1, x2, y1, y2, framecolor, framehighlight);
