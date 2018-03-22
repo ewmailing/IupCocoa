@@ -1403,7 +1403,8 @@ static int gtkDialogSetBackgroundAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-#if GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)
+/* gtk_status_icon - deprecated in 3.14, but still available in 3.22 (must enable deprecated in config.mak) */
+#if (GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)) || !defined(GTK_DISABLE_DEPRECATED)
 static int gtkDialogTaskDoubleClick(int button)
 {
   static int last_button = -1;
@@ -1515,7 +1516,7 @@ static int gtkDialogSetTrayImageAttrib(Ihandle *ih, const char *value)
   gtk_status_icon_set_from_pixbuf(status_icon, icon);
   return 1;
 }
-#endif  /* GTK_CHECK_VERSION(2, 10, 0) */
+#endif  /* gtk_status_icon */
 
 #if GTK_CHECK_VERSION(3, 4, 0)
 static int gtkDialogSetHideTitleBarAttrib(Ihandle *ih, const char *value)
@@ -1569,7 +1570,8 @@ void iupdrvDialogInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "OPACITY", NULL, gtkDialogSetOpacityAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OPACITYIMAGE", NULL, gtkDialogSetOpacityImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
-#if GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)
+/* gtk_status_icon - deprecated in 3.14, but still available in 3.22 (must enable deprecated in config.mak) */
+#if (GTK_CHECK_VERSION(2, 10, 0) && !GTK_CHECK_VERSION(3, 14, 0)) || !defined(GTK_DISABLE_DEPRECATED)
   iupClassRegisterAttribute(ic, "TRAY", NULL, gtkDialogSetTrayAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TRAYIMAGE", NULL, gtkDialogSetTrayImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TRAYTIP", NULL, gtkDialogSetTrayTipAttrib, NULL, NULL, IUPAF_NO_INHERIT);

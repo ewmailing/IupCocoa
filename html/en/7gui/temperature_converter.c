@@ -4,7 +4,7 @@
 int txt_celcius_cb(Ihandle *self)
 {
   Ihandle* fahrenheit = IupGetDialogChild(self, "FAHRENHEIT");
-  double value = IupGetFloat(self, "VALUE");;
+  double value = IupGetDouble(self, "VALUE");;
 
   value = value * (9./5.) + 32;
 
@@ -16,7 +16,7 @@ int txt_celcius_cb(Ihandle *self)
 int txt_fahrenheit_cb(Ihandle *self)
 {
   Ihandle* celcius = IupGetDialogChild(self, "CELCIUS");
-  double value = IupGetFloat(self, "VALUE");;
+  double value = IupGetDouble(self, "VALUE");;
 
   value = (value - 32) * (5./9.);
 

@@ -251,7 +251,7 @@ static int gtkListSetBgColorAttrib(Ihandle* ih, const char* value)
   unsigned char r, g, b;
 
   GtkScrolledWindow* scrolled_window = (GtkScrolledWindow*)iupAttribGet(ih, "_IUP_EXTRAPARENT");
-  if (scrolled_window && !ih->data->is_dropdown)
+  if (scrolled_window && !ih->data->is_dropdown && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     /* ignore given value, must use only from parent for the scrollbars */
     char* parent_value = iupBaseNativeParentGetBgColor(ih);

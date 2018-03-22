@@ -1664,7 +1664,7 @@ static int motTreeSetBgColorAttrib(Ihandle* ih, const char* value)
   char* parent_value = iupBaseNativeParentGetBgColor(ih);
 
   color = iupmotColorGetPixelStr(parent_value);
-  if (color != (Pixel)-1)
+  if (color != (Pixel)-1 && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     Widget sb = NULL;
 

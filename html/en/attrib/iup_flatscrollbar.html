@@ -85,11 +85,15 @@ reduced because it will not include the scrollbars area. But notice that when
 vertically scrolling the last column or horizontally scrolling the last line the 
 visibility or the cells are reduced because the scrollbar is show above the 
 cells.</p>
+<p>The flat scrollbar does not support the XMIN nor YMIN attributes. They are 
+considered to be 0 always. The XAUTOHIDE and YAUTOHIDE are considered to be YES 
+always.</p>
+<p>Also, all numeric attributes are integer numbers.</p>
 <h3>See Also</h3>
 <p><a href="iup_scrollbar.html">SCROLLBAR</a>, <a href="iup_posx.html">POSX</a>,
-<a href="iup_xmin.html">XMIN</a>, <a href="iup_xmax.html">XMAX</a>,
+<a href="iup_xmax.html">XMAX</a>,
 <a href="iup_dx.html">DX</a>, <a href="iup_posy.html">POSY</a>,
-<a href="iup_ymin.html">YMIN</a>, <a href="iup_ymax.html">YMAX</a>,
+<a href="iup_ymax.html">YMAX</a>,
 <a href="iup_dy.html">DY</a></p>
 
 </body>

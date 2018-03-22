@@ -148,6 +148,10 @@ cdim.lib;cd.lib
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\html\en\7gui\crud.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\html\en\7gui\flight_booker.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -678,6 +682,13 @@ cdim.lib;cd.lib
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\html\en\7gui\cells.lua" />
+    <None Include="..\html\en\7gui\circle_drawer.lua" />
+    <None Include="..\html\en\7gui\counter.lua" />
+    <None Include="..\html\en\7gui\crud.lua" />
+    <None Include="..\html\en\7gui\flight_booker.lua" />
+    <None Include="..\html\en\7gui\temperature_converter.lua" />
+    <None Include="..\html\en\7gui\timer.lua" />
     <None Include="..\html\examples\Lua\alarm.wlua" />
     <None Include="..\html\examples\Lua\button.wlua" />
     <None Include="..\html\examples\Lua\canvas.wlua" />
