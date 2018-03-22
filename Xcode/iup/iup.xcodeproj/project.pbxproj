@@ -57,6 +57,7 @@
 		00BE4F941F4C9721002B7C86 /* iupweb.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00BE4F961F4CAB9A002B7C86 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */; };
 		00BE4F981F4CABE8002B7C86 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */; };
+		00DECF472063834000FEF83B /* iup_flatlabel.c in Sources */ = {isa = PBXBuildFile; fileRef = 00DECF462063833F00FEF83B /* iup_flatlabel.c */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
@@ -335,6 +336,7 @@
 		00BE4F8C1F4C96BD002B7C86 /* webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = webbrowser.c; path = ../../../html/examples/tests/webbrowser.c; sourceTree = "<group>"; };
 		00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		00DECF462063833F00FEF83B /* iup_flatlabel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatlabel.c; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E3A5F81B60578300BEC175 /* iupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -718,6 +720,7 @@
 		00E3A60B1B60583500BEC175 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				00DECF462063833F00FEF83B /* iup_flatlabel.c */,
 				007E319A204CDBBF00ED15CB /* iup_colorbar.c */,
 				007E319C204CDBC100ED15CB /* iup_colorbrowser.c */,
 				007E31A2204CDBC400ED15CB /* iup_colorhsi.c */,
@@ -1438,6 +1441,7 @@
 				00E3A79D1B60583600BEC175 /* iup_gridbox.c in Sources */,
 				00E3A8CE1B60866500BEC175 /* iupcocoa_button.m in Sources */,
 				00E3A7E41B60583600BEC175 /* iup_zbox.c in Sources */,
+				00DECF472063834000FEF83B /* iup_flatlabel.c in Sources */,
 				00E3A7251B60583600BEC175 /* config.mak in Sources */,
 				00E3A7A81B60583600BEC175 /* iup_ledlex.c in Sources */,
 				00E3A7C51B60583600BEC175 /* iup_radio.c in Sources */,
