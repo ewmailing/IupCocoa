@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "iup.h"
-#include "iupcontrols.h"
 
-enum { SUM };
+#include <iup.h>
+#include <iupcontrols.h>
 
-typedef struct _Cell {
+enum { OP_SUM };
+
+typedef struct _Cell 
+{
   int lin;
   int col;
 } Cell;
@@ -20,177 +22,309 @@ typedef struct _Operation
   int endCol;
 } Operation;
 
-typedef struct _celldata{
-  int isFormula;
+enum 
+{
+  FORM_READY, /* number is ready to use */
+  FORM_CALC,  /* calculating */
+  FORM_DIRTY  /* need calc */
+};
+
+enum {
+  ERR_NONE,
+  ERR_PARSE,
+  ERR_RECURSE,
+  ERR_DEPEND
+};
+
+/* each cell can contain:
+  - no value, an empty cell
+  - a text value
+  - a numeric value
+  - a sum of values (a formula starts with '=')
+*/
+typedef struct _CellData
+{
   int parseError;
-  double value;
-  char formula[80];
+  double number;
+  int isNumber;
+  int calcFormula;
+  char value[80];
   Operation operation;
-  Cell dependencies[80];
-  int dependenciesSize;
-} Celldata;
+  Cell dependencies[30]; /* cells that are depend on this cell */
+  int dependenciesCount;
+} CellData;
 
-static Celldata data[101][27];
-static char text[80];
 
-static void initData()
+#define NUM_COL 26   /* A-Z=26 */
+#define NUM_LIN 100  /* 0-99=100 */
+
+static CellData data[NUM_LIN][NUM_COL];
+
+static void cellDataInit(void)
 {
   int i, j;
-  for (i = 1; i < 27; i++)
+  for (i = 0; i < NUM_COL; i++)
   {
-    for (j = 1; j < 101; j++)
+    for (j = 0; j < NUM_LIN; j++)
     {
-      data[i][j].isFormula = 0;
-      data[i][j].value = 0.0;
-      data[i][j].dependenciesSize = 0;
+      memset(&(data[i][j]), 0, sizeof(CellData));
     }
   }
-}
-static char *getFormula(int lin, int col)
-{
-  return data[lin][col].formula;
+
+  /* memset(data, 0, sizeof(data));  will also work because it is a constant array */
 }
 
-static int isFormula(int lin, int col)
-{
-  return data[lin][col].isFormula;
-}
-
-static int getParseError(lin, col)
-{
-  return data[lin][col].parseError;
-}
-
-static double getValue(lin, col)
+static char* cellDataGetValue(int lin, int col)
 {
   return data[lin][col].value;
 }
 
-static void parseFormula(int lin, int col)
+static int cellDataIsFormula(int lin, int col)
 {
-  char *formula = data[lin][col].formula;
-  int startLin, endLin, startCol, endCol, n;
-  char c1, c2, func[80];
-  double total;
-
-  data[lin][col].parseError = 1;
-
-  if (formula[0] == '\0')
-    return;
-
-  n = sscanf(formula, "%3s(%c%d:%c%d)", func, &c1, &startLin, &c2, &endLin);
-
-  if (n != 5)
-    return;
-
-  data[lin][col].parseError = 0;
-
-  if (strcmp(func, "SUM") == 0)
-    data[lin][col].operation.type = SUM;
-
-  data[lin][col].operation.startCol = c1 - 'A' + 1;
-  data[lin][col].operation.startLin = startLin+1;
-  data[lin][col].operation.endCol = c2 - 'A' + 1;
-  data[lin][col].operation.endLin = endLin+1;
-
-  return;
+  if (data[lin][col].isNumber || data[lin][col].value[0] != '=')
+    return 0;
+  else
+    return 1;
 }
 
-static void addDependency(int lin, int col, int depLin, int depCol)
-{
-  Cell cell = { depLin, depCol };
-  data[lin][col].dependencies[data[lin][col].dependenciesSize] = cell;
-  ++data[lin][col].dependenciesSize;
-}
-
-static void removeDependency(int lin, int col, int depLin, int depCol)
+static void cellDataSetDependenciesDirty(CellData* c)
 {
   int i;
-
-  for (i = 0; i < data[lin][col].dependenciesSize; i++)
+  for (i = 0; i < c->dependenciesCount; i++)
   {
-    if (data[lin][col].dependencies[i].lin == depLin && data[lin][col].dependencies[i].col == depCol)
-      break;
+    int dep_lin = c->dependencies[i].lin;
+    int dep_col = c->dependencies[i].col;
+    data[dep_lin][dep_col].calcFormula = FORM_DIRTY;
   }
-  for (; i < data[lin][col].dependenciesSize - 1; i++)
-  {
-    data[lin][col].dependencies[i] = data[lin][col].dependencies[i];
-  }
-  --data[lin][col].dependenciesSize;
 }
 
-static void setFormula(int lin, int col, char *formula)
+static double cellDataIsNumber(int lin, int col)
 {
-  if (data[lin][col].isFormula && !data[lin][col].parseError)
-  {
-    int i, j;
-
-    for (i = data[lin][col].operation.startLin; i <= data[lin][col].operation.endLin; i++)
-    {
-      for (j = data[lin][col].operation.startCol; j <= data[lin][col].operation.endCol; j++)
-        removeDependency(i+1, j+1, lin, col);
-    }
-  }
-  data[lin][col].isFormula = 1;
-  strcpy(data[lin][col].formula, formula);
-  parseFormula(lin, col);
-  if (data[lin][col].isFormula && !data[lin][col].parseError)
-  {
-    int i, j;
-
-    for (i = data[lin][col].operation.startLin; i <= data[lin][col].operation.endLin; i++)
-    {
-      for (j = data[lin][col].operation.startCol; j <= data[lin][col].operation.endCol; j++)
-        addDependency(i, j, lin, col);
-    }
-  }
+  return data[lin][col].isNumber || (data[lin][col].value[0] == '=' && data[lin][col].parseError == ERR_NONE);
 }
 
-static void setValue(int lin, int col, double value)
-{
-  data[lin][col].isFormula = 0;
-  data[lin][col].value = value;
-}
+static double cellDataGetNumber(int lin, int col);
 
-static double sumCells(int lin, int col)
+static double cellDataSumCells(CellData* c)
 {
   int i, j;
   double total = 0;
 
-  for (i = data[lin][col].operation.startLin; i <= data[lin][col].operation.endLin; i++)
+  for (i = c->operation.startLin; i <= c->operation.endLin; i++)
   {
-    for (j = data[lin][col].operation.startCol; j <= data[lin][col].operation.endCol; j++)
+    for (j = c->operation.startCol; j <= c->operation.endCol; j++)
     {
-      total += data[i][j].value;
+      if (cellDataIsNumber(i, j))
+        total += cellDataGetNumber(i, j);
+      else if (data[i][j].value[0] != 0)
+      {
+        c->parseError = ERR_DEPEND;
+        return 0;
+      }
     }
   }
 
   return total;
 }
 
-static void runFormula(int lin, int col)
+static void cellDataCalcFormula(CellData* c)
 {
-  if (!data[lin][col].parseError)
+  if (c->calcFormula == FORM_CALC)
   {
-    switch (data[lin][col].operation.type)
+    c->parseError = ERR_RECURSE;
+    return;
+  }
+
+  cellDataSetDependenciesDirty(c);
+
+  if (c->parseError == ERR_NONE)
+  {
+    switch (c->operation.type)
     {
-      case SUM:
-        data[lin][col].value = sumCells(lin, col);
-        break;
+    case OP_SUM:
+      c->calcFormula = FORM_CALC;
+
+      c->number = cellDataSumCells(c);
+
+      if (c->parseError == ERR_NONE)
+        c->calcFormula = FORM_READY;
+      else
+        c->calcFormula = FORM_DIRTY;
+      break;
+    }
+  }
+}
+
+static double cellDataGetNumber(int lin, int col)
+{
+  CellData* c = &(data[lin][col]);
+  if (c->value[0] == '=' && c->calcFormula != FORM_READY)
+    cellDataCalcFormula(c);
+
+  return c->number;
+}
+
+static char* cellDataGetString(int lin, int col)
+{
+  /* called when not a number */
+  if (data[lin][col].value[0] == '=')
+  {
+    int error = data[lin][col].parseError;
+    if (error != ERR_NONE)
+    {
+      if (error == ERR_PARSE)
+        return "Error Invalid Formula!";
+      else if (error == ERR_RECURSE)
+        return "Error Recursive Formula!";
+      else /* ERR_DEPEND */
+        return "Error Dependency in Formula!";
     }
   }
 
+  return data[lin][col].value;
 }
 
-static char* value_cb(Ihandle *self, int lin, int col)
+static void cellDataSetNumber(int lin, int col, double value)
 {
+  CellData* c = &(data[lin][col]);
+
+  c->isNumber = 1;
+  c->number = value;
+  c->calcFormula = FORM_READY;
+  c->parseError = ERR_NONE;
+  c->value[0] = 0;
+
+  cellDataSetDependenciesDirty(c);
+}
+
+static void cellDataParseFormula(CellData* c)
+{
+  int l1, l2, n;
+  char c1, c2, func[80];
+  char *formula = c->value;
+
+  c->parseError = ERR_PARSE;
+
+  n = sscanf(formula+1, "%3s(%c%d:%c%d)", func, &c1, &l1, &c2, &l2);
+  if (n != 5)
+    return;
+
+  if (strcmp(func, "sum") == 0)
+    c->operation.type = OP_SUM;
+  else
+    return;
+
+  if (c1 < 'A' || c1 > 'Z')
+    return;
+  if (c2 < 'A' || c2 > 'Z')
+    return;
+  if (l1 < 0 || l1 > 99)
+    return;
+  if (l2 < 0 || l2 > 99)
+    return;
+
+  c->parseError = ERR_NONE;
+
+  c->operation.startCol = c1 - 'A';
+  c->operation.startLin = l1;
+  c->operation.endCol = c2 - 'A';
+  c->operation.endLin = l2;
+}
+
+static void cellDataAddDependencies(CellData* c, int dep_lin, int dep_col)
+{
+  int i;
+  Cell cell;
+  for (i = 0; i < c->dependenciesCount; i++)
+  {
+    if (dep_lin == c->dependencies[i].lin && 
+        dep_col == c->dependencies[i].col)
+      return; /* already in the list */
+  }
+
+  /* not found, add to the list */
+  cell.col = dep_col;
+  cell.lin = dep_lin;
+  c->dependencies[c->dependenciesCount] = cell;
+  c->dependenciesCount++;
+}
+
+static void cellDataRemoveDependencies(CellData* c, int dep_lin, int dep_col)
+{
+  int i;
+  for (i = 0; i < c->dependenciesCount; i++)
+  {
+    if (dep_lin == c->dependencies[i].lin &&
+        dep_col == c->dependencies[i].col)
+        break; /* found in the list */
+  }
+
+  if (i == c->dependenciesCount)
+    return;
+
+  /* remove from the list */
+  for (; i < c->dependenciesCount - 1; i++)
+  {
+    c->dependencies[i] = c->dependencies[i+1];
+  }
+
+  c->dependenciesCount--;
+}
+
+static void cellDataUpdateDependencies(CellData* c, int lin, int col)
+{
+  int i, j;
+
+  for (i = 0; i < NUM_LIN; i++)
+  {
+    for (j = 0; j < NUM_COL; j++)
+    {
+      if (i >= c->operation.startLin && i <= c->operation.endLin &&
+          j >= c->operation.startCol && j <= c->operation.endCol)
+        cellDataAddDependencies(&(data[i][j]), lin, col);
+      else
+        cellDataRemoveDependencies(&(data[i][j]), lin, col);
+    }
+  }
+}
+
+static void cellDataSetString(int lin, int col, const char *value)
+{
+  CellData* c = &(data[lin][col]);
+
+  cellDataSetDependenciesDirty(c);
+
+  c->isNumber = 0;
+  c->number = 0;
+  c->calcFormula = FORM_READY;
+  c->parseError = ERR_NONE;
+  strcpy(c->value, value);
+
+  if (c->value[0] == '=')
+  {
+    c->calcFormula = FORM_DIRTY;
+
+    cellDataParseFormula(c);
+
+    if (c->parseError == ERR_NONE)
+      cellDataUpdateDependencies(c, lin, col);
+  }
+}
+
+
+/*************************************** Interface **************************************************/
+
+
+static char* matrix_value_cb(Ihandle *self, int lin, int col)
+{
+  static char text[80];
   char *editcell = IupGetAttribute(self, "EDITCELL");
   if (editcell != NULL)
   {
     int elin, ecol;
     sscanf(editcell, "%d:%d", &elin, &ecol);
-    if (isFormula(lin, col) && elin == lin && ecol == col)
-      return getFormula(lin, col);
+    if (elin == lin && ecol == col && cellDataIsFormula(lin - 1, col - 1))
+      return cellDataGetValue(lin - 1, col - 1);
   }
 
   if (lin == 0 && col == 0)
@@ -202,44 +336,42 @@ static char* value_cb(Ihandle *self, int lin, int col)
   }
   else if (col == 0)
   {
-    sprintf(text, "%d", lin-1);
+    sprintf(text, "%d", lin - 1);
     return text;
   }
 
-  if (isFormula(lin, col) && getParseError(lin, col))
-    strcpy(text, "ERROR!");
+  if (cellDataIsNumber(lin - 1, col - 1))
+  {
+    double number = cellDataGetNumber(lin - 1, col - 1);
+    if (cellDataIsNumber(lin - 1, col - 1))
+      sprintf(text, "%.2lf", number);
+    else
+      return cellDataGetString(lin - 1, col - 1);
+  }
   else
-    sprintf(text, "%.2lf", getValue(lin, col));
+    return cellDataGetString(lin - 1, col - 1);
 
   return text;
 }
 
-static int value_edit_cb(Ihandle *self, int lin, int col, char* newvalue)
+static int matrix_value_edit_cb(Ihandle *self, int lin, int col, char* newvalue)
 {
-  int s;
+  char str[80];
   double d;
 
-  int i = sscanf(newvalue, "%lf%s", &d, &s);
-  if (i == 1)
-  {
-    int j;
-    setValue(lin, col, d);
-    for (j = 0; j < data[lin][col].dependenciesSize; j++)
-      runFormula(data[lin][col].dependencies[j].lin, data[lin][col].dependencies[j].col);
-  }
+  int i = sscanf(newvalue, "%lf%s", &d, &str);
+  if (i == 1) /* check if there is more text after the number (text may start with a number) */
+    cellDataSetNumber(lin - 1, col - 1, d);
   else
-  {
-    setFormula(lin, col, newvalue);
-    runFormula(lin, col);
-  }
+    cellDataSetString(lin - 1, col - 1, newvalue);
 
+  (void)self;
   return IUP_DEFAULT;
 }
 
 int main(int argc, char **argv)
 {
   Ihandle *dlg, *matrix;
-  int i, j;
 
   IupOpen(&argc, &argv);
   IupControlsOpen();
@@ -248,25 +380,21 @@ int main(int argc, char **argv)
 
   IupSetAttribute(matrix, "NAME", "MATRIX");
 
-  IupSetAttribute(matrix, "NUMCOL", "26");
-  IupSetAttribute(matrix, "NUMLIN", "100");
+  IupSetInt(matrix, "NUMCOL", NUM_COL);
+  IupSetInt(matrix, "NUMLIN", NUM_LIN);
 
   IupSetAttribute(matrix, "NUMCOL_VISIBLE", "4");
   IupSetAttribute(matrix, "NUMLIN_VISIBLE", "7");
 
-  IupSetAttribute(matrix, "WIDTH0", "20");
+  IupSetAttribute(matrix, "WIDTH0", "15");
+  IupSetAttribute(matrix, "WIDTHDEF", "40");
   IupSetAttribute(matrix, "HEIGHT0", "8");
-  IupSetAttribute(matrix, "ALIGNMENT0", "ACENTER");
+  IupSetAttribute(matrix, "RESIZEMATRIX", "Yes");
 
-  IupSetAttribute(matrix, "SCROLLBAR", "YES");
+  cellDataInit();
 
-  initData();
-
-  IupSetCallback(matrix, "VALUE_CB", (Icallback)value_cb);
-  IupSetCallback(matrix, "VALUE_EDIT_CB", (Icallback)value_edit_cb);
-  //IupSetCallback(matrix, "EDITION_CB", (Icallback)edition_cb);
-  //IupSetCallback(matrix, "TRANSLATEVALUE_CB", (Icallback)translatevalue_cb);
-  //IupSetCallback(matrix, "VALUECHANGED_CB", (Icallback)valuechanged_cb);
+  IupSetCallback(matrix, "VALUE_CB", (Icallback)matrix_value_cb);
+  IupSetCallback(matrix, "VALUE_EDIT_CB", (Icallback)matrix_value_edit_cb);
 
   dlg = IupDialog(matrix);
   IupSetAttribute(dlg, "TITLE", "Cells");

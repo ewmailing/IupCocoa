@@ -130,6 +130,7 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupTextNewClass());
   iupRegisterClass(iupMultilineNewClass());
   iupRegisterClass(iupListNewClass());
+  iupRegisterClass(iupFlatLabelNewClass());
   iupRegisterClass(iupFlatButtonNewClass());
   iupRegisterClass(iupCalendarNewClass());
   iupRegisterClass(iupDatePickNewClass());

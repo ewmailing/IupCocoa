@@ -217,6 +217,9 @@
     <ClCompile Include="..\..\srclua5\elem\il_colorbrowser.c">
       <Filter>Source Files\controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_flatlabel.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\srclua5\iuplua.def">
@@ -406,6 +409,9 @@
       <Filter>Lua\controls</Filter>
     </None>
     <None Include="..\..\srclua5\elem\colorbrowser.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\flatlabel.lua">
       <Filter>Lua\controls</Filter>
     </None>
   </ItemGroup>

@@ -1855,7 +1855,7 @@ static int gtkTreeSetBgColorAttrib(Ihandle* ih, const char* value)
   unsigned char r, g, b;
 
   GtkScrolledWindow* scrolled_window = (GtkScrolledWindow*)iupAttribGet(ih, "_IUP_EXTRAPARENT");
-  if (scrolled_window)
+  if (scrolled_window && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     /* ignore given value, must use only from parent for the scrollbars */
     char* parent_value = iupBaseNativeParentGetBgColor(ih);
