@@ -405,6 +405,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_fill.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatbutton.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatframe.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatlabel.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.h
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbox.c
