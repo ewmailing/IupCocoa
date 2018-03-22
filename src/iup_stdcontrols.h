@@ -35,6 +35,7 @@ Iclass* iupSpinboxNewClass(void);
 Iclass* iupListNewClass(void);
 Iclass* iupTreeNewClass(void);
 Iclass* iupLinkNewClass(void);
+Iclass* iupFlatLabelNewClass(void);
 Iclass* iupFlatButtonNewClass(void);
 Iclass* iupFlatFrameNewClass(void);
 Iclass* iupFlatTabsNewClass(void);

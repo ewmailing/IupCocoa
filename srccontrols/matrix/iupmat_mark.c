@@ -215,7 +215,7 @@ void iupMatrixMarkBlockInc(Ihandle* ih, int lin2, int col2)
 
   ih->data->mark_full2 = 0;
 
-  if (lin2 == 0 && col2 == 0 || (ih->data->noscroll_as_title && lin2 < ih->data->lines.num_noscroll && col2 < ih->data->columns.num_noscroll))
+  if ((lin2 == 0 && col2 == 0) || (ih->data->noscroll_as_title && lin2 < ih->data->lines.num_noscroll && col2 < ih->data->columns.num_noscroll))
     return;
   /* If it was pointing for a column title... */
   else if (lin2 == 0 || (ih->data->noscroll_as_title && lin2 < ih->data->lines.num_noscroll))
@@ -289,7 +289,7 @@ void iupMatrixMarkBlockSet(Ihandle* ih, int ctrl, int lin1, int col1)
   ih->data->mark_full1 = 0;
   mark_full_all = 0;
 
-  if (lin1 == 0 && col1 == 0 || (ih->data->noscroll_as_title && lin1 < ih->data->lines.num_noscroll && col1 < ih->data->columns.num_noscroll))
+  if ((lin1 == 0 && col1 == 0) || (ih->data->noscroll_as_title && lin1 < ih->data->lines.num_noscroll && col1 < ih->data->columns.num_noscroll))
   {
     if ((ih->data->mark_mode == IMAT_MARK_CELL && ih->data->mark_multiple) ||
         ih->data->mark_mode == IMAT_MARK_COL ||

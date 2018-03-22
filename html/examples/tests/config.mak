@@ -62,6 +62,7 @@ SRC += text.c
 SRC += val.c
 SRC += tabs.c
 SRC += sample.c
+SRC += flatsample.c
 SRC += menu.c
 SRC += spin.c
 SRC += text_spin.c

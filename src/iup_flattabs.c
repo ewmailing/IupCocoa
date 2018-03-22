@@ -424,7 +424,7 @@ static int iFlatTabsRedraw_CB(Ihandle* ih)
   char* bgcolor = iupAttribGetStr(ih, "BGCOLOR");
   char* forecolor = iupAttribGetStr(ih, "FORECOLOR");
   char* highcolor = iupAttribGetStr(ih, "HIGHCOLOR");
-  char* tabs_bgcolor = iupAttribGet(ih, "TABSBACKCOLOR");
+  char* tabs_bgcolor = iupAttribGet(ih, "TABSBACKCOLOR");  /* don't get with default value, if NULL will use from parent */
   char* tabs_forecolor = iupAttribGetStr(ih, "TABSFORECOLOR");
   char* tabs_highcolor = iupAttribGetStr(ih, "TABSHIGHCOLOR");
   int img_position = iupFlatGetImagePosition(iupAttribGetStr(ih, "TABSIMAGEPOSITION"));
@@ -574,9 +574,9 @@ static int iFlatTabsRedraw_CB(Ihandle* ih)
 
       if (show_lines && current_child == child)
       {
-        iupdrvDrawLine(dc, tab_x, 0, tab_x + tab_w - 1, 0, line_color, IUP_DRAW_STROKE, 1); /* tab top horizontal */
+        iupdrvDrawLine(dc, tab_x, 0, tab_x + tab_w, 0, line_color, IUP_DRAW_STROKE, 1); /* tab top horizontal */
         iupdrvDrawLine(dc, tab_x, 0, tab_x, title_height - 1, line_color, IUP_DRAW_STROKE, 1); /* tab left vertical */
-        iupdrvDrawLine(dc, tab_x + tab_w - 1, 0, tab_x + tab_w - 1, title_height - 1, line_color, IUP_DRAW_STROKE, 1); /* tab right vertical */
+        iupdrvDrawLine(dc, tab_x + tab_w, 0, tab_x + tab_w, title_height - 1, line_color, IUP_DRAW_STROKE, 1); /* tab right vertical */
       }
 
       icon_width = tab_w;

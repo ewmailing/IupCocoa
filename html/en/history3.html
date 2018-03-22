@@ -61,12 +61,23 @@
 <p>Check the <a href="migration_guide.html">Migration Guide</a> for a summary of 
 the important changes and how to proceed when migrating from version 2.x to 
 version 3.x.</p>
-<h3><a href="http://sourceforge.net/projects/iup/files/3.24/">SVN</a> (27/Feb/2018)</h3>
+<h3><a href="http://sourceforge.net/projects/iup/files/3.24/">SVN</a> (13/Mar/2018)</h3>
 
 <ul>
 
 	<li><span class="hist_new">New:</span> FLAT attribute for <strong>IupMatrix</strong>.</li>
 	<li><span class="hist_new">New:</span> 7GUIs Samples.</li>
+	<li><span class="hist_new">New:</span> CROSSTITLE value for FRAME attribute 
+	in <strong>IupFlatFrame</strong>.</li>
+	<li><span class="hist_new">New:</span> SHOWBORDER attribute in <strong>
+	IupFlatButton</strong>.</li>
+	<li><span class="hist_new">New:</span> global attribute <strong>SB_BGCOLOR</strong>. 
+	IUP by default changed the background color of the scrollbars in GTK and 
+	Motif. Now will change only if this global attribute is enabled. This 
+	affects <strong>IupCanvas</strong>, <strong>IupList</strong>, <strong>
+	IupText</strong> and <strong>IupTree</strong>. </li>
+	<li><span class="hist_new">New:</span> <strong>IupFlatLabel</strong> 
+	control.</li>
 
 	<li>
 	<font SIZE="3">
@@ -90,6 +101,17 @@ version 3.x.</p>
 	<span
             style="color: #000000"><span class="hist_fixed">Fixed: </span> 
 	</span></span>minimum size for handler in flat scrollbars.</font></li>
+	<li>
+	<font SIZE="3"><span style="color: #008000">
+	<span
+            style="color: #000000"><span class="hist_fixed">Fixed: </span> 
+	</span></span>drawing of current tab border in <strong>IupFlatTabs</strong>.</font></li>
+	<li>
+	<font SIZE="3"><span style="color: #008000">
+	<span
+            style="color: #000000"><span class="hist_fixed">Fixed: </span> 
+	</span></span>background color set in GTK driver was affecting the selection 
+	color in GTK3.</font></li>
 
 </ul>
 <h3><a href="http://sourceforge.net/projects/iup/files/3.24/">Version 3.24</a> (22/Jan/2018)</h3>

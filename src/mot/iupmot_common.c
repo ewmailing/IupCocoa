@@ -286,12 +286,7 @@ int iupdrvBaseSetBgColorAttrib(Ihandle* ih, const char* value)
 {
   Pixel color = iupmotColorGetPixelStr(value);
   if (color != (Pixel)-1)
-  {
     iupmotSetBgColor(ih->handle, color);
-
-    /* update internal image cache for controls that have the IMAGE attribute */
-    iupImageUpdateParent(ih);
-  }
   return 1;
 }
 

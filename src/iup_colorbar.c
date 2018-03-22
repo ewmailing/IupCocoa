@@ -473,6 +473,7 @@ static int iColorbarSetShowSecondaryAttrib(Ihandle* ih, const char* value)
 static int iColorbarSetFlatColorAttrib(Ihandle* ih, const char* value)
 {
   ih->data->flatcolor = iupDrawStrToColor(value, ih->data->flatcolor);
+  IupUpdate(ih);
   return 1;
 }
 

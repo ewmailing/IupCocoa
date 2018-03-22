@@ -1365,6 +1365,7 @@ int iuplua_open(lua_State * L)
   iuptreelua_open(L);
   iupclipboardlua_open(L);
   iupprogressdlglua_open(L);
+  iupflatlabellua_open(L);
   iupflatbuttonlua_open(L);
   iupflatframelua_open(L);
   iupconfiglua_open(L);
