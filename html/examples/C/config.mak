@@ -50,7 +50,7 @@ PROJDIR = ../../..
 #SRC = matrixlist.c
 #SRC = progressbar.c
 #SRC = radio.c
-#SRC = sample.c
+SRC = sample.c
 #SRC = sbox1.c
 #SRC = sbox2.c
 #SRC = scanf.c
@@ -79,9 +79,9 @@ PROJDIR = ../../..
 
 #LIBS = cdcontextplus gdiplus
 
-USE_OPENGL = Yes
+#USE_OPENGL = Yes
 #SRC = glcanvas.c
-SRC = glcube.c
+#SRC = glcube.c
 
 #IUPWEB_SAMPLE=Yes
 ifdef IUPWEB_SAMPLE

@@ -29,7 +29,6 @@ void* iupImageGetIcon(const char* name);
 void* iupImageGetCursor(const char* name);
 void* iupImageGetImage(const char* name, Ihandle* parent, int make_inactive);
 void iupImageGetInfo(const char* name, int *w, int *h, int *bpp);
-void iupImageUpdateParent(Ihandle *parent);
 void iupImageRemoveFromCache(Ihandle* ih, void* handle);
 
 IUP_EXPORTI Ihandle* iupImageGetHandle(const char* name);

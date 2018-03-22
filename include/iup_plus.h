@@ -412,6 +412,13 @@ namespace Iup
     FlatButton(Ihandle* _ih) : Control(_ih) {}
     FlatButton(const Element& elem) : Control(elem.GetHandle()) {}
   };
+  class FlatLabel : public Control
+  {
+  public:
+    FlatLabel(const char* title = 0) : Control(IupFlatLabel(title)) {}
+    FlatLabel(Ihandle* _ih) : Control(_ih) {}
+    FlatLabel(const Element& elem) : Control(elem.GetHandle()) {}
+  };
   class AnimatedLabel : public Control
   {
   public:

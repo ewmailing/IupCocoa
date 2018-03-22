@@ -355,12 +355,13 @@ progress bar hosted in a taskbar button to show the specific percentage
 completed of the full operation. The value must be between 0 and 100 (since 3.10).</p>
 
 <p><b>TRAY</b> [Windows and GTK Only]: When set to &quot;YES&quot;, displays an icon on 
-the system tray. (GTK 2.10)</p>
+the system tray. (GTK 2.10 and GTK &lt; 3.14)</p>
 <p><b>TRAYIMAGE</b> [Windows and GTK Only]: Name of a IUP image to be used as 
 the tray icon. The Windows SDK 
   recommends that cursors and icons should be implemented as resources rather 
-  than created at run time. (GTK 2.10)</p>
-<p><b>TRAYTIP</b> [Windows and GTK Only]: Tray icon's tooltip text. (GTK 2.10)</p>
+  than created at run time. (GTK 2.10 and GTK &lt; 3.14)</p>
+<p><b>TRAYTIP</b> [Windows and GTK Only]: Tray icon's tooltip text. (GTK 2.10 
+and GTK &lt; 3.14)</p>
 <p><b>TRAYTIPMARKUP</b> [GTK Only]: allows the tip string to contains Pango markup 
 commands. Can be &quot;YES&quot; or &quot;NO&quot;. Default: &quot;NO&quot;. 
 Must be set before setting the TRAYTIP attribute. (GTK 2.16) (since 3.6)</p>
@@ -571,7 +572,7 @@ RESIZE_CB and the SHOW_CB are called in a different order in Win32 and in
 X-Windows when the dialog is shown for the first time.</p>
 <p>In Windows, when all decorations are removed the window icon is not displayed 
 on the task bar, when minimized a small rectangular window will be positioned 
-above the task bar on the bottom left corner of the desktop.</p>
+above the task bar on the bottom-left corner of the desktop.</p>
 <h4>Windows MDI</h4>
 <p>The MDI support is composed of 3 components: the MDI frame window 
 (IupDialog), the MDI client window (IupCanvas) and the MDI children (IupDialog). 
