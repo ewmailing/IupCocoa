@@ -805,6 +805,7 @@ static char* iDialGetFlatAttrib(Ihandle* ih)
 static int iDialSetFlatColorAttrib(Ihandle* ih, const char* value)
 {
   ih->data->flatcolor = iupDrawStrToColor(value, ih->data->flatcolor);
+  IupUpdate(ih);
   return 1;
 }
 

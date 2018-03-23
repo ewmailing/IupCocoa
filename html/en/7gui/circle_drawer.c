@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iup.h>
-#include "iupdraw.h"
+#include <iupdraw.h>
 
 
 /*********************************** Circle List ****************************************/
@@ -57,7 +57,7 @@ static void circles_remove(Circle circle)
       break;
   }
 
-  for (j = i; j < circlesCount; j++)
+  for (j = i; j < circlesCount - 1; j++)
     circlesList[j] = circlesList[j + 1];
 
   circlesCount--;
@@ -347,8 +347,8 @@ static int canvas_action(Ihandle *ih)
       IupSetAttribute(ih, "DRAWSTYLE", "STROKE");
     }
 
-    IupDrawArc(ih, circlesList[i].x - circlesList[i].r, circlesList[i].y - circlesList[i].r,
-                   circlesList[i].x + circlesList[i].r, circlesList[i].y + circlesList[i].r, 0., 360.);
+    IupDrawArc(ih, circle.x - circle.r, circle.y - circle.r,
+                   circle.x + circle.r, circle.y + circle.r, 0., 360.);
   }
 
   IupDrawEnd(ih);

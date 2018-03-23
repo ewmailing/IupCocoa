@@ -162,6 +162,7 @@ void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long c
     iupDrawCheckSwapCoord(x1, x2);
     iupDrawCheckSwapCoord(y1, y2);
 
+    cairo_new_path(dc->image_cr);
     cairo_rectangle(dc->image_cr, x1, y1, x2 - x1 + 1, y2 - y1 + 1);
     cairo_fill(dc->image_cr);
   }
@@ -169,6 +170,8 @@ void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long c
   {
     iDrawSetLineWidth(dc, line_width);
     iDrawSetLineStyle(dc, style);
+
+    cairo_new_path(dc->image_cr);
 
     if (line_width == 1)
     {
@@ -196,6 +199,8 @@ void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color,
 
   iDrawSetLineWidth(dc, line_width);
   iDrawSetLineStyle(dc, style);
+
+  cairo_new_path(dc->image_cr);
 
   if (x1 == x2 && line_width == 1)
     iDrawVerticalLineW1(dc, x1, y1, y2);
@@ -257,6 +262,8 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
 
   if (w == h)
   {
+    cairo_new_path(dc->image_cr);
+
     if (style == IUP_DRAW_FILL)
       cairo_move_to(dc->image_cr, xc, yc);
 
@@ -270,6 +277,8 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
   else  /* Ellipse: change the scale to create from the circle */
   {
     cairo_save(dc->image_cr);  /* save to use the local transform */
+
+    cairo_new_path(dc->image_cr);
 
     cairo_translate(dc->image_cr, xc, yc);
     cairo_scale(dc->image_cr, w/h, 1.0);
@@ -300,6 +309,8 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int 
     iDrawSetLineWidth(dc, line_width);
     iDrawSetLineStyle(dc, style);
   }
+
+  cairo_new_path(dc->image_cr);
 
   cairo_move_to(dc->image_cr, points[0], points[1]);
   for (i=0; i<count; i++)
@@ -379,6 +390,7 @@ void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
   iupDrawCheckSwapCoord(x1, x2);
   iupDrawCheckSwapCoord(y1, y2);
 
+  cairo_new_path(dc->image_cr);
   cairo_rectangle(dc->image_cr, x1, y1, x2 - x1 + 1, y2 - y1 + 1);
   cairo_fill(dc->image_cr);
 }
