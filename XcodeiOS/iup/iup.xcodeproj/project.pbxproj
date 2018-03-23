@@ -13,6 +13,7 @@
 		002CC4E21EA2D1740007C8E7 /* iup_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4DC1EA2D1740007C8E7 /* iup_draw.c */; };
 		002CC4E31EA2D1740007C8E7 /* iup_flatframe.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4DE1EA2D1740007C8E7 /* iup_flatframe.c */; };
 		002CC4E41EA2D1740007C8E7 /* iup_flattabs.c in Sources */ = {isa = PBXBuildFile; fileRef = 002CC4DF1EA2D1740007C8E7 /* iup_flattabs.c */; };
+		0030B60820648F11002699E5 /* iup_flatlabel.c in Sources */ = {isa = PBXBuildFile; fileRef = 0030B60720648F10002699E5 /* iup_flatlabel.c */; };
 		0052B9481F1B0C490036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9461F1B0C490036F199 /* iup_loop.c */; };
 		0070FA761E025CEE009A8631 /* iupcocoatouch_button.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F93B1E025CED009A8631 /* iupcocoatouch_button.m */; };
 		0070FA771E025CEE009A8631 /* iupcocoatouch_canvas.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070F93C1E025CED009A8631 /* iupcocoatouch_canvas.m */; };
@@ -223,6 +224,7 @@
 		002CC4DF1EA2D1740007C8E7 /* iup_flattabs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flattabs.c; sourceTree = "<group>"; };
 		002CC4E51EA2D1980007C8E7 /* iup_plus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_plus.h; sourceTree = "<group>"; };
 		002CC4E61EA2D1980007C8E7 /* iupdraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupdraw.h; sourceTree = "<group>"; };
+		0030B60720648F10002699E5 /* iup_flatlabel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatlabel.c; sourceTree = "<group>"; };
 		0052B9461F1B0C490036F199 /* iup_loop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_loop.c; sourceTree = "<group>"; };
 		0052B9471F1B0C490036F199 /* iup_loop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_loop.h; sourceTree = "<group>"; };
 		0070F8FE1E025C88009A8631 /* libiup.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libiup.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -633,6 +635,7 @@
 		0070F9391E025CED009A8631 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				0030B60720648F10002699E5 /* iup_flatlabel.c */,
 				007E31B2204CECBD00ED15CB /* iup_colorbar.c */,
 				007E31B3204CECBE00ED15CB /* iup_colorbrowser.c */,
 				007E31B4204CECBE00ED15CB /* iup_colorhsi.c */,
@@ -1215,6 +1218,7 @@
 				0070FAFE1E025CEE009A8631 /* iup_layout.c in Sources */,
 				0070FB111E025CEE009A8631 /* iup_radio.c in Sources */,
 				0070FB061E025CEE009A8631 /* iup_maskmatch.c in Sources */,
+				0030B60820648F11002699E5 /* iup_flatlabel.c in Sources */,
 				0070FAEB1E025CEE009A8631 /* iup_detachbox.c in Sources */,
 				0070FA7D1E025CEE009A8631 /* iupcocoatouch_draw.m in Sources */,
 				0070FA851E025CEE009A8631 /* iupcocoatouch_label.m in Sources */,
