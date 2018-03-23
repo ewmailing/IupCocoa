@@ -133,7 +133,7 @@ IUPLUA_EXPORT void iuplua_plugstate(lua_State *L, Ihandle *ih);
 IUPLUA_EXPORT lua_State* iuplua_getstate(Ihandle *ih);
 
 /* Push iup[name] in the stack */
-void iuplua_push_name(lua_State *L, const char* name);
+IUPLUA_EXPORT void iuplua_push_name(lua_State *L, const char* name);
 
 /** First function called inside a callback. 
  * It prepares the stack for the call and returns the Lua state.
