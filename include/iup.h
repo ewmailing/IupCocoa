@@ -249,6 +249,7 @@ IUP_EXPORT Ihandle*  IupMenuv      (Ihandle* *children);
 
 IUP_EXPORT Ihandle*  IupButton     (const char* title, const char* action);
 IUP_EXPORT Ihandle*  IupFlatButton (const char* title);
+IUP_EXPORT Ihandle*  IupFlatLabel  (const char* title);
 IUP_EXPORT Ihandle*  IupCanvas     (const char* action);
 IUP_EXPORT Ihandle*  IupDialog     (Ihandle* child);
 IUP_EXPORT Ihandle*  IupUser       (void);

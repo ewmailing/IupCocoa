@@ -129,7 +129,7 @@ void LabelTest(void)
   IupAppend(box1, label);
 //  IupSetCallback(label, "ENTERWINDOW_CB", (Icallback)enterwindow_cb);
 //  IupSetCallback(label, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
-  IupSetAttribute(label, "PADDING", "20x20");
+//  IupSetAttribute(label, "PADDING", "20x20");
 
   label = IupLabel(NULL);
   IupSetAttribute(label, "SEPARATOR", "HORIZONTAL");
@@ -151,9 +151,11 @@ void LabelTest(void)
 
   label = IupLabel(NULL);
   IupSetAttribute(label, "TITLE", "Text\nSecond Line");
-  IupSetAttribute(label, "RASTERSIZE", "150x70");
+//  IupSetAttribute(label, "RASTERSIZE", "150x70");
   IupSetAttribute(label, "ALIGNMENT", "ACENTER:ACENTER");
-  IupSetAttribute(label, "FONT", "Helvetica, Underline 14");
+  IupSetAttribute(label, "TEXTALIGNMENT", "ACENTER");
+  IupSetAttribute(label, "FONT", "Helvetica, 14");
+//  IupSetAttribute(label, "FONT", "Helvetica, Underline 14");
 //  IupSetAttribute(label, "FONTSIZE", "14");
 //  IupSetAttribute(label, "FONTSTYLE", "Italic");
 //  IupSetAttribute(label, "FONTSTYLE", "Bold");
@@ -162,8 +164,9 @@ void LabelTest(void)
 //  IupSetCallback(label, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
 
   label = IupLabel(NULL);
-  IupSetAttribute(label, "TITLE", "Text\n<b>Second Line</b>");
-  IupSetAttribute(label, "RASTERSIZE", "150x70");
+  //IupSetAttribute(label, "TITLE", "Text\n<b>Second Line</b>");
+  IupSetAttribute(label, "TITLE", "Text\nSecond Line");
+  //  IupSetAttribute(label, "RASTERSIZE", "150x70");
   IupSetAttribute(label, "ALIGNMENT", "ARIGHT:ABOTTOM");
   IupSetAttribute(label, "MARKUP", "YES");
 //  IupSetCallback(label, "ENTERWINDOW_CB", enter1_cb);

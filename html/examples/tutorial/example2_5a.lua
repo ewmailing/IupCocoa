@@ -21,7 +21,6 @@ dlg = iup.dialog{
   maxbox = "No",
   minbox = "No",
 }
-button.action = btn_exit_cb
 
 dlg:showxy(iup.CENTER,iup.CENTER)
 

@@ -487,15 +487,8 @@ static int winButtonSetTitleAttrib(Ihandle* ih, const char* value)
 
 static int winButtonSetBgColorAttrib(Ihandle* ih, const char* value)
 {
-  /* update internal image cache for controls that have the IMAGE attribute */
-  if (ih->data->type != IUP_BUTTON_TEXT)
-  {
-    iupAttribSet(ih, "BGCOLOR", value);
-    iupImageUpdateParent(ih);
-    iupdrvRedrawNow(ih);
-  }
-  else
-    iupdrvPostRedraw(ih);
+  (void)value;
+  iupdrvPostRedraw(ih);
   return 1;
 }
 

@@ -230,7 +230,7 @@ static int docall (lua_State *L, int narg, int nret)
              /*************************************/
              /*              Utilities            */
 
-void iuplua_push_name(lua_State *L, const char* name)
+IUPLUA_EXPORT void iuplua_push_name(lua_State *L, const char* name)
 {
   /* push iup.name in stack */
   iuplua_get_env(L);
@@ -310,7 +310,7 @@ static int il_dostring(lua_State *L)
     return 0;
 }
 
-Ihandle *iuplua_checkihandleornil(lua_State *L, int pos)
+IUPLUA_EXPORT Ihandle *iuplua_checkihandleornil(lua_State *L, int pos)
 {
   if (lua_isnoneornil(L, pos))
     return NULL;
@@ -318,7 +318,7 @@ Ihandle *iuplua_checkihandleornil(lua_State *L, int pos)
     return iuplua_checkihandle(L, pos);
 }
 
-int iuplua_isihandle(lua_State *L, int pos)
+IUPLUA_EXPORT int iuplua_isihandle(lua_State *L, int pos)
 {
   int ret = 0;
   if (lua_getmetatable(L, pos))   /* t2 = metatable(stack(pos)) */
@@ -336,7 +336,7 @@ int iuplua_isihandle(lua_State *L, int pos)
   return ret;
 }
 
-Ihandle* iuplua_checkihandle(lua_State *L, int pos)
+IUPLUA_EXPORT Ihandle* iuplua_checkihandle(lua_State *L, int pos)
 {
   Ihandle* *ih = (Ihandle**)luaL_checkudata(L, pos, "iupHandle");
 
@@ -376,7 +376,7 @@ Ihandle* iuplua_checkihandle_OLD(lua_State *L, int pos)
 }
 #endif
 
-void iuplua_pushihandle_raw(lua_State *L, Ihandle *ih)
+IUPLUA_EXPORT void iuplua_pushihandle_raw(lua_State *L, Ihandle *ih)
 {
   if (ih) 
   {
@@ -387,7 +387,7 @@ void iuplua_pushihandle_raw(lua_State *L, Ihandle *ih)
     lua_pushnil(L);
 }
 
-void iuplua_pushihandle(lua_State *L, Ihandle *ih)
+IUPLUA_EXPORT void iuplua_pushihandle(lua_State *L, Ihandle *ih)
 {
   if (ih) 
   {
@@ -455,7 +455,7 @@ static int il_destroy_cb(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
-char** iuplua_checkstring_array(lua_State *L, int pos, int n)
+IUPLUA_EXPORT char** iuplua_checkstring_array(lua_State *L, int pos, int n)
 {
   int i;
   char **v;
@@ -478,7 +478,7 @@ char** iuplua_checkstring_array(lua_State *L, int pos, int n)
   return v;
 }
 
-int* iuplua_checkint_array(lua_State *L, int pos, int n)
+IUPLUA_EXPORT int* iuplua_checkint_array(lua_State *L, int pos, int n)
 {
   int i;
   int *v;
@@ -501,7 +501,7 @@ int* iuplua_checkint_array(lua_State *L, int pos, int n)
   return v;
 }
 
-float* iuplua_checkfloat_array(lua_State *L, int pos, int n)
+IUPLUA_EXPORT float* iuplua_checkfloat_array(lua_State *L, int pos, int n)
 {
   int i;
   float* v;
@@ -524,7 +524,7 @@ float* iuplua_checkfloat_array(lua_State *L, int pos, int n)
   return v;
 }
 
-double* iuplua_checkdouble_array(lua_State *L, int pos, int n)
+IUPLUA_EXPORT double* iuplua_checkdouble_array(lua_State *L, int pos, int n)
 {
   int i;
   double* v;
@@ -547,7 +547,7 @@ double* iuplua_checkdouble_array(lua_State *L, int pos, int n)
   return v;
 }
 
-unsigned char* iuplua_checkuchar_array(lua_State *L, int pos, int n)
+IUPLUA_EXPORT unsigned char* iuplua_checkuchar_array(lua_State *L, int pos, int n)
 {
   int i;
   unsigned char *v;
@@ -570,7 +570,7 @@ unsigned char* iuplua_checkuchar_array(lua_State *L, int pos, int n)
   return v;
 }
 
-Ihandle ** iuplua_checkihandle_array(lua_State *L, int pos, int n)
+IUPLUA_EXPORT Ihandle ** iuplua_checkihandle_array(lua_State *L, int pos, int n)
 {
   int i;
   Ihandle **v;
@@ -597,7 +597,7 @@ Ihandle ** iuplua_checkihandle_array(lua_State *L, int pos, int n)
              /*************************************/
              /*         used by callbacks         */
 
-void iuplua_plugstate(lua_State *L, Ihandle *ih)
+IUPLUA_EXPORT void iuplua_plugstate(lua_State *L, Ihandle *ih)
 {
   IupSetAttribute(ih, "_IUPLUA_STATE_CONTEXT",(char *) L);
 
@@ -610,12 +610,12 @@ void iuplua_plugstate(lua_State *L, Ihandle *ih)
   }
 }
 
-lua_State* iuplua_getstate(Ihandle *ih)
+IUPLUA_EXPORT lua_State* iuplua_getstate(Ihandle *ih)
 {
   return (lua_State *) IupGetAttribute(ih, "_IUPLUA_STATE_CONTEXT");
 }
 
-lua_State* iuplua_call_start(Ihandle *ih, const char* name)
+IUPLUA_EXPORT lua_State* iuplua_call_start(Ihandle *ih, const char* name)
 {
   lua_State *L = iuplua_getstate(ih);
 
@@ -642,7 +642,7 @@ static lua_State* iuplua_call_global_start(const char* name)
   return L;
 }
 
-int iuplua_call(lua_State* L, int nargs)
+IUPLUA_EXPORT int iuplua_call(lua_State* L, int nargs)
 {
   int status = docall(L, nargs + 2, 1);  /* always 1 result */
   report(L, status);
@@ -662,7 +662,7 @@ int iuplua_call_global(lua_State* L, int nargs)
   return iuplua_call(L, nargs-1); /* remove the ih from the parameter count */
 }
 
-char* iuplua_call_ret_s(lua_State *L, int nargs)
+IUPLUA_EXPORT char* iuplua_call_ret_s(lua_State *L, int nargs)
 {
   int status = docall(L, nargs + 2, 1);  /* always 1 result */
   report(L, status);
@@ -677,7 +677,7 @@ char* iuplua_call_ret_s(lua_State *L, int nargs)
   }
 }
 
-double iuplua_call_ret_d(lua_State *L, int nargs)
+IUPLUA_EXPORT double iuplua_call_ret_d(lua_State *L, int nargs)
 {
   int status = docall(L, nargs + 2, 1);  /* always 1 result */
   report(L, status);
@@ -692,14 +692,14 @@ double iuplua_call_ret_d(lua_State *L, int nargs)
   }
 }
 
-int iuplua_call_raw(lua_State* L, int nargs, int nresults)
+IUPLUA_EXPORT int iuplua_call_raw(lua_State* L, int nargs, int nresults)
 {
   int status = docall(L, nargs, nresults);  /* always n results, or LUA_MULTRET */
   report(L, status);
   return status;
 }
 
-void iuplua_register_cb(lua_State *L, const char* name, lua_CFunction func, const char* type)
+IUPLUA_EXPORT void iuplua_register_cb(lua_State *L, const char* name, lua_CFunction func, const char* type)
 {
   iuplua_push_name(L, "RegisterCallback");
 
@@ -891,7 +891,7 @@ static int SetWidget(lua_State *L)
              /*************************************/
              /*          registration             */
 
-int iuplua_opencall_internal(lua_State * L)
+IUPLUA_EXPORT int iuplua_opencall_internal(lua_State * L)
 {
   int ret = 0;
   const char* s;
@@ -906,14 +906,14 @@ int iuplua_opencall_internal(lua_State * L)
 }
 
 /* iup[name] = func */ 
-void iuplua_register(lua_State *L, lua_CFunction func, const char* name)
+IUPLUA_EXPORT void iuplua_register(lua_State *L, lua_CFunction func, const char* name)
 {
   lua_pushcfunction(L, func);
   lua_setfield(L, -2, name);
 }
 
 /* iup[name] = s */ 
-void iuplua_regstring(lua_State *L, const char* s, const char* name)
+IUPLUA_EXPORT void iuplua_regstring(lua_State *L, const char* s, const char* name)
 {
   lua_pushstring(L, s); 
   lua_setfield(L, -2, name);
@@ -922,12 +922,12 @@ void iuplua_regstring(lua_State *L, const char* s, const char* name)
 /* global table */
 static const char* iup_globaltable = "iup";
 
-void iuplua_get_env(lua_State *L)
+IUPLUA_EXPORT void iuplua_get_env(lua_State *L)
 {
   lua_getglobal(L, iup_globaltable);
 }
 
-void iuplua_register_lib(lua_State *L, const luaL_Reg* funcs)
+IUPLUA_EXPORT void iuplua_register_lib(lua_State *L, const luaL_Reg* funcs)
 {
 #if LUA_VERSION_NUM < 502
   luaL_register(L, iup_globaltable, funcs);
@@ -948,7 +948,7 @@ void iuplua_register_lib(lua_State *L, const luaL_Reg* funcs)
 #endif
 }
 
-void iuplua_register_funcs(lua_State *L, const luaL_Reg* funcs)
+IUPLUA_EXPORT void iuplua_register_funcs(lua_State *L, const luaL_Reg* funcs)
 {
 #if LUA_VERSION_NUM < 502
   luaL_register(L, NULL, funcs);
@@ -1365,6 +1365,7 @@ int iuplua_open(lua_State * L)
   iuptreelua_open(L);
   iupclipboardlua_open(L);
   iupprogressdlglua_open(L);
+  iupflatlabellua_open(L);
   iupflatbuttonlua_open(L);
   iupflatframelua_open(L);
   iupconfiglua_open(L);
@@ -1382,7 +1383,7 @@ int iuplua_open(lua_State * L)
 }
 
 /* obligatory to use require"iuplua" */
-int luaopen_iuplua(lua_State* L)
+IUPLUA_EXPORT int luaopen_iuplua(lua_State* L)
 {
   return iuplua_open(L);
 }
