@@ -1254,6 +1254,13 @@ if(IUP_SHOULD_BUILD_IUPWEB)
 			"${CMAKE_SOURCE_DIR}/srcweb"
 			"${CMAKE_SOURCE_DIR}/srcweb/android"
 		)
+	ELSEIF(IOS)
+		# TARGET_INCLUDE_DIRECTORIES is guaranteed to be available on Android
+		TARGET_INCLUDE_DIRECTORIES(iupweb PRIVATE 
+			"${CMAKE_SOURCE_DIR}/src"
+			"${CMAKE_SOURCE_DIR}/src/cocoatouch"
+			"${CMAKE_SOURCE_DIR}/srcweb"
+		)
 	ENDIF()
 else()
 	MESSAGE("Not building iupweb")
