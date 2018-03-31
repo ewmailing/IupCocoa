@@ -129,8 +129,6 @@ static int cocoaLabelSetActiveAttrib(Ihandle* ih, const char* value)
 	NSView* the_view = cocoaLabelGetRootView(ih);
 	BOOL is_active = (BOOL)iupStrBoolean(value);
 
-	NSLog(@"cocoaLabelSetActiveAttrib %@", NSStringFromClass([the_view class]));
-
 	if([the_view isKindOfClass:[NSTextField class]])
 	{
 		NSTextField* the_label = (NSTextField*)the_view;
@@ -155,7 +153,6 @@ static int cocoaLabelSetActiveAttrib(Ihandle* ih, const char* value)
 	else
 	{
 		NSLog(@"Unexpected type in cocoaLabelSetActiveAttrib");
-
 	}
 
 	return 1;
