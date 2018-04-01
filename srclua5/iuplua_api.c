@@ -82,7 +82,19 @@ static int Version(lua_State *L)
   return 1;
 }                                                                             
 
-static int GetAttributeData (lua_State *L)
+static int GetAttributeHandle(lua_State *L)
+{
+  Ihandle *ih = iuplua_checkihandle(L, 1);
+  const char *name = luaL_checkstring(L, 2);
+  Ihandle* value = IupGetAttributeHandle(ih, name);
+  if (!value)
+    lua_pushnil(L);
+  else
+    iuplua_pushihandle(L, value);
+  return 1;
+}
+
+static int GetAttributeData(lua_State *L)
 {
   Ihandle *ih = iuplua_checkihandle(L,1);
   const char *name = luaL_checkstring(L,2);
@@ -1056,6 +1068,7 @@ void iupluaapi_open(lua_State * L)
     {"Flush", Flush},
     {"Version", Version},
     {"GetAttribute", GetAttribute},
+    {"GetAttributeHandle", GetAttributeHandle},
     {"GetAttributeData", GetAttributeData},
     {"GetAttributes", GetAttributes},
     {"GetAllAttributes", GetAllAttributes},

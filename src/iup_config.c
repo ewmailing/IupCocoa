@@ -128,10 +128,7 @@ int IupConfigLoad(Ihandle* ih)
 
   line_file = iupLineFileOpen(filename);
   if (!line_file)
-  {
-    iupLineFileClose(line_file);
     return -1;
-  }
 
   do
   {

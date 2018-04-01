@@ -90,5 +90,7 @@
     <ClCompile Include="..\html\examples\tests\dial_led.c" />
     <ClCompile Include="..\html\examples\tests\flatsample.c" />
     <ClCompile Include="..\html\examples\tests\flatlabel.c" />
+    <ClCompile Include="..\html\examples\tests\dropbutton.c" />
+    <ClCompile Include="..\html\examples\tests\flattoggle.c" />
   </ItemGroup>
 </Project>

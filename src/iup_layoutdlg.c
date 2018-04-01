@@ -21,6 +21,7 @@
 #include "iup_dlglist.h"
 #include "iup_assert.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_image.h"
 #include "iup_childtree.h"
 #include "iup_drv.h"
