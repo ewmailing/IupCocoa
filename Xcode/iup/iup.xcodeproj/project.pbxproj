@@ -65,7 +65,6 @@
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
 		00E3A7251B60583600BEC175 /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A60C1B60583500BEC175 /* config.mak */; };
 		00E3A76B1B60583600BEC175 /* iup.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6541B60583500BEC175 /* iup.c */; };
-		00E3A76C1B60583600BEC175 /* iup.def in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A6551B60583500BEC175 /* iup.def */; };
 		00E3A76D1B60583600BEC175 /* iup_array.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6561B60583500BEC175 /* iup_array.c */; };
 		00E3A76E1B60583600BEC175 /* iup_array.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A6571B60583500BEC175 /* iup_array.h */; };
 		00E3A76F1B60583600BEC175 /* iup_assert.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A6581B60583500BEC175 /* iup_assert.c */; };
@@ -1322,7 +1321,6 @@
 				005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */,
 				005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */,
 				00E8D72B1ED4E68200773764 /* IupTextSpinner.xib in Resources */,
-				00E3A76C1B60583600BEC175 /* iup.def in Resources */,
 				003155701ED6A89500D116CA /* IupOutlineView.xib in Resources */,
 				005DCBA51EBD659600A66253 /* IupMainMenu.xib in Resources */,
 			);
