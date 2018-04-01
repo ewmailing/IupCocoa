@@ -28,6 +28,7 @@
 #include "iup_object.h"
 #include "iup_image.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 
 #include "iupwin_drv.h"
 #include "iupwin_info.h"

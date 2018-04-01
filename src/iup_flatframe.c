@@ -19,6 +19,7 @@
 #include "iup_layout.h"
 #include "iup_register.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_image.h"
 
 
@@ -253,7 +254,7 @@ Iclass* iupFlatFrameNewClass(void)
 
   ic->name = "flatframe";
   ic->format = "h"; /* one Ihandle* */
-  ic->nativetype = IUP_TYPECONTROL;
+  ic->nativetype = IUP_TYPECANVAS;
   ic->childtype = IUP_CHILDMANY+1;   /* one child */
   ic->is_interactive = 0;
 

@@ -1,5 +1,5 @@
 /** \file
- * \brief Mask internal functions
+ * \brief Mask internal functions (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
