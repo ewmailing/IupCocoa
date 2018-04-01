@@ -351,6 +351,21 @@ static void cocoaCreateDefaultApplicationMenu()
 	
 }
 
+// setEnabled: won't work unless we disable autoenablesItems, which I don't want to do because it disables a lot of useful automatic behavior for default menu items.
+// So we must use validateMenuItem.
+// The trick we can use is that our custom (non-default) menu items use this IupCocoMenuItemRepresentedObject.
+// So we can just query the attribute for ACTIVE on the ih, to see if the user turned it on or off and use that for the result for validateMenuItem
+- (BOOL) validateMenuItem:(NSMenuItem*)menu_item
+{
+	Ihandle* ih = [self ih];
+	int is_enabled = IupGetInt(ih, "ACTIVE");
+//	NSLog(@"param menu_item: %@", menu_item);
+//	NSMenuItem* ih_menu_item = (NSMenuItem*)ih->handle;
+//	NSLog(@"ih_menu_item: %@", ih_menu_item);
+
+	return is_enabled;
+}
+
 @end
 
 @interface IupCocoaMenuDelegate : NSObject<NSMenuDelegate>
@@ -736,7 +751,26 @@ static int cocoaItemSetTitleAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+/*
+ // Drat: These don't work because I have to also disable autoenablesItems in the NSMenu's.
+ // But that will also disable a lot of items we might like automatic behavior for.
 
+ [menu_item setAutoenablesItems:NO];	}
+char* cocoaItemGetActiveAttrib(Ihandle *ih)
+{
+	NSMenuItem* menu_item = (NSMenuItem*)ih->handle;
+	BOOL is_enabled = [menu_item isEnabled];
+	return iupStrReturnBoolean(is_enabled);
+}
+
+static int cocoaItemSetActiveAttrib(Ihandle* ih, const char* value)
+{
+	BOOL is_enabled = (BOOL)iupStrBoolean(value);
+	NSMenuItem* menu_item = (NSMenuItem*)ih->handle;
+	[menu_item setEnabled:is_enabled];
+	return 1;
+}
+*/
 
 static int cocoaItemMapMethod(Ihandle* ih)
 {
@@ -803,6 +837,9 @@ static int cocoaItemMapMethod(Ihandle* ih)
 		menu_item = [[NSMenuItem alloc] init];
 		ih->handle = menu_item;
 		[parent_menu addItem:menu_item];
+
+		// Make the menu item active by default. (Seems to be off by default??? Why?)
+		IupSetInt(ih, "ACTIVE", 1);
 		
 		// RepresentedObject is to handle the callbacks
 		IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
@@ -815,6 +852,8 @@ static int cocoaItemMapMethod(Ihandle* ih)
 	{
 		ih->handle = menu_item;
 		[menu_item retain];
+		// Make the menu item active by default. (Seems to be off by default??? Why?)
+		IupSetInt(ih, "ACTIVE", 1);
 		
 		// For built-in XIB menu items, we may not have setup the represented object stuff, so do that now.
 		if([menu_item representedObject] == nil)
@@ -854,7 +893,10 @@ void iupdrvItemInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "FONT", NULL, iupdrvSetFontAttrib, IUPAF_SAMEASSYSTEM, "DEFAULTFONT", IUPAF_NOT_MAPPED);  /* inherited */
 	
 	/* Visual */
-	iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, iupBaseSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
+#endif
+	// Drat: These don't work because I have to also disable autoenablesItems in the NSMenu's.
+//	iupClassRegisterAttribute(ic, "ACTIVE", cocoaItemGetActiveAttrib, cocoaItemSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
+#if 0
 	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);
 	
 	/* IupItem only */
