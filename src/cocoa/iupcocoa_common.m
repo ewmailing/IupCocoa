@@ -447,8 +447,9 @@ int iupdrvIsVisible(Ihandle* ih)
 	id the_object = ih->handle;
 	if([the_object isKindOfClass:[NSWindow class]])
 	{
-		// NOT IMPLEMENTED
-		return 1;
+		NSWindow* the_window = (NSWindow*)ih->handle;
+		int ret_val = (int)[the_window isVisible];
+		return ret_val;
 	}
 	else if([the_object isKindOfClass:[NSView class]])
 	{
