@@ -230,7 +230,7 @@ static int docall (lua_State *L, int narg, int nret)
              /*************************************/
              /*              Utilities            */
 
-IUPLUA_EXPORT void iuplua_push_name(lua_State *L, const char* name)
+void iuplua_push_name(lua_State *L, const char* name)
 {
   /* push iup.name in stack */
   iuplua_get_env(L);
