@@ -1,5 +1,5 @@
 /** \file
- * \brief Mask match private definitions
+ * \brief Mask match private definitions (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
