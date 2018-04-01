@@ -286,6 +286,9 @@ static Ihandle* set_callbacks(Ihandle* ih)
   IupSetCallback(ih, "K_ANY", (Icallback)k_any);
 //  IupSetCallback(ih, "HELP_CB", (Icallback)help_cb);
 
+
+  IupSetAttribute(ih,"PROPAGATEFOCUS","YES");
+
   return ih;
 }
 
@@ -651,7 +654,7 @@ void SampleTest(void)
 //  IupSetAttribute(dlg,"COMPOSITED","YES");   /* Windows Only */
 //  IupSetAttribute(dlg, "OPACITY", "192");
 //  IupSetAttribute(dlg, "RESIZE", "NO");
-//  IupSetCallback(dlg, "FOCUS_CB", (Icallback)focus_cb);
+  IupSetCallback(dlg, "FOCUS_CB", (Icallback)focus_cb);
   IupSetCallback(dlg, "RESIZE_CB", (Icallback)resize_cb);
 
 #if 0    // NO decorations

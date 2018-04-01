@@ -1311,6 +1311,10 @@ wb_usr.tree =
               link= "elem/iupflatbutton.html"
             },
             {
+              name= {nl= "IupDropButton"},
+              link= "elem/iupdropbutton.html"
+            },
+            {
               name= {nl= "IupCalendar"},
               link= "elem/iupcalendar.html"
             },
@@ -1481,6 +1485,10 @@ wb_usr.tree =
             {
               name= {nl= "IupToggle"},
               link= "elem/iuptoggle.html"
+            },
+            {
+              name= {nl= "IupFlatToggle"},
+              link= "elem/iupflattoggle.html"
             },
             {
               name= {nl= "IupTree"},

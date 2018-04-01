@@ -1,5 +1,5 @@
 /** \file
- * \brief IUP Core pre-defined dialogs.
+ * \brief IUP Core pre-defined dialogs (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

@@ -1,5 +1,5 @@
 /** \file
- * \brief Timer Resource Private Declarations
+ * \brief Timer Resource (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
