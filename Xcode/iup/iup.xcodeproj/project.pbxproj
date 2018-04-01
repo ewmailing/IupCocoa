@@ -22,6 +22,9 @@
 		00346C401B6880140045148B /* iupcocoa_info.m in Sources */ = {isa = PBXBuildFile; fileRef = 00346C3F1B6880140045148B /* iupcocoa_info.m */; };
 		003B58B81F583FEB0090F24E /* iupmac_help.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A01B605A7500BEC175 /* iupmac_help.m */; };
 		003B58B91F5A60D10090F24E /* iupluaweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A85D1B60595300BEC175 /* iupluaweb.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		004DBF4C2070E6DF00962511 /* iup_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = 004DBF492070E6DD00962511 /* iup_draw.h */; };
+		004DBF4D2070E6DF00962511 /* iup_dropbutton.c in Sources */ = {isa = PBXBuildFile; fileRef = 004DBF4A2070E6DE00962511 /* iup_dropbutton.c */; };
+		004DBF4E2070E6DF00962511 /* iup_flattoggle.c in Sources */ = {isa = PBXBuildFile; fileRef = 004DBF4B2070E6DF00962511 /* iup_flattoggle.c */; };
 		0052B9441F1AFD820036F199 /* iup_loop.c in Sources */ = {isa = PBXBuildFile; fileRef = 0052B9421F1AFD820036F199 /* iup_loop.c */; };
 		0052B9451F1AFD820036F199 /* iup_loop.h in Headers */ = {isa = PBXBuildFile; fileRef = 0052B9431F1AFD820036F199 /* iup_loop.h */; };
 		0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -305,6 +308,9 @@
 		002CC4D61EA24A850007C8E7 /* iupcocoa_calendar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_calendar.m; sourceTree = "<group>"; };
 		0031556F1ED6A89500D116CA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/IupOutlineView.xib; sourceTree = "<group>"; };
 		00346C3F1B6880140045148B /* iupcocoa_info.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoa_info.m; sourceTree = "<group>"; };
+		004DBF492070E6DD00962511 /* iup_draw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_draw.h; sourceTree = "<group>"; };
+		004DBF4A2070E6DE00962511 /* iup_dropbutton.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_dropbutton.c; sourceTree = "<group>"; };
+		004DBF4B2070E6DF00962511 /* iup_flattoggle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flattoggle.c; sourceTree = "<group>"; };
 		0052B9421F1AFD820036F199 /* iup_loop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_loop.c; sourceTree = "<group>"; };
 		0052B9431F1AFD820036F199 /* iup_loop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_loop.h; sourceTree = "<group>"; };
 		005DCBA31EBD659500A66253 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/IupMainMenu.xib; sourceTree = "<group>"; };
@@ -720,6 +726,9 @@
 		00E3A60B1B60583500BEC175 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				004DBF492070E6DD00962511 /* iup_draw.h */,
+				004DBF4A2070E6DE00962511 /* iup_dropbutton.c */,
+				004DBF4B2070E6DF00962511 /* iup_flattoggle.c */,
 				00DECF462063833F00FEF83B /* iup_flatlabel.c */,
 				007E319A204CDBBF00ED15CB /* iup_colorbar.c */,
 				007E319C204CDBC100ED15CB /* iup_colorbrowser.c */,
@@ -1099,6 +1108,7 @@
 				00E3A7C81B60583600BEC175 /* iup_register.h in Headers */,
 				00E3A86B1B60595300BEC175 /* iup_config.h in Headers */,
 				00E3A7CF1B60583600BEC175 /* iup_stdcontrols.h in Headers */,
+				004DBF4C2070E6DF00962511 /* iup_draw.h in Headers */,
 				00E3A86C1B60595300BEC175 /* iup_mglplot.h in Headers */,
 				00E3A7A21B60583600BEC175 /* iup_key.h in Headers */,
 				00E3A7DB1B60583600BEC175 /* iup_timer.h in Headers */,
@@ -1377,6 +1387,7 @@
 				00E3A7C41B60583600BEC175 /* iup_progressdlg.c in Sources */,
 				00E3A7D61B60583600BEC175 /* iup_tabs.c in Sources */,
 				00E3A7CD1B60583600BEC175 /* iup_spin.c in Sources */,
+				004DBF4D2070E6DF00962511 /* iup_dropbutton.c in Sources */,
 				00E3A7831B60583600BEC175 /* iup_colordlg.c in Sources */,
 				00E3A7851B60583600BEC175 /* iup_detachbox.c in Sources */,
 				00E3A7961B60583600BEC175 /* iup_frame.c in Sources */,
@@ -1449,6 +1460,7 @@
 				00E3A7D81B60583600BEC175 /* iup_text.c in Sources */,
 				00E3A7881B60583600BEC175 /* iup_dlglist.c in Sources */,
 				00E3A8DC1B60952400BEC175 /* iupcocoa_menu.m in Sources */,
+				004DBF4E2070E6DF00962511 /* iup_flattoggle.c in Sources */,
 				00E3A7D41B60583600BEC175 /* iup_table.c in Sources */,
 				00E3A8E21B6096EC00BEC175 /* iupcocoa_progressbar.m in Sources */,
 				00E3A7A71B60583600BEC175 /* iup_layoutdlg.c in Sources */,
