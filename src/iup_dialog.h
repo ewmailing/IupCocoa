@@ -1,5 +1,5 @@
 /** \file
- * \brief Dialog Public and Private Declarations
+ * \brief Dialog (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

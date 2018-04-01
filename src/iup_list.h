@@ -1,5 +1,5 @@
 /** \file
- * \brief List Control
+ * \brief List Control (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

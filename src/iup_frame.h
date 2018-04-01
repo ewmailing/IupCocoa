@@ -1,5 +1,5 @@
 /** \file
- * \brief Frame Control Private Declarations
+ * \brief Frame Control (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
