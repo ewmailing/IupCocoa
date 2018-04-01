@@ -1,5 +1,5 @@
 /** \file
- * \brief ProgressBar Control
+ * \brief ProgressBar Control (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

@@ -1,5 +1,5 @@
 /** \file
- * \brief Global Function table.
+ * \brief Global Function table (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

@@ -29,6 +29,7 @@
 #include "iup_key.h"
 #include "iup_image.h"
 #include "iup_list.h"
+#include "iup_childtree.h"
 
 #include "iupgtk_drv.h"
 
@@ -1453,9 +1454,10 @@ static int gtkListMapMethod(Ihandle* ih)
     else
     {
       GtkWidget *toggle = NULL;
+      Ihandle* native_parent = iupChildTreeGetNativeParent(ih);
 
       /* had to add an event box so it can be positioned in an IupCanvas based control */
-      if (ih->parent->iclass->nativetype == IUP_TYPECANVAS)
+      if (native_parent->iclass->nativetype == IUP_TYPECANVAS)
       {
         GtkWidget *box = gtk_event_box_new();
         gtk_container_add((GtkContainer*)box, ih->handle);

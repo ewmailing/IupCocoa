@@ -107,6 +107,7 @@
     <ClCompile Include="..\..\srclua5\elem\il_detachbox.c" />
     <ClCompile Include="..\..\srclua5\elem\il_dial.c" />
     <ClCompile Include="..\..\srclua5\elem\il_dialog.c" />
+    <ClCompile Include="..\..\srclua5\elem\il_dropbutton.c" />
     <ClCompile Include="..\..\srclua5\elem\il_expander.c" />
     <ClCompile Include="..\..\srclua5\elem\il_filedlg.c" />
     <ClCompile Include="..\..\srclua5\elem\il_fill.c" />
@@ -115,6 +116,7 @@
     <ClCompile Include="..\..\srclua5\elem\il_flatlabel.c" />
     <ClCompile Include="..\..\srclua5\elem\il_flatscrollbox.c" />
     <ClCompile Include="..\..\srclua5\elem\il_flattabs.c" />
+    <ClCompile Include="..\..\srclua5\elem\il_flattoggle.c" />
     <ClCompile Include="..\..\srclua5\elem\il_fontdlg.c" />
     <ClCompile Include="..\..\srclua5\elem\il_frame.c" />
     <ClCompile Include="..\..\srclua5\elem\il_gauge.c" />
@@ -179,6 +181,7 @@
     <None Include="..\..\srclua5\elem\detachbox.lua" />
     <None Include="..\..\srclua5\elem\dial.lua" />
     <None Include="..\..\srclua5\elem\dialog.lua" />
+    <None Include="..\..\srclua5\elem\dropbutton.lua" />
     <None Include="..\..\srclua5\elem\expander.lua" />
     <None Include="..\..\srclua5\elem\filedlg.lua" />
     <None Include="..\..\srclua5\elem\fill.lua" />
@@ -187,6 +190,7 @@
     <None Include="..\..\srclua5\elem\flatlabel.lua" />
     <None Include="..\..\srclua5\elem\flatscrollbox.lua" />
     <None Include="..\..\srclua5\elem\flattabs.lua" />
+    <None Include="..\..\srclua5\elem\flattoggle.lua" />
     <None Include="..\..\srclua5\elem\fontdlg.lua" />
     <None Include="..\..\srclua5\elem\frame.lua" />
     <None Include="..\..\srclua5\elem\gauge.lua" />
