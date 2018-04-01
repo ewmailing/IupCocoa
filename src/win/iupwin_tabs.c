@@ -28,6 +28,7 @@
 #include "iup_array.h"
 #include "iup_assert.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_childtree.h"
 
 #include "iupwin_drv.h"

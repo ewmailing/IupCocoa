@@ -60,6 +60,7 @@ int iupprogressdlglua_open(lua_State * L);
 int iupdetachboxlua_open(lua_State * L);
 int iupbackgroundboxlua_open(lua_State * L);
 int iupflatbuttonlua_open(lua_State * L);
+int iupflattogglelua_open(lua_State * L);
 int iupflatframelua_open(lua_State * L);
 int iupanimatedlabellua_open(lua_State * L);
 int iupcalendarlua_open(lua_State * L);
@@ -69,6 +70,7 @@ int iupdiallua_open(lua_State * L);
 int iupcolorbarlua_open (lua_State * L);
 int iupcolorbrowserlua_open (lua_State * L);
 int iupflatlabellua_open(lua_State * L);
+int iupdropbuttonlua_open(lua_State * L);
 
 void iupgetparamlua_open (lua_State * L);
 void iupconfiglua_open(lua_State * L);

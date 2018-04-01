@@ -228,6 +228,8 @@ Ihandle*  IupMenuv      (Ihandle* *children);
 
 Ihandle*  IupButton     (const char* title, const char* action);
 Ihandle*  IupFlatButton (const char* title);
+Ihandle*  IupFlatToggle (const char* title);
+Ihandle*  IupDropButton (Ihandle* dropchild);
 Ihandle*  IupFlatLabel  (const char* title);
 Ihandle*  IupCanvas     (const char* action);
 Ihandle*  IupDialog     (Ihandle* child);

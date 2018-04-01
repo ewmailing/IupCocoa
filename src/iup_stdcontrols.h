@@ -1,5 +1,5 @@
 /** \file
- * \brief Standard Controls Class Initialization functions.
+ * \brief Standard Controls Class Initialization functions (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
@@ -37,6 +37,8 @@ Iclass* iupTreeNewClass(void);
 Iclass* iupLinkNewClass(void);
 Iclass* iupFlatLabelNewClass(void);
 Iclass* iupFlatButtonNewClass(void);
+Iclass* iupFlatToggleNewClass(void);
+Iclass* iupDropButtonNewClass(void);
 Iclass* iupFlatFrameNewClass(void);
 Iclass* iupFlatTabsNewClass(void);
 Iclass* iupDialNewClass(void);

@@ -16,6 +16,7 @@
 #include "iup_str.h"
 #include "iup_drvfont.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_assert.h"
 #include "iup_image.h"
 
@@ -621,6 +622,8 @@ void iupFlatDrawIcon(Ihandle* ih, IdrawCanvas* dc, int icon_x, int icon_y, int i
   int x, y, width, height;
   char* font;
 
+  iupdrvDrawSetClipRect(dc, icon_x, icon_y, icon_x + icon_width, icon_y + icon_height);
+
   if (imagename)
   {
     if (title)
@@ -670,6 +673,8 @@ void iupFlatDrawIcon(Ihandle* ih, IdrawCanvas* dc, int icon_x, int icon_y, int i
 
     iFlatDrawText(dc, x + icon_x, y + icon_y, width, height, title, font, text_align, fgcolor, bgcolor, active);
   }
+
+  iupdrvDrawResetClip(dc);
 }
 
 int iupFlatGetHorizontalAlignment(const char* value)
@@ -756,6 +761,41 @@ void iupFlatDrawArrow(IdrawCanvas* dc, int x, int y, int size, const char* color
   iupdrvDrawPolygon(dc, points, 3, color, IUP_DRAW_STROKE, 1);
 }
 
+void iupFlatDrawCheckMark(IdrawCanvas* dc, int xmin, int xmax, int ymin, int ymax, const char* color_str, const char* bgcolor, int active)
+{
+  int points[6];
+
+  long color = iupDrawStrToColor(color_str, 0);
+  if (!active)
+    color = iFlatDrawColorMakeInactive(color, bgcolor);
+
+    points[0] = xmin;
+    points[1] = (ymax + ymin) / 2;
+    points[2] = (xmax + xmin) / 2;
+    points[3] = ymax;
+    points[4] = xmax;
+    points[5] = ymin;
+
+  iupdrvDrawPolygon(dc, points, 3, color, IUP_DRAW_STROKE, 2);
+}
+
+void iupFlatDrawDrawCircle(IdrawCanvas* dc, int xc, int yc, int radius, int fill, int line_width, char *fgcolor, char *bgcolor, int active)
+{
+  int x1, y1, x2, y2;
+  int style = (fill) ? IUP_DRAW_FILL : IUP_DRAW_STROKE;
+
+  long color = iupDrawStrToColor(fgcolor, 0);
+  if (!active)
+    color = iFlatDrawColorMakeInactive(color, bgcolor);
+
+  x1 = xc - radius;
+  y1 = yc - radius;
+  x2 = xc + radius;
+  y2 = yc + radius;
+
+  iupdrvDrawArc(dc, x1, y1, x2, y2, 0.0, 360, color, style, line_width);
+}
+
 static char* iFlatDrawGetImageName(Ihandle* ih, const char* baseattrib, const char* state)
 {
   char attrib[1024];
@@ -838,4 +878,21 @@ const char* iupFlatGetImageNameId(Ihandle* ih, const char* baseattrib, int id, c
   }
 
   return imagename;
+}
+
+char* iupFlatGetDarkerBgColor(Ihandle* ih)
+{
+  char* value = iupAttribGet(ih, "DARK_DLGBGCOLOR");
+  if (!value)
+  {
+    unsigned char r, g, b;
+    iupStrToRGB(IupGetGlobal("DLGBGCOLOR"), &r, &g, &b);
+    r = (r * 90) / 100;
+    g = (g * 90) / 100;
+    b = (b * 90) / 100;
+    iupAttribSetStrf(ih, "DARK_DLGBGCOLOR", "%d %d %d", r, g, b);
+    return iupAttribGet(ih, "DARK_DLGBGCOLOR");
+  }
+  else
+    return value;
 }

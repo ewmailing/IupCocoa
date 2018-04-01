@@ -20,7 +20,7 @@ Parameters/Return</h3>
 <pre>Ihandle* IupGetAttributeHandle(Ihandle *<strong>ih</strong>, const char *<strong>name</strong>); [in C]
 Ihandle* IupGetAttributeHandleId(Ihandle *<strong>ih</strong>, const char *<strong>name</strong>, int <strong>id</strong>); [in C]
 Ihandle* IupGetAttributeHandleId2(Ihandle *<strong>ih</strong>, const char *<strong>name</strong>, int <strong>lin</strong>, int <strong>col</strong>); [in C]
-[There is no equivalent in Lua] </pre>
+iup.GetAttributeHandleHandle(<strong>name</strong>: string) -&gt; <strong>ih</strong>: ihandle [in Lua] (since 3.25)</pre>
 <p><strong>ih</strong>: identifier of the interface element.<br>
   <strong>name</strong>: name of the attribute.<br>
 <strong>id, lin, col</strong>: used when the attribute has additional ids. 
