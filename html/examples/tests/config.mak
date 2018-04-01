@@ -86,6 +86,9 @@ SRC += cbox.c
 SRC += detachbox.c
 SRC += flattabs.c
 SRC += flatscrollbox.c
+SRC += dropbutton.c
+SRC += flatlabel.c
+SRC += flattoggle.c
 
 ifneq ($(findstring Win, $(TEC_SYSNAME)), )
   LIBS += iupimglib

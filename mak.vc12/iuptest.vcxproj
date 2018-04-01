@@ -154,6 +154,7 @@
     <ClCompile Include="..\html\examples\tests\dial.c" />
     <ClCompile Include="..\html\examples\tests\dialog.c" />
     <ClCompile Include="..\html\examples\tests\dial_led.c" />
+    <ClCompile Include="..\html\examples\tests\dropbutton.c" />
     <ClCompile Include="..\html\examples\tests\expander.c" />
     <ClCompile Include="..\html\examples\tests\flatbutton.c" />
     <ClCompile Include="..\html\examples\tests\flatframe.c" />
@@ -161,6 +162,7 @@
     <ClCompile Include="..\html\examples\tests\flatsample.c" />
     <ClCompile Include="..\html\examples\tests\flatscrollbox.c" />
     <ClCompile Include="..\html\examples\tests\flattabs.c" />
+    <ClCompile Include="..\html\examples\tests\flattoggle.c" />
     <ClCompile Include="..\html\examples\tests\frame.c" />
     <ClCompile Include="..\html\examples\tests\gauge.c" />
     <ClCompile Include="..\html\examples\tests\getcolor.c" />
