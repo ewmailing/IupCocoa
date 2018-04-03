@@ -1,5 +1,5 @@
 /** \file
- * \brief Abstract Layout Management
+ * \brief Abstract Layout Management (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

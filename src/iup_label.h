@@ -1,5 +1,5 @@
 /** \file
- * \brief Label Controls Private Declarations
+ * \brief Label Control (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

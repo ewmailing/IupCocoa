@@ -104,6 +104,7 @@
     <ClCompile Include="..\src\iup_dial.c" />
     <ClCompile Include="..\src\iup_dlglist.c" />
     <ClCompile Include="..\src\iup_draw.c" />
+    <ClCompile Include="..\src\iup_dropbutton.c" />
     <ClCompile Include="..\src\iup_expander.c" />
     <ClCompile Include="..\src\iup_flatbutton.c" />
     <ClCompile Include="..\src\iup_flatframe.c">
@@ -117,6 +118,7 @@
     </ClCompile>
     <ClCompile Include="..\src\iup_flatscrollbox.c" />
     <ClCompile Include="..\src\iup_flattabs.c" />
+    <ClCompile Include="..\src\iup_flattoggle.c" />
     <ClCompile Include="..\src\iup_focus.c" />
     <ClCompile Include="..\src\iup_font.c" />
     <ClCompile Include="..\src\iup_func.c" />
@@ -196,6 +198,7 @@
     <ClInclude Include="..\src\iup_classbase.h" />
     <ClInclude Include="..\src\iup_colorhsi.h" />
     <ClInclude Include="..\src\iup_dlglist.h" />
+    <ClInclude Include="..\src\iup_draw.h" />
     <ClInclude Include="..\src\iup_drv.h" />
     <ClInclude Include="..\src\iup_drvdraw.h" />
     <ClInclude Include="..\src\iup_drvfont.h" />

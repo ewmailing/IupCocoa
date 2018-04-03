@@ -452,6 +452,17 @@ static int dialog_custom_close(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
+static int list_cb(Ihandle* list, char *text, int item, int state)
+{
+  if (state == 1)
+  {
+    Ihandle* ih = IupGetAttributeHandle(IupGetDialog(list), "DROPBUTTON");
+    IupSetAttribute(ih, "SHOWDROPDOWN", "No");
+    IupSetStrAttribute(ih, "TITLE", text);
+  }
+  return IUP_DEFAULT;
+}
+
 void FlatSampleTest(void)
 {
   Ihandle *mnu, *_hbox_1, *_cnv_1, *_vbox_1, *dlg, *img, *dial,
@@ -506,15 +517,15 @@ void FlatSampleTest(void)
 
   _frm_3 = IupFlatFrame(
     IupVbox(
-      set_callbacks(IupSetAttributes(IupFlatButton("Toggle Text"), "VALUE=ON, TIP=\"Toggle TIP\", TOGGLE=Yes")),
-      set_callbacks(IupSetAttributes(IupFlatButton(NULL), "VALUE=ON,IMAGE=img1,IMAGEPRESS=img2, TOGGLE=Yes")),
-      set_callbacks(IupSetAttributes(IupFlatButton(NULL), "VALUE=ON,IMAGE=img1, TOGGLE=Yes")),
+      set_callbacks(IupSetAttributes(IupFlatToggle("Toggle Text"), "VALUE=ON, TIP=\"Toggle TIP\", TOGGLE=Yes")),
+      set_callbacks(IupSetAttributes(IupFlatToggle(NULL), "VALUE=ON,IMAGE=img1,IMAGEPRESS=img2, TOGGLE=Yes, CHECKSIZE=0")),
+      set_callbacks(IupSetAttributes(IupFlatToggle(NULL), "VALUE=ON,IMAGE=img1, TOGGLE=Yes")),
       IupSetAttributes(IupFlatFrame(IupRadio(IupVbox(
-        IupSetAttributes(set_callbacks(IupFlatButton("Toggle Text")), "TOGGLE=Yes"),
-        IupSetAttributes(set_callbacks(IupFlatButton("Toggle Text")), "TOGGLE=Yes"),
+      IupSetAttributes(set_callbacks(IupFlatToggle("Toggle Text")), "TOGGLE=Yes"),
+        IupSetAttributes(set_callbacks(IupFlatToggle("Toggle Text")), "TOGGLE=Yes"),
         NULL))), "TITLE=IupRadio"),
       NULL));
-  IupSetAttribute(_frm_3,"TITLE","IupFlatButton");
+  IupSetAttribute(_frm_3,"TITLE","IupFlatToggle");
 
   _text_1 = IupText( NULL);
   IupSetAttribute(_text_1,"VALUE","Single Line Text");
@@ -547,13 +558,18 @@ void FlatSampleTest(void)
   IupSetAttribute(_list_1, "VISIBLELINES", "3");
 
   _list_2 = IupList( NULL);
-  IupSetAttribute(_list_2,"DROPDOWN","YES");
 //  IupSetAttribute(_list_2,"EXPAND","YES");
-  IupSetAttribute(_list_2, "VISIBLECOLUMNS", "5");
-  IupSetAttribute(_list_2, "VALUE", "2");
+  IupSetAttribute(_list_2, "VALUE", "1");
   IupSetAttribute(_list_2,"1","Item 1 Text");
   IupSetAttribute(_list_2,"2","Item 2 Text - Very Large Item");
   IupSetAttribute(_list_2,"3","Item 3 Text");
+  IupSetCallback(_list_2, "ACTION", (Icallback)list_cb);
+  _list_2 = IupDropButton(_list_2);  /* mimicking the IupList with DROPDOWN=Yes */
+  IupSetAttribute(_list_2, "TITLE", "Item 1 Text");
+  IupSetAttribute(_list_2, "VISIBLECOLUMNS", "6");
+  IupSetAttribute(_list_2, "SHOWBORDER", "Yes");
+  IupSetAttribute(_list_2, "DROPONARROW", "NO");
+
   IupSetAttribute(_list_2,"TIP","List 2");
 
   _list_3 = IupList( NULL);

@@ -1,5 +1,5 @@
 /** \file
- * \brief Canvas Controls Private Declarations
+ * \brief Canvas Control (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

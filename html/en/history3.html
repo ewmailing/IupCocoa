@@ -61,7 +61,7 @@
 <p>Check the <a href="migration_guide.html">Migration Guide</a> for a summary of 
 the important changes and how to proceed when migrating from version 2.x to 
 version 3.x.</p>
-<h3><a href="http://sourceforge.net/projects/iup/files/3.24/">SVN</a> (13/Mar/2018)</h3>
+<h3><a href="http://sourceforge.net/projects/iup/files/3.24/">SVN</a> (27/Mar/2018)</h3>
 
 <ul>
 
@@ -77,7 +77,11 @@ version 3.x.</p>
 	affects <strong>IupCanvas</strong>, <strong>IupList</strong>, <strong>
 	IupText</strong> and <strong>IupTree</strong>. </li>
 	<li><span class="hist_new">New:</span> <strong>IupFlatLabel</strong> 
-	control.</li>
+	control, same as IupLabel with more options and drawn by IUP.</li>
+	<li><span class="hist_new">New:</span> <strong>IupDropButton</strong> to 
+	show a dropdown child.</li>
+	<li><span class="hist_new">New:</span> <strong>IupFlatToggle</strong> 
+	control, same as IupToggle with more options and drawn by IUP.</li>
 
 	<li>
 	<font SIZE="3">
@@ -112,6 +116,11 @@ version 3.x.</p>
             style="color: #000000"><span class="hist_fixed">Fixed: </span> 
 	</span></span>background color set in GTK driver was affecting the selection 
 	color in GTK3.</font></li>
+	<li>
+	<font SIZE="3"><span style="color: #008000">
+	<span
+            style="color: #000000"><span class="hist_fixed">Fixed: </span> 
+	</span></span></font>removed an invalid file close in <strong>IupConfigLoad</strong>.</li>
 
 </ul>
 <h3><a href="http://sourceforge.net/projects/iup/files/3.24/">Version 3.24</a> (22/Jan/2018)</h3>
