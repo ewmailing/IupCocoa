@@ -396,6 +396,8 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.c
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.h
 	${CMAKE_SOURCE_DIR}/src/iup_draw.c
+	${CMAKE_SOURCE_DIR}/src/iup_draw.h
+	${CMAKE_SOURCE_DIR}/src/iup_dropbutton.c
 	${CMAKE_SOURCE_DIR}/src/iup_drv.h
 	${CMAKE_SOURCE_DIR}/src/iup_drvdraw.h
 	${CMAKE_SOURCE_DIR}/src/iup_drvfont.h
@@ -410,6 +412,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.h
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbox.c
 	${CMAKE_SOURCE_DIR}/src/iup_flattabs.c
+	${CMAKE_SOURCE_DIR}/src/iup_flattoggle.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.h
 	${CMAKE_SOURCE_DIR}/src/iup_font.c

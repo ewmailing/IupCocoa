@@ -1,5 +1,5 @@
 /** \file
- * \brief IUP Menu Class
+ * \brief IUP Menu Class (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

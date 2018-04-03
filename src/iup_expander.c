@@ -24,6 +24,7 @@
 #include "iup_childtree.h"
 #include "iup_image.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 
 
 static Ihandle* load_image_arrowup_highlight(void)

@@ -289,6 +289,12 @@
     <ClCompile Include="..\src\iup_flatlabel.c">
       <Filter>src_controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\iup_dropbutton.c">
+      <Filter>src_controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\iup_flattoggle.c">
+      <Filter>src_controls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\iup_array.h">
@@ -460,6 +466,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\src\iup_colorhsi.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\iup_draw.h">
       <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>

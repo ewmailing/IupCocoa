@@ -1,5 +1,5 @@
 /** \file
- * \brief Tabs Control
+ * \brief Tabs Control (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

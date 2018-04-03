@@ -1,5 +1,5 @@
 /** \file
- * \brief Toggle Controls Private Declarations
+ * \brief Toggle Controls (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
