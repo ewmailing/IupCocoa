@@ -52,11 +52,6 @@ void iupDrawGetSize(IdrawCanvas* dc, int *w, int *h)
 //	if (h) *h = dc->h;
 }
 
-void iupDrawParentBackground(IdrawCanvas* dc, Ihandle* ih)
-{
-
-}
-
 void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width)
 {
 
