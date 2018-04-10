@@ -14,7 +14,8 @@ local ctrl = {
     flat_enterwindow_cb = "",
     flat_leavewindow_cb = "",
     flat_focus_cb = "n",
-     dropdown_cb = "n",
+    dropdown_cb = "n",
+    dropshow_cb = "n",
   }
 } 
 
