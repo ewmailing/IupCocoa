@@ -441,6 +441,9 @@
     <ClCompile Include="..\html\en\7gui\crud.c">
       <Filter>7GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\html\examples\C\parambox.c">
+      <Filter>C</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\html\examples\Lua\alarm.wlua">

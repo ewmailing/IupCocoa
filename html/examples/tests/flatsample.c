@@ -247,14 +247,14 @@ static void show_menu(Ihandle* ih)
 
 static int action1_cb(Ihandle* ih)
 {
-  IupSetAttribute(IupGetDialog(ih), "BACKGROUND", "255 128 128");
+  IupSetAttribute(IupGetDialog(ih), "BACKGROUND", "255 128 128");    // (salmon)
   show_menu(ih);
   return IUP_DEFAULT;
 }
 
 static int action2_cb(Ihandle* ih)
 {
-  IupSetAttribute(IupGetDialog(ih), "BGCOLOR", "0 128 0");   // at the dialog
+  IupSetAttribute(IupGetDialog(ih), "BGCOLOR", "0 128 0");   // at the dialog  (green)
 //  IupSetAttribute(IupGetDialog(ih), "RASTERSIZE", "600x300");
 //  IupRefresh(IupGetDialog(ih));
 //  IupFlush();
@@ -263,7 +263,7 @@ static int action2_cb(Ihandle* ih)
 
 static int action3_cb(Ihandle* ih)
 {
-  IupSetAttribute(IupGetChild(IupGetDialog(ih), 0), "BGCOLOR", "128 0 0");  // at the dialog first child
+  IupSetAttribute(IupGetChild(IupGetDialog(ih), 0), "BGCOLOR", "128 0 0");  // at the dialog first child  (red)
   return IUP_DEFAULT;
 }
 
@@ -393,7 +393,7 @@ static Ihandle* create_matrix(void)
 }
 #endif
 
-static int drawbg_cb(Ihandle* ih)
+static int draw_cb(Ihandle* ih)
 {
   int w, h;
 
@@ -465,7 +465,7 @@ static int list_cb(Ihandle* list, char *text, int item, int state)
 
 void FlatSampleTest(void)
 {
-  Ihandle *mnu, *_hbox_1, *_cnv_1, *_vbox_1, *dlg, *img, *dial,
+  Ihandle *mnu, *_hbox_1, *_cnv_1, *_vbox_1, *dlg, *img, *dial, *_frm_22,
     *_frm_1, *_frm_2, *_frm_3, *_frm_4, *_frm_5, *pbar, *val, *tabs,
     *_list_1, *_list_2, *_list_3, *_text_1, *_ml_1, *tree;
 
@@ -510,19 +510,35 @@ void FlatSampleTest(void)
   _frm_2 = IupFlatFrame(
     IupVbox(
       IupSetAttributes(IupFlatLabel("Label Text"), "TIP=\"Label TIP\""),
-      IupSetAttributes(IupLabel(NULL), "SEPARATOR=HORIZONTAL, NAME=SAMP_SEP"),
       IupSetAttributes(IupFlatLabel(NULL), "IMAGE=img1"),
+      IupSetAttributes(IupFlatLabel("Label Text"), "TIP=\"Label TIP\", IMAGE=img1"),
       NULL));
   IupSetAttribute(_frm_2,"TITLE","IupFlatLabel");
 
+  _frm_22 = IupFlatFrame(
+    IupSetAttributes(IupVbox(
+      IupSetAttributes(IupFlatSeparator(), "ORIENTATION=HORIZONTAL, STYLE=LINE, RASTERSIZE=150x"),
+      IupSetAttributes(IupFlatSeparator(), "ORIENTATION=HORIZONTAL, STYLE=SUNKENLINE"),
+      IupSetAttributes(IupFlatSeparator(), "ORIENTATION=HORIZONTAL, STYLE=DUALLINES"),
+      IupSetAttributes(IupFlatSeparator(), "ORIENTATION=HORIZONTAL, STYLE=GRIP"),
+      IupSetAttributes(IupFlatSeparator(), "ORIENTATION=HORIZONTAL, STYLE=FILL, COLOR=\"255 0 128\""),
+      NULL), "GAP=10"));
+  IupSetAttribute(_frm_22, "TITLE", "IupFlatSeparator");
+
+  _frm_2 = IupVbox(
+    _frm_2,
+    _frm_22,
+    NULL);
+
   _frm_3 = IupFlatFrame(
     IupVbox(
-      set_callbacks(IupSetAttributes(IupFlatToggle("Toggle Text"), "VALUE=ON, TIP=\"Toggle TIP\", TOGGLE=Yes")),
-      set_callbacks(IupSetAttributes(IupFlatToggle(NULL), "VALUE=ON,IMAGE=img1,IMAGEPRESS=img2, TOGGLE=Yes, CHECKSIZE=0")),
-      set_callbacks(IupSetAttributes(IupFlatToggle(NULL), "VALUE=ON,IMAGE=img1, TOGGLE=Yes")),
+      set_callbacks(IupSetAttributes(IupFlatToggle("Toggle Text"), "VALUE=ON, TIP=\"Toggle TIP\"")),
+      set_callbacks(IupSetAttributes(IupFlatToggle(NULL), "VALUE=ON,IMAGE=img1,IMAGEPRESS=img2, CHECKSIZE=0")),
+      set_callbacks(IupSetAttributes(IupFlatToggle(NULL), "VALUE=ON,IMAGE=img1")),
+      set_callbacks(IupSetAttributes(IupFlatToggle("Text"), "VALUE=ON, IMAGE=img1, SHOWBORDER=Yes, CHECKSIZE=0, PADDING=5x5")),
       IupSetAttributes(IupFlatFrame(IupRadio(IupVbox(
-      IupSetAttributes(set_callbacks(IupFlatToggle("Toggle Text")), "TOGGLE=Yes"),
-        IupSetAttributes(set_callbacks(IupFlatToggle("Toggle Text")), "TOGGLE=Yes"),
+      IupSetAttributes(set_callbacks(IupFlatToggle("Text")), "IMAGE=img1"),
+      IupSetAttributes(set_callbacks(IupFlatToggle("Toggle Text")), "VALUE=ON"),
         NULL))), "TITLE=IupRadio"),
       NULL));
   IupSetAttribute(_frm_3,"TITLE","IupFlatToggle");
@@ -640,6 +656,7 @@ void FlatSampleTest(void)
   IupSetAttribute(_cnv_1,"RASTERSIZE","x100");
   IupSetAttribute(_cnv_1,"TIP","Canvas TIP");
 //  IupSetAttribute(_cnv_1,"CANFOCUS","NO");
+  IupSetCallback(_cnv_1, "ACTION", draw_cb);
   set_callbacks(_cnv_1);
 
   _vbox_1 = IupVbox(
@@ -661,14 +678,14 @@ void FlatSampleTest(void)
   IupSetAttribute(_vbox_1, "GAP", "5");
 
 //  _vbox_1 = IupBackgroundBox(_vbox_1);
-//  IupSetCallback(_vbox_1, "ACTION", drawbg_cb);
+//  IupSetCallback(_vbox_1, "ACTION", draw_cb);
 
 //  IupSetAttribute(_vbox_1, "ACTIVE", "NO");
 
   dlg = IupDialog(_vbox_1);
   IupSetHandle("dlg",dlg);
 //  IupSetAttribute(dlg,"MENU","mnu");
-  IupSetAttribute(dlg,"TITLE","Iup Sample Dialog Title");
+  IupSetAttribute(dlg,"TITLE","Iup Flat Sample Dialog Title");
 //  IupSetAttribute(dlg,"COMPOSITED","YES");   /* Windows Only */
 //  IupSetAttribute(dlg, "OPACITY", "192");
 //  IupSetAttribute(dlg, "RESIZE", "NO");
