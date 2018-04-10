@@ -142,6 +142,7 @@
 		007E31BC204CECC100ED15CB /* iup_colorbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 007E31B3204CECBE00ED15CB /* iup_colorbrowser.c */; };
 		007E31BD204CECC100ED15CB /* iup_colorhsi.c in Sources */ = {isa = PBXBuildFile; fileRef = 007E31B4204CECBE00ED15CB /* iup_colorhsi.c */; };
 		0088554C1F4E895E0014CB4D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0088554B1F4E895E0014CB4D /* WebKit.framework */; };
+		00B472D0207C48090019005D /* iup_flatseparator.c in Sources */ = {isa = PBXBuildFile; fileRef = 00B472CF207C48080019005D /* iup_flatseparator.c */; };
 		00BE50241F4E129A002B7C86 /* iup_webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE50171F4E1213002B7C86 /* iup_webbrowser.c */; };
 		00BE502C1F4E13BA002B7C86 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB921E029221009A8631 /* Foundation.framework */; };
 		00BE502D1F4E13BA002B7C86 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0070FB901E02921A009A8631 /* UIKit.framework */; };
@@ -450,6 +451,7 @@
 		007E31B5204CECBF00ED15CB /* iup_flatscrollbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_flatscrollbar.h; sourceTree = "<group>"; };
 		007E31B6204CECC000ED15CB /* iup_colorhsi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_colorhsi.h; sourceTree = "<group>"; };
 		0088554B1F4E895E0014CB4D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		00B472CF207C48080019005D /* iup_flatseparator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatseparator.c; sourceTree = "<group>"; };
 		00BE50141F4E11CE002B7C86 /* libiupweb.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libiupweb.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		00BE50171F4E1213002B7C86 /* iup_webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_webbrowser.c; sourceTree = "<group>"; };
 		00BE50181F4E1213002B7C86 /* iup_webbrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_webbrowser.h; sourceTree = "<group>"; };
@@ -641,6 +643,7 @@
 		0070F9391E025CED009A8631 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				00B472CF207C48080019005D /* iup_flatseparator.c */,
 				0015BEB120733503004D70D5 /* iup_draw.h */,
 				0015BEB220733503004D70D5 /* iup_dropbutton.c */,
 				0015BEB320733504004D70D5 /* iup_export.h */,
@@ -1257,6 +1260,7 @@
 				0070FA8F1E025CEE009A8631 /* iupcocoatouch_tips.m in Sources */,
 				0070FAF51E025CEE009A8631 /* iup_frame.c in Sources */,
 				007E31BA204CECC100ED15CB /* iup_flatscrollbar.c in Sources */,
+				00B472D0207C48090019005D /* iup_flatseparator.c in Sources */,
 				0070FB161E025CEE009A8631 /* iup_scrollbox.c in Sources */,
 				0070FA791E025CEE009A8631 /* iupcocoatouch_colordlg.m in Sources */,
 				0070FB011E025CEE009A8631 /* iup_ledparse.c in Sources */,
