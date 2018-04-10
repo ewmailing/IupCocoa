@@ -411,6 +411,7 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.h
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbox.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatseparator.c
 	${CMAKE_SOURCE_DIR}/src/iup_flattabs.c
 	${CMAKE_SOURCE_DIR}/src/iup_flattoggle.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.c
