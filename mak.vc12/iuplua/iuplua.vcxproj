@@ -115,6 +115,7 @@
     <ClCompile Include="..\..\srclua5\elem\il_flatframe.c" />
     <ClCompile Include="..\..\srclua5\elem\il_flatlabel.c" />
     <ClCompile Include="..\..\srclua5\elem\il_flatscrollbox.c" />
+    <ClCompile Include="..\..\srclua5\elem\il_flatseparator.c" />
     <ClCompile Include="..\..\srclua5\elem\il_flattabs.c" />
     <ClCompile Include="..\..\srclua5\elem\il_flattoggle.c" />
     <ClCompile Include="..\..\srclua5\elem\il_fontdlg.c" />
@@ -189,6 +190,7 @@
     <None Include="..\..\srclua5\elem\flatframe.lua" />
     <None Include="..\..\srclua5\elem\flatlabel.lua" />
     <None Include="..\..\srclua5\elem\flatscrollbox.lua" />
+    <None Include="..\..\srclua5\elem\flatseparator.lua" />
     <None Include="..\..\srclua5\elem\flattabs.lua" />
     <None Include="..\..\srclua5\elem\flattoggle.lua" />
     <None Include="..\..\srclua5\elem\fontdlg.lua" />
