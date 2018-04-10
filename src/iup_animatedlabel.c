@@ -106,6 +106,10 @@ static int iAnimatedLabelSetAnimationHandleAttrib(Ihandle* ih, const char* value
   iupAttribSet(ih, "_IUP_ANIMATEDLABEL_ANIMATION", (char*)animation);
   iupAttribSet(ih, "_IUP_ANIMATEDLABEL_FRAME", "0");
 
+  /* make sure it has at least one name */
+  if (!iupAttribGetHandleName(animation))
+    iupAttribSetHandleName(animation);
+
   child = IupGetChild(animation, 0);
   IupSetAttributeHandle(ih, "IMAGE", child);
 

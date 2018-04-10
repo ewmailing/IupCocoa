@@ -226,6 +226,9 @@
     <ClCompile Include="..\..\srclua5\elem\il_flattoggle.c">
       <Filter>Source Files\controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\srclua5\elem\il_flatseparator.c">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\srclua5\iuplua.def">
@@ -424,6 +427,9 @@
       <Filter>Lua\controls</Filter>
     </None>
     <None Include="..\..\srclua5\elem\flattoggle.lua">
+      <Filter>Lua\controls</Filter>
+    </None>
+    <None Include="..\..\srclua5\elem\flatseparator.lua">
       <Filter>Lua\controls</Filter>
     </None>
   </ItemGroup>

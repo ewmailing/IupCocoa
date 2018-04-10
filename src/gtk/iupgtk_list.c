@@ -122,20 +122,26 @@ void iupdrvListAppendItem(Ihandle* ih, const char* value)
 {
   GtkTreeModel *model = gtkListGetModel(ih);
   GtkTreeIter iter;
+
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
   gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_TEXT, iupgtkStrConvertToSystem(value), -1);
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_IMAGE, NULL, -1);
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 }
 
 void iupdrvListInsertItem(Ihandle* ih, int pos, const char* value)
 {
   GtkTreeModel *model = gtkListGetModel(ih);
   GtkTreeIter iter;
+
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
   gtk_list_store_insert(GTK_LIST_STORE(model), &iter, pos);
 
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_TEXT, iupgtkStrConvertToSystem(value), -1);
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_IMAGE, NULL, -1);
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 
   iupListUpdateOldValue(ih, pos, 0);
 }
@@ -161,13 +167,15 @@ void iupdrvListRemoveItem(Ihandle* ih, int pos)
             curpos = -1; /* remove the selection */
         }
 
-        g_signal_handlers_block_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
         gtk_combo_box_set_active((GtkComboBox*)ih->handle, curpos);
-        g_signal_handlers_unblock_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       }
     }
 
+    iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
     gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+    iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 
     iupListUpdateOldValue(ih, pos, 1);
   }
@@ -176,7 +184,9 @@ void iupdrvListRemoveItem(Ihandle* ih, int pos)
 void iupdrvListRemoveAllItems(Ihandle* ih)
 {
   GtkTreeModel *model = gtkListGetModel(ih);
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
   gtk_list_store_clear(GTK_LIST_STORE(model));
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 }
 
 
@@ -414,8 +424,8 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
     {
       int pos;
       GtkTreeModel *model = gtkListGetModel(ih);
-      g_signal_handlers_block_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
-      if (iupStrToInt(value, &pos)==1 && 
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
+      if (iupStrToInt(value, &pos) == 1 &&
           (pos>0 && pos<=gtk_tree_model_iter_n_children(model, NULL)))
       {
         gtk_combo_box_set_active((GtkComboBox*)ih->handle, pos-1);    /* IUP starts at 1 */
@@ -426,7 +436,7 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
         gtk_combo_box_set_active((GtkComboBox*)ih->handle, -1);    /* none */
         iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
       }
-      g_signal_handlers_unblock_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
     }
     else
     {
@@ -434,8 +444,8 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
       if (!ih->data->is_multiple)
       {
         int pos;
-        g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
-        if (iupStrToInt(value, &pos)==1)
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
+        if (iupStrToInt(value, &pos) == 1)
         {
           GtkTreePath* path = gtk_tree_path_new_from_indices(pos-1, -1);   /* IUP starts at 1 */
           gtk_tree_selection_select_path(selection, path);
@@ -447,14 +457,14 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
           gtk_tree_selection_unselect_all(selection);
           iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
         }
-        g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       }
       else
       {
         /* User has changed a multiple selection on a simple list. */
 	      int i, len, count;
 
-        g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
 
         /* Clear all selections */
         gtk_tree_selection_unselect_all(selection);
@@ -481,7 +491,7 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
           }
         }
         iupAttribSetStr(ih, "_IUPLIST_OLDVALUE", value);
-        g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       }
     }
   }
@@ -1149,9 +1159,9 @@ static gboolean gtkListEditKeyPressEvent(GtkWidget* entry, GdkEventKey *evt, Iha
     if (pos != -1)
     {
       GtkTreePath* path = gtk_tree_path_new_from_indices(pos, -1);
-      g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
       gtk_tree_selection_select_path(selection, path);
-      g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       gtk_tree_path_free(path);
       iupAttribSetInt(ih, "_IUPLIST_OLDVALUE", pos+1); /* starts at 1 */
 
@@ -1250,7 +1260,12 @@ static void gtkListComboBoxPopupShown(GtkComboBox* widget, GParamSpec *pspec, Ih
 
 static void gtkListComboBoxChanged(GtkComboBox* widget, Ihandle* ih)
 {
-  IFnsii cb = (IFnsii)IupGetCallback(ih, "ACTION");
+  IFnsii cb;
+
+  if (iupAttribGet(ih, "_IUPLIST_IGNORE_ACTION"))
+    return;
+
+  cb = (IFnsii)IupGetCallback(ih, "ACTION");
   if (cb)
   {
     int pos = gtk_combo_box_get_active((GtkComboBox*)ih->handle);
@@ -1309,6 +1324,9 @@ static void gtkListSelectionChanged(GtkTreeSelection* selection, Ihandle* ih)
       gtk_tree_path_free(path);
     }
   }
+
+  if (iupAttribGet(ih, "_IUPLIST_IGNORE_ACTION"))
+    return;
 
   if (!ih->data->is_multiple)
   {
