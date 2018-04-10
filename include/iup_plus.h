@@ -419,6 +419,13 @@ namespace Iup
     FlatToggle(Ihandle* _ih) : Control(_ih) {}
     FlatToggle(const Element& elem) : Control(elem.GetHandle()) {}
   };
+  class FlatSeparator : public Control
+  {
+  public:
+    FlatSeparator() : Control(IupFlatSeparator()) {}
+    FlatSeparator(Ihandle* _ih) : Control(_ih) {}
+    FlatSeparator(const Element& elem) : Control(elem.GetHandle()) {}
+  };
   class DropButton : public Control
   {
   public:
