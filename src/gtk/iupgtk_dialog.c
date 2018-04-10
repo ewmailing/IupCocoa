@@ -528,13 +528,15 @@ static int gtkDialogGetMenuSize(Ihandle* ih)
 #endif
 }
 
+#define iupABS(_x) ((_x)<0? -(_x): (_x))
+
 static void gtkDialogGetWindowDecor(Ihandle* ih, int *win_border, int *win_caption)
 {
   int x, y, frame_x, frame_y;
   gdk_window_get_origin(iupgtkGetWindow(ih->handle), &x, &y);
   gdk_window_get_root_origin(iupgtkGetWindow(ih->handle), &frame_x, &frame_y);
-  *win_border = x-frame_x;
-  *win_caption = y-frame_y-*win_border;
+  *win_border = iupABS(x - frame_x);   /* For unknown reason GTK sometimes give negative results */
+  *win_caption = iupABS(y - frame_y) - *win_border;
 }
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)

@@ -6,9 +6,8 @@
 #include <stdio.h>
 
 #include <iup.h>
-#include <iupcontrols.h>
 
-int param_action(Ihandle* dialog, int param_index, void* user_data)
+static int param_action(Ihandle* dialog, int param_index, void* user_data)
 {                
   switch(param_index)
   {
@@ -58,7 +57,6 @@ int main(int argc, char **argv)
   char pfile_name[500] = "test.jpg";
   
   IupOpen(&argc, &argv);
-  IupControlsOpen();   /* so we can show the IupDial, but can be tested without it */
   IupSetLanguage("ENGLISH");
 
   if (!IupGetParam("Title", param_action, 0,
@@ -96,5 +94,4 @@ int main(int argc, char **argv)
   IupClose();
 
   return EXIT_SUCCESS;
-
 }
