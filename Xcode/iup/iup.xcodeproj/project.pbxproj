@@ -45,6 +45,7 @@
 		007E31AA204CDBC500ED15CB /* iup_colorhsi.h in Headers */ = {isa = PBXBuildFile; fileRef = 007E31A1204CDBC400ED15CB /* iup_colorhsi.h */; };
 		007E31AB204CDBC500ED15CB /* iup_colorhsi.c in Sources */ = {isa = PBXBuildFile; fileRef = 007E31A2204CDBC400ED15CB /* iup_colorhsi.c */; };
 		00ADF34F1F45AECD00F91890 /* Encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 00ADF34E1F45AECD00F91890 /* Encoding.c */; };
+		00B472CE207C43000019005D /* iup_flatseparator.c in Sources */ = {isa = PBXBuildFile; fileRef = 00B472CD207C42FF0019005D /* iup_flatseparator.c */; };
 		00BE4EEE1F4BF35C002B7C86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A8BD1B605D0B00BEC175 /* Cocoa.framework */; };
 		00BE4F641F4BF479002B7C86 /* iupweb.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E3A8681B60595300BEC175 /* iupweb.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00BE4F661F4BF48F002B7C86 /* iup_webbrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BE4F521F4BF40F002B7C86 /* iup_webbrowser.h */; };
@@ -329,6 +330,7 @@
 		007E31A1204CDBC400ED15CB /* iup_colorhsi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_colorhsi.h; sourceTree = "<group>"; };
 		007E31A2204CDBC400ED15CB /* iup_colorhsi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_colorhsi.c; sourceTree = "<group>"; };
 		00ADF34E1F45AECD00F91890 /* Encoding.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Encoding.c; sourceTree = "<group>"; };
+		00B472CD207C42FF0019005D /* iup_flatseparator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatseparator.c; sourceTree = "<group>"; };
 		00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iupweb.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00BE4F4C1F4BF35D002B7C86 /* iupweb-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "iupweb-Info.plist"; path = "/Users/ewing/Source/GIT/IupMac/iup315/Xcode/iup/iupweb-Info.plist"; sourceTree = "<absolute>"; };
 		00BE4F511F4BF40F002B7C86 /* iup_webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_webbrowser.c; sourceTree = "<group>"; };
@@ -725,6 +727,7 @@
 		00E3A60B1B60583500BEC175 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				00B472CD207C42FF0019005D /* iup_flatseparator.c */,
 				004DBF492070E6DD00962511 /* iup_draw.h */,
 				004DBF4A2070E6DE00962511 /* iup_dropbutton.c */,
 				004DBF4B2070E6DF00962511 /* iup_flattoggle.c */,
@@ -1453,6 +1456,7 @@
 				00DECF472063834000FEF83B /* iup_flatlabel.c in Sources */,
 				00E3A7251B60583600BEC175 /* config.mak in Sources */,
 				00E3A7A81B60583600BEC175 /* iup_ledlex.c in Sources */,
+				00B472CE207C43000019005D /* iup_flatseparator.c in Sources */,
 				00E3A7C51B60583600BEC175 /* iup_radio.c in Sources */,
 				002CC4CD1EA2416B0007C8E7 /* iup_datepick.c in Sources */,
 				00E3A7D81B60583600BEC175 /* iup_text.c in Sources */,
