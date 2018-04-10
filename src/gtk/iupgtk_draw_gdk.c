@@ -202,7 +202,10 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int 
     iDrawSetLineStyle(dc, style);
   }
 
-  gdk_draw_polygon(dc->pixmap, dc->pixmap_gc, style==IUP_DRAW_FILL, (GdkPoint*)points, count);
+  if (style == IUP_DRAW_FILL)
+    gdk_draw_polygon(dc->pixmap, dc->pixmap_gc, TRUE, (GdkPoint*)points, count);
+  else
+    gdk_draw_lines(dc->pixmap, dc->pixmap_gc, (GdkPoint*)points, count);
 }
 
 void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)

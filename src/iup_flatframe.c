@@ -236,6 +236,14 @@ static int iFlatFrameCreateMethod(Ihandle* ih, void** params)
   return IUP_NOERROR;
 }
 
+static int iFlatFrameSetAttribPostRedraw(Ihandle* ih, const char* value)
+{
+  (void)value;
+  if (ih->handle)
+    iupdrvPostRedraw(ih);
+  return 1;
+}
+
 
 /******************************************************************************/
 
@@ -271,7 +279,7 @@ Iclass* iupFlatFrameNewClass(void)
   iupClassRegisterAttribute(ic, "DECOROFFSET", iFlatFrameGetDecorOffsetAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_READONLY | IUPAF_NO_INHERIT);
 
   /* FlatFrame */
-  iupClassRegisterAttribute(ic, "TITLE", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", NULL, iFlatFrameSetAttribPostRedraw, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLEBGCOLOR", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLELINE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);

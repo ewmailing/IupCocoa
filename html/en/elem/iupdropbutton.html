@@ -174,14 +174,14 @@ directly. The drop dialog, were the drop child is inserted, is available right
 after setting the attribute using <strong>IupGetDialog</strong> on the drop 
 child handle. See the <a href="#Notes">Notes</a> bellow for more information.</p>
 <p><strong>DROPCHILD_HANDLE</strong>: same as DROPCHILD but directly using the Ihandle* of the element.</p>
-<p><strong>DROPONARROW</strong> (<font SIZE="3">non inheritable</font><strong>)</strong>: 
+<p><strong>DROPONARROW</strong> (<font SIZE="3">non inheritable</font>): 
 when enabled only clicking on the drop arrow will show the drop child. Clicking 
 on the remaining of the button will call FLAT_ACTION. There will be two 
 separates areas in the button, one for the drop arrow and one for the regular 
 button. When disabled there will be only one area, and the drop child will be 
 show any where the button is clicked, the callback FLAT_ACTION will not be 
 called. Default: Yes.</p>
-<p><strong>DROPPOSITION</strong> (<font SIZE="3">non inheritable</font><strong>)</strong>: 
+<p><strong>DROPPOSITION</strong> (<font SIZE="3">non inheritable</font>): 
 the drop child can be shown in four different positions relative to the drop 
 button: BOTTOMLEFT, TOPLEFT, BOTTOMRIGHT, TOPRIGHT. BOTTOMLEFT the top-left 
 corner of the drop child is aligned with the bottom-left corner of the drop 
@@ -348,7 +348,8 @@ IUP_IGNORE the internal callbacks are not processed.</p>
 
   
     
-<p><b>DROPDOWN_CB</b>: Action generated when the drop child is about to be shown or hidden.</p>
+<p><b>DROPDOWN_CB</b>: Action generated right before the drop child is shown or hidden. 
+This callback is also called when SHOWDROPDOWN is set.</p>
 
   
     
@@ -361,9 +362,20 @@ IUP_IGNORE the internal callbacks are not processed.</p>
 	<strong>state</strong>: the new state of the drop child 1=to be shown, 0=to 
 be hidden.</p>
 
-<p class="info"><u>Returns</u>: IUP_IGNORE will be processed when the button is 
-pressed over the arrow, then the drop change will not ocour. When the dropped 
-child loses its focus and is automatically closed, the return value is ignored.</p>
+  
+    
+<p><b>DROPSHOW_CB</b>: Action generated right after the drop child is shown or hidden. 
+This callback is also called when SHOWDROPDOWN is set.</p>
+
+  
+    
+<pre>int function (Ihandle *<strong>ih</strong>, int <strong>state</strong>); [in C]<br><strong>ih</strong>:dropdown_cb(<strong>state</strong>: boolean) -&gt; (ret: number) [in Lua]</pre>
+
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br>
+
+	<strong>state</strong>: the current state of the drop child 1=shown, 0=hidden.</p>
 
   
     
