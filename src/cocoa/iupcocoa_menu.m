@@ -358,12 +358,27 @@ static void cocoaCreateDefaultApplicationMenu()
 - (BOOL) validateMenuItem:(NSMenuItem*)menu_item
 {
 	Ihandle* ih = [self ih];
-	int is_enabled = IupGetInt(ih, "ACTIVE");
-//	NSLog(@"param menu_item: %@", menu_item);
-//	NSMenuItem* ih_menu_item = (NSMenuItem*)ih->handle;
-//	NSLog(@"ih_menu_item: %@", ih_menu_item);
 
-	return is_enabled;
+	//	NSLog(@"param menu_item: %@", menu_item);
+	//	NSMenuItem* ih_menu_item = (NSMenuItem*)ih->handle;
+	//	NSLog(@"ih_menu_item: %@", ih_menu_item);
+
+	// It appears that the initial default value is NULL, and not explicit YES or NO.
+	// We must use IupGetAttribute instead of IupGetInt to detect the NULL value.
+	// If NULL, we treat as ACTIVE.
+	char* active_value = IupGetAttribute(ih, "ACTIVE");
+//	NSLog(@"active_value: %s", active_value);
+	if(NULL == active_value)
+	{
+		return YES;
+	}
+	else
+	{
+		int is_enabled = IupGetInt(ih, "ACTIVE");
+		return is_enabled;
+	}
+	
+
 }
 
 @end
@@ -837,9 +852,6 @@ static int cocoaItemMapMethod(Ihandle* ih)
 		menu_item = [[NSMenuItem alloc] init];
 		ih->handle = menu_item;
 		[parent_menu addItem:menu_item];
-
-		// Make the menu item active by default. (Seems to be off by default??? Why?)
-		IupSetInt(ih, "ACTIVE", 1);
 		
 		// RepresentedObject is to handle the callbacks
 		IupCocoaMenuItemRepresentedObject* represented_object = [[IupCocoaMenuItemRepresentedObject alloc] initWithIhandle:ih];
@@ -852,9 +864,7 @@ static int cocoaItemMapMethod(Ihandle* ih)
 	{
 		ih->handle = menu_item;
 		[menu_item retain];
-		// Make the menu item active by default. (Seems to be off by default??? Why?)
-		IupSetInt(ih, "ACTIVE", 1);
-		
+
 		// For built-in XIB menu items, we may not have setup the represented object stuff, so do that now.
 		if([menu_item representedObject] == nil)
 		{
