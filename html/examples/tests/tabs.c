@@ -386,7 +386,8 @@ static Ihandle* CreateTabs(int tab)
 
   text = IupText(NULL);
   IupSetAttribute(text, "NAME", "ATEXT");
-  button  = IupButton("Button EEEFOCUS", "cbChildButton");
+  IupSetCallback(text, "K_ANY", (Icallback)k_any);
+  button = IupButton("Button EEEFOCUS", "cbChildButton");
   IupSetAttribute(button, "NAME", "EEEEEBUTTON");
 
 //  if (tab)  // to test Tabs inside Tabs

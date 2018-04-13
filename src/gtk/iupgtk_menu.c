@@ -379,12 +379,14 @@ static int gtkItemMapMethod(Ihandle* ih)
     else
     {
       char* hidemark = iupAttribGetStr(ih, "HIDEMARK");
-      if (!hidemark && gtk_check_version(2, 14, 0) == NULL)
+#if GTK_CHECK_VERSION(2, 14, 0)
+      if (!hidemark)
       {
-        /* force HIDEMARK if VALUE is defined before Map, after GTK 2.14 */
+        /* change HIDEMARK default if VALUE is not defined, after GTK 2.14 */
         if (!iupAttribGet(ih, "VALUE")) 
           hidemark = "YES";
       }
+#endif
 
       if (iupStrBoolean(hidemark))
         ih->handle = gtk_menu_item_new_with_label("");
