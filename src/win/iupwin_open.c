@@ -33,6 +33,8 @@
 
 HINSTANCE iupwin_hinstance = 0;    
 int       iupwin_comctl32ver6 = 0;
+DWORD     iupwin_mainthreadid = 0;
+HHOOK     iupwin_threadmsghook = 0;
 
 void* iupdrvGetDisplay(void)
 {
@@ -112,6 +114,9 @@ int iupdrvOpen(int *argc, char ***argv)
   iupwin_comctl32ver6 = (iupwinGetComCtl32Version() >= 0x060000)? 1: 0;
   if (iupwin_comctl32ver6 && !iupwinIsAppThemed())  /* When the user selected the Windows Classic theme or visual styles not active */
     iupwin_comctl32ver6 = 0;
+
+  iupwin_mainthreadid = GetCurrentThreadId();
+  iupwin_threadmsghook = SetWindowsHookEx(WH_MSGFILTER, iupwinPostMessageFilterProc, NULL, iupwin_mainthreadid);
 
   IupSetGlobal("SYSTEMLANGUAGE", iupwinGetSystemLanguage());
 

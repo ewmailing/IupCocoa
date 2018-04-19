@@ -21,6 +21,8 @@
 #include "iupwin_drv.h"
 #include "iupwin_handle.h"
 
+/* This just needs to be a random unique number not used by the OS */
+#define IWIN_POSTMESSAGE_ID 0x4456
 
 static IFidle win_idle_cb = NULL;
 static int win_main_loop = 0;
@@ -57,8 +59,11 @@ static int winLoopProcessMessage(MSG* msg)
     return IUP_CLOSE;
   else
   {
-    TranslateMessage(msg);
-    DispatchMessage(msg);
+    if (!CallMsgFilter(msg, IWIN_POSTMESSAGE_ID))
+    {
+      TranslateMessage(msg);
+      DispatchMessage(msg);
+    }
     return IUP_DEFAULT;
   }
 }
@@ -179,4 +184,44 @@ void IupFlush(void)
   /* re post the quit message if still inside MainLoop */
   if (post_quit && win_main_loop>0)
     IupExitLoop();
+}
+
+/* Based on Raymond Chen's discussion of PostThreadMessage
+https://blogs.msdn.microsoft.com/oldnewthing/20050428-00/?p=35753
+TODO: Make decision on final API. For now, this API is just to get a usable demo.
+*/
+void IupPostMessage(Ihandle* ih, char* unusedchar, void* message_data, int unusedint)
+{
+  // REVIEW: I am passing the Ihandle* ih into the WPARAM field because I'm using the LPARAM field for message_data.
+  // I think this is okay because the size of WPARAM should be the same as LPARAM.
+  PostThreadMessage(iupwin_mainthreadid, WM_APP, (WPARAM)ih, (LPARAM)message_data);
+}
+
+LRESULT CALLBACK iupwinPostMessageFilterProc(int code, WPARAM wParam, LPARAM lParam)
+{
+  MSG* pmsg = (MSG*)lParam;
+  if (code == IWIN_POSTMESSAGE_ID)
+  {
+    switch (pmsg->message)
+    {
+      case WM_APP: 
+      {
+        Ihandle* ih = (Ihandle*)pmsg->wParam;
+        /* TODO: Figure out callback type. For now, I'm reusing an existing type so I don't have to add one until we decide. */
+        IFnsVi post_message_callback = (IFnsVi)IupGetCallback(ih, "POSTMESSAGE_CB");
+        if (post_message_callback)
+        {
+          void* message_data = (Ihandle*)pmsg->lParam;
+          post_message_callback(ih, NULL, message_data, 0);
+        }
+        return TRUE;
+      }
+      default:
+      {
+//      return FALSE; /* maybe this can be TRUE because nothing should be using code==IWIN_POSTMESSAGE_ID */
+      }		
+    }
+  }
+
+  return CallNextHookEx(iupwin_threadmsghook, code, wParam, lParam);
 }
