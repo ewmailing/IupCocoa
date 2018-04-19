@@ -192,15 +192,26 @@ TODO: Make decision on final API. For now, this API is just to get a usable demo
 */
 void IupPostMessage(Ihandle* ih, char* unusedchar, void* message_data, int unusedint)
 {
-  // REVIEW: I am passing the Ihandle* ih into the WPARAM field because I'm using the LPARAM field for message_data.
-  // I think this is okay because the size of WPARAM should be the same as LPARAM.
+  /* REVIEW: I am passing the Ihandle* ih into the WPARAM field because I'm using the LPARAM field for message_data. */
+  /* I think this is okay because the size of WPARAM should be the same as LPARAM. */
   PostThreadMessage(iupwin_mainthreadid, WM_APP, (WPARAM)ih, (LPARAM)message_data);
 }
 
 LRESULT CALLBACK iupwinPostMessageFilterProc(int code, WPARAM wParam, LPARAM lParam)
 {
   MSG* pmsg = (MSG*)lParam;
-  if (code == IWIN_POSTMESSAGE_ID)
+  /* Interesting: Chen uses code >= 0 for a purpose.
+	Usually, we get back IWIN_POSTMESSAGE_ID, but in the case where we could lose messages (right-click on the title bar)
+	I get a different number. (2 for the right-click title bar)
+	If we check explicitly only for code == IWIN_POSTMESSAGE_ID, then we skip this block in this case and lose messages.
+	Unfortunately, we lose yet another identifier to recognize this is our message.
+	However, Chen looks for WM_APP in psg->message which implies that is unique enough.
+	If somehow we start getting other WM_APP messages that aren't ours, we may need
+	to change things to set pmsg->wParam to another unique identifier so we can recognize this is our data.
+	But for now, this seems to work and hopefully there can't be any other messages since we are the only
+	ones that should be posting messages to our thread in an IUP app.
+  */
+  if (code >= 0)
   {
     switch (pmsg->message)
     {
@@ -216,10 +227,6 @@ LRESULT CALLBACK iupwinPostMessageFilterProc(int code, WPARAM wParam, LPARAM lPa
         }
         return TRUE;
       }
-      default:
-      {
-//      return FALSE; /* maybe this can be TRUE because nothing should be using code==IWIN_POSTMESSAGE_ID */
-      }		
     }
   }
 
