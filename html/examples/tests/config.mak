@@ -46,6 +46,7 @@ SRC += dialog.c
 SRC += calendar.c
 SRC += predialogs.c
 SRC += timer.c
+SRC += postmessage.c
 SRC += label.c
 SRC += canvas.c
 SRC += frame.c

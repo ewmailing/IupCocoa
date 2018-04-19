@@ -42,6 +42,7 @@ int       IupLoopStepWait  (void);
 int       IupMainLoopLevel (void);
 void      IupFlush         (void);
 void      IupExitLoop      (void);
+void      IupPostMessage   (Ihandle* ih, char*, void* message_data, int);
 
 int       IupRecordInput(const char* filename, int mode);
 int       IupPlayInput(const char* filename);
