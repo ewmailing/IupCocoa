@@ -142,7 +142,7 @@ static int cocoaLabelSetActiveAttrib(Ihandle* ih, const char* value)
 		}
 		else
 		{
-			[the_label setTextColor:[NSColor secondarySelectedControlColor]];
+			[the_label setTextColor:[NSColor disabledControlTextColor]];
 		}
 	}
 	else if([the_view isKindOfClass:[NSImageView class]])
