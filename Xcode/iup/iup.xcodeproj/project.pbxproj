@@ -353,7 +353,6 @@
 		00E3A6301B60583500BEC175 /* iupmac_help.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_help.c; sourceTree = "<group>"; };
 		00E3A6311B60583500BEC175 /* iupmac_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iupmac_info.c; sourceTree = "<group>"; };
 		00E3A6541B60583500BEC175 /* iup.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup.c; sourceTree = "<group>"; };
-		00E3A6551B60583500BEC175 /* iup.def */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iup.def; sourceTree = "<group>"; };
 		00E3A6561B60583500BEC175 /* iup_array.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_array.c; sourceTree = "<group>"; };
 		00E3A6571B60583500BEC175 /* iup_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_array.h; sourceTree = "<group>"; };
 		00E3A6581B60583500BEC175 /* iup_assert.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_assert.c; sourceTree = "<group>"; };
@@ -751,7 +750,6 @@
 				002CC4CB1EA2416B0007C8E7 /* iup_flattabs.c */,
 				00E3A60C1B60583500BEC175 /* config.mak */,
 				00E3A6541B60583500BEC175 /* iup.c */,
-				00E3A6551B60583500BEC175 /* iup.def */,
 				00E3A6561B60583500BEC175 /* iup_array.c */,
 				00E3A6571B60583500BEC175 /* iup_array.h */,
 				00E3A6581B60583500BEC175 /* iup_assert.c */,
