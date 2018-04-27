@@ -83,8 +83,11 @@ static const void* IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY = "IUP_COCOA_TOGGLE_RECEIVE
 
 - (IBAction) myToggleClickAction:(id)the_sender;
 {
-	Icallback callback_function;
+//	Icallback callback_function;
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
+	
+	NSControlStateValue new_state = [the_sender state];
+	
 	
 	// CONFLICT: Cocoa Toggles don't normally do anything for non-primary click. (Second click is supposed to trigger the contextual menu.)
 	// Also Cocoa doesn't normall give callbacks for both down and up
@@ -100,10 +103,18 @@ static const void* IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY = "IUP_COCOA_TOGGLE_RECEIVE
 	 }
 	 */
 	
-	callback_function = IupGetCallback(ih, "ACTION");
-	if(callback_function)
+	IFni action_callback_function = (IFni)IupGetCallback(ih, "ACTION");
+	if(action_callback_function)
 	{
-		if(callback_function(ih) == IUP_CLOSE)
+		if(action_callback_function(ih, (int)new_state) == IUP_CLOSE)
+		{
+			IupExitLoop();
+		}
+	}
+	Icallback valuechanged_callback_function = IupGetCallback(ih, "VALUECHANGED_CB");
+	if(valuechanged_callback_function)
+	{
+		if(valuechanged_callback_function(ih) == IUP_CLOSE)
 		{
 			IupExitLoop();
 		}
@@ -206,7 +217,7 @@ static int cocoaToggleSetValueAttrib(Ihandle* ih, const char* value)
 static char* cocoaToggleGetValueAttrib(Ihandle* ih)
 {
 	NSButton* the_toggle = ih->handle;
-	int current_state = [the_toggle state];
+	int current_state = (int)[the_toggle state];
 	// it happens that iupStrReturnChecked uses the same values for mixed, off, and on
 	return iupStrReturnChecked(current_state);
 }
