@@ -206,6 +206,7 @@ char *iupdrvGetComputerName(void)
   char* str = iupStrGetMemory(50);
   CFStringRef computerName = CSCopyMachineName();
   CFStringGetCString(computerName, str, 50, kCFStringEncodingUTF8);
+  CFRelease(computerName);
   return str;
 }
 
@@ -214,5 +215,7 @@ char *iupdrvGetUserName(void)
   char* str = (char*)iupStrGetMemory(50);
   CFStringRef userName = CSCopyUserName(TRUE);  /* TRUE = login name   FALSE = user name */
   CFStringGetCString(userName, str, 50, kCFStringEncodingUTF8);
+  CFRelease(userName);
   return str;
 }
+
