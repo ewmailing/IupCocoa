@@ -54,8 +54,7 @@ static struct {
   { "iup_plot",  0 },
   { "iup_pplot",  0 },
   { "iup_mglplot",  0 },
-  { "iup_scintilla",  0 },
-  { "iupmatrixex",  0 }
+  { "iup_scintilla",  0 }
 };
 
 enum headers { 
@@ -66,7 +65,6 @@ enum headers {
   IUPOLE_H,
   IUPWEB_H,
   IUPPLOT_H,
-  IUPPPLOT_H,
   IUPMGLPLOT_H,
   IUPSCINTILLA_H,
   IUPMATRIXEX_H 
@@ -119,6 +117,7 @@ elems[] =
   { "Button",       code_string2,      check_string_cb,   0  },
   { "Canvas",       code_string,       check_cb,          0  },
   { "FlatButton",   code_string,       check_string,      0  },
+  { "FlatToggle",   code_string,       check_string,      0  },
   { "Dialog",       code_elem,         check_elem,        0  },
   { "Fill",         code_empty,        check_empty,       0  },
   { "FileDlg",      code_empty,        check_empty,       0  },
@@ -127,15 +126,19 @@ elems[] =
   { "FontDlg",      code_empty,        check_empty,       0  },
   { "ProgressBar",  code_empty,        check_empty,       0  },
   { "Frame",        code_elem,         check_elem,        0  },
+  { "FlatFrame",    code_elem,         check_elem,        0  },
   { "Hbox",         code_elemlist,     check_elemlist,    0  },
   { "Item",         code_string2,      check_string_cb,   0  },
   { "Label",        code_string,       check_string,      0  },
+  { "FlatLabel",    code_string,       check_string,      0  },
   { "List",         code_string,       check_cb,          0  },
   { "Sbox",         code_elem,         check_elem,        0  },
   { "ScrollBox",    code_elem,         check_elem,        0  },
+  { "FlatScrollBox",code_elem,         check_elem,        0  },
   { "DetachBox",    code_elem,         check_elem,        0  },
-  { "BackgroundBox", code_elem,        check_elem,        0  },
+  { "BackgroundBox",code_elem,        check_elem,        0  },
   { "Expander",     code_elem,         check_elem,        0  },
+  { "DropButton",   code_elem,         check_elem,        0  },
   { "Menu",         code_elemlist,     check_elemlist,    0  },
   { "MultiLine",    code_string,       check_cb,          0  },
   { "Radio",        code_elem,         check_elem,        0  },
@@ -145,6 +148,7 @@ elems[] =
   { "Val",          code_string,       check_string,      0  },
   { "Tree",         code_empty,        check_empty,       0  },
   { "Tabs",         code_elemlist,     check_elemlist,    0  },
+  { "FlatTabs",     code_elemlist,     check_elemlist,    0  },
   { "Toggle",       code_string2,      check_string_cb,   0  },
   { "Vbox",         code_elemlist,     check_elemlist,    0  },
   { "Zbox",         code_elemlist,     check_elemlist,    0  },
@@ -152,21 +156,23 @@ elems[] =
   { "Normalizer",   code_elemlist,     check_elemlist_rep,0  },
   { "Link",         code_string2,      check_string2,     0  },
   { "Cbox",         code_elemlist,     check_elemlist,    0  },
+  { "FlatSeparator",code_empty,        check_empty,       0  },
   { "Spin",         code_empty,        check_empty,       0  },
   { "Spinbox",      code_elem,         check_elem,        0  },
   { "Split",        code_elemlist2,    check_elemlist2,   0  },
+  { "Gauge",        code_empty,        check_empty,       0 },
+  { "Colorbar",     code_empty,        check_empty,       0 },
+  { "ColorBrowser", code_empty,        check_empty,       0 },
+  { "Dial",         code_string,       check_string,      0 },
+  { "AnimatedLabel",code_elem,         check_elem,        0  },
   { "Cells",        code_empty,        check_empty,       IUPCONTROLS_H },
-  { "Gauge",        code_empty,        check_empty,       IUPCONTROLS_H },
-  { "Colorbar",     code_empty,        check_empty,       IUPCONTROLS_H },
-  { "ColorBrowser", code_empty,        check_empty,       IUPCONTROLS_H },
-  { "Dial",         code_string,       check_string,      IUPCONTROLS_H },
   { "Matrix",       code_string,       check_cb,          IUPCONTROLS_H },
   { "MatrixList",   code_empty,        check_empty,       IUPCONTROLS_H },
+  { "MatrixEx",     code_empty,        check_empty,       IUPCONTROLS_H },
   { "GLCanvas",     code_string,       check_cb,          IUPGL_H },
-  { "MatrixEx",     code_empty,        check_empty,       IUPMATRIXEX_H },
+  { "GLBackgroundBox", code_elem,      check_elem,        IUPGL_H  },
   { "OleControl",   code_string,       check_cb,          IUPOLE_H },
   { "Plot",         code_empty,        check_empty,       IUPPLOT_H },
-  { "PPlot",        code_empty,        check_empty,       IUPPPLOT_H },
   { "MglPlot",      code_empty,        check_empty,       IUPMGLPLOT_H },
   { "Scintilla",    code_empty,        check_empty,       IUPSCINTILLA_H },
   { "WebBrowser",   code_empty,        check_empty,       IUPWEB_H },
@@ -176,6 +182,7 @@ elems[] =
   { "GLSeparator",  code_empty,        check_empty,       IUPGLCONTROLS_H },
   { "GLButton",     code_string,       check_string,      IUPGLCONTROLS_H },
   { "GLToggle",     code_string,       check_string,      IUPGLCONTROLS_H },
+  { "GLText",       code_string,       check_empty,       IUPGLCONTROLS_H  },
   { "GLProgressBar",code_empty,        check_empty,       IUPGLCONTROLS_H },
   { "GLVal",        code_empty,        check_empty,       IUPGLCONTROLS_H },
   { "GLLink",       code_string2,      check_string2,     IUPGLCONTROLS_H },
@@ -183,7 +190,6 @@ elems[] =
   { "GLExpander",   code_elem,         check_elem,        IUPGLCONTROLS_H },
   { "GLScrollBox",  code_elem,         check_elem,        IUPGLCONTROLS_H },
   { "GLSizeBox",    code_elem,         check_elem,        IUPGLCONTROLS_H },
-  { "GLBackgroundBox", code_elem,      check_elem,        IUPGL_H  },
   { "@@@",          code_iupCpi,       check_iupCpi,      0  }
 };
 #define nelems (sizeof(elems)/sizeof(elems[0]))
@@ -942,7 +948,7 @@ void init(void)
   if (nocode) return;
   outfile = stdout;
 
-  outfile = fopen( outname, "w" );
+  outfile = fopen( outname, "wb" );
   if (!outfile) 
   {
     perror( outname );

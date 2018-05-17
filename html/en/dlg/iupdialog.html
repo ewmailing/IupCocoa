@@ -128,7 +128,8 @@ or
 <a href="../attrib/iup_font.html">FONT</a>,
     <a href="../attrib/iup_expand.html">EXPAND</a>, <a href="../attrib/iup_screenposition.html">SCREENPOSITION</a>, 
 <a href="../attrib/iup_wid.html">WID</a>, <a href="../attrib/iup_tip.html">
-TIP</a>,
+TIP</a>, 
+	<a href="../attrib/iup_clientoffset.html">CLIENTOFFSET</a>,
     <a href="../attrib/iup_clientsize.html">CLIENTSIZE</a>, 
 <a href="../attrib/iup_rastersize.html">RASTERSIZE</a>,
     <a href="../attrib/iup_zorder.html">ZORDER</a>: also accepted. Note that 
@@ -230,7 +231,8 @@ driver or in the GTK driver in Windows.</p>
 this attribute is true (YES), the dialog stores the original image of the 
 desktop region it occupies (if the system has enough memory to store the image). 
 In this case, when the dialog is closed or moved, a redrawing event is not 
-generated for the windows that were shadowed by it. Its default value is YES. To 
+generated for the windows that were shadowed by it. Its default value is YES if 
+the dialog has a parent dialog (since 3.24). To 
 save memory disable it for your main dialog. Not available in GTK.</p>
 <p><strong>XWINDOW</strong> [UNIX Only] (<font size="3">non inheritable, 
 read-only</font>): Returns the X-Windows Window (Drawable). Available in the 
@@ -242,6 +244,19 @@ Motif driver or in the GTK driver in UNIX.</p>
 <p><strong>ACTIVEWINDOW</strong> [Windows and GTK Only] (read-only): informs if 
 the dialog is the active window (the window with focus). Can be Yes or No. 
 (since 3.4)</p>
+
+<p><font SIZE="3">
+	<strong>CUSTOMFRAME</strong> [Windows and GTK Only] (non inheritable): 
+allows the application to customize the dialog frame elements (the title and its 
+buttons) by using IUP controls for its elements like caption, minimize button, 
+maximize button, and close buttons. The application is responsible for leaving 
+space for the borders. One drawback is that menu bars will not work. For the 
+dialog to be able to be moved an <strong>IupLabel</strong> or an <strong>
+IupCanvas</strong> must be at the top of the dialog and must have the NAME 
+attribute set to CUSTOMFRAMECAPTION (since 3.22). Custom frames are supported 
+only in GTK version 3.10, so for older GTK versions we have to simulate the 
+support by removing all dialog decorations. (since 3.18) (renamed in 3.22) (GTK 
+support since 3.22)</font></p>
 
 <p><strong>DROPFILESTARGET</strong> [Windows and GTK Only] (<font SIZE="3">non inheritable</font>): 
 Enable or disable the drop of files. Default: NO, but if DROPFILES_CB is 
@@ -277,29 +292,27 @@ In Windows Vista it is NOT working as expected.</p>
 only): Embeds the dialog inside another window.</p>
 <p>
 <font SIZE="3">
-	<strong>CUSTOMFRAME</strong> [Windows Only] (non 
-inheritable): allows the application to customize the frame elements by drawing 
-them with the CUSTOMFRAME_CB callback. Can be Yes or No. The Window client area 
+	<strong>CUSTOMFRAMEDRAW</strong> [Windows Only] (non 
+inheritable): allows the application to customize the dialog frame elements (the 
+title and its buttons) by drawing 
+them with the CUSTOMFRAMEDRAW_CB callback. Can be Yes or No. The Window client area 
 is expanded to include the whole window. Notice that the dialog attributes like 
 BORDER, RESIZE, MAXBOX, MINBOX and TITLE must still be defined. But maximize, 
-minimize and close buttons must be manually implemented. One drawback is that 
-menu bars will not work. (since 3.18)</font></p>
+minimize and close buttons must be manually implemented in the BUTTON_CB 
+callback. One drawback is that 
+menu bars will not work. (since 3.18) (renamed in 3.22)</font></p>
 <p><font SIZE="3">
-	<strong>CUSTOMFRAMEEX</strong> [Windows Only] (non 
-inheritable): Same as CUSTOMFRAME but used when the application use controls for 
-frame elements like caption, minimize button, maximize button, and close 
-buttons. The application is responsible for leaving space for the borders. The 
-CUSTOMFRAME_CB callback will also work. (since 3.18)</font></p>
-<p><font SIZE="3">
-	<strong>CUSTOMFRAMECAPTION</strong> [Windows Only] (non 
+	<strong>CUSTOMFRAMECAPTIONHEIGHT</strong> [Windows Only] (non 
 inheritable): height of the caption area. If not defined it will use the system 
-size. (since 3.18)</font></p>
+size. (since 3.18) (renamed in 3.22)</font></p>
 <p><font SIZE="3">
 	<strong>CUSTOMFRAMECAPTIONLIMITS</strong> [Windows Only] (non 
 inheritable): limits of the caption area at left and at right. The caption area 
 is always expanded inside the limits when the dialog is resized. Format is &quot;left:right&quot; 
 or in C &quot;%d:%d&quot;. Default: &quot;0:0&quot;. This will allow the dialog to be moved by the 
-system when the user click and drag the caption area. (since 3.18)</font></p>
+system when the user click and drag the caption area. If not defined but 
+CUSTOMFRAMECAPTION is defined, then it will use the caption element horizontal 
+position and size for the limits (since 3.22). (since 3.18)</font></p>
 <p><strong>HELPBUTTON</strong> [Windows Only] (creation only): Inserts a help 
 button in the same place of the maximize button. It can only be used for dialogs 
 without the minimize and maximize buttons, and with the menu box. For the next 
@@ -342,12 +355,13 @@ progress bar hosted in a taskbar button to show the specific percentage
 completed of the full operation. The value must be between 0 and 100 (since 3.10).</p>
 
 <p><b>TRAY</b> [Windows and GTK Only]: When set to &quot;YES&quot;, displays an icon on 
-the system tray. (GTK 2.10)</p>
+the system tray. (GTK 2.10 and GTK &lt; 3.14)</p>
 <p><b>TRAYIMAGE</b> [Windows and GTK Only]: Name of a IUP image to be used as 
 the tray icon. The Windows SDK 
   recommends that cursors and icons should be implemented as resources rather 
-  than created at run time. (GTK 2.10)</p>
-<p><b>TRAYTIP</b> [Windows and GTK Only]: Tray icon's tooltip text. (GTK 2.10)</p>
+  than created at run time. (GTK 2.10 and GTK &lt; 3.14)</p>
+<p><b>TRAYTIP</b> [Windows and GTK Only]: Tray icon's tooltip text. (GTK 2.10 
+and GTK &lt; 3.14)</p>
 <p><b>TRAYTIPMARKUP</b> [GTK Only]: allows the tip string to contains Pango markup 
 commands. Can be &quot;YES&quot; or &quot;NO&quot;. Default: &quot;NO&quot;. 
 Must be set before setting the TRAYTIP attribute. (GTK 2.16) (since 3.6)</p>
@@ -441,12 +455,32 @@ HDC_WMPAINT</b><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, a
 CLIPRECT</strong>&nbsp;attributes are defined during the callback</span></span>. 
 For mouse callbacks use the same callbacks as <strong>IupCanvas</strong>, such 
 as <a href="../call/iup_button_cb.html">BUTTON_CB</a> and <a href="../call/iup_motion_cb.html">MOTION_CB</a>. (since 3.18)</p>
-<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>elem</strong>:customframe() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>elem</strong>:customframe_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
 
 <blockquote>
 
 <p><strong>ih</strong>: identifier of the element that activated the event.</p>
 </blockquote>
+
+  
+<p><b>CUSTOMFRAMEACTIVATE_CB</b> [Windows Only]: Called when the dialog active 
+state is changed (for instance the user Alt+Tab to another application, or 
+clicked in another window). Works only when CUSTOMFRAME or CUSTOMFRAMEEX is 
+defined. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle *<b>ih</b>, int <strong>active</strong>); [in C]<br><b>ih</b>:customframeactivate_cb(<strong>active</strong>: number) -&gt; (ret: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br>
+
+    <strong>active</strong>: is non zero if the dialog is active or zero if it 
+is inactive.</p>
+
+  
 
   
 <p><b><a name="FOCUS_CB">FOCUS_CB</a></b>: Called when the dialog or any of its 
@@ -536,6 +570,9 @@ dialog is also visible.</p>
 <p>The order of callback calling is system dependent. For instance, the 
 RESIZE_CB and the SHOW_CB are called in a different order in Win32 and in 
 X-Windows when the dialog is shown for the first time.</p>
+<p>In Windows, when all decorations are removed the window icon is not displayed 
+on the task bar, when minimized a small rectangular window will be positioned 
+above the task bar on the bottom-left corner of the desktop.</p>
 <h4>Windows MDI</h4>
 <p>The MDI support is composed of 3 components: the MDI frame window 
 (IupDialog), the MDI client window (IupCanvas) and the MDI children (IupDialog). 

@@ -313,12 +313,13 @@ void FlatButtonTest(void)
 //  IupSetAttribute(button, "ALIGNMENT", "ALEFT:ATOP");
   IupSetAttribute(button, "NAME", "button1");
   IupSetAttribute(button, "CANFOCUS", "NO");
+  IupSetAttribute(button, "SHOWBORDER", "Yes");
   if (toggle) IupSetAttribute(button, "TOGGLE", "Yes");
   set_callbacks(button);
   IupAppend(box1, button);
 
   button = IupFlatButton(NULL);
-  IupSetAttribute(button, "TITLE", "Text\nSecond Line");
+  IupSetAttribute(button, "TITLE", "Text1\nSecond Line");
   IupSetAttribute(button, "RASTERSIZE", "200x100");
   IupSetAttribute(button, "ALIGNMENT", "ACENTER:ACENTER");
   IupSetAttribute(button, "FONT", "Helvetica, Underline 14");
@@ -328,10 +329,10 @@ void FlatButtonTest(void)
   IupAppend(box1, button);
 
   button = IupFlatButton(NULL);
-  IupSetAttribute(button, "TITLE", "Text\n<b>Second Line</b>");
+  IupSetAttribute(button, "TITLE", "Text2\nSecond Line");
   IupSetAttribute(button, "RASTERSIZE", "200x100");
-  IupSetAttribute(button, "ALIGNMENT", "ARIGHT:ABOTTOM");
-  IupSetAttribute(button, "MARKUP", "YES");
+  IupSetAttribute(button, "TEXTALIGNMENT", "ACENTER");
+//  IupSetAttribute(button, "ALIGNMENT", "ARIGHT:ABOTTOM");
   IupSetAttribute(button, "NAME", "button3");
   IupSetAttribute(button, "CANFOCUS", "NO");
   if (toggle) IupSetAttribute(button, "TOGGLE", "Yes");

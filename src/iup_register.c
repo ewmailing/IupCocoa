@@ -89,7 +89,6 @@ void iupRegisterUpdateClasses(void)
 
 void iupRegisterInternalClasses(void)
 {
-#if 1
   iupRegisterClass(iupDialogNewClass());
   iupRegisterClass(iupMessageDlgNewClass());
   iupRegisterClass(iupColorDlgNewClass());
@@ -131,7 +130,11 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupTextNewClass());
   iupRegisterClass(iupMultilineNewClass());
   iupRegisterClass(iupListNewClass());
+  iupRegisterClass(iupFlatLabelNewClass());
   iupRegisterClass(iupFlatButtonNewClass());
+  iupRegisterClass(iupFlatToggleNewClass());
+  iupRegisterClass(iupFlatSeparatorNewClass());
+  iupRegisterClass(iupDropButtonNewClass());
   iupRegisterClass(iupCalendarNewClass());
   iupRegisterClass(iupDatePickNewClass());
 
@@ -148,5 +151,9 @@ void iupRegisterInternalClasses(void)
   iupRegisterClass(iupAnimatedLabelNewClass());
   iupRegisterClass(iupFlatFrameNewClass());
   iupRegisterClass(iupFlatTabsNewClass());
-#endif
+  iupRegisterClass(iupFlatScrollBoxNewClass());
+  iupRegisterClass(iupDialNewClass());
+  iupRegisterClass(iupGaugeNewClass());
+  iupRegisterClass(iupColorbarNewClass());
+  iupRegisterClass(iupColorBrowserNewClass());
 }

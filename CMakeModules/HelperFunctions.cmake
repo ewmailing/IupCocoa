@@ -92,6 +92,7 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 			# BUILD_WITH_INSTALL_RPATH ${CMAKE_BUILD_WITH_INSTALL_RPATH} 
 	#		VERSION ${LUA_VERSION}
 	#		SOVERSION ${LUA_COMPATIBILITY_VERSION}
+			MACOSX_FRAMEWORK_IDENTIFIER ${uri_name}	
 			COMPILE_FLAGS "${library_c_flags}"
 		)
 		
@@ -121,7 +122,7 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 	#	SET(MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${LUA_MAJOR_VERSION}.${LUA_MINOR_VERSION}.${LUA_PATCH_VERSION}")
 		# Bundle version is the version the OS looks at.
 	#	SET(MACOSX_FRAMEWORK_BUNDLE_VERSION "${LUA_MAJOR_VERSION}.${LUA_MINOR_VERSION}.${LUA_PATCH_VERSION}")
-		SET(MACOSX_FRAMEWORK_IDENTIFIER ${uri_name})
+	#	SET(MACOSX_FRAMEWORK_IDENTIFIER ${uri_name})
 		#	SET(MACOSX_BUNDLE_BUNDLE_NAME "lua" )
 
 	ELSEIF(wants_build_shared_library)
@@ -158,6 +159,10 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 					BUILD_WITH_INSTALL_RPATH ${CMAKE_BUILD_WITH_INSTALL_RPATH} 
 	#				VERSION ${LUA_VERSION}
 	#				SOVERSION ${LUA_SOVERSION}
+					COMPILE_FLAGS "${library_c_flags}"
+				)
+			ELSE(ANDROID)
+				SET_TARGET_PROPERTIES(${library_name} PROPERTIES
 					COMPILE_FLAGS "${library_c_flags}"
 				)
 			ENDIF(NOT ANDROID)
@@ -281,9 +286,22 @@ function(HELPER_CREATE_MODULE library_name wants_build_shared_library source_fil
 			SET_TARGET_PROPERTIES(${library_name} PROPERTIES
 				PREFIX ""
 				COMPILE_FLAGS "${library_c_flags}"
-				LINK_FLAGS "-flat_namespace -undefined suppress"
-				#LINK_FLAGS "-undefined dynamic_lookup"
+				#LINK_FLAGS "-flat_namespace -undefined suppress"
+				#LINK_FLAGS "-flat_namespace -undefined dynamic_lookup"
+				# Problem: On Mac, we are supposed to use -undefined dynamic_lookup because we cannot link directly to Lua or we get mutliple VMs detected.
+				# On Mac, you cannot link modules against other modules. (Modules are distinct entities from dynamic libraries on Darwin.)
+				# The problem is that iupweb needs to invoke iuplua_call which is across module boundaries.
+				# -undefined dynamic_lookup can get the modules built, but at runtime
+			   	# when I try this, iuplua loads, but iupluaweb fails not finding the _iuplua_call symbol, with an additional statement "Expected in: flat namespace".
+				# I thought maybe using -flat_namespace might possibly workaround this problem, but it had no effect.
+				# I'm running out of ideas. Always using RTLD_GLOBAL in Mac's Lua implementation for dlopen is my last idea.
+			   	# Seems like Lua 5.2 added something kind of related for this problem.
+				# http://lua-users.org/lists/lua-l/2015-05/msg00263.html	
+				LINK_FLAGS "-undefined dynamic_lookup"
+				# I think I need the rpath for modules to find its linked dependencies...possibly because as a module, it cannot reference the @executable_path.
+				INSTALL_RPATH "@loader_path;@loader_path/../Frameworks;@loader_path/../PlugIns;@loader_path/../bin"
 			)
+		
 		ELSE()
 			MESSAGE("apple nowants module")
 			SET_TARGET_PROPERTIES(${library_name} PROPERTIES

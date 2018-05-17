@@ -70,6 +70,14 @@ the current page.</p>
 <p><strong>BACKFORWARD </strong>(write only): sets the number of steps away from the current 
 page and loads the history item. Negative values represent steps backward while 
 positive values represent steps forward.</p>
+<p><strong>GOBACK </strong>(write only): go to the previous page. Same as BACKFORWARD=-1. 
+(since 3.23)</p>
+<p><strong>GOFORWARD </strong>(write only): go to the next page. Same as BACKFORWARD=1. 
+(since 3.23)</p>
+<p><strong>CANGOBACK</strong> (read-only): informs if there is a 
+previous page. (since 3.23)</p>
+<p><strong>CANGOFORWARD</strong> (read-only): informs if there is a 
+next page. (since 3.23)</p>
 <p><strong>COPY</strong> (write only): copy the selection to the clipboard. 
 (since 3.10)</p>
 <p><strong>FORWARDCOUNT</strong> [GTK Only] (read only): gets the number of items that 
@@ -78,6 +86,11 @@ succeed the current page.</p>
 <p><strong>ITEMHISTORYid</strong> [GTK Only] (read only): Returns the URL 
 associated with a specific history item. Negative &quot;id&quot; value represents a backward item while positive &quot;id&quot; 
 value represents a forward item (&quot;0&quot; represents the current item).</p>
+<p><strong>INNERTEXT</strong> [Windows Only]: the innerText property of the HTML 
+element marked with the ID given by the attribute ELEMENT_ID. (since 3.24)</p>
+<p><strong>ATTRIBUTE</strong> [Windows Only]: the content attribute of the HTML 
+element marked with the ID given by the attribute ELEMENT_ID. The name of the 
+content attribute is given by the attribute ATTRIBUTE_NAME. (since 3.24)</p>
 <p><strong>PRINT </strong>(write only): shows the print dialog. (since 3.10)</p>
 <p><strong>RELOAD</strong> (write only): reloads the page in the webbrowser.</p>
 <p><strong>SELECTALL</strong> (write only): selects all contents. (since 3.10)</p>
@@ -153,13 +166,7 @@ ih</strong>:newwindow_cb(<b>url</b>) -&gt; (<strong>ret</strong>: number) [in Lu
 <p class="info"> 
 <a href="../call/iup_map_cb.html">MAP_CB</a>, 
 <a href="../call/iup_unmap_cb.html">UNMAP_CB</a>, 
-<a href="../call/iup_destroy_cb.html">DESTROY_CB</a>, 
-<a href="../call/iup_getfocus_cb.html">GETFOCUS_CB</a>,
-  <a href="../call/iup_killfocus_cb.html">KILLFOCUS_CB</a>, 
-<a href="../call/iup_enterwindow_cb.html">ENTERWINDOW_CB</a>,
-  <a href="../call/iup_leavewindow_cb.html">LEAVEWINDOW_CB</a>, 
-<a href="../call/iup_k_any.html">K_ANY</a>,
-  <a href="../call/iup_help_cb.html">HELP_CB</a>: All common callbacks are 
+<a href="../call/iup_destroy_cb.html">DESTROY_CB</a>: callbacks are 
 supported.</p>
 <h3><a name="Notes">Notes</a></h3>
 <p>To learn more about WebKit and WebKitGTK+:</p>

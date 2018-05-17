@@ -183,7 +183,8 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
   if(value)
   {
 	  
-	  // Should we prevent this for openPanel???
+	  // Should we prevent this for openPanel? No. Example: BlurrrGenProj uses an Open panel to choose a directory to create a project in. Need to be able for the user to create new subdirectories.
+	  // TODO: FIXME: We're going to have to revise the official documentation/API because it says this has no-effect when DIR, but we need it.
 	  int allow_new = iupAttribGetBoolean(ih, "ALLOWNEW");
 	  [file_panel setCanCreateDirectories:allow_new];
 

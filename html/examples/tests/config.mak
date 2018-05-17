@@ -62,6 +62,7 @@ SRC += text.c
 SRC += val.c
 SRC += tabs.c
 SRC += sample.c
+SRC += flatsample.c
 SRC += menu.c
 SRC += spin.c
 SRC += text_spin.c
@@ -84,6 +85,10 @@ SRC += expander.c
 SRC += cbox.c
 SRC += detachbox.c
 SRC += flattabs.c
+SRC += flatscrollbox.c
+SRC += dropbutton.c
+SRC += flatlabel.c
+SRC += flattoggle.c
 
 ifneq ($(findstring Win, $(TEC_SYSNAME)), )
   LIBS += iupimglib
@@ -123,6 +128,7 @@ endif
 USE_IUPCONTROLS = Yes
 SRC += colorbrowser.c
 SRC += dial.c
+SRC += dial_led.c
 SRC += colorbar.c
 SRC += cells_numbering.c
 SRC += cells_degrade.c
@@ -132,11 +138,6 @@ SRC += matrix.c
 SRC += matrix_cbs.c
 SRC += matrix_cbmode.c
 SRC += matrixlist.c
-ifneq ($(findstring Win, $(TEC_SYSNAME)), )
-  LIBS += iupmatrixex
-else
-  SLIB += $(IUP_LIB)/libiupmatrixex.a
-endif
 
 LINKER = g++
 DEFINES += PLOT_TEST

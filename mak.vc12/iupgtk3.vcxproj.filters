@@ -57,9 +57,6 @@
     <ClCompile Include="..\src\gtk\iupgtk_clipboard.c">
       <Filter>src_controls</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_colordlg.c">
-      <Filter>src_controls</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_dialog.c">
       <Filter>src_controls</Filter>
     </ClCompile>
@@ -111,9 +108,6 @@
     <ClCompile Include="..\src\gtk\iupgtk_str.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_draw.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\gtk\iupmac_help.c">
       <Filter>mac</Filter>
     </ClCompile>
@@ -123,22 +117,28 @@
     <ClCompile Include="..\src\mot\iupunix_info.c">
       <Filter>unix</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_help.c">
-      <Filter>unix</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_calendar.c">
       <Filter>src_controls</Filter>
     </ClCompile>
     <ClCompile Include="..\src\iup_datepick.c">
       <Filter>src_controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_draw_gdk.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mot\iupx11_info.c">
+      <Filter>unix</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_info.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_help.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\gtk\iupgtk_drv.h">
       <Filter>inc</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\iupgtk.def" />
   </ItemGroup>
 </Project>

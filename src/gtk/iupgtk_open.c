@@ -20,16 +20,66 @@
 
 #include "iupgtk_drv.h"
 
-#ifdef GTK_MAC
+
+#if defined(GDK_NULL)   /******************************** Dummy definitions ************************************/
+
+char* iupgtkGetNativeWidgetHandle(GtkWidget *widget)
+{
+  return NULL;
+}
+
+const char* iupgtkGetNativeWindowHandleName(void)
+{
+  return "????";
+}
+
+const char* iupgtkGetNativeFontIdName(void)
+{
+  return "????";
+}
+
+void* iupgtkGetNativeGraphicsContext(GtkWidget* widget)
+{
+  return NULL;
+}
+
+void iupgtkReleaseNativeGraphicsContext(GtkWidget* widget, void* gc)
+{
+}
+
+void* iupdrvGetDisplay(void)
+{
+  return NULL;
+}
+
+void iupgtkPushVisualAndColormap(void* visual, void* colormap)
+{
+}
+
+static void gtkSetGlobalAttrib(void)
+{
+}
+
+#elif defined(GDK_WINDOWING_QUARTZ)   /******************************** MacOSX ************************************/
 #include <gdk/gdk.h>
 
-char* iupgtkGetNativeWindowHandle(Ihandle* ih)
+char* iupgtkGetNativeWidgetHandle(GtkWidget *widget)
 {
-  GdkWindow* window = iupgtkGetWindow(ih->handle);
+  GdkWindow* window = iupgtkGetWindow(widget);
   if (window)
     return (char*)window;
   else
     return NULL;
+}
+
+const char* iupgtkGetNativeWindowHandleName(void)
+{
+  return "????";
+}
+
+const char* iupgtkGetNativeFontIdName(void)
+{
+  return "????";
 }
 
 void* iupgtkGetNativeGraphicsContext(GtkWidget* widget)
@@ -70,17 +120,26 @@ static void gtkSetGlobalAttrib(void)
 {
 }
 
-#else
-#ifdef WIN32   /******************************** WIN32 ************************************/
+#elif defined(GDK_WINDOWING_WIN32)   /******************************** Windows ************************************/
 #include <gdk/gdkwin32.h>
 
-char* iupgtkGetNativeWindowHandle(Ihandle* ih)
+char* iupgtkGetNativeWidgetHandle(GtkWidget *widget)
 {
-  GdkWindow* window = iupgtkGetWindow(ih->handle);
+  GdkWindow* window = iupgtkGetWindow(widget);
   if (window)
     return (char*)GDK_WINDOW_HWND(window);
   else
     return NULL;
+}
+
+const char* iupgtkGetNativeWindowHandleName(void)
+{
+  return "HWND";
+}
+
+const char* iupgtkGetNativeFontIdName(void)
+{
+  return "HFONT";
 }
 
 void* iupgtkGetNativeGraphicsContext(GtkWidget* widget)
@@ -108,16 +167,26 @@ static void gtkSetGlobalAttrib(void)
 {
 }
 
-#else          /******************************** X11 ************************************/
+#elif defined(GDK_WINDOWING_X11)          /******************************** X11 ************************************/
 #include <gdk/gdkx.h>
 
-char* iupgtkGetNativeWindowHandle(Ihandle* ih)
+char* iupgtkGetNativeWidgetHandle(GtkWidget *widget)
 {
-  GdkWindow* window = iupgtkGetWindow(ih->handle);
+  GdkWindow* window = iupgtkGetWindow(widget);
   if (window)
     return (char*)GDK_WINDOW_XID(window);
   else
     return NULL;
+}
+
+const char* iupgtkGetNativeWindowHandleName(void)
+{
+  return "XWINDOW";
+}
+
+const char* iupgtkGetNativeFontIdName(void)
+{
+  return "XFONTID";
 }
 
 void* iupgtkGetNativeGraphicsContext(GtkWidget* widget)
@@ -175,14 +244,18 @@ static void gtkSetGlobalAttrib(void)
 
 #endif
 
-#endif
+char* iupgtkGetNativeWindowHandleAttrib(Ihandle* ih)
+{
+  /* Used only in Canvas and Dialog */
+  return iupgtkGetNativeWidgetHandle(ih->handle);
+}
 
 #if GTK_CHECK_VERSION(3, 0, 0)
 static void gtkSetGlobalColorAttrib(const char* name, GdkRGBA *color)
 {
-  iupGlobalSetDefaultColorAttrib(name, (int)iupCOLORDoubleTO8(color->red), 
-                                       (int)iupCOLORDoubleTO8(color->green), 
-                                       (int)iupCOLORDoubleTO8(color->blue));
+  iupGlobalSetDefaultColorAttrib(name, (int)iupgtkColorFromDouble(color->red), 
+                                       (int)iupgtkColorFromDouble(color->green), 
+                                       (int)iupgtkColorFromDouble(color->blue));
 }
 #else
 static void gtkSetGlobalColorAttrib(const char* name, GdkColor *color)

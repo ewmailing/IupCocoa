@@ -114,7 +114,18 @@ iup.ImageFromImImage(<strong>image</strong>: imImage) -&gt; (<strong>elem</stron
 </div>
 <p><strong>image:</strong> the <strong>imImage</strong>* handle. Must be a 
 bitmap image.</p>
-<p><span class="style1">Returns:</span> the IupImage handle. </p>
+<p><span class="style1">Returns:</span> the <strong>IupImage</strong> handle. </p>
+<p>You must include the &quot;im_image.h&quot; header before the &quot;iupim.h&quot; to enable these 
+functions.</p>
+<h3>IupImage to imImage (since 3.22)</h3>
+<div>
+  <pre>imImage* IupImageToImImage(Ihandle* <strong>elem</strong>); [in C]
+iup.ImageToImImage(<strong>elem</strong>: ihandle) -&gt; (<strong>image</strong>: imImage) [in Lua]</pre>
+</div>
+<p><strong>elem:</strong> handle of the <strong>IupImage</strong>. Must be 
+manually created with the <strong>IupImage</strong>* constructors, can NOT be an 
+image loaded from system resources or from native stock images.</p>
+<p><span class="style1">Returns:</span> the <strong>imImage</strong>* handle. </p>
 <p>You must include the &quot;im_image.h&quot; header before the &quot;iupim.h&quot; to enable these 
 functions.</p>
 <h3><a name="SeeAlso">See Also</a></h3>

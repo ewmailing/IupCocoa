@@ -450,7 +450,7 @@ application dialog, just use different names for each dialog.</p>
 <p>The function <strong>IupConfigDialogClosed</strong> is used to save the last dialog position and 
 size when the dialog is about to be closed, usually inside the dialog CLOSE_CB 
 callback, or when the dialog is programmatically hidden. The CLOSE_CB callback is called when the user clicks on the dialog close button, usually a 
-'X' at the top right corner of the dialog. Here our dialog is closed by the item_exit_action_cb 
+'X' at the top right-corner of the dialog. Here our dialog is closed by the item_exit_action_cb 
 callback, so we decided to also use this function as the CLOSE_CB callback and to call <strong>IupConfigDialogClosed</strong>. 
 Finally, since this callback also exists in the application we use to call
 <strong>IupConfigSave</strong>, it will 

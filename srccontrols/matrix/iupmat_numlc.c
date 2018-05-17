@@ -35,6 +35,7 @@
 /* Always preserve these attributes here because they are actually stored in the hash table.
    Some of there also have flags, but flags are only used to signal that an attribute was set 
    and we must be consistent between flags and hash table.
+
    BGCOLOR
    FGCOLOR
    FONT
@@ -42,6 +43,7 @@
    FRAMEVERTCOLOR
    MASK
    ALIGN
+   MERGED
    SORTSIGN
    ALIGNMENT
    RASTERWIDTH   
@@ -52,14 +54,16 @@
    NUMERICFORMATTITLE
    TYPE
 
-   Obs: L:C, MARKED and MARK are not stored in the hash table.
+   Obs: L:C is never stored in the hash table.
+         MARK is stored in the hash table when in callback mode and the MARK*_CB callbacks are not defined.
 */
 
-#define IMAT_NUM_ATTRIB_LINE 7
-#define IMAT_NUM_ATTRIB_LINE_ONLY 2
+#define IMAT_NUM_ATTRIB_LINE 8
+#define IMAT_NUM_ATTRIB_LINE_ONLY 3
 static char* imatrix_lin_attrib[IMAT_NUM_ATTRIB_LINE] = {
   "RASTERHEIGHT",  /* only the line */
   "HEIGHT",
+  "LINEALIGNMENT",
   "BGCOLOR",  /* use "*" in place of column */
   "FGCOLOR",
   "FONT",
@@ -81,7 +85,7 @@ static char* imatrix_col_attrib[IMAT_NUM_ATTRIB_COL] = {
   "TYPE",
   "FRAMEVERTCOLOR"};
 
-#define IMAT_NUM_ATTRIB_CELL 9
+#define IMAT_NUM_ATTRIB_CELL 11
 static char* imatrix_cell_attrib[IMAT_NUM_ATTRIB_CELL] = { 
   "BGCOLOR",   /* all use L:C */
   "FGCOLOR",
@@ -91,7 +95,9 @@ static char* imatrix_cell_attrib[IMAT_NUM_ATTRIB_CELL] = {
   "ALIGN",
   "TOGGLEVALUE",
   "FRAMEHORIZCOLOR",
-  "FRAMEVERTCOLOR"};
+  "FRAMEVERTCOLOR",
+  "MARK",    /* must be at last */
+  "MERGED"}; /* must be at last */
 
 void iupMatrixCopyLinAttributes(Ihandle* ih, int lin1, int lin2)
 {
@@ -155,9 +161,103 @@ void iupMatrixCopyColAttributes(Ihandle* ih, int col1, int col2)
   }
 }
 
-static void iMatrixClearLinAttributes(Ihandle* ih, int lin)
+static void iMatrixCheckMergedLin(Ihandle* ih, int lin, int add)
 {
-  int a, col;
+  int merged;
+  for (merged = 1; merged <= ih->data->merge_info_max; merged++)
+  {
+    ImatMergedData* merged_data = ih->data->merge_info + (merged - 1);
+    if (merged_data->used)
+    {
+      if (add)
+      {
+        /* this is a new line */
+        if (lin < merged_data->start_lin)
+        {
+          merged_data->start_lin++;
+          merged_data->end_lin++;
+        }
+        else if (lin <= merged_data->end_lin)
+          merged_data->end_lin++;
+      }
+      else
+      {
+        /* this line was removed */
+        if (lin < merged_data->start_lin)
+        {
+          /* just move the range */
+          merged_data->start_lin--;
+          merged_data->end_lin--;
+        }
+        else if (lin <= merged_data->end_lin)
+        {
+          /* shrink the range, check if not a range anymore */
+          merged_data->end_lin--;
+
+          if (merged_data->start_lin == merged_data->end_lin &&
+              merged_data->start_col == merged_data->end_col)
+          {
+            merged_data->used = 0;
+            ih->data->merge_info_count--;
+
+            iupAttribSetId2(ih, "MERGED", merged_data->start_lin, merged_data->start_col, NULL);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void iMatrixCheckMergedCol(Ihandle* ih, int col, int add)
+{
+  int merged;
+  for (merged = 1; merged <= ih->data->merge_info_max; merged++)
+  {
+    ImatMergedData* merged_data = ih->data->merge_info + (merged - 1);
+    if (merged_data->used)
+    {
+      if (add)
+      {
+        /* this is a new col */
+        if (col < merged_data->start_col)
+        {
+          merged_data->start_col++;
+          merged_data->end_col++;
+        }
+        else if (col <= merged_data->end_col)
+          merged_data->end_col++;
+      }
+      else
+      {
+        /* this col was removed */
+        if (col < merged_data->start_col)
+        {
+          /* just move the range */
+          merged_data->start_col--;
+          merged_data->end_col--;
+        }
+        else if (col <= merged_data->end_col)
+        {
+          /* shrink the range, check if not a range anymore */
+          merged_data->end_col--;
+
+          if (merged_data->start_lin == merged_data->end_lin &&
+              merged_data->start_col == merged_data->end_col)
+          {
+            merged_data->used = 0;
+            ih->data->merge_info_count--;
+
+            iupAttribSetId2(ih, "MERGED", merged_data->start_lin, merged_data->start_col, NULL);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void iMatrixClearLinAttributes(Ihandle* ih, int lin, int add)
+{
+  int a, col, num_attrib_cell;
 
   for(a = 0; a < IMAT_NUM_ATTRIB_LINE; a++)
   {
@@ -167,16 +267,20 @@ static void iMatrixClearLinAttributes(Ihandle* ih, int lin)
       iupAttribSetId2(ih, imatrix_lin_attrib[a], lin, IUP_INVALID_ID, NULL);
   }
 
-  for(a = 0; a < IMAT_NUM_ATTRIB_CELL; a++)
+  num_attrib_cell = IMAT_NUM_ATTRIB_CELL;
+  if (add)
+    num_attrib_cell -= 2; /* do not clear MARK and MERGED */
+
+  for (a = 0; a < num_attrib_cell; a++)
   {
     for(col = 0; col < ih->data->columns.num; col++)
       iupAttribSetId2(ih, imatrix_cell_attrib[a], lin, col, NULL);
   }
 }
 
-static void iMatrixClearColAttributes(Ihandle* ih, int col)
+static void iMatrixClearColAttributes(Ihandle* ih, int col, int add)
 {
-  int a, lin;
+  int a, lin, num_attrib_cell;
 
   for(a = 0; a < IMAT_NUM_ATTRIB_COL; a++)
   {
@@ -186,7 +290,11 @@ static void iMatrixClearColAttributes(Ihandle* ih, int col)
       iupAttribSetId2(ih, imatrix_col_attrib[a], IUP_INVALID_ID, col, NULL);
   }
 
-  for(a = 0; a < IMAT_NUM_ATTRIB_CELL; a++)
+  num_attrib_cell = IMAT_NUM_ATTRIB_CELL;
+  if (add)
+    num_attrib_cell -= 2; /* do not clear MARK and MERGED */
+
+  for (a = 0; a < num_attrib_cell; a++)
   {
     for(lin = 0; lin < ih->data->lines.num; lin++)
       iupAttribSetId2(ih, imatrix_cell_attrib[a], lin, col, NULL);
@@ -209,7 +317,7 @@ static void iMatrixUpdateLineAttributes(Ihandle* ih, int base, int count, int ad
       iupMatrixCopyLinAttributes(ih, lin-count, lin);  /* from lin1 to lin2 */
 
     for(lin = base; lin < base+count; lin++)
-      iMatrixClearLinAttributes(ih, lin);
+      iMatrixClearLinAttributes(ih, lin, 1);
   }
   else  /* DEL */
   {
@@ -220,7 +328,14 @@ static void iMatrixUpdateLineAttributes(Ihandle* ih, int base, int count, int ad
       iupMatrixCopyLinAttributes(ih, lin+count, lin);
 
     for(lin = ih->data->lines.num; lin < ih->data->lines.num+count; lin++)
-      iMatrixClearLinAttributes(ih, lin);
+      iMatrixClearLinAttributes(ih, lin, 0);
+  }
+
+  /* check if a merged range was changed */
+  if (ih->data->merge_info_count)
+  {
+    for (lin = base; lin < base + count; lin++)
+      iMatrixCheckMergedLin(ih, lin, add);
   }
 }
 
@@ -240,7 +355,7 @@ static void iMatrixUpdateColumnAttributes(Ihandle* ih, int base, int count, int 
       iupMatrixCopyColAttributes(ih, col-count, col);
 
     for(col = base; col < base+count; col++)
-      iMatrixClearColAttributes(ih, col);
+      iMatrixClearColAttributes(ih, col, 1);
   }
   else   /* DEL */
   {
@@ -251,7 +366,13 @@ static void iMatrixUpdateColumnAttributes(Ihandle* ih, int base, int count, int 
       iupMatrixCopyColAttributes(ih, col+count, col);
 
     for(col = ih->data->columns.num; col < ih->data->columns.num+count; col++)
-      iMatrixClearColAttributes(ih, col);
+      iMatrixClearColAttributes(ih, col, 0);
+  }
+
+  if (ih->data->merge_info_count)
+  {
+    for (col = base; col < base + count; col++)
+      iMatrixCheckMergedCol(ih, col, add);
   }
 }
 
@@ -504,8 +625,11 @@ int iupMatrixSetNumLinAttrib(Ihandle* ih, const char* value)
     }
 
     ih->data->lines.num = num;  
-    if (ih->data->lines.num_noscroll > ih->data->lines.num)
-      ih->data->lines.num_noscroll = ih->data->lines.num;
+    if (ih->data->lines.num_noscroll >= ih->data->lines.num)
+      ih->data->lines.num_noscroll = ih->data->lines.num - 1;
+    if (ih->data->lines.num_noscroll < 1)
+      ih->data->lines.num_noscroll = 1;
+
     ih->data->need_calcsize = 1;
 
     old_focus_cell = ih->data->lines.focus_cell;
@@ -548,8 +672,11 @@ int iupMatrixSetNumColAttrib(Ihandle* ih, const char* value)
     }
 
     ih->data->columns.num = num;
-    if (ih->data->columns.num_noscroll > ih->data->columns.num)
-      ih->data->columns.num_noscroll = ih->data->columns.num;
+    if (ih->data->columns.num_noscroll >= ih->data->columns.num)
+      ih->data->columns.num_noscroll = ih->data->columns.num - 1;
+    if (ih->data->columns.num_noscroll < 1)
+      ih->data->columns.num_noscroll = 1;
+
     ih->data->need_calcsize = 1;
 
     old_focus_cell = ih->data->lines.focus_cell;

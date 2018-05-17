@@ -15,6 +15,7 @@
 
 #include "iup_str.h"
 #include "iup_drvinfo.h"
+#include "iup_varg.h"
 
 
 char* iupdrvLocaleInfo(void)
@@ -22,88 +23,6 @@ char* iupdrvLocaleInfo(void)
   CPINFOEXA info;
   GetCPInfoExA(CP_ACP, 0, &info);
   return iupStrReturnStr(info.CodePageName);
-}
-
-void iupdrvGetScreenSize(int *width, int *height)
-{
-  RECT area;
-  SystemParametersInfoA(SPI_GETWORKAREA, 0, &area, 0);
-  *width = (int)(area.right - area.left);
-  *height =  (int)(area.bottom - area.top);
-}
-
-void iupdrvAddScreenOffset(int *x, int *y, int add)
-{
-  RECT area;
-  SystemParametersInfoA(SPI_GETWORKAREA, 0, &area, 0);
-  if (add==1)
-  {
-    if (x) *x += area.left;
-    if (y) *y += area.top;
-  }
-  else
-  {
-    if (x) *x -= area.left;
-    if (y) *y -= area.top;
-  }
-}
-
-void iupdrvGetFullSize(int *width, int *height)
-{
-  RECT rect;
-  GetWindowRect(GetDesktopWindow(), &rect);
-  *width = rect.right - rect.left;
-  *height = rect.bottom - rect.top;
-}
-
-int iupdrvGetScreenDepth(void)
-{
-  int bpp;
-  HDC hDCDisplay = GetDC(NULL);
-  bpp = GetDeviceCaps(hDCDisplay, BITSPIXEL);
-  ReleaseDC(NULL, hDCDisplay);
-  return bpp;
-}
-
-float iupdrvGetScreenDpi(void)
-{
-  float dpi;
-  HDC hDCDisplay = GetDC(NULL);
-  dpi = (float)GetDeviceCaps(hDCDisplay, LOGPIXELSY);
-  ReleaseDC(NULL, hDCDisplay);
-  return dpi;
-}
-
-void iupdrvGetCursorPos(int *x, int *y)
-{
-  POINT CursorPoint;
-  GetCursorPos(&CursorPoint);
-  *x = (int)CursorPoint.x;
-  *y = (int)CursorPoint.y;
-
-  iupdrvAddScreenOffset(x, y, -1);
-}
-
-void iupdrvGetKeyState(char* key)
-{
-  if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
-    key[0] = 'S';
-  else
-    key[0] = ' ';
-  if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
-    key[1] = 'C';
-  else
-    key[1] = ' ';
-  if (GetAsyncKeyState(VK_MENU) & 0x8000)
-    key[2] = 'A';
-  else
-    key[2] = ' ';
-  if ((GetAsyncKeyState(VK_LWIN) & 0x8000) || (GetAsyncKeyState(VK_RWIN) & 0x8000))
-    key[3] = 'Y';
-  else
-    key[3] = ' ';
-  
-  key[4] = 0;
 }
 
 /* TODO: Since Windows 8.1/Visual Studio 2013 GetVersionEx is deprecated. 
@@ -178,22 +97,6 @@ char *iupdrvGetSystemVersion(void)
     strcat(str, " (x86)");
 
   return str;
-}
-
-char *iupdrvGetComputerName(void)
-{
-  DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
-  char* str = iupStrGetMemory(size);
-  GetComputerNameA((LPSTR)str, &size);
-  return str;
-}
-
-char *iupdrvGetUserName(void)
-{
-  DWORD size = 256;
-  char* str = iupStrGetMemory(size);
-  GetUserNameA((LPSTR)str, &size);
-  return (char*)str;
 }
 
 int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
@@ -289,3 +192,60 @@ int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
 
 }
 
+
+int iupdrvSetCurrentDirectory(const char* path)
+{
+  return SetCurrentDirectoryA(path);
+}
+
+char* iupdrvGetCurrentDirectory(void)
+{
+  char* cur_dir = NULL;
+
+  int len = GetCurrentDirectoryA(0, NULL);
+  if (len == 0) return NULL;
+
+  cur_dir = iupStrGetMemory(len + 2);
+  GetCurrentDirectoryA(len + 1, cur_dir);
+  cur_dir[len] = '\\';
+  cur_dir[len + 1] = 0;
+
+  return cur_dir;
+}
+
+void IupLogV(const char* type, const char* format, va_list arglist)
+{
+  HANDLE EventSource;
+  WORD wtype = 0;
+
+  int size;
+  char* value = iupStrGetLargeMem(&size);
+  vsnprintf(value, size, format, arglist);
+
+  if (iupStrEqualNoCase(type, "DEBUG"))
+  {
+    OutputDebugStringA(value);
+    return;
+  }
+  else if (iupStrEqualNoCase(type, "ERROR"))
+    wtype = EVENTLOG_ERROR_TYPE;
+  else if (iupStrEqualNoCase(type, "WARNING"))
+    wtype = EVENTLOG_WARNING_TYPE;
+  else if (iupStrEqualNoCase(type, "INFO"))
+    wtype = EVENTLOG_INFORMATION_TYPE;
+
+  EventSource = RegisterEventSourceA(NULL, "Application");
+  if (EventSource)
+  {
+    ReportEventA(EventSource, wtype, 0, 0, NULL, 1, 0, &value, NULL);
+    DeregisterEventSource(EventSource);
+  }
+}
+
+void IupLog(const char* type, const char* format, ...)
+{
+  va_list arglist;
+  va_start(arglist, format);
+  IupLogV(type, format, arglist);
+  va_end(arglist);
+}

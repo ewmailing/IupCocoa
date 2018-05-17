@@ -122,6 +122,44 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 }
 
 
+
+
+static int cocoaLabelSetActiveAttrib(Ihandle* ih, const char* value)
+{
+	NSView* the_view = cocoaLabelGetRootView(ih);
+	BOOL is_active = (BOOL)iupStrBoolean(value);
+
+	if([the_view isKindOfClass:[NSTextField class]])
+	{
+		NSTextField* the_label = (NSTextField*)the_view;
+		[the_label setEnabled:is_active];
+		
+		// For whatever reason, Cocoa doesn't automatically gray out labels when disabled.
+		// But it's a pretty common thing to do, so everybody explicitly sets the color using the Cocoa predefined color constants.
+		if(is_active)
+		{
+			[the_label setTextColor:[NSColor controlTextColor]];
+		}
+		else
+		{
+			[the_label setTextColor:[NSColor disabledControlTextColor]];
+		}
+	}
+	else if([the_view isKindOfClass:[NSImageView class]])
+	{
+		NSImageView* image_view = (NSImageView*)the_view;
+		[image_view setEnabled:is_active];
+	}
+	else
+	{
+		NSLog(@"Unexpected type in cocoaLabelSetActiveAttrib");
+	}
+
+	return 1;
+
+}
+
+
 static char* cocoaLabelGetTitleAttrib(Ihandle* ih)
 {
 	NSTextField* the_label = cocoaLabelGetTextField(ih);
@@ -141,7 +179,6 @@ static char* cocoaLabelGetTitleAttrib(Ihandle* ih)
 	return NULL;
 	
 }
-
 static int cocoaLabelSetAlignmentAttrib(Ihandle* ih, const char* value)
 {
 	if(ih->data->type != IUP_LABEL_SEP_HORIZ && ih->data->type != IUP_LABEL_SEP_VERT)
@@ -774,12 +811,12 @@ void iupdrvLabelInitClass(Iclass* ic)
 	ic->UnMap = cocoaLabelUnMapMethod;
 	
 
-#if 0
 
   /* Driver Dependent Attribute functions */
 
   /* Overwrite Visual */
-  iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, gtkLabelSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, cocoaLabelSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
+#if 0
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", iupBaseNativeParentGetBgColorAttrib, gtkLabelSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT);

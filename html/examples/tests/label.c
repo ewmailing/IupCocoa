@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "iup.h"
+#include "iupim.h"
 
 
 #define TEST_IMAGE_SIZE 20
@@ -134,6 +135,7 @@ void LabelTest(void)
   IupAppend(box1, label);
 //  IupSetCallback(label, "ENTERWINDOW_CB", (Icallback)enterwindow_cb);
 //  IupSetCallback(label, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
+//  IupSetAttribute(label, "PADDING", "20x20");
 
   label = IupLabel(NULL);
   IupSetAttribute(label, "SEPARATOR", "HORIZONTAL");
@@ -155,9 +157,11 @@ void LabelTest(void)
 
   label = IupLabel(NULL);
   IupSetAttribute(label, "TITLE", "Text\nSecond Line");
-  IupSetAttribute(label, "RASTERSIZE", "150x70");
+//  IupSetAttribute(label, "RASTERSIZE", "150x70");
   IupSetAttribute(label, "ALIGNMENT", "ACENTER:ACENTER");
-  IupSetAttribute(label, "FONT", "Helvetica, Underline 14");
+  IupSetAttribute(label, "TEXTALIGNMENT", "ACENTER");
+  IupSetAttribute(label, "FONT", "Helvetica, 14");
+//  IupSetAttribute(label, "FONT", "Helvetica, Underline 14");
 //  IupSetAttribute(label, "FONTSIZE", "14");
 //  IupSetAttribute(label, "FONTSTYLE", "Italic");
 //  IupSetAttribute(label, "FONTSTYLE", "Bold");
@@ -166,8 +170,9 @@ void LabelTest(void)
 //  IupSetCallback(label, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
 
   label = IupLabel(NULL);
-  IupSetAttribute(label, "TITLE", "Text\n<b>Second Line</b>");
-  IupSetAttribute(label, "RASTERSIZE", "150x70");
+  //IupSetAttribute(label, "TITLE", "Text\n<b>Second Line</b>");
+  IupSetAttribute(label, "TITLE", "Text\nSecond Line");
+  //  IupSetAttribute(label, "RASTERSIZE", "150x70");
   IupSetAttribute(label, "ALIGNMENT", "ARIGHT:ABOTTOM");
   IupSetAttribute(label, "MARKUP", "YES");
 //  IupSetCallback(label, "ENTERWINDOW_CB", enter1_cb);
@@ -231,6 +236,8 @@ void LabelTest(void)
   IupAppend(box2, label);
 
   label = IupAnimatedLabel(NULL);
+  //label = IupAnimatedLabel(IupLoadAnimation("D:\\tecgraf\\iup\\html\\examples\\tests\\loading.gif"));
+  //IupSetAttributeHandle(label, "ANIMATION", IupLoadAnimation("D:\\tecgraf\iup\\html\\examples\\tests\\loading.gif"));
   IupSetAttribute(label, "ANIMATION", "IUP_CircleProgressAnimation");
   IupSetAttribute(label, "START", "Yes");
   IupAppend(box2, label);

@@ -155,7 +155,8 @@ static int motFrameSetFgColorAttrib(Ihandle* ih, const char* value)
 
 static int motFrameSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {

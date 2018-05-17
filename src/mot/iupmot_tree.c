@@ -667,7 +667,7 @@ void iupdrvTreeAddNode(Ihandle* ih, int id, int kind, const char* title, int add
     if (kindPrev == ITREE_BRANCH && add)
     {
       /* wItemPrev is parent of the new item (firstchild of it) */
-      iupMOT_SETARG(args, num_args,   XmNentryParent, wItemPrev);
+      iupMOT_SETARG(args, num_args, XmNentryParent, wItemPrev);
       iupMOT_SETARG(args, num_args, XmNpositionIndex, 0);
     }
     else
@@ -1071,6 +1071,120 @@ static char* motTreeGetParentAttrib(Ihandle* ih, int id)
   return iupStrReturnInt(iupTreeFindNodeId(ih, wItemParent));
 }
 
+static char* motTreeGetNextAttrib(Ihandle* ih, int id)
+{
+  Widget wItemParent;
+  Widget wItem = iupTreeGetNode(ih, id);
+  if (!wItem)  
+    return NULL;
+
+  /* get the parent item, it will not work for root nodes */
+  XtVaGetValues(wItem, XmNentryParent, &wItemParent, NULL);
+  if (wItemParent)
+  {
+    WidgetList wItemChildList = NULL;
+    int i = 0;
+    int numChild = XmContainerGetItemChildren(ih->handle, wItemParent, &wItemChildList);
+    while (i != numChild)
+    {
+      if ((wItemChildList[i] == wItem) && (i + 1 < numChild))
+      {
+        Widget wItemNext = wItemChildList[i+1];
+        XtFree((char*)wItemChildList);
+        return iupStrReturnInt(iupTreeFindNodeId(ih, wItemNext));
+      }
+
+      /* Go to next sibling item */
+      i++;
+    }
+    if (wItemChildList) XtFree((char*)wItemChildList);
+  }
+
+  return NULL;
+}
+
+static char* motTreeGetPreviousAttrib(Ihandle* ih, int id)
+{
+  Widget wItemParent;
+  Widget wItem = iupTreeGetNode(ih, id);
+  if (!wItem)
+    return NULL;
+
+  /* get the parent item, it will not work for root nodes */
+  XtVaGetValues(wItem, XmNentryParent, &wItemParent, NULL);
+  if (wItemParent)
+  {
+    WidgetList wItemChildList = NULL;
+    int i = 0;
+    int numChild = XmContainerGetItemChildren(ih->handle, wItemParent, &wItemChildList);
+    while (i != numChild)
+    {
+      if ((wItemChildList[i] == wItem) && (i > 0))
+      {
+        Widget wItemPrevious = wItemChildList[i - 1];
+        XtFree((char*)wItemChildList);
+        return iupStrReturnInt(iupTreeFindNodeId(ih, wItemPrevious));
+      }
+
+      /* Go to next sibling item */
+      i++;
+    }
+    if (wItemChildList) XtFree((char*)wItemChildList);
+  }
+
+  return NULL;
+}
+
+static char* motTreeGetLastAttrib(Ihandle* ih, int id)
+{
+  Widget wItemParent;
+  Widget wItem = iupTreeGetNode(ih, id);
+  if (!wItem)
+    return NULL;
+
+  /* get the parent item, it will not work for root nodes */
+  XtVaGetValues(wItem, XmNentryParent, &wItemParent, NULL);
+  if (wItemParent)
+  {
+    WidgetList wItemChildList = NULL;
+    int numChild = XmContainerGetItemChildren(ih->handle, wItemParent, &wItemChildList);
+    if (numChild)
+    {
+      Widget wItemLast = wItemChildList[numChild - 1];
+      XtFree((char*)wItemChildList);
+      return iupStrReturnInt(iupTreeFindNodeId(ih, wItemLast));
+    }
+    if (wItemChildList) XtFree((char*)wItemChildList);
+  }
+
+  return NULL;
+}
+
+static char* motTreeGetFirstAttrib(Ihandle* ih, int id)
+{
+  Widget wItemParent;
+  Widget wItem = iupTreeGetNode(ih, id);
+  if (!wItem)
+    return NULL;
+
+  /* get the parent item, it will not work for root nodes */
+  XtVaGetValues(wItem, XmNentryParent, &wItemParent, NULL);
+  if (wItemParent)
+  {
+    WidgetList wItemChildList = NULL;
+    int numChild = XmContainerGetItemChildren(ih->handle, wItemParent, &wItemChildList);
+    if (numChild)
+    {
+      Widget wItemFirst = wItemChildList[0];
+      XtFree((char*)wItemChildList);
+      return iupStrReturnInt(iupTreeFindNodeId(ih, wItemFirst));
+    }
+    if (wItemChildList) XtFree((char*)wItemChildList);
+  }
+
+  return NULL;
+}
+
 static char* motTreeGetChildCountAttrib(Ihandle* ih, int id)
 {
   int ret;
@@ -1082,6 +1196,19 @@ static char* motTreeGetChildCountAttrib(Ihandle* ih, int id)
   ret = XmContainerGetItemChildren(ih->handle, wItem, &wList);
   if (wList) XtFree((char*)wList);
   return iupStrReturnInt(ret);
+}
+
+static char* motTreeGetRootCountAttrib(Ihandle* ih)
+{
+  Widget wItemParent;
+  int i, count = 0;
+  for (i = 0; i < ih->data->node_count; i++)
+  {
+    XtVaGetValues(ih->data->node_cache[i].node_handle, XmNentryParent, &wItemParent, NULL);
+    if (!wItemParent)
+      count++;
+  }
+  return iupStrReturnInt(count);
 }
 
 static char* motTreeGetKindAttrib(Ihandle* ih, int id)
@@ -1246,6 +1373,13 @@ static int motTreeSetValueAttrib(Ihandle* ih, const char* value)
       return 0;
 
     wItem = motTreeGetPreviousVisibleNode(ih, wItemFocus, 1);
+  }
+  else if (iupStrEqualNoCase(value, "CLEAR"))
+  {
+    /* clear previous selection */
+    XtVaSetValues(ih->handle, XmNselectedObjects, NULL, NULL);
+    XtVaSetValues(ih->handle, XmNselectedObjectCount, 0, NULL);
+    return 0;
   }
   else
     wItem = iupTreeGetNodeFromString(ih, value);
@@ -1530,7 +1664,7 @@ static int motTreeSetBgColorAttrib(Ihandle* ih, const char* value)
   char* parent_value = iupBaseNativeParentGetBgColor(ih);
 
   color = iupmotColorGetPixelStr(parent_value);
-  if (color != (Pixel)-1)
+  if (color != (Pixel)-1 && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     Widget sb = NULL;
 
@@ -2831,10 +2965,15 @@ void iupdrvTreeInitClass(Iclass* ic)
   iupClassRegisterAttributeId(ic, "DEPTH",  motTreeGetDepthAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "KIND",   motTreeGetKindAttrib,   NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "PARENT", motTreeGetParentAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttributeId(ic, "COLOR",  motTreeGetColorAttrib,  motTreeSetColorAttrib, IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "NEXT", motTreeGetNextAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "PREVIOUS", motTreeGetPreviousAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "LAST", motTreeGetLastAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "FIRST", motTreeGetFirstAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+  iupClassRegisterAttributeId(ic, "COLOR", motTreeGetColorAttrib, motTreeSetColorAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TITLE",  motTreeGetTitleAttrib,  motTreeSetTitleAttrib, IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "CHILDCOUNT", motTreeGetChildCountAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "TITLEFONT", motTreeGetTitleFontAttrib, motTreeSetTitleFontAttrib, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ROOTCOUNT", motTreeGetRootCountAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
 
   /* IupTree Attributes - MARKS */
   iupClassRegisterAttributeId(ic, "MARKED", motTreeGetMarkedAttrib,  motTreeSetMarkedAttrib, IUPAF_NO_INHERIT);

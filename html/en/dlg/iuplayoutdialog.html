@@ -81,13 +81,22 @@ only enabled if the global attribute GLOBALLAYOUTDLGKEY is enabled:</p>
 	<strong>Update</strong> - redraw the layout.
 	<strong>Auto Update</strong> - periodically redraw the layout.
 	<strong>Show Hidden</strong> - show hidden elements in the layout.
-	<strong>Opacity</strong> - controls the Layout Dialog opacity so you can composite it on top of the selected dialog.</pre>
+	<strong>Opacity</strong> - controls the Layout Dialog opacity so you can composite it on top of the selected dialog.
+	<strong>Find</strong> - shows a dialog to search for elements in the layout. (since 3.22)</pre>
 <p>Use <strong>Reload</strong> when the dialog has been changed and the layout 
 was modified by the application. Use <strong>Update</strong> when attributes of 
 the dialog were changed by the application and the layout needs to be redrawn.</p>
 <p>The <strong>Export</strong> items will export only the dialog and its 
 children. Associated elements such as menus and images will not be exported. The 
 selected file will be overwritten if existent.</p>
+<p>The <strong>Find</strong> dialog can search for several kinds of strings, 
+such as: Type (element type like "button", "label", etc), Handle (handle name 
+previously associated with IupSetHandle or declared in LED files), Name (the 
+NAME attribute), Title (the TITLE attribute), Attribute (a combination of 
+attribute and value using the format "attribute=value". All searches are not 
+case sensitive. F3 can be used to search for the next occurrence, but focus must 
+be on the IupLayoutDlg not at the Find dialog (notice that Handle and Name are 
+searched only once). (since 3.22)</p>
 <h4>Hierarchy Tree</h4>
 <p>Each element inside the dialog is mapped to a node in the tree, and elements 
 that are containers are branches in the tree. The node title shows the element 

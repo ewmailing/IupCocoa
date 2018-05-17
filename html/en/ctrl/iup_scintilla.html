@@ -123,6 +123,7 @@ Not available in Lua.</pre>
 
 <p><strong>CANFOCUS</strong> (creation only)<strong> </strong>(<font size="3">non inheritable</font>): enables the focus traversal of the control. In Windows the control will still get the focus when clicked. Default: YES.</p>
 
+<p><strong>PROPAGATEFOCUS</strong>(<font size="3">non inheritable</font>): enables the focus callback forwarding to the next native parent with FOCUS_CB defined. Default: NO. (since 3.23)</p>
   
 <p><strong>CLIPBOARD</strong> (<font size="3">non inheritable</font>): clear, cut, copy or paste the selection to 
 or from the clipboard. Values: "CLEAR", "CUT", "COPY", "PASTE". Returns Yes or 
@@ -142,15 +143,26 @@ allow processing of Unicode typed characters. Default: NO. (since 3.9)</p>
 When enabled, each typed character replaces the character to the right of the 
 text caret. When disabled, characters are inserted at 
 the caret.</p>
+<p><strong><a name="MOUSEDWELLTIME">MOUSEDWELLTIME</a></strong> (<font size="3">non inheritable</font>):
+<span>time the mouse must sit still, in milliseconds, to generate a&nbsp;</span><a href="#DWELL_CB">DWELL_CB</a><span>&nbsp;callback. 
+If set to&nbsp;NULL, the default, no dwell events are generated. </span>(since 3.23)</p>
 <p><strong>READONLY </strong>(<font size="3">non inheritable</font>): Allows the user only to read the contents, 
   without changing it. Restricts the insertion using keyboard input and 
 attributes. Navigation keys are still available. Possible values: "YES" and "NO". 
 Default: NO.</p>
-<p><strong><a name="SAVEDSTATE">SAVEDSTATE</a></strong> (<font size="3">non inheritable</font>): sets the current state of the document to saved 
-(given value is ignored), returns Yes or No if the document has been modified.&nbsp;After 
-setting the SAVEDSTATE, when editing is done the <a href="#SAVEPOINT_CB">
+<p><strong><a name="SAVEPOINT">SAVEPOINT</a></strong> (<font size="3">non inheritable, write-only</font>): 
+sets the current state of the document to saved (given value is ignored). The
+<a href="#SAVEPOINT_CB">
+SAVEPOINT_CB</a> 
+callback is called with status=0 if the document is modified, and called 
+with&nbsp;status=1 if the save point is reached with Undo/Redo. After 
+setting the SAVEPOINT, when editing is done the <a href="#SAVEPOINT_CB">
 SAVEPOINT_CB</a> callback is called with status=0. When undo is performed back to 
-the point were the saved state was set the callback is called again with status=1. </p>
+the point were the saved state was set the callback is called again with status=1. 
+(since 3.23)</p>
+<p><strong>MODIFIED</strong> (<font size="3">non inheritable, read-only</font>): 
+returns if the text has been modified since the last SAVEPOINT. Can return Yes 
+or No. (since 3.23)</p>
 
   
 <p><a href="../attrib/iup_size.html">SIZE</a> (<font size="3">non inheritable</font>): 
@@ -184,7 +196,8 @@ MARGIN (at the line number margin), START (start of wrapped line), END (end of
 wrapped line) or NONE. Default: NONE.</span></p>
 <h4>Text Retrieval and Modification</h4>
 <p><strong>APPEND</strong> (<font size="3">non inheritable, </font>write-only):
-  Inserts a text at the <strong>end</strong> of the current text. If APPENDNEWLINE=YES, a "\n" character will be 
+  Inserts a text at the <strong>end</strong> of the current text. If APPENDNEWLINE=YES, an 
+end of line character will be 
 automatically inserted before the appended text if the current text is not empty 
 (APPENDNEWLINE default is YES).</p>
 
@@ -204,27 +217,31 @@ in order to indicate the start position and text length to delete.</p>
 <p><strong>INSERT<em>id</em></strong> (<font size="3">non inheritable, </font>write-only): Inserts a text string at position 
 &quot;id&quot; or at the current position if pos is -1 or omitted. If the current position is after 
 the insertion point then it is moved along with its surrounding text but no 
-scrolling is performed.</p>
+scrolling is performed. Notice that the selected text is not used to position 
+the inserted text.</p>
 
-<p><strong>LINE<em>id</em></strong> (<font size="3">non inheritable, </font>read-only): 
-returns the text of the line, considering the &quot;id&quot; as the line number. It does not include the &quot;\n&quot; 
-character. Number lines starts at 0.</p>
+<p><strong>LINE<em>id</em></strong> (<font size="3">non inheritable, </font>
+read-only): returns the text of the line, considering the &quot;id&quot; as the line 
+number. It includes the end of line 
+character if the line has one. Number lines starts at 0.</p>
 
 <p><strong>LINECOUNT</strong> (<font size="3">non inheritable, </font>read-only): returns the number of lines in the 
 text.</p>
 
-<p><strong>LINEVALUE</strong> (<font size="3">non inheritable, </font>read-only): returns the text of the line where 
-the caret is. It does not include the &quot;\n&quot; character.</p>
+<p><strong>LINEVALUE</strong> (<font size="3">non inheritable, </font>
+read-only): returns the text of the line where the caret is. It does not include 
+the end of line character.</p>
 
   
 <p><strong>PREPEND</strong> (<font size="3">non inheritable, </font>write-only):
-  Inserts a text at the <strong>begin</strong> of the current text. If APPENDNEWLINE=YES, a "\n" character will be 
+  Inserts a text at the <strong>begin</strong> of the current text. If APPENDNEWLINE=YES, an 
+end of line character will be 
 automatically inserted after the prepended text if the current text is not empty 
 (APPENDNEWLINE default is YES).</p>
 
   
 <p><b>VALUE </b>(<font size="3">non inheritable</font>):
-  Text entered by the user. The &quot;\n&quot; character indicates a new line. After the element is mapped and if there 
+  Text entered by the user. The end of line character indicates a new line. After the element is mapped and if there 
 is no text will return the empty string "". This replaces all the text in the 
 document with the zero terminated text string you pass in.</p>
 
@@ -366,30 +383,125 @@ represented by the string &quot;<strong>lin1</strong>,<strong>col1</strong>:<str
 correspond to the character after the last selected character. The values ALL and NONE are also accepted.</p>
 
   
+<p><strong>SELECTIONFGCOLOR</strong> (non inheritable): foreground color of the selection. Values in RGB format ("r g b"). 
+Default is system dependent. (since 3.23)</p>
+
+<p><strong>SELECTIONBGCOLOR</strong> (non inheritable): background color of the selection. Values in RGB format ("r g b"). 
+Default is system dependent. (since 3.23)</p>
+
+<p><strong>SELECTIONALPHA</strong> (non inheritable): The selection can be drawn translucently in the selection background color by setting an alpha value.
+Translucency ranges from 0 for completely transparent to 255 for opaque with 256 being opaque and not using translucent drawing. 
+(since 3.23)
+</p>
+
 <p><strong>SELECTIONPOS</strong> (<font size="3">non inheritable</font>):
   Same as SELECTION but using a zero based character 
 	index "<strong>pos1</strong>:<strong>pos2</strong>". Useful for indexing the VALUE string. 
 	The values ALL and NONE are also accepted.</p>
+<p><strong>WORDPOS<em>id</em></strong> (<font size="3">non inheritable, 
+read-only</font>): returns the start and end of a word in the text around the 
+given position (in id). It uses the format &quot;<strong>start</strong>:<strong>end</strong>&quot;. 
+Returns NULL if no words were found. (since 3.23)</p>
+<p><strong>WORDRANGE</strong> (<font size="3">non inheritable</font>): interval 
+for ISWORD. (since 3.23)</p>
+<p><strong>ISWORD</strong> (<font size="3">non inheritable, 
+read-only</font>): check if the interval defined by WORDRANGE is a word. (since 
+3.23)</p>
 
   
 <h4>Folding</h4>
 
 <p><strong>FOLDFLAGS</strong> (<font size="3">non inheritable, write-only</font>): 
-determines how folding lines are drawn. Can be: &quot;LEVELNUMBERS&quot;, 
-&quot;LINEBEFORE_EXPANDED&quot;, &quot;LINEBEFORE_CONTRACTED&quot;, &quot;LINEAFTER_EXPANDED&quot; or 
+determines how folding lines are drawn. Can be: &quot;LINEBEFORE_EXPANDED&quot;, &quot;LINEBEFORE_CONTRACTED&quot;, &quot;LINEAFTER_EXPANDED&quot; or 
 &quot;LINEAFTER_CONTRACTED &quot; (default).</p>
-<p><strong>FOLDLEVEL<em>id</em></strong> (<font size="3">non inheritable</font>): sets 
-and gets the fold level of a &quot;id&quot; line. Can be: &quot;WHITEFLAG&quot;, &quot;HEADERFLAG&quot;, 
-&quot;NUMBERMASK&quot; or &quot;BASE&quot; (default). If you use a Lexer, it is not recommend to set 
-the fold level (this is far better handled by the Lexer). By contrast, get fold 
-level is useful to decide how to handle user folding requests.</p>
+<p><strong>FOLDLINE<em>id</em></strong> (<font size="3">non inheritable, 
+write-only</font>): operates over a single line. Can be CONTRACT, EXPAND, or 
+TOGGLE. (since 3.23)</p>
+<p><strong>FOLDCHILDREN</strong><strong><em>id</em></strong> (<font size="3">non inheritable, 
+write-only</font>): operates over a single line and all its children. Can be 
+CONTRACT, EXPAND, or TOGGLE. (since 3.23)</p>
+<p><strong>FOLDALL</strong> (<font size="3">non inheritable, write-only</font>): 
+operates over all levels. Can be CONTRACT, EXPAND, or TOGGLE. (since 3.23)</p>
+<p><strong>FOLDEXPANDED<em>id</em></strong> (<font size="3">non inheritable</font>):
+<span>the expanded state of a single line. It has no effect on the visible state 
+of the line or any lines that depend on it. It does change the markers in the 
+folding margin. If you just want to toggle the fold state of one line and handle 
+all the lines that are dependent on it, it is much easier to use&nbsp;TOGGLEFOLD. It 
+can be used&nbsp;to process many folds without updating the display until you had 
+finished, but you have to manually hide or show lines, and force a COLORISE.&nbsp;(since 3.23)</span></p>
+<p><strong>FOLDLEVEL<em>id</em></strong> (<font size="3">non inheritable</font>): the fold level 
+number of a line (given in id). If you use a Lexer, it is not recommend to set 
+the fold level (this is far better handled by the Lexer). By contrast, the fold 
+level is useful to decide how to handle user folding requests. Fold level starts 
+at 0.</p>
+
+<p><strong>FOLDLEVELWHITE<em>id</em></strong> (<font size="3">non inheritable</font>): the fold level 
+white flag state of a line (<span>indicates that the line is blank</span>). Can be: &quot;Yes&quot; or &quot;No&quot;. 
+(since 3.23)</p>
+<p><strong>FOLDLEVELHEADER<em>id</em></strong> (<font size="3">non inheritable</font>): the fold level 
+header flag state of a line (<span>indicates that the line is a header/fold 
+point</span>). Can be: &quot;Yes&quot; or &quot;No&quot;. (since 3.23)</p>
+<p><strong>FOLDPARENT<em>id</em></strong> (<font size="3">non inheritable, 
+read-only</font>): returns the <span>line number of the first line before&nbsp;the 
+given l</span>ine<span>&nbsp;(in id) that is marked as a fold point with&nbsp;</span>FOLDLEVELHEADER<span>=Yes&nbsp;and 
+has a fold level less than the&nbsp;</span>given line<span>. If no line is found, or 
+if the header flags and fold levels are inconsistent, the return value is -1. 
+(since 3.23)</span></p>
 
 <p><b>FOLDTOGGLE</b> (<font size="3">non inheritable, write-only</font>): 
 Determines if the fold point (line number) may be either expanded, displaying 
 all its child lines, or contracted, hiding all the child lines. </p>
+<p><strong>ENSUREVISIBLE</strong><em><strong>id</strong></em> (<font size="3">non inheritable, write-only</font>): 
+ensure that the given line (in id) is visible by expanding folded parents. Value 
+is can be NULL or &quot;ENFORCEPOLICY&quot; to apply <span>vertical caret policy.&nbsp;</span>(since 
+3.23)</p>
+<p><strong>SHOWLINES</strong> (<font size="3">non inheritable, write-only</font>): 
+make the given lines interval visible. Value is in the format &quot;start:end&quot;, <span>
+start default is 0, end default is -1 (last line).&nbsp;(since 3.23)</span></p>
+<p><strong>HIDELINES</strong> (<font size="3">non inheritable, write-only</font>): 
+make the given lines interval hidden. Value is in the format &quot;start:end&quot;, <span>
+start default is 0, end default is -1 (last line).&nbsp;(since 3.23)</span>&nbsp;</p>
+
+<h4>Indicators</h4>
+<p><span>Indicators are used to display additional information over the top of 
+styling.&nbsp;</span></p>
+
+<p><strong>INDICATORCURRENT </strong>(<font size="3">non inheritable</font>):
+<span>sets the indicator number that will affect INDICATORCLEARRANGE and 
+INDICATORFILLRANGE. (since 3.23)</span></p>
+<p><strong>INDICATORVALUE </strong>(<font size="3">non inheritable</font>):
+<span>sets the indicator value that will affect INDICATORFILLRANGE. (since 3.23)</span></p>
+<p><strong>INDICATORCLEARRANGE </strong>(<font size="3">non inheritable, write-only</font>):
+<span>clears the current indicator in the range given in the format &quot;start:length&quot; 
+(&quot;%d:%d&quot; in C). (since 3.23)</span></p>
+<p><strong>INDICATORFILLRANGE </strong>(<font size="3">non inheritable, write-only</font>):
+<span>fills the current indicator with the current value in the range given in 
+the format &quot;start:length&quot; (&quot;%d:%d&quot; in C). (since 3.23)</span></p>
+<p><strong>INDICATORSTYLE<em>id</em> </strong>(<font size="3">non inheritable</font>):
+<span>the style used to draw the given indicator (in id). Can be: PLAIN, 
+SQUIGGLE, TT, DIAGONAL, STRIKE, HIDDEN, BOX, ROUNDBOX, STRAIGHTBOX, FULLBOX, 
+DASH, DOTS, SQUIGGLELOW, DOTBOX, SQUIGGLEPIXMAP, COMPOSITIONTHICK, 
+COMPOSITIONTHIN, TEXTFORE. Default for indicator 0 is SQUIGGLE, default for 
+indicator 1 is TT, default for indicator 2 is PLAIN. (since 3.23)</span></p>
+<p><strong>INDICATORFGCOLOR<em>id</em> </strong>(<font size="3">non inheritable</font>):
+<span>the color used to draw the given indicator (in id). Value in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
+g b&quot;)</span>. Default for indicator 0 is &quot;0 127 0&quot;, default for indicator 1 
+is &quot;255 0 0&quot;, default for indicator 2 is &quot;0 0 255&quot;. (since 3.23)</span></p>
+<p><strong>INDICATOROUTLINEALPHA<em>id</em> </strong>(<font size="3">non inheritable</font>):
+<span>sets and retrieves the alpha transparency used to draw the outline color 
+of the given indicator (in id). The alpha value can range from 0 (completely 
+transparent) to 255 (no transparency). (since 3.23)</span></p>
+<p><strong>INDICATORALPHA<em>id</em> </strong>(<font size="3">non inheritable</font>):
+sets and retrieves the alpha <span>transparency used to draw the fill color</span> 
+of the given indicator (in id). <span>The alpha value can range from 0 
+(completely transparent) to 255 (no transparency). (since 3.23)</span></p>
 
 <h4>Lexer</h4>
 
+<p><strong>COLORISE </strong>(<font size="3">non inheritable, write-only</font>):
+<span>requests the lexer to style the document in an character interval given in 
+value (format &quot;start:end&quot;, start default is 0, end default is -1 (last 
+pos)).&nbsp;(since 3.23)</span></p>
 <p><strong>KEYWORD<em>id</em></strong> (<font size="3">non inheritable, write-only</font>): 
 keyword list used by the current Lexer. Until 9 lists of keywords can set up 
 using id from 0 to 8. The value is a list of keywords separated by spaces, tabs, 
@@ -416,8 +528,24 @@ attribute, the PROPERTY attribute will return its value.</p>
 returns a list of property names separated by &quot;\n&quot;. If the Lexer does not 
 support this information then an empty string is returned.&nbsp;</p>
 
+<h4>Line Endings</h4>
+
+<p><strong>EOL</strong> (<font size="3">non inheritable</font>): Returns the 
+current end of line character(s). Can be &quot;\r&quot;, &quot;\r\n&quot; or &quot;\n&quot;. (since 3.24)</p>
+<p><strong>EOLMODE</strong> (<font size="3">non inheritable</font>): End of line 
+mode. Can be CR (&quot;\r&quot;), CRLF (&quot;\r\n&quot;) or LF (&quot;\n&quot;). Default: LF. (since 3.24)</p>
+<p><strong>EOLVISIBLE</strong> (<font size="3">non inheritable</font>): 
+End of line visibility. Default: No. (since 3.22)</p>
+<p><strong>FIXEOL</strong> (<font size="3">non inheritable, write 
+only</font>): Fix the line ends to use only the given mde. Can be CR (&quot;\r&quot;), 
+CRLF (&quot;\r\n&quot;) or LF (&quot;\n&quot;). (since 3.22, options other than LF since 3.24)</p>
+
 <h4>Margins</h4>
 
+<p>The margins id are numbered 0 to 4. By default, Scintilla margin 0 is set to display 
+line numbers, margin 1 is set to display non-folding symbols, and margin 2 is 
+set to display folding symbols. However, you can set the margins to be whatever you wish using MARGINTYPEid. 
+All margins are hidden by default, i.e. margin with is set to 0.</p>
 <p><b>MARGINMASKFOLDERS<em>id</em> </b>(<font size="3">non inheritable</font>): 
 defines if a 
 margin is folding or non-folding. Can be: Yes or No.</p>
@@ -428,18 +556,18 @@ margins which make it easy to select ranges of lines. By default, all margins
 are insensitive. Can be: YES or NO.</p>
 
 <p><b>MARGINTYPE<em>id</em> </b>(<font size="3">non inheritable</font>): set and get the 
-type of a margin. The margin argument should be 0, 1, 2, 3 or 4.&nbsp; Each 
+type of a margin. Each 
 margin can be set to display only symbols, line numbers, or text. You can use 
 the predefined values &quot;SYMBOL&quot;, &quot;NUMBER&quot;, &quot;TEXT&quot;, 
 &quot;RTEXT&quot; (right justify text), &quot;BACKGROUND&quot; or &quot;FOREGROUND&quot; (the latter two used for symbol 
 margins that set their background or foreground using the style default colors).</p>
 
 <p><b>MARGINWIDTH<em>id</em> </b>(<font size="3">non inheritable</font>): width of a 
-margin in pixels (Default value: 0). A margin with width=0 is invisible. The 
-margins are numbered 0 to 4. By default, Scintilla margin 0 is set to display 
-line numbers, margin 1 is set to display non-folding symbols, and margin 2 is 
-set to display folding symbols. Margins 3 and 4 are free for user default. 
-However, you can set the margins to be whatever you wish using MARGINTYPEid.</p>
+margin in pixels (Default value: 0). A margin with width=0 is invisible. </p>
+<p><b>MARGINMASK<em>id</em> </b>(<font size="3">non inheritable</font>): defines 
+which markers can be used for symbols in the given margin (id). The value is a 
+32 bit number with the selected markers. A single margin can display several 
+types of markers. See Markers. (since 3.22)</p>
 <p><strong>MARGINLEFT</strong> (<font size="3">non inheritable</font>): size of 
 the blank margin on the left side. Default: 1.</p>
 <p><strong>MARGINRIGHT</strong> (<font size="3">non inheritable</font>): 
@@ -454,25 +582,40 @@ clear all text and styles of a text margin.</p>
 <p><b>MARGINCURSOR<em>id</em> </b>(<font size="3">non inheritable</font>): 
 set and get the arrow cursor normally shown over margins. Can be: &quot;REVERSEARROW&quot; 
 (default) or &quot;ARROW&quot;.</p>
+<p><strong>FOLDMARGINCOLOR</strong>&nbsp;(non inheritable, write-only): changes the 
+color of the fold margin. Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
+g b&quot;)</span>. If set to NULL reset to internal default values. (since 3.22)</p>
+<p><strong>FOLDMARGINHICOLOR</strong>&nbsp;(non inheritable, write-only): changes the 
+color of the fold margin highlight. Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
+g b&quot;)</span>. If set to NULL reset to internal default values. (since 3.22)</p>
 <h4>Markers</h4>
+<p>Markers are numbers from 0 to 31. They can be combined in a 32 bit mask with 
+one or more markers. </p>
+<p><strong>MARKERSYMBOL<em>id</em></strong> (<font size="3">non inheritable</font>): 
+associates a marker number in the range 0 to 31 (id) with one of the marker 
+symbols or an ASCII character.</p>
+<p class="info"><strong>Marker symbols:</strong> 0=&quot;CIRCLE&quot;, 1=&quot;ROUNDRECT&quot;, 
+2=&quot;ARROW&quot;, 
+3=&quot;SMALLRECT&quot;, 4=&quot;SHORTARROW&quot;, 5=&quot;EMPTY&quot;, 6=&quot;ARROWDOWN&quot;, 
+7=&quot;MINUS&quot;, 8=&quot;PLUS&quot;, 9=&quot;VLINE&quot;, 
+10=&quot;LCORNER&quot;, 11=&quot;TCORNER&quot;, 12=&quot;BOXPLUS&quot;, 13=&quot;BOXPLUSCONNECTED&quot;, 
+14=&quot;BOXMINUS&quot;, 
+15=&quot;BOXMINUSCONNECTED&quot;, 16=&quot;LCORNERCURVE&quot;, 17=&quot;TCORNERCURVE&quot;, 
+18=&quot;CIRCLEPLUS&quot;, 
+19=&quot;CIRCLEPLUSCONNECTED&quot;, 20=&quot;CIRCLEMINUS&quot;, 21=&quot;CIRCLEMINUSCONNECTED&quot;, 
+22=&quot;BACKGROUND&quot; 
+(line background color), 
+23=&quot;DOTDOTDOT&quot;, 24=&quot;ARROWS&quot;, 25=(unused), 26=&quot;FULLRECT&quot; (margin 
+background color), 27=&quot;LEFTRECT&quot;,&nbsp; 
+28=(unused), 29=&quot;UNDERLINE&quot; (underline across the line), 30=&quot;RGBAIMAGE&quot;, 
+31=&quot;BOOKMARK&quot;&nbsp; and &quot;CHARACTER+c&quot; 
+(where c is an ASCii character code). The numbers are used only in marker masks.</p>
 <p><strong>MARKERDEFINE</strong> (<font size="3">non inheritable, write-only</font>): 
-Defines a marker using its number and its symbol. Format: &quot;number=symbol&quot;. </p>
+Defines a marker using its number and its symbol in the format: &quot;number=symbol&quot;. </p>
 <p class="info"><strong>Marker numbers</strong>: can be a number in the range 0 
 to 31, or the pre-defined names: &quot;FOLDEREND&quot;, &quot;FOLDEROPENMID&quot;, &quot;FOLDERMIDTAIL&quot;, &quot;FOLDERSUB&quot;, 
 &quot;FOLDER&quot; and &quot;FOLDEROPEN&quot;.<br><strong>Marker symbols:</strong> 
-(see MARKERSYMBOL).</p>
-<p><strong>MARKERSYMBOL<em>id</em></strong> (<font size="3">non inheritable</font>): 
-Defines a marker symbol given its number. id can be from 0 to 31.</p>
-<p class="info"><strong>Marker symbols:</strong> &quot;CIRCLE&quot;, &quot;ROUNDRECT&quot;, &quot;ARROW&quot;, 
-&quot;SMALLRECT&quot;, &quot;SHORTARROW&quot;, &quot;EMPTY&quot;, &quot;ARROWDOWN&quot;, &quot;MINUS&quot;, &quot;PLUS&quot;, &quot;VLINE&quot;, 
-&quot;LCORNER&quot;, &quot;TCORNER&quot;, &quot;BOXPLUS&quot;, &quot;BOXPLUSCONNECTED&quot;, &quot;BOXMINUS&quot;, 
-&quot;BOXMINUSCONNECTED&quot;, &quot;LCORNERCURVE&quot;, &quot;TCORNERCURVE&quot;, &quot;CIRCLEPLUS&quot;, 
-&quot;CIRCLEPLUSCONNECTED&quot;, &quot;CIRCLEMINUS&quot;, &quot;CIRCLEMINUSCONNECTED&quot;, &quot;BACKGROUND&quot; 
-(line background color), 
-&quot;DOTDOTDOT&quot;, &quot;ARROWS&quot;, &quot;FULLRECT&quot; (margin 
-background color), &quot;LEFTRECT&quot;,&nbsp; 
-&quot;UNDERLINE&quot; (underline across the line), &quot;RGBAIMAGE&quot;&nbsp; and &quot;CHARACTER+c&quot; 
-(where c is an ASCii character code).</p>
+the same values used in MARKERSYMBOL.</p>
 <p><strong>MARKERFGCOLOR<em>id</em> </strong>(<font size="3">non inheritable, write 
 only</font>): 
 defines the foreground color of a marker number (id). Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
@@ -481,7 +624,7 @@ g b&quot;)</span>.</p>
 only</font>): defines the background color of a marker number (id). Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
 g b&quot;)</span>.</p>
 <p><strong>MARKERBGCOLORSEL<em>id</em></strong> (<font size="3">non inheritable, write 
-only</font>): defines the highlight background colour of a marker number (id) 
+only</font>): defines the highlight background color of a marker number (id) 
 when its folding block is selected. Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
 g b&quot;)</span>.</p>
 <p><strong>MARKERALPHA<em>id</em> </strong>(<font size="3">non inheritable, write 
@@ -505,41 +648,65 @@ contains the caret). Can be Yes or No. Default: No.</p>
 write-only): adds marker number to a line (id). Internally, sets the marker 
 handle number (LASTMARKERADDHANDLE attribute) that identifies the added marker (or 
 -1 for invalid line and out of memory), which may be useful to find where a 
-marker is after moving or combining lines removes markers of the given number 
-from all lines. If marker number is -1, it deletes all markers from all lines.</p>
+marker is after moving or combining lines.</p>
+<p><strong>MARKERGET<em>id</em></strong> (<font size="3">non inheritable, read</font>-only): 
+returns a marker mask with the markers that are present on the line (id).</p>
 <p><strong>MARKERDELETE<em>id</em></strong> (<font size="3">non inheritable, </font>
 write-only): deletes marker number given a line number (id). If marker number is 
 -1, all markers are deleted from the line.</p>
 <p><strong>MARKERDELETEALL</strong> (<font size="3">non inheritable, </font>
-write-only): removes markers of the given number from all lines. If marker 
+write-only): removes the marker from all lines given its number (0-31). If marker 
 number is -1, it deletes all markers from all lines.</p>
-<p><strong>MARKERGET<em>id</em></strong> (<font size="3">non inheritable, read</font>-only): 
-returns a 32-bit integer that indicates which markers were present on the line 
-(id). Bit 0 is set if marker 0 is present, bit 1 for marker 1 and so on.</p>
 <p><strong>MARKERNEXT<em>id</em></strong> (<font size="3">non inheritable, write</font>-only): 
-searches a given marker number, starting at line number (id) and continuing 
+searches for a given marker mask, starting at line number (id) and continuing 
 forwards to the end of the file. Internally, sets the the line number of the 
-first line that contains the marker (LASTMARKERFOUND attribute) or -1, if no 
+first line that contains the markers in the mask (LASTMARKERFOUND attribute) or -1, if no 
 marker is found.</p>
 <p><strong>MARKERPREVIOUS<em>id</em></strong> (<font size="3">non inheritable, 
-write</font>-only): searches a given marker number, starting at line number (id) 
+write</font>-only): searches for a given marker mask, starting at line number (id) 
 and continuing backwards to the start of the file. Internally, sets the the line 
-number of the first line that contains the marker (LASTMARKERFOUND attribute) or 
+number of the first line that contains the markers (LASTMARKERFOUND attribute) or 
 -1, if no marker is found.</p>
 <p><strong>MARKERLINEFROMHANDLE<em>id</em></strong> (<font size="3">non inheritable, 
-read</font>-only): searches the document for the marker given its handle 
-returned in MARKERADDid (use the 
-LASTMARKERADDHANDLE as attribute value) and returns the line number of the 
+read</font>-only): searches for a marker given its handle 
+(id) created in MARKERADDid (use the 
+LASTMARKERADDHANDLE attribute to obtain its value) and returns the line number of the 
 first line that contains the marker or -1, if no 
 marker is found.</p>
 <p><strong>MARKERDELETEHANDLE</strong> (<font size="3">non inheritable, </font>
-write-only): searches the document for the marker with this handle (use the 
-LASTMARKERADDHANDLE as attribute value) and deletes the marker if it is found.</p>
+write-only): searches for a marker given its handle and deletes the marker if it is found.</p>
 <p><strong>LASTMARKERADDHANDLE</strong> (<font size="3">non inheritable, read</font>-only): 
-returns the last marker handle set by the MARKERADDid attribute.</p>
+returns the last marker handle created by the MARKERADDid attribute.</p>
 <p><strong>LASTMARKERFOUND</strong> (<font size="3">non inheritable, read</font>-only): 
 returns the last line number that contains a marker found by the MARKERNEXTid, 
 MARKERPREVIOUSid or MARKERLINEFROMHANDLE attributes.</p>
+<h4>Printing (since 2.23)</h4>
+<p><strong>PRINT</strong>: Prints the text. Use the following attributes to 
+configure the printed document. Value is the job title. By default will print 
+all text.</p>
+<p><strong>PRINTDIALOG</strong>: shows the system dialog before printing. Can be 
+YES or NO. Default: YES. If there is a selection the user can print only the 
+selected text.</p>
+<p><strong>PRINTMARGINLEFT</strong>: left margin.</p>
+<p><strong>PRINTMARGINTOP</strong>: top margin.</p>
+<p><strong>PRINTMARGINRIGHT</strong>: right margin.</p>
+<p><strong>PRINTMARGINBOTTOM</strong>: bottom margin.</p>
+<p><strong>PRINTMARGINUNITS</strong>: units used in print margin attributes. Can 
+be: INCH, CM or PIXELS. Default: INCH.</p>
+<p><strong>PRINTWORDWRAP</strong>: controls how long lines that don't fit in the 
+page are processed. Can be: NONE (lines are truncated), WORD (lines are break 
+between words), and CHAR (lines are break between characters. Default: WORD.</p>
+<p><strong>PRINTCOLOR</strong>: controls how colors are printed. Can be: NORMAL 
+(print using the current screen colors), INVERTLIGHT (inverts the light value of 
+all colors and printing on a white background), BLACKONWHITE (print all text as 
+black on a white background), COLORONWHITE (prints all text in its own color on 
+a white background), and COLORONWHITEDEFAULTBG (everything prints in its own 
+color on a white background except that line numbers use their own background 
+color). Default: NORMAL.</p>
+<p><strong>PRINTMAGNIFICATION</strong>: lets you to print at a different size 
+than the screen font.&nbsp;It&nbsp;is the number of points to add to the size of each 
+screen font. A value of -3 or -4 gives reasonably small print.</p>
+
 <h4>Scrolling</h4>
 <p><strong>SCROLLBAR</strong> (creation only): Associates an automatic horizontal and/or vertical scrollbar. Can be: "VERTICAL", "HORIZONTAL", "YES" (both) or "NO" (none). 
 	Default: "YES". For all systems, when SCROLLBAR is NO, the natural size will 
@@ -567,19 +734,26 @@ found text.</p>
 sets and gets the search flags used in SEARCHINTARGET attribute. Possible 
 values: MATCHCASE, WHOLEWORD, WORDSTART, REGEXP and POSIX. The flag options are 
 combined using &quot;|&quot; as separators. Use NULL to reset all flags.</p>
-<p><strong>TARGETSTART</strong> (<font size="3">non inheritable</font>): 
-sets and gets the start of target. When searching in non-regular expression 
-mode, you can set TARGETSTART greater than TARGETEND to find the last matching 
-text in the target rather than the first matching text. If set 0, target start
-<span id="result_box0" class="short_text" lang="en"><span class="hps">will be</span>
-<span class="hps">1 (first position of text).</span></span></p>
+<p><strong>TARGETSTART</strong> (<font size="3">non inheritable</font>): sets 
+and gets the start of target. When searching in non-regular expression mode, you 
+can set TARGETSTART greater than TARGETEND to find the last matching text in the 
+target rather than the first matching text.
+<span id="result_box0" class="short_text" lang="en"><span class="hps">The first position of text 
+is 0. If set to NULL, 0 will be used (since 3.23).</span></span></p>
 <p><strong>TARGETEND</strong> (<font size="3">non inheritable</font>): 
-sets and gets the end of target. If set 0, target end
+sets and gets the end of target. If set to -1 or NULL, target end
 <span id="result_box1" class="short_text" lang="en"><span class="hps">will be</span>
-<span class="hps">the last position of text.</span></span></p>
+<span class="hps">the last position of text<span id="result_box2" class="short_text" lang="en"> 
+(since 3.23)</span>.</span></span></p>
 <p><strong>TARGETFROMSELECTION</strong> (<font size="3">non inheritable, write 
 only</font>): 
 set the target start and end from current position of the selection.</p>
+<p>&nbsp;<strong>TARGETWHOLEDOCUMENT</strong> (<font size="3">non inheritable, write 
+only</font>):
+<span id="result_box3" class="short_text" lang="en">
+<span class="hps"><span id="result_box4" class="short_text" lang="en"> 
+<span>Set the target start to the start of the document and target end to the 
+end of the document. </span>(since 3.23)</span></span></span></p>
 <p><strong>REPLACETARGET</strong> (<font size="3">non inheritable, write only</font>): 
 replaces the target text. After replacement, the target range refers to the 
 replacement text.</p>
@@ -588,14 +762,16 @@ replacement text.</p>
   
 <p><a href="../attrib/iup_bgcolor.html">BGCOLOR</a>: Background color of the 
 text. Default: the global attribute TXTBGCOLOR. If changed it will affect the 
-default style.</p>
+background color of all styles (since 3.23).</p>
 
   
 <p><a href="../attrib/iup_fgcolor.html">FGCOLOR</a>: Text color. Default: the 
-global attribute TXTFGCOLOR. If changed it will affect the default style.</p>
+global attribute TXTFGCOLOR. If changed it will affect the foreground color of 
+all styles (since 3.23).</p>
 <p>
 <a href="../attrib/iup_font.html">FONT</a>: the text font. Default: the global 
-attribute DEFAULTFONT. If changed it will affect the default style.</p>
+attribute DEFAULTFONT. If changed it will affect all the font attributes of all 
+styles (since 3.23).</p>
 <p><strong>STYLEBGCOLOR<em>id</em></strong> (<font size="3">non inheritable</font>): 
 background color for a style (See <a href="#StyleDefinition">Style Definition</a>). 
 Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
@@ -687,11 +863,11 @@ Use tabs also for indentation or only spaces. Can be Yes or No. Default: Yes.</p
 <h4>Undo and Redo</h4>
 
 <p><strong>REDO</strong><b> </b>(<font size="3">non inheritable</font>): redo 
-the last operation if set to Yes, clears the undo information otherwise. Returns 
+the last operation if set to Yes, redo all operations if set to ALL, clears the undo information otherwise. Returns 
 Yes or No if redo can be performed.</p>
 
 <p><strong>UNDO</strong><b> </b>(<font size="3">non inheritable</font>): undo 
-the last operation if set to Yes, clears the undo information otherwise. Returns 
+the last operation if set to Yes, undo all operations if set to ALL, clears the undo information otherwise. Returns 
 Yes or No if undo can be performed.</p>
 <p><strong>UNDOCOLLECT</strong> (<font size="3">non inheritable</font>): enable 
 or disable the undo collect of information. Can be Yes or No. Default: Yes.</p>
@@ -714,7 +890,7 @@ arrows) or &quot;VISIBLEAFTERINDENT&quot; (white space used for indentation is d
 normally but after the first visible character, it is shown as dots and arrows). 
 Default: INVISIBLE.</p>
 <p><strong>WHITESPACESIZE</strong> (<font size="3">non inheritable</font>): 
-sets and gets the size of the dots used for mark space characters. Default: 1.</p>
+sets and gets the size of the dots used for mark space characters. Default: 3.</p>
 <p><strong>WHITESPACEFGCOLOR</strong> (<font size="3">non inheritable, write 
 only</font>): 
 defines the foreground color of visible white space. Values in RGB format (<span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">&quot;r 
@@ -861,9 +1037,25 @@ character while auto-completion list was active. (since 3.10.1)</p>
   
 <p><a href="../call/iup_dropfiles_cb.html">DROPFILES_CB</a>: Action generated when one or 
   more files are dropped in the element.</p>
+<p><strong><a name="DWELL_CB">DWELL_CB</a></strong>: <span>Action generated when 
+the user keeps the mouse in one position for the dwell period defined in
+<a href="#MOUSEDWELLTIME">MOUSEDWELLTIME</a>. (since 3.23)</span></p>
 
   
 
+  
+<pre>int function(Ihandle *<strong>ih</strong>, int <strong>state</strong>, int <strong>pos</strong>, int <strong>x</strong>, int <strong>y</strong>); [in C]<br><strong>ih</strong>:dwell_cb(<strong>state, pos</strong>, <strong>x</strong>, <strong>y</strong>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>state</strong>: 1 if mouse sit still more than the dwell 
+period, 0 if mouse moved or key pressed after state=1 was called.<br><strong>pos</strong>: <span>the nearest position in the document to 
+the position where the mouse pointer was lingering. Can be -1 if not near any 
+character.</span><br><strong>x, y</strong>: <span>Where the pointer lingered.&nbsp;</span></p>
+
+  
+  
   
 <p><b>HOTSPOTCLICK_CB</b>:
   <span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); display: inline !important; float: none;">
@@ -887,6 +1079,21 @@ the moment the event was generated. The same macros used for
 <a href="../call/iup_button_cb.html">BUTTON_CB</a> can be used for this status.<br>
 
 	</p>
+
+  
+  
+<p><strong>LINESCHANGED_CB</strong>:
+  Called after the number of lines was interactively changed by the user. (since 
+3.23)</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>, int <strong>lin</strong>, int <strong>num</strong>); [in C]<br><strong>ih</strong>:lineschanged_cb(<strong>lin</strong>, <strong>num</strong>: number) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br><strong>lin</strong>: line where the change started<br><strong>num</strong>: 
+number of lines than changed. A negative value indicates that lines were 
+removed.</p>
 
   
   
@@ -925,7 +1132,7 @@ the moment the event was generated. The same macros used for
 <p><b><a name="SAVEPOINT_CB">SAVEPOINT_CB</a></b>:
   Notifies the application that a save point was reached (1) or left (0). Can be 
 used to controls whether to display a saved or modified document. To set the 
-save point use the <a href="#SAVEDSTATE">SAVEDSTATE</a> attribute.</p>
+save point use the <a href="#SAVEPOINT">SAVEPOINT</a> attribute.</p>
 
   
     
@@ -937,6 +1144,53 @@ save point use the <a href="#SAVEDSTATE">SAVEDSTATE</a> attribute.</p>
   event.<br>
 
 	<strong>status</strong>: can be 1 (reached) or 0 (left).</p>
+
+  
+  
+<p><strong>UPDATECONTENT_CB</strong>: Called when contents, styling or markers 
+have been changed. (since 3.23)</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>ih</strong>:updatecontent_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+
+  
+  
+<p><strong>UPDATESELECTION_CB</strong>: Called when selection has been changed . (since 3.23)</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>ih</strong>:updateselection_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+
+  
+  
+<p><strong>UPDATEHSCROLL_CB</strong>: Called when <span>the document was 
+scrolled horizontally</span>. (since 3.23)</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>ih</strong>:updatehscroll_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
+
+  
+  
+<p><strong>UPDATEVSCROLL_CB</strong>: Called when <span>the document was 
+scrolled vertically</span>. (since 3.23)</p>
+
+<pre>int function(Ihandle *<strong>ih</strong>); [in C]<br><strong>ih</strong>:updatevscroll_cb() -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.</p>
 
   
   
@@ -1087,7 +1341,7 @@ and col starts at 0, pos starts at 0.</p>
 
 		<tr>
 
-		<th>ID</th>
+		<th>Style ID</th>
 
 		<th>C++ styles</th>
 
@@ -1099,9 +1353,9 @@ and col starts at 0, pos starts at 0.</p>
 
 		<td class="auto-style2">0</td>
 
-		<td>Default style</td>
+		<td>Default</td>
 
-		<td>Default style</td>
+		<td>Default</td>
 
 	</tr>
 
@@ -1150,7 +1404,7 @@ and col starts at 0, pos starts at 0.</p>
 
 		<td>Keyword</td>
 
-		<td>Keyword</td>
+		<td>Keyword (id=0)</td>
 
 		</tr>
 		<tr>
@@ -1186,7 +1440,7 @@ and col starts at 0, pos starts at 0.</p>
 
 		<td>Preprocessor block</td>
 
-		<td>Preprocessor block</td>
+		<td>Old preprocessor block (obsolete)</td>
 
 		</tr>
 		<tr>
@@ -1222,7 +1476,7 @@ and col starts at 0, pos starts at 0.</p>
 
 		<td>C# verbatim string</td>
 
-		<td>Keyword set number 2</td>
+		<td>Keyword set number 2 (id=1)</td>
 
 		</tr>
 		<tr>
@@ -1231,7 +1485,7 @@ and col starts at 0, pos starts at 0.</p>
 
 		<td>Regular expression</td>
 
-		<td>Keyword set number 3</td>
+		<td>Keyword set number 3 (...)</td>
 
 		</tr>
 		<tr>
@@ -1462,7 +1716,8 @@ and col starts at 0, pos starts at 0.</p>
 	insert a Tab.</p>
 <p>Internal Drag&amp;Drop support is enabled by default.</p>
 <p><strong>IupScintilla</strong> uses attributes and callbacks very similar to 
-the <strong>IupText</strong> control, except for text formatting. </p>
+the <strong>IupText</strong> control, except for text formatting. But notice 
+that in IupScintilla position always starts at 0.</p>
 <p>Although the <strong>IupScintilla</strong> documentation should be sufficient 
 for most uses, some advanced features will be better understood if the
 <a href="http://www.scintilla.org/ScintillaDoc.html">Scintilla Documentation</a> 

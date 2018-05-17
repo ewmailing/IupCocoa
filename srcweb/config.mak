@@ -30,19 +30,10 @@ else
     STDINCS += $(GTK)/include/webkit-1.0 $(GTK)/include/libsoup-2.4
     LINK_WEBKIT = Yes
     
-    ifneq ($(findstring Linux4, $(TEC_UNAME)), )
-      USE_GTK3 = Yes
+    ifdef USE_GTK3
       STDINCS += $(GTK)/include/webkitgtk-3.0
     else 
-      ifneq ($(findstring Linux3, $(TEC_UNAME)), )
-        ifneq ($(findstring Linux31, $(TEC_UNAME)), )
-          USE_GTK3 = Yes
-          STDINCS += $(GTK)/include/webkitgtk-3.0
-        else
-          STDINCS += $(GTK)/include/webkitgtk-1.0
-        endif
-      else
-      endif
+      STDINCS += $(GTK)/include/webkitgtk-1.0
     endif
   else
 #    SRC = iupmot_webbrowser.c

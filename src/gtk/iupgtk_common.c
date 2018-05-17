@@ -381,9 +381,9 @@ void iupdrvSetActive(Ihandle* ih, int enable)
 #if GTK_CHECK_VERSION(3, 0, 0)
 static void iupgdkRGBASet(GdkRGBA* rgba, unsigned char r, unsigned char g, unsigned char b)
 {
-  rgba->red = iupCOLOR8ToDouble(r);
-  rgba->green = iupCOLOR8ToDouble(g);
-  rgba->blue = iupCOLOR8ToDouble(b);
+  rgba->red = iupgtkColorToDouble(r);
+  rgba->green = iupgtkColorToDouble(g);
+  rgba->blue = iupgtkColorToDouble(b);
   rgba->alpha = 1.0;
 }
 
@@ -444,6 +444,17 @@ static GdkColor gtkLighterColor(GdkColor *color)
 }
 #endif
 
+#if GTK_CHECK_VERSION(3, 16, 0)
+static char* gtkGetSelectedColor(void)
+{
+  GdkRGBA rgba;
+  unsigned char r, g, b;
+  iupStrToRGB(IupGetGlobal("TXTHLCOLOR"), &r, &g, &b);
+  iupgdkRGBASet(&rgba, r, g, b);
+  return gdk_rgba_to_string(&rgba);
+}
+#endif
+
 void iupgtkSetBgColor(InativeHandle* handle, unsigned char r, unsigned char g, unsigned char b)
 {
 #if GTK_CHECK_VERSION(3, 0, 0)
@@ -454,25 +465,67 @@ void iupgtkSetBgColor(InativeHandle* handle, unsigned char r, unsigned char g, u
       GTK_IS_TEXT_VIEW(handle) ||
       GTK_IS_ENTRY(handle) ||
       GTK_IS_COMBO_BOX(handle))
-    is_txt = 1;
+      is_txt = 1;
 
   iupgdkRGBASet(&rgba, r, g, b);
   dark_rgba = gtkDarkerRGBA(&rgba);
   light_rgba = gtkLighterRGBA(&rgba);
 
+#if GTK_CHECK_VERSION(3, 16, 0)
+  {
+    char *bg, *bg_light, *bg_dark;
+    char *css;
+    GtkCssProvider *provider;
+
+    bg = gdk_rgba_to_string(&rgba);
+    bg_light = gdk_rgba_to_string(&light_rgba);
+    bg_dark = gdk_rgba_to_string(&dark_rgba);
+    
+    /* style background color using CSS */
+    provider = gtk_css_provider_new();
+    if (is_txt)
+    {
+      char* selected = gtkGetSelectedColor();
+
+      css = g_strdup_printf("*          { background-color: %s; }"
+                            "*:hover    { background-color: %s; }"
+                            "*:active   { background-color: %s; }"
+                            "*:selected { background-color: %s; }"
+                            "*:disabled { background-color: %s; }",
+                            bg, bg_light, bg_dark, selected, bg_light);
+
+      g_free(selected); 
+    }
+    else
+    {
+      css = g_strdup_printf("*          { background-color: %s; }"
+                            "*:hover    { background-color: %s; }"
+                            "*:active   { background-color: %s; }"
+                            "*:disabled { background-color: %s; }",
+                            bg, bg_light, bg_dark, bg);
+    }
+    gtk_style_context_add_provider(gtk_widget_get_style_context(handle), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    
+    g_free(bg); g_free(bg_light); g_free(bg_dark);
+    g_free(css);
+    g_object_unref(provider);
+  }
+#else
   gtk_widget_override_background_color(handle, GTK_STATE_FLAG_NORMAL, &rgba);
-  gtk_widget_override_background_color(handle, GTK_STATE_ACTIVE, &dark_rgba);
-  gtk_widget_override_background_color(handle, GTK_STATE_PRELIGHT, &light_rgba);
+  gtk_widget_override_background_color(handle, GTK_STATE_FLAG_ACTIVE, &dark_rgba);  /* active */
+  gtk_widget_override_background_color(handle, GTK_STATE_FLAG_PRELIGHT, &light_rgba);  /* hover */
 
   if (is_txt)
-    gtk_widget_override_background_color(handle, GTK_STATE_INSENSITIVE, &light_rgba);
+    gtk_widget_override_background_color(handle, GTK_STATE_FLAG_INSENSITIVE, &light_rgba);  /* disabled */
   else
-    gtk_widget_override_background_color(handle, GTK_STATE_INSENSITIVE, &rgba);
+    gtk_widget_override_background_color(handle, GTK_STATE_FLAG_INSENSITIVE, &rgba);  /* disabled */
+#endif
 #else
   GtkRcStyle *rc_style;  
   GdkColor color;
 
-  iupgdkColorSet(&color, r, g, b);
+  iupgdkColorSetRGB(&color, r, g, b);
 
   rc_style = gtk_widget_get_modifier_style(handle);
 
@@ -481,9 +534,9 @@ void iupgtkSetBgColor(InativeHandle* handle, unsigned char r, unsigned char g, u
   rc_style->base[GTK_STATE_PRELIGHT] = rc_style->bg[GTK_STATE_PRELIGHT] = rc_style->base[GTK_STATE_INSENSITIVE] = gtkLighterColor(&color);
 
   rc_style->color_flags[GTK_STATE_NORMAL] |= GTK_RC_BASE | GTK_RC_BG;
-  rc_style->color_flags[GTK_STATE_ACTIVE] |= GTK_RC_BASE | GTK_RC_BG;
-  rc_style->color_flags[GTK_STATE_PRELIGHT] |= GTK_RC_BASE | GTK_RC_BG;
-  rc_style->color_flags[GTK_STATE_INSENSITIVE] |= GTK_RC_BASE | GTK_RC_BG;
+  rc_style->color_flags[GTK_STATE_ACTIVE] |= GTK_RC_BASE | GTK_RC_BG;  /* active */
+  rc_style->color_flags[GTK_STATE_PRELIGHT] |= GTK_RC_BASE | GTK_RC_BG;  /* hover */
+  rc_style->color_flags[GTK_STATE_INSENSITIVE] |= GTK_RC_BASE | GTK_RC_BG;   /* disabled */
 
   gtk_widget_modify_style(handle, rc_style);
 #endif
@@ -497,13 +550,13 @@ void iupgtkSetFgColor(InativeHandle* handle, unsigned char r, unsigned char g, u
   iupgdkRGBASet(&rgba, r, g, b);
 
   gtk_widget_override_color(handle, GTK_STATE_FLAG_NORMAL, &rgba);
-  gtk_widget_override_color(handle, GTK_STATE_ACTIVE, &rgba);
-  gtk_widget_override_color(handle, GTK_STATE_PRELIGHT, &rgba);
+  gtk_widget_override_color(handle, GTK_STATE_FLAG_ACTIVE, &rgba);
+  gtk_widget_override_color(handle, GTK_STATE_FLAG_PRELIGHT, &rgba);
 #else
   GtkRcStyle *rc_style;  
   GdkColor color;
 
-  iupgdkColorSet(&color, r, g, b);
+  iupgdkColorSetRGB(&color, r, g, b);
 
   rc_style = gtk_widget_get_modifier_style(handle);  
 
@@ -655,7 +708,7 @@ int iupdrvBaseSetCursorAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-void iupgdkColorSet(GdkColor* color, unsigned char r, unsigned char g, unsigned char b)
+void iupgdkColorSetRGB(GdkColor* color, unsigned char r, unsigned char g, unsigned char b)
 {
   color->red = iupCOLOR8TO16(r);
   color->green = iupCOLOR8TO16(g);
@@ -713,13 +766,7 @@ void iupdrvPaintFocusRect(Ihandle* ih, void* _gc, int x, int y, int w, int h)
 
 void iupdrvBaseRegisterCommonAttrib(Iclass* ic)
 {
-#ifndef GTK_MAC
-#ifdef WIN32                                 
-  iupClassRegisterAttribute(ic, "HFONT", iupgtkGetFontIdAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT|IUPAF_NO_STRING);
-#else
-  iupClassRegisterAttribute(ic, "XFONTID", iupgtkGetFontIdAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT|IUPAF_NO_STRING);
-#endif
-#endif
+  iupClassRegisterAttribute(ic, iupgtkGetNativeFontIdName(), iupgtkGetFontIdAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT | IUPAF_NO_STRING);
   iupClassRegisterAttribute(ic, "PANGOFONTDESC", iupgtkGetPangoFontDescAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT|IUPAF_NO_STRING);
   iupClassRegisterAttribute(ic, "PANGOLAYOUT", iupgtkGetPangoLayoutAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT|IUPAF_NO_STRING);
 }
@@ -773,7 +820,7 @@ gboolean iupgtkButtonEvent(GtkWidget *widget, GdkEventButton *evt, Ihandle *ih)
     if (doubleclick)
     {
       /* Must compensate the fact that in GTK there is an extra button press event 
-         when occours a double click, we compensate that completing the event 
+         when occurs a double click, we compensate that completing the event 
          with a button release before the double click. */
 
       status[5] = ' '; /* clear double click */
@@ -995,6 +1042,28 @@ void iupgtkWindowGetPointer(GdkWindow *window, int *x, int *y, GdkModifierType *
 #else
   gdk_window_get_pointer(window, x, y, mask);
 #endif
+}
+
+void iupgtkSetMargin(GtkWidget* widget, int horiz_padding, int vert_padding, int mandatory_gtk3)
+{
+#if GTK_CHECK_VERSION(3, 12, 0)
+  if (mandatory_gtk3)
+  {
+    gtk_widget_set_margin_top(widget, vert_padding);
+    gtk_widget_set_margin_bottom(widget, vert_padding);
+    gtk_widget_set_margin_start(widget, horiz_padding);
+    gtk_widget_set_margin_end(widget, horiz_padding);
+  }
+#elif GTK_CHECK_VERSION(3, 4, 0)
+  gtk_widget_set_margin_top(widget, vert_padding);
+  gtk_widget_set_margin_bottom(widget, vert_padding);
+  gtk_widget_set_margin_left(widget, horiz_padding);
+  gtk_widget_set_margin_right(widget, horiz_padding);
+#endif
+  (void)widget;
+  (void)horiz_padding;
+  (void)vert_padding;
+  (void)mandatory_gtk3;
 }
 
 void iupgtkClearSizeStyleCSS(GtkWidget* widget)

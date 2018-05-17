@@ -34,56 +34,61 @@ static int iabs(int x)
 
 
 /* extracted from the SCROLLBAR attribute documentation */
-static void scroll_update(Ihandle* ih, int view_width, int view_height)
+static void scroll_update(Ihandle* ih, int view_width, int view_height)  /* view_width and view_height is the virtual space size */
 {
-  /* view_width and view_height is the virtual space size */
-  /* here we assume XMIN=0, XMAX=1, YMIN=0, YMAX=1 */
+  /* here we assume *MIN=0, *MAX=1, *AUTOHIDE=Yes, SCROLLBAR=Yes */
   int elem_width, elem_height;
   int canvas_width, canvas_height;
-  int scrollbar_size = IupGetInt(NULL, "SCROLLBARSIZE");
+  int sb_size = IupGetInt(NULL, "SCROLLBARSIZE");
   int border = IupGetInt(ih, "BORDER");
 
   IupGetIntInt(ih, "RASTERSIZE", &elem_width, &elem_height);
 
-  /* if view is greater than canvas in one direction,
-  then it has scrollbars,
-  but this affects the opposite direction */
-  elem_width -= 2 * border;  /* remove BORDER (always size=1) */
+  /* remove BORDER (always size=1) */
+  /* this is available drawing size not considering the scrollbars*/
+  elem_width -= 2 * border;
   elem_height -= 2 * border;
   canvas_width = elem_width;
   canvas_height = elem_height;
+
+  /* if view is greater than canvas in one direction,
+  then it has scrollbars,
+  but this affects the opposite direction */
+
   if (view_width > elem_width)  /* check for horizontal scrollbar */
-    canvas_height -= scrollbar_size;  /* affect vertical size */
+    canvas_height -= sb_size;  /* affect vertical size */
   if (view_height > elem_height)
-    canvas_width -= scrollbar_size;
-  if (view_width <= elem_width && view_width > canvas_width)  /* check if still has horizontal scrollbar */
-    canvas_height -= scrollbar_size;
+    canvas_width -= sb_size;
+
+  if (view_width <= elem_width && view_width > canvas_width)  /* check again for horizontal scrollbar */
+    canvas_height -= sb_size;
   if (view_height <= elem_height && view_height > canvas_height)
-    canvas_width -= scrollbar_size;
+    canvas_width -= sb_size;
+
   if (canvas_width < 0) canvas_width = 0;
   if (canvas_height < 0) canvas_height = 0;
 
-  IupSetFloat(ih, "DX", (float)canvas_width / (float)view_width);
-  IupSetFloat(ih, "DY", (float)canvas_height / (float)view_height);
+  IupSetDouble(ih, "DX", (double)canvas_width / (double)view_width);
+  IupSetDouble(ih, "DY", (double)canvas_height / (double)view_height);
 }
 
-static void scroll_calc_center(Ihandle* ih, float *x, float *y)
+static void scroll_calc_center(Ihandle* ih, double *x, double *y)
 {
-  *x = IupGetFloat(ih, "POSX") + IupGetFloat(ih, "DX") / 2.0f;
-  *y = IupGetFloat(ih, "POSY") + IupGetFloat(ih, "DY") / 2.0f;
+  *x = IupGetDouble(ih, "POSX") + IupGetDouble(ih, "DX") / 2.0;
+  *y = IupGetDouble(ih, "POSY") + IupGetDouble(ih, "DY") / 2.0;
 }
 
-static void scroll_center(Ihandle* ih, float old_center_x, float old_center_y)
+static void scroll_center(Ihandle* ih, double old_center_x, double old_center_y)
 {
   /* always update the scroll position
   keeping it proportional to the old position
   relative to the center of the ih. */
 
-  float dx = IupGetFloat(ih, "DX");
-  float dy = IupGetFloat(ih, "DY");
+  double dx = IupGetDouble(ih, "DX");
+  double dy = IupGetDouble(ih, "DY");
 
-  float posx = old_center_x - dx / 2.0f;
-  float posy = old_center_y - dy / 2.0f;
+  double posx = old_center_x - dx / 2.0;
+  double posy = old_center_y - dy / 2.0;
 
   if (posx < 0) posx = 0;
   if (posx > 1 - dx) posx = 1 - dx;
@@ -91,34 +96,34 @@ static void scroll_center(Ihandle* ih, float old_center_x, float old_center_y)
   if (posy < 0) posy = 0;
   if (posy > 1 - dy) posy = 1 - dy;
 
-  IupSetFloat(ih, "POSX", posx);
-  IupSetFloat(ih, "POSY", posy);
+  IupSetDouble(ih, "POSX", posx);
+  IupSetDouble(ih, "POSY", posy);
 }
 
 static void scroll_move(Ihandle* ih, int canvas_width, int canvas_height, int move_x, int move_y, int view_width, int view_height)
 {
-  float posy = 0;
-  float posx = 0;
+  double posy = 0;
+  double posx = 0;
 
   if (move_x == 0 && move_y == 0)
     return;
 
   if (canvas_height < view_height)
   {
-    posy = IupGetFloat(ih, "POSY");
-    posy -= (float)move_y / (float)view_height;
+    posy = IupGetDouble(ih, "POSY");
+    posy -= (double)move_y / (double)view_height;
   }
 
   if (canvas_width < view_width)
   {
-    posx = IupGetFloat(ih, "POSX");
-    posx -= (float)move_x / (float)view_width;
+    posx = IupGetDouble(ih, "POSX");
+    posx -= (double)move_x / (double)view_width;
   }
 
   if (posx != 0 || posy != 0)
   {
-    IupSetFloat(ih, "POSX", posx);
-    IupSetFloat(ih, "POSY", posy);
+    IupSetDouble(ih, "POSX", posx);
+    IupSetDouble(ih, "POSY", posy);
     IupUpdate(ih);
   }
 }
@@ -204,8 +209,8 @@ double SimplePaintCanvas::ViewZoomRect(int *_x, int *_y, int *_view_width, int *
   double zoom_index = IupGetDouble(zoom_val, "VALUE");
   double zoom_factor = pow(2, zoom_index);
 
-  float posy = IupGetFloat(canvas, "POSY");
-  float posx = IupGetFloat(canvas, "POSX");
+  double posy = IupGetDouble(canvas, "POSY");
+  double posx = IupGetDouble(canvas, "POSX");
 
   IupGetIntInt(canvas, "DRAWSIZE", &canvas_width, &canvas_height);
 
@@ -221,8 +226,8 @@ double SimplePaintCanvas::ViewZoomRect(int *_x, int *_y, int *_view_width, int *
   {
     /* posy is top-bottom, CD is bottom-top.
     invert posy reference (YMAX-DY - POSY) */
-    float dy = IupGetFloat(canvas, "DY");
-    posy = 1.0f - dy - posy;
+    double dy = IupGetDouble(canvas, "DY");
+    posy = 1.0 - dy - posy;
     y = (int)floor(-posy*view_height);
   }
   else
@@ -288,7 +293,7 @@ void SimplePaintCanvas::ScrollUpdate()
   double zoom_index = IupGetDouble(zoom_val, "VALUE");
   double zoom_factor = pow(2, zoom_index);
 
-  float old_center_x, old_center_y;
+  double old_center_x, old_center_y;
   int view_width = (int)(zoom_factor * file->GetImage()->width);
   int view_height = (int)(zoom_factor * file->GetImage()->height);
 
@@ -468,9 +473,9 @@ int SimplePaintCanvas::CanvasWheelCallback(Ihandle* canvas, float delta, int, in
   }
   else
   {
-    float posy = IupGetFloat(canvas, "POSY");
-    posy -= delta * IupGetFloat(canvas, "DY") / 10.0f;
-    IupSetFloat(canvas, "POSY", posy);
+    double posy = IupGetDouble(canvas, "POSY");
+    posy -= delta * IupGetDouble(canvas, "DY") / 10.0;
+    IupSetDouble(canvas, "POSY", posy);
     IupUpdate(canvas);
   }
   return IUP_DEFAULT;

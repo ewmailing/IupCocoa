@@ -26,6 +26,8 @@ void CanvasCDDBufferTest(void);
 void CanvasCDSimpleTest(void);
 void DialogTest(void);
 void FlatButtonTest(void);
+void FlatToggleTest(void);
+void DropButtonTest(void);
 void FrameTest(void);
 void FlatFrameTest(void);
 void TabsTest(void);
@@ -38,6 +40,7 @@ void GLCanvasCubeTest(void);
 void HboxTest(void);
 void IdleTest(void);
 void LabelTest(void);
+void FlatLabelTest(void);
 void ListTest(void);
 void MatrixTest(void);
 void MatrixCbModeTest(void);
@@ -62,6 +65,7 @@ void TextSpinTest(void);
 void TextTest(void);
 void SpinTest(void);
 void SampleTest(void);
+void FlatSampleTest(void);
 void ProgressbarTest(void);
 void ProgressDlgTest(void);
 void PreDialogsTest(void);
@@ -75,6 +79,7 @@ void ZboxTest(void);
 void ScanfTest(void);
 void SboxTest(void);
 void ScrollBoxTest(void);
+void FlatScrollBoxTest(void);
 void SplitTest(void);
 void ClipboardTest(void);
 void CharacTest(void);
@@ -119,6 +124,7 @@ typedef struct _TestItems{
 static TestItems test_list[] = {
   {"Button", ButtonTest},
   { "FlatButton", FlatButtonTest },
+  { "DropButton", DropButtonTest },
   { "Calendar", CalendarTest },
   {"Canvas", CanvasTest},
   {"CanvasCDSimpleTest", CanvasCDSimpleTest},
@@ -153,7 +159,8 @@ static TestItems test_list[] = {
   {"Hbox", HboxTest},
   {"Idle", IdleTest},
   {"Label", LabelTest},
-  {"Link", LinkTest},
+  { "FlatLabel", FlatLabelTest },
+  { "Link", LinkTest },
   {"List", ListTest},
   {"Matrix", MatrixTest},
   {"MatrixCbMode", MatrixCbModeTest},
@@ -171,10 +178,12 @@ static TestItems test_list[] = {
   {"Progressbar", ProgressbarTest},
   {"ProgressDlg", ProgressDlgTest},
   {"Sample", SampleTest},
-  {"Sbox", SboxTest},
+  { "FlatSample", FlatSampleTest },
+  { "Sbox", SboxTest },
   { "Scintilla", ScintillaTest },
   {"ScrollBox", ScrollBoxTest},
-  {"Split", SplitTest},
+  { "FlatScrollBox", FlatScrollBoxTest },
+  { "Split", SplitTest },
   {"Scanf", ScanfTest},
   {"Spin", SpinTest},
   {"SysInfo", SysInfoTest},
@@ -184,7 +193,8 @@ static TestItems test_list[] = {
   {"TextSpin", TextSpinTest},
   {"Timer", TimerTest},
   {"Toggle", ToggleTest},
-  {"Tray", TrayTest},
+  { "FlatToggle", FlatToggleTest },
+  { "Tray", TrayTest },
   {"Tree", TreeTest},
   {"Val", ValTest},
   {"Vbox", VboxTest},
@@ -232,6 +242,8 @@ int main(int argc, char* argv[])
 //  IupSetGlobal("DEFAULTDECIMALSYMBOL", ".");
   //  setlocale(LC_NUMERIC, "C");
 //  printf("EXEFILENAME=%s\n", IupGetGlobal("EXEFILENAME"));
+//  IupLog("DEBUG", "IUP version %s\n", IupVersion());
+//  IupLog("INFO", "IUP version %s", IupVersion());
 
   dlg = IupDialog(IupVbox(list = IupList(NULL), NULL));
   IupSetAttribute(dlg, "MARGIN", "10x10");

@@ -60,7 +60,7 @@ static int iScintillaSetScrollCaretAttrib(Ihandle *ih, const char *value)
 
 static char* iScintillaGetScrollWidthAttrib(Ihandle* ih)
 {
-  int pixelWidth = IupScintillaSendMessage(ih, SCI_GETSCROLLWIDTH, 0, 0);
+  int pixelWidth = (int)IupScintillaSendMessage(ih, SCI_GETSCROLLWIDTH, 0, 0);
   return iupStrReturnInt(pixelWidth);
 }
 

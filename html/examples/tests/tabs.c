@@ -117,7 +117,10 @@ static int cbTest(Ihandle* ih)
 {
   Ihandle* tabs = (Ihandle*)IupGetAttribute(ih, "APP_TABS");
 
-
+#if 1
+  int count = IupGetInt(tabs, "COUNT");
+  IupSetInt(tabs, "VALUEPOS", count - 1);
+#endif
 
 #if 0
   char att[50];
@@ -340,6 +343,39 @@ static int enterwindow_cb(Ihandle *ih)
   return IUP_DEFAULT;
 }
 
+static void show_menu(Ihandle* ih)
+{
+  int x, y;
+
+  Ihandle* menu_file = IupMenu(
+    IupSetAttributes(IupItem("Item with Image", "item_cb"), "IMAGE=image_tec"),
+    IupSetAttributes(IupItem("Toggle using VALUE", NULL), "VALUE=ON, KEY=K_V"),
+    IupSetAttributes(IupItem("Auto &Toggle", "item_cb"), "AUTOTOGGLE=YES, VALUE=OFF, IMAGE=image_test, IMPRESS=image_test_pressed"),
+    IupSeparator(),
+    IupItem("E&xit (Close)", NULL),
+    NULL);
+  Ihandle* menu = IupMenu(
+    IupSetAttributes(IupSubmenu("Submenu", menu_file), "KEY=K_S, IMAGE=image_tec"),
+    IupItem("Item", "item_cb"),
+    IupSetAttributes(IupItem("Item", "item_cb"), "VALUE=ON"),
+    IupSetAttributes(IupItem("Item", "item_cb"), "KEY=K_I, IMAGE=image_tec"),
+    NULL);
+
+  x = IupGetInt(ih, "X");
+  y = IupGetInt(ih, "Y");
+  y += IupGetInt2(ih, "RASTERSIZE");
+
+  IupPopup(menu, x, y);
+
+  IupDestroy(menu);
+}
+
+static int buttonA_cb(Ihandle *ih)
+{
+//  show_menu(ih);
+  return IUP_DEFAULT;
+}
+
 //#define IupFrame(_x) (_x)
 
 static Ihandle* CreateTabs(int tab)
@@ -350,13 +386,14 @@ static Ihandle* CreateTabs(int tab)
 
   text = IupText(NULL);
   IupSetAttribute(text, "NAME", "ATEXT");
-  button  = IupButton("Button EEEFOCUS", "cbChildButton");
+  IupSetCallback(text, "K_ANY", (Icallback)k_any);
+  button = IupButton("Button EEEFOCUS", "cbChildButton");
   IupSetAttribute(button, "NAME", "EEEEEBUTTON");
 
 //  if (tab)  // to test Tabs inside Tabs
   //  vboxA = IupVbox(CreateTabs(0), NULL);
 //  else
-    vboxA = IupFrame(IupVbox(IupFill(), IupLabel("Label AAA"), IupButton("Button AAA", "cbChildButton"), //NULL));
+    vboxA = IupFrame(IupVbox(IupFill(), IupLabel("Label AAA"), IupSetCallbacks(IupButton("Button AAA", "cbChildButton"), "ACTION", buttonA_cb, NULL), //NULL));
                      text, IupToggle("Button TTTT", "cbChildButton"), 
                      IupVal(NULL), IupSetAttributes(IupProgressBar(), "VALUE=0.5"), NULL));
   vboxB = IupFrame(IupVbox(IupLabel("Label BBB"), IupButton("Button BBB", "cbChildButton"), NULL));
@@ -420,6 +457,7 @@ static Ihandle* CreateTabs(int tab)
 //  IupSetAttribute(tabs, "BGCOLOR", "92 92 255");
 //  IupSetAttribute(tabs, "FGCOLOR", "250 0 0");
 //  IupSetAttribute(tabs, "FONT", "Helvetica, Italic 16");
+//  IupSetAttribute(tabs, "TABPADDING", "10x10");
 
   IupSetAttribute(tabs, "TIP", "IupTabs Tip");
 //  IupSetAttribute(tabs, "TIPFONT", "SYSTEM");

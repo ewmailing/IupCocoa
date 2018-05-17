@@ -11,9 +11,7 @@
 extern "C" {
 #endif
 
-#ifdef LUA_TNONE  /* Lua 5 */
 int iup_plotlua_open (lua_State * L);
-#endif
 
 #ifdef __cplusplus
 }

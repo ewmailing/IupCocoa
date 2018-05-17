@@ -1,0 +1,270 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupLuaScripterDlg</title>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	border-width: 0;
+	padding-bottom: 2em;
+}
+.auto-style1 {
+	text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupLuaScripterDlg<font size="4"> (since 3.22)</font></h2>
+<p>Creates a Lua script developer dialog using the
+<a href="iupscintilladlg.html">IupScintillaDlg</a> dialog. It can edit, run and 
+debug Lua scripts. The dialog can be shown with <strong>IupShow</strong>, <strong>IupShowXY</strong> 
+or <strong>IupPopup</strong>. The dialog inherits from the
+<a href="iupscintilladlg.html">IupScintillaDlg</a> dialog.</p>
+<h3>Initialization and Usage</h3>
+<p>The <b>IupLuaScripterDlgOpen</b> function must be called after a <b>IupOpen</b>, so that the control can be used. 
+  The &quot;iupluascripterdlg.h&quot; file must also be included in the source code. The program must be linked to the controls 
+  library (iupluascripterdlg), with the <strong>iuplua</strong> library, with 
+the <a href="../ctrl/iup_scintilla.html">iup_scintilla</a> 
+library, and with the <strong>Lua</strong> library.</p>
+<p>To make the control available in Lua use require&quot;iupluascripterdlg&quot; or manually 
+call the initialization function in C, <strong>iupluascripterdlglua_open</strong>, after calling <b>iuplua_open</b>.
+  &nbsp;When manually calling the function the iupluascripterdlg.h file must also be included in the source code 
+and the program must be linked to the 
+Lua control 
+  library (iupluascripterdlg).</p>
+<p>The control itself and its Lua binding are implemented in the same library 
+since both depends on <strong>iuplua</strong> and <strong>Lua</strong>. The 
+dialog works for Lua versions 5.1, 5.2 and 5.3.</p>
+<p>The <strong>iuplua</strong> library must be initialized before creating any 
+instance of the <strong>IupLuaScripterDlg</strong> dialog.</p>
+<h3>Guide</h3>
+<p>Files can be open from the command line, from the File/Open menu, or from 
+drag and drop from the system file manager.</p>
+<p>All the <strong>IupScintillaDlg</strong> text processing are available. 
+Additionally it provides a <strong>Lua</strong> menu, and 4 tabs in a panel bellow the text, 
+with <strong>Console</strong>, <strong>Breaks, Debug</strong> and <strong>Watch</strong> 
+interfaces.</p>
+<p>The text editor has syntax highlight for the Lua language and autocomplete 
+for Lua keywords. We use only the "KEYWORDS0" attributes other keywords are free 
+for the application.</p>
+<p>At the <strong>Console</strong> the user can type and enter Lua commands that 
+are executed and printed in the output area. The Lua "print" command and the Lua 
+"io.write" command are redirected to the output area, the previous definitions 
+are saved as "print_old" and "write_old". All the commands entered in the 
+<span class="auto-style1">Command Line</span> are saved in a history list that can be accessed using the arrow up 
+and arrow down keys. If the original functions are restored then only the 
+command line output will be displayed in the output area.</p>
+<p>Any Lua commands can be typed in the command line, but they must be a 
+complete and valid sentence. If the sentence evaluates and return one or more 
+results then the results are printed in the output area. For instance:</p>
+<pre>&gt; x = 3     (sentence entered in the command line are also printed with a "&gt; " prefix)
+&gt; x
+3
+&gt; x + 4
+7</pre>
+<p>Errors in the command line are displayed in the output (errors when running 
+or debugging scripts are displayed in a separate window with more detailed 
+information).</p>
+<pre>&gt; x + y
+Error: [string "return x + y"]:1: attempt to perform arithmetic on global 'y' (a nil value)</pre>
+<p>Multiple return values are also printed:</p>
+<pre>&gt; z = 5
+&gt; x, z
+3
+5</pre>
+<p>Notice that the output of a value here is different from a regular "print", 
+in the sense that strings, tables and functions have a special treatment. </p>
+<pre>&gt; x = "test"
+&gt; x
+"test"
+&gt; print(x)
+test</pre>
+<p>and</p>
+<pre>&gt; t = {33, "test2", x = 123}
+&gt; t
+{
+33,
+"test2",
+x = 123,
+}
+&gt; print(t)
+table: 0000023CCA058AC0</pre>
+<p>and</p>
+<pre>&gt; f1
+   [Defined in the file: "D:\tecgraf\iup\html\examples\Lua\scripter_test.lua" at line 18.]
+&gt; print(f1)
+function: 0000024E6B4DF010</pre>
+<p>Breakpoints can be added by clicking the left margin in its most right area 
+(the left area can has line numbers and bookmarks) or in the <strong>Breaks</strong> 
+tab using the "Toggle Breakpoint" at the caret position or using the "Add" 
+button and writing a filename and a line number. Breakpoints (and bookmarks) are 
+saved in the application configuration file. When lines are removed or added, 
+breakpoints position are automatically updated. But breakpoints are not restored 
+in undo operations.</p>
+<p>During the debug process, local variables of each stack level can be 
+inspected in the <strong>Debug</strong> tab. The actual level is not changed 
+when a <span class="auto-style1">Call Stack</span> list level is selected, only its local variables are updated 
+in the <span class="auto-style1">Locals</span> list. The list supports 3 types 
+of local variables: variables declared as "local" and function parameters;
+<span style="color: rgb(0, 0, 0); font-family: Helvetica, Arial, sans-serif; font-size: medium; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: 2; text-align: justify; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">
+Vararg<span>&nbsp;</span></span><span><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: normal; orphans: 2; text-align: justify; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">parameters; 
+and Upvalues (<span style="color: rgb(0, 0, 0); font-family: Helvetica, Arial, sans-serif; font-size: medium; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: 2; text-align: justify; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">external 
+local variables).</span></span></span> Varargs don't have names, so we list them 
+as if a table called "vararg" was created and each element of the table is 
+listed separately. Upvalues are listed last with a ":: " prefix, used simply to 
+distinguish them from the other variables. For now, a local variable can be changed only if it is a 
+boolean, string or a 
+number. Variable arguments (vararg) are displayed only for Lua version 5.2 or newer.
+<span style="color: rgb(0, 0, 0); font-family: Helvetica, Arial, sans-serif; font-size: medium; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: normal; letter-spacing: normal; orphans: 2; text-align: justify; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;">
+(Vararg<span>&nbsp;and Upvalues since 3.23)</span></span></p>
+<p>When printed, locals or stack, it display also some debug information:</p>
+<pre>l_main_x = 43 (pos=1)
+43</pre>
+<p>and</p>
+<pre>f1, at line 22 (level=1)
+    [Defined in the file: "D:\tecgraf\iup\html\examples\Lua\scripter_test.lua" at line 18]</pre>
+<p>These values (level and pos) can be used in the functions "debug.getinfo(level, 
+flags)" or "debug.getlocal(level, pos)" to obtain more information. But level is 
+a relative stack level number, the actual stack level must be calculated 
+depending on the situation you are going to it. Inside the command line you must 
+add 6 levels.</p>
+<p>You can 
+execute code in the console command line while the debug is paused.</p>
+<p>To debug event driven scripts, press Alt key before starting to debug the 
+script. This will disable the automatic end of debugging when the script is 
+fully executed. The debugging will remain active until it is stopped. (since 
+3.23)</p>
+<p>During debug error management allows to pause the debugger at the error, so 
+you can inspect variables and the stack. (since 3.23)</p>
+<p>Lua code that are run from strings, instead of files, can also be debugged. 
+But you can only set breakpoints when you step in the string and its contents 
+are displayed in a new document. This temporary document is automatically closed 
+when the debug is ended. (since 3.23)</p>
+<p>During the debug the list of global variables or expressions in <strong>Watch</strong> is 
+also updated with the respective values. When not in debug the list contains 
+only the text of the variables or expressions to be watched. (since 3.23)</p>
+<p>When a <strong>Project</strong> is used all Lua parameters and breakpoints 
+are saved in the project file instead of the global configuration file. (since 
+3.23)</p>
+<h3>To Do's</h3>
+<ul>
+	<li>As Detachable Dialogs: Console, Debug, Breakpoints</li>
+	<li>Multi-language support (Portuguese and Spanish)</li>
+</ul>
+<h3><a name="Creation">Creation</a></h3>
+<pre>Ihandle* IupLuaScripterDlg(void); [in C]
+iup.luascripterdlg{} -&gt; (<strong>elem</strong>: ihandle) [in Lua]
+luascripterdlg() [in LED]</pre>
+<p><u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+<p>Supports all the <a href="iupdialog.html#Attributes">IupDialog</a> and
+<a href="iupscintilladlg.html">IupScintillaDlg</a> attributes. </p>
+<h3><a name="Callbacks">Callbacks</a></h3>
+<p>Supports all the <a href="iupdialog.html#Callbacks">IupDialog</a> and
+<a href="iupscintilladlg.html">IupScintillaDlg</a> callbacks.</p>
+
+
+<h3><a name="Notes">Notes</a></h3>
+<p>The dialog can be freely customized to incorporate other menu items or 
+controls. </p>
+<h3><a name="Examples">Examples</a></h3>
+<pre>
+int main(int argc, char **argv)
+{
+  Ihandle *config;
+  lua_State *L;
+  Ihandle *menu;
+  Ihandle *main_dialog;
+  int i;
+
+  L = luaL_newstate();
+  luaL_openlibs(L);
+
+  createargtable(L, argv, argc);  /* create table 'arg' */
+
+  iuplua_open(L);
+  IupLuaScripterDlgOpen();
+
+  IupSetGlobal("GLOBALLAYOUTDLGKEY", "Yes");
+
+  config = IupConfig();
+  IupSetAttribute(config, "APP_NAME", "iupluascripter");
+  IupConfigLoad(config);
+
+  main_dialog = IupLuaScripterDlg();
+
+  IupSetAttributeHandle(main_dialog, "CONFIG", config);
+  IupSetAttribute(main_dialog, "SUBTITLE", "IupLuaScriter");
+
+  menu = IupGetAttributeHandle(main_dialog, "MENU");
+  IupAppend(menu, IupSubmenu("&Help", IupMenu(
+    IupSetCallbacks(IupItem("&Help...", NULL), "ACTION", (Icallback)item_help_action_cb, NULL),
+    IupSetCallbacks(IupItem("&About...", NULL), "ACTION", (Icallback)item_about_action_cb, NULL),
+    NULL)));
+
+  /* show the dialog at the last position, with the last size */
+  IupConfigDialogShow(config, main_dialog, "MainWindow");
+
+  /* open a file from the command line (allow file association in Windows) */
+  for (i = 1; i &lt; argc; i++)
+  {
+    const char* filename = argv[i];
+    IupSetStrAttribute(main_dialog, "OPENFILE", filename);
+  }
+
+  IupMainLoop();
+
+  IupDestroy(config);
+  IupDestroy(main_dialog);
+
+  IupClose();
+
+  lua_close(L);
+  return EXIT_SUCCESS;
+}
+</pre>
+<div align="center">
+  <center>
+  <table border="0" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" id="AutoNumber1">
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/luascripterdlg.png"><br>
+	  Paused while Debugging</td>
+    </tr>
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/luascripterdlg1.png"><br>
+	  Command line and Output<br></td>
+    </tr>
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/luascripterdlg2.png"><br>
+	  Menus and Breakpoints</td>
+    </tr>
+    <tr>
+      <td  align="center" class="style1"><img border="0" src="images/luascripterdlg3.png"><br>
+	  Project Files</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<h3><a name="SeeAlso">See Also</a></h3>
+<p>
+<a href="../ctrl/iup_scintilla.html">
+IupScintilla</a>,
+<a href="iupdialog.html">IupDialog</a></p>
+
+</body>
+
+</html>

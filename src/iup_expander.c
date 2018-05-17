@@ -23,6 +23,8 @@
 #include "iup_layout.h"
 #include "iup_childtree.h"
 #include "iup_image.h"
+#include "iup_drvdraw.h"
+#include "iup_draw.h"
 
 
 static Ihandle* load_image_arrowup_highlight(void)
@@ -243,11 +245,10 @@ struct _IcontrolData
 
 static void iExpanderUpdateTitleState(Ihandle* ih)
 {
-  /* expander -> bar -> box -> (expand_button, title_label, ...) */
   Ihandle* box = ih->firstchild->firstchild;
   Ihandle* title_label = box->firstchild->brother;
 
-  /* called only when TITLEEXPAND=Yes */
+  /* called only when TITLEEXPAND=Yes and BARPOSITION=TOP */
 
   char* titleimage = iupAttribGet(ih, "TITLEIMAGE");
   if (titleimage)
@@ -373,18 +374,18 @@ static void iExpanderUpdateStateImage(Ihandle* ih)
   }
 }
 
-static int iExpanderAnimateTimer_CB(Ihandle* ih_timer)
+static int iExpanderAnimateTimer_CB(Ihandle* animate_timer)
 {
-  Ihandle* ih = (Ihandle*)iupAttribGet(ih_timer, "_IUP_EXPANDER");
-  Ihandle* child = (Ihandle*)iupAttribGet(ih_timer, "_IUP_CHILD");
-  int final_height = IupGetInt(ih_timer, "_IUP_FINAL_HEIGHT");
-  int closing = IupGetInt(ih_timer, "_IUP_CLOSING");
-  int width = IupGetInt(ih_timer, "_IUP_WIDTH");
+  Ihandle* ih = (Ihandle*)iupAttribGet(animate_timer, "_IUP_EXPANDER");
+  Ihandle* child = (Ihandle*)iupAttribGet(animate_timer, "_IUP_CHILD");
+  int final_height = IupGetInt(animate_timer, "_IUP_FINAL_HEIGHT");
+  int closing = IupGetInt(animate_timer, "_IUP_CLOSING");
+  int width = IupGetInt(animate_timer, "_IUP_WIDTH");
   int frame_time = iupAttribGetInt(ih, "FRAMETIME");
   int num_frames = iupAttribGetInt(ih, "NUMFRAMES");
-  int time_delay = iupAttribGetInt(ih_timer, "ELAPSEDTIME");
+  int time_delay = iupAttribGetInt(animate_timer, "ELAPSEDTIME");
   int height;
-  int current_frame = time_delay / frame_time;
+  int current_frame = frame_time != 0 ? time_delay / frame_time : 0;  /* safety check */
 
   if (closing)
     height = (final_height*(num_frames - current_frame)) / num_frames;
@@ -393,7 +394,7 @@ static int iExpanderAnimateTimer_CB(Ihandle* ih_timer)
 
   IupSetfAttribute(child, "MAXSIZE", "%dx%d", width, height);
 
-  if (ih->data->animation == 2)
+  if (ih->data->animation == 2) /* slide */
     IupSetfAttribute(child, "CHILDOFFSET", "0x%d", height - final_height);
 
   if (ih->data->state_refresh)
@@ -412,7 +413,7 @@ static int iExpanderAnimateTimer_CB(Ihandle* ih_timer)
         IupRefresh(ih);
     }
 
-    IupSetAttribute(ih_timer, "RUN", "NO");
+    IupSetAttribute(animate_timer, "RUN", "NO");
   }
 
   return IUP_DEFAULT;
@@ -466,6 +467,9 @@ static void iExpanderAnimateChild(Ihandle* ih, Ihandle* child)
 static void iExpanderOpenCloseChild(Ihandle* ih, int refresh, int callcb, int state)
 {
   Ihandle* child = ih->firstchild->brother;
+
+  if (ih->data->animate_timer && IupGetInt(ih->data->animate_timer, "RUN"))
+    return;
 
   if (callcb)
   {
@@ -611,6 +615,8 @@ static void iExpanderUpdateExtraButtons(Ihandle* ih)
   Ihandle* box = ih->firstchild->firstchild;
   Ihandle* extra_box = box->firstchild->brother->brother;  /* (expand_button, label, extra_box) */
 
+  /* called only when BARPOSITION=TOP */
+
   if (extra_box)
     IupDestroy(extra_box);
 
@@ -640,10 +646,11 @@ static int iExpanderExpandButtonLeaveWindow_cb(Ihandle* expand_button);
 static void iExpanderUpdateBox(Ihandle* ih)
 {
   Ihandle* bar = ih->firstchild;
-  Ihandle* box, *expand_button;
+  Ihandle* box = ih->firstchild->firstchild;
+  Ihandle* expand_button;
 
-  if (bar->firstchild)
-    IupDestroy(bar->firstchild);
+  if (box)
+    IupDestroy(box);
 
   expand_button = IupLabel(NULL);
   IupSetAttribute(expand_button, "ALIGNMENT", "ACENTER:ACENTER");
@@ -695,7 +702,7 @@ static int iExpanderGlobalMotion_cb(int x, int y)
   int child_x, child_y;
   Ihandle* ih = (Ihandle*)IupGetGlobal("_IUP_EXPANDER_GLOBAL");
   Ihandle* bar = ih->firstchild;
-  Ihandle* child = bar->brother;
+  Ihandle* child = ih->firstchild->brother;
 
   if (ih->data->state != IEXPANDER_OPEN_FLOAT)
   {
@@ -728,13 +735,13 @@ static int iExpanderGlobalMotion_cb(int x, int y)
   return IUP_DEFAULT;
 }
 
-static int iExpanderAutoShowTimer_cb(Ihandle* ih_timer)
+static int iExpanderAutoShowTimer_cb(Ihandle* auto_show_timer)
 {
-  Ihandle* ih = (Ihandle*)iupAttribGet(ih_timer, "_IUP_EXPANDER");
+  Ihandle* ih = (Ihandle*)iupAttribGet(auto_show_timer, "_IUP_EXPANDER");
   Ihandle* child = ih->firstchild->brother;
 
   /* run timer just once each time */
-  IupSetAttribute(ih_timer, "RUN", "No");
+  IupSetAttribute(auto_show_timer, "RUN", "NO");
 
   /* just show child on top,
      that's why child must be a native container when using autoshow. */
@@ -760,7 +767,7 @@ static int iExpanderExpandButtonLeaveWindow_cb(Ihandle* expand_button)
     iupAttribSet(expand_button, "HIGHLIGHT", NULL);
     iExpanderUpdateStateImage(ih);
 
-    if (ih->data->title_expand)
+    if (ih->data->position == IEXPANDER_TOP && ih->data->title_expand)
     {
       Ihandle* title_label = expand_button->brother;
       iupAttribSet(title_label, "HIGHLIGHT", NULL);
@@ -770,7 +777,7 @@ static int iExpanderExpandButtonLeaveWindow_cb(Ihandle* expand_button)
     if (ih->data->auto_show)
     {
       if (IupGetInt(ih->data->auto_show_timer, "RUN"))
-        IupSetAttribute(ih->data->auto_show_timer, "RUN", "No");
+        IupSetAttribute(ih->data->auto_show_timer, "RUN", "NO");
     }
   }
   return IUP_DEFAULT;
@@ -788,7 +795,7 @@ static int iExpanderExpandButtonEnterWindow_cb(Ihandle* expand_button)
     iupAttribSet(expand_button, "HIGHLIGHT", "1");
     iExpanderUpdateStateImage(ih);
 
-    if (ih->data->title_expand)
+    if (ih->data->position == IEXPANDER_TOP && ih->data->title_expand)
     {
       Ihandle* title_label = expand_button->brother;
       iupAttribSet(title_label, "HIGHLIGHT", "1");
@@ -805,7 +812,7 @@ static int iExpanderExpandButtonEnterWindow_cb(Ihandle* expand_button)
 
 static int iExpanderExpandButtonButton_CB(Ihandle* expand_button, int button, int pressed, int x, int y, char* status)
 {
-  if (button == IUP_BUTTON1 && pressed)
+  if (button == IUP_BUTTON1 && pressed && !iup_isdouble(status))
   {
     /* expander -> bar -> box -> (expand_button, ...) */
     Ihandle* ih = IupGetParent(IupGetParent(IupGetParent(expand_button)));
@@ -813,7 +820,7 @@ static int iExpanderExpandButtonButton_CB(Ihandle* expand_button, int button, in
     if (ih->data->auto_show)
     {
       if (IupGetInt(ih->data->auto_show_timer, "RUN"))
-        IupSetAttribute(ih->data->auto_show_timer, "RUN", "No");
+        IupSetAttribute(ih->data->auto_show_timer, "RUN", "NO");
     }
 
     iExpanderOpenCloseChild(ih, 1, 1, ih->data->state == IEXPANDER_OPEN ? IEXPANDER_CLOSE : IEXPANDER_OPEN);
@@ -821,7 +828,6 @@ static int iExpanderExpandButtonButton_CB(Ihandle* expand_button, int button, in
 
   (void)x;
   (void)y;
-  (void)status;
   return IUP_DEFAULT;
 }
 
@@ -861,7 +867,7 @@ static int iExpanderTitleEnterWindow_cb(Ihandle* title_label)
 
 static int iExpanderTitleButton_CB(Ihandle* title_label, int button, int pressed, int x, int y, char* status)
 {
-  if (button == IUP_BUTTON1 && pressed)
+  if (button == IUP_BUTTON1 && pressed && !iup_isdouble(status))
   {
     /* expander -> bar -> box -> (expand_button, title_label, ...) */
     Ihandle* ih = IupGetParent(IupGetParent(IupGetParent(title_label)));
@@ -874,13 +880,12 @@ static int iExpanderTitleButton_CB(Ihandle* title_label, int button, int pressed
 
   (void)x;
   (void)y;
-  (void)status;
   return IUP_DEFAULT;
 }
 
 static int iExpanderExtraButtonLeaveWindow_cb(Ihandle* extra_button)
 {
-  /* expander -> bar -> box -> (expand_button, label, extra_box(extra_button)) */
+  /* expander -> bar -> box -> (expand_button, label, extra_box -> (extra_button) */
   Ihandle* ih = IupGetParent(IupGetParent(IupGetParent(IupGetParent(extra_button))));
 
   if (iupAttribGet(extra_button, "HIGHLIGHT"))
@@ -893,7 +898,7 @@ static int iExpanderExtraButtonLeaveWindow_cb(Ihandle* extra_button)
 
 static int iExpanderExtraButtonEnterWindow_cb(Ihandle* extra_button)
 {
-  /* expander -> bar -> box -> (expand_button, label, extra_box(extra_button)) */
+  /* expander -> bar -> box -> (expand_button, label, extra_box -> (extra_button)) */
   Ihandle* ih = IupGetParent(IupGetParent(IupGetParent(IupGetParent(extra_button))));
 
   if (!iupAttribGet(extra_button, "HIGHLIGHT"))
@@ -908,7 +913,7 @@ static int iExpanderExtraButtonButton_CB(Ihandle* extra_button, int button, int 
 {
   if (button == IUP_BUTTON1)
   {
-    /* expander -> bar -> box -> (expand_button, label, extra_box(extra_button)) */
+    /* expander -> bar -> box -> (expand_button, label, extra_box -> (extra_button)) */
     Ihandle* ih = IupGetParent(IupGetParent(IupGetParent(IupGetParent(extra_button))));
 
     IFnii cb = (IFnii)IupGetCallback(ih, "EXTRABUTTON_CB");
@@ -927,6 +932,39 @@ static int iExpanderExtraButtonButton_CB(Ihandle* extra_button, int button, int 
   return IUP_DEFAULT;
 }
 
+static int iExpanderBarRedraw_CB(Ihandle* bar)
+{
+  Ihandle* ih = bar->parent;
+  char* backcolor = iupAttribGet(ih, "BACKCOLOR");
+  int frame_width = 0;
+  int frame = iupAttribGetBoolean(ih, "FRAME");
+  IdrawCanvas* dc = iupdrvDrawCreateCanvas(bar);
+
+  if (!backcolor)
+    backcolor = iupBaseNativeParentGetBgColorAttrib(ih);
+
+  /* draw border - can still be disabled setting frame_width=0 */
+  if (frame)
+  {
+    char* frame_color = iupAttribGetStr(ih, "FRAMECOLOR");
+    int active = IupGetInt(ih, "ACTIVE");
+    frame_width = iupAttribGetInt(ih, "FRAMEWIDTH");
+
+    iupFlatDrawBorder(dc, 0, bar->currentwidth - 1,
+                          0, bar->currentheight - 1,
+                          frame_width, frame_color, NULL, active);
+  }
+
+  /* draw child area background */
+  iupFlatDrawBox(dc, frame_width, bar->currentwidth  - 1 - frame_width,
+                     frame_width, bar->currentheight - 1 - frame_width, backcolor, NULL, 1);  /* background is always active */
+
+  iupdrvDrawFlush(dc);
+
+  iupdrvDrawKillCanvas(dc);
+
+  return IUP_DEFAULT;
+}
 
 /*****************************************************************************\
 |* Attributes                                                                *|
@@ -964,6 +1002,8 @@ static int iExpanderSetPositionAttrib(Ihandle* ih, const char* value)
     ih->data->position = IEXPANDER_TOP;
 
   iExpanderUpdateBox(ih);
+  if (ih->data->position == IEXPANDER_TOP)
+    iExpanderUpdateExtraButtons(ih);
 
   return 0;  /* do not store value in hash table */
 }
@@ -1041,7 +1081,6 @@ static int iExpanderSetForeColorAttrib(Ihandle* ih, const char* value)
     }
     else 
     {
-      /* expander -> bar -> box -> (expand_button, title_label, ...) */
       Ihandle* box = ih->firstchild->firstchild;
       Ihandle* title_label = box->firstchild->brother;
       IupSetStrAttribute(title_label, "FGCOLOR", value);
@@ -1074,7 +1113,9 @@ static int iExpanderSetHighColorAttrib(Ihandle* ih, const char* value)
 static int iExpanderSetBackColorAttrib(Ihandle* ih, const char* value)
 {
   Ihandle* bar = ih->firstchild;
-  IupSetStrAttribute(bar, "BGCOLOR", value);
+  IupSetStrAttribute(bar, "BGCOLOR", value); /* used in children */
+  IupUpdate(bar);
+  (void)value;
   return 1;
 }
 
@@ -1102,7 +1143,7 @@ static int iExpanderSetImageOpenAttrib(Ihandle* ih, const char* value)
 
 static int iExpanderSetImageExtra(Ihandle* ih, const char* value, int button)
 {
-  if (ih->data->extra_buttons > button - 1)
+  if (ih->data->extra_buttons > button - 1 && ih->data->position == IEXPANDER_TOP)
   {
     Ihandle* box = ih->firstchild->firstchild;
     Ihandle* extra_box = box->firstchild->brother->brother;  /* (expand_button, label, extra_box) */
@@ -1120,7 +1161,7 @@ static int iExpanderSetImageExtra(Ihandle* ih, const char* value, int button)
 
 static int iExpanderSetImageExtraPress(Ihandle* ih, const char* value, int button)
 {
-  if (ih->data->extra_buttons > button - 1)
+  if (ih->data->extra_buttons > button - 1 && ih->data->position == IEXPANDER_TOP)
   {
     Ihandle* box = ih->firstchild->firstchild;
     Ihandle* extra_box = box->firstchild->brother->brother;  /* (expand_button, label, extra_box) */
@@ -1138,7 +1179,7 @@ static int iExpanderSetImageExtraPress(Ihandle* ih, const char* value, int butto
 
 static int iExpanderSetImageExtraHighlight(Ihandle* ih, const char* value, int button)
 {
-  if (ih->data->extra_buttons > button - 1)
+  if (ih->data->extra_buttons > button - 1 && ih->data->position == IEXPANDER_TOP)
   {
     Ihandle* box = ih->firstchild->firstchild;
     Ihandle* extra_box = box->firstchild->brother->brother;  /* (expand_button, label, extra_box) */
@@ -1309,7 +1350,8 @@ static int iExpanderSetExtraButtonsAttrib(Ihandle* ih, const char* value)
       ih->data->extra_buttons = 3;
   }
 
-  iExpanderUpdateExtraButtons(ih);
+  if (ih->data->position == IEXPANDER_TOP)
+    iExpanderUpdateExtraButtons(ih);
 
   return 0; /* do not store value in hash table */
 }
@@ -1329,9 +1371,8 @@ static void iExpanderComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *
 {
   int child_expand = 0,
       natural_w, natural_h;
-  Ihandle* bar = ih->firstchild;
-  Ihandle* child = bar->brother;
-  Ihandle* box = bar->firstchild;
+  Ihandle* child = ih->firstchild->brother;
+  Ihandle* box = ih->firstchild->firstchild;
   int bar_size = iExpanderGetBarSize(ih);
 
   iupBaseComputeNaturalSize(box);
@@ -1385,8 +1426,8 @@ static void iExpanderComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *
 static void iExpanderSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
 {
   Ihandle* bar = ih->firstchild;
-  Ihandle* child = bar->brother;
-  Ihandle* box = bar->firstchild;
+  Ihandle* child = ih->firstchild->brother;
+  Ihandle* box = ih->firstchild->firstchild;
   int width = ih->currentwidth;
   int height = ih->currentheight;
   int bar_size = iExpanderGetBarSize(ih);
@@ -1429,7 +1470,7 @@ static void iExpanderSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
 static void iExpanderSetChildrenPositionMethod(Ihandle* ih, int x, int y)
 {
   Ihandle* bar = ih->firstchild;
-  Ihandle* child = bar->brother;
+  Ihandle* child = ih->firstchild->brother;
   int bar_size = iExpanderGetBarSize(ih);
 
   /* always position bar */
@@ -1466,6 +1507,13 @@ static void iExpanderSetChildrenPositionMethod(Ihandle* ih, int x, int y)
 
 static void iExpanderChildAddedMethod(Ihandle* ih, Ihandle* child)
 {
+  if (ih->firstchild == child) /* it was inserted before the bar */
+  {
+    ih->firstchild = child->brother; /* the actual bar */
+    child->brother = ih->firstchild->brother;
+    ih->firstchild->brother = child;
+  }
+
   iExpanderOpenCloseChild(ih, 0, 0, ih->data->state);
   (void)child;
 }
@@ -1490,6 +1538,7 @@ static int iExpanderCreateMethod(Ihandle* ih, void** params)
   IupSetAttribute(bar, "CANFOCUS", "NO");
   IupSetAttribute(bar, "BORDER", "NO");
   IupSetAttribute(bar, "EXPAND", "YES");
+  IupSetCallback(bar, "ACTION", (Icallback)iExpanderBarRedraw_CB);
 
   if (params)
   {
@@ -1497,6 +1546,15 @@ static int iExpanderCreateMethod(Ihandle* ih, void** params)
     if (*iparams)
       IupAppend(ih, *iparams);
   }
+
+  /* Internal Hierarchy:
+    Ihandle* bar = ih->firstchild;
+    Ihandle* child = bar->brother;
+    Ihandle* box = bar->firstchild;
+    Ihandle* expand_button = box->firstchild;
+    Ihandle* title_label = expand_button->brother;  (only when position==IEXPANDER_TOP)
+    Ihandle* extra_box = title_label->brother;  (only when position==IEXPANDER_TOP)
+  */
 
   return IUP_NOERROR;
 }
@@ -1578,6 +1636,10 @@ Iclass* iupExpanderNewClass(void)
   iupClassRegisterAttribute(ic, "IMAGEEXTRA3", NULL, iExpanderSetImageExtra3Attrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "IMAGEEXTRAPRESS3", NULL, iExpanderSetImageExtraPress3Attrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "IMAGEEXTRAHIGHLIGHT3", NULL, iExpanderSetImageExtraHighlight3Attrib, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "FRAME", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FRAMECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FRAMEWIDTH", NULL, NULL, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);
 
   if (!IupGetHandle("IupArrowUp") || !IupGetHandle("IupArrowDown"))
     iExpanderLoadImages();

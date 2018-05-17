@@ -668,7 +668,7 @@ static int cocoaTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 
 static char* cocoaTextGetReadOnlyAttrib(Ihandle* ih)
 {
-	int is_editable;
+	int is_editable = true;
 	
 	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
 	switch(sub_type)
@@ -698,6 +698,163 @@ static char* cocoaTextGetReadOnlyAttrib(Ihandle* ih)
 	}
 
 	return iupStrReturnBoolean(!is_editable);
+}
+
+static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
+{
+  if (!ih->handle)  /* do not do the action before map */
+  {
+    	return 0;
+  }
+	
+	if(value == NULL)
+	{
+		return 0;
+	}
+	
+  ih->data->disable_callbacks = 1;
+  if(ih->data->is_multiline)
+  {
+	  NSTextView* text_view = cocoaTextGetTextView(ih);
+
+	  NSTextStorage* text_storage = [text_view textStorage];
+	  [text_storage beginEditing];
+
+	  
+	  NSString* ns_append_string = nil;
+	  
+	  NSMutableString* mutable_string = [text_storage mutableString];
+	  
+	  if(ih->data->append_newline && ([mutable_string length] > 0))
+	  {
+		  ns_append_string = [NSString stringWithFormat:@"\n%s", value];
+
+
+	  }
+	  else
+	  {
+		  ns_append_string = [NSString stringWithUTF8String:value];
+
+	  }
+	  [mutable_string appendString:ns_append_string];
+	  
+	  [text_storage endEditing];
+
+  }
+  else
+  {
+	  
+	  IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	  switch(sub_type)
+	  {
+		  case IUPCOCOATEXTSUBTYPE_FIELD:
+		  {
+			  NSTextField* text_field = cocoaTextGetTextField(ih);
+			  NSString* old_string_value = [text_field stringValue];
+			  NSString* ns_append_string = [NSString stringWithUTF8String:value];
+			  NSString* new_string = [old_string_value stringByAppendingString:ns_append_string];
+			  [text_field setStringValue:new_string];
+
+			  break;
+		  }
+		  default:
+		  {
+			  break;
+		  }
+	  }
+  }
+	
+  ih->data->disable_callbacks = 0;
+  return 0;
+}
+
+static char* cocoaTextGetCountAttrib(Ihandle* ih)
+{
+	NSString* text_string = nil;
+
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSTextStorage* text_storage = [text_view textStorage];
+			text_string = [text_storage string];
+			
+
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			text_string = [text_field stringValue];
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	if((nil == text_string) || ([text_string length] == 0))
+	{
+		return iupStrReturnInt(0);
+	}
+	
+	// GOTCHA: Modern characters may be multiple bytes (e.g. emoji characters).
+	// Because of this, [string length] isn't correct, because it tells us the number of bytes, not characters.
+	// The correct thing to do is to iterate through the string and count the glyphs.
+	// But it probably is more expensive than what people think when they call this routine.
+	// See https://www.objc.io/issues/9-strings/unicode/
+	// NSString *s = @"The weather on \U0001F30D is \U0001F31E today.";
+	// The weather on 🌍 is 🌞 today.
+
+//	NSLog(@"length: %zu\n%@", [text_string length], text_string);
+
+	NSRange full_range = NSMakeRange(0, [text_string length]);
+	// Remember __block let's us modify this outside variable inside the block
+	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Blocks/Articles/bxVariables.html#//apple_ref/doc/uid/TP40007502-CH6-SW1
+	__block int character_count = 0;
+	[text_string enumerateSubstringsInRange:full_range
+		options:NSStringEnumerationByComposedCharacterSequences
+		usingBlock:^(NSString* substring, NSRange substring_range,
+		NSRange enclosing_range, BOOL* stop)
+		{
+			character_count++;
+		}
+	 ];
+//	NSLog(@"final count: %d", character_count);
+	return iupStrReturnInt(character_count);
+}
+
+static int cocoaTextSetScrollToPosAttrib(Ihandle* ih, const char* value)
+{
+  int pos = 0;
+
+  if (!value)
+    return 0;
+
+  iupStrToInt(value, &pos);
+  if (pos < 0) pos = 0;
+
+  if (ih->data->is_multiline)
+  {
+	  NSTextView* text_view = cocoaTextGetTextView(ih);
+	  
+	  [text_view scrollRangeToVisible:NSMakeRange(pos, 0)];
+  }
+  else
+  {
+	  // I don't think this makes any sense to scroll other widgets
+  }
+
+  return 0;
 }
 
 // Need to override because the position offsets are wrong otherwise.
@@ -1349,20 +1506,28 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "CARET", gtkTextGetCaretAttrib, gtkTextSetCaretAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CARETPOS", gtkTextGetCaretPosAttrib, gtkTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "INSERT", NULL, gtkTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "APPEND", NULL, gtkTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #endif
 	
+  iupClassRegisterAttribute(ic, "APPEND", NULL, cocoaTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+
   iupClassRegisterAttribute(ic, "READONLY", cocoaTextGetReadOnlyAttrib, cocoaTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
 #if 0
   iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, gtkTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, gtkTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, gtkTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, gtkTextSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#endif
+  iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, cocoaTextSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#if 0
   iupClassRegisterAttribute(ic, "SPINMIN", NULL, gtkTextSetSpinMinAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SPINMAX", NULL, gtkTextSetSpinMaxAttrib, IUPAF_SAMEASSYSTEM, "100", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SPININC", NULL, gtkTextSetSpinIncAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SPINVALUE", gtkTextGetSpinValueAttrib, gtkTextSetSpinValueAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "COUNT", gtkTextGetCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
+#endif
+
+  iupClassRegisterAttribute(ic, "COUNT", cocoaTextGetCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
+#if 0
+	// TODO: What is a "line", e.g. does it include lines caused by wrapping?
+	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/CountLines.html
   iupClassRegisterAttribute(ic, "LINECOUNT", gtkTextGetLineCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 
   /* IupText Windows and GTK only */

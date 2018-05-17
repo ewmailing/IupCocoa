@@ -23,10 +23,38 @@
 
 
 /***** STYLE DEFINITION *****
-Attributes not implement:
-SCI_STYLESETCHANGEABLE(int styleNumber, bool changeable)
-SCI_STYLEGETCHANGEABLE(int styleNumber)  
-*/
+SCI_STYLERESETDEFAULT
+SCI_STYLECLEARALL
+SCI_STYLESETFONT(int styleNumber, char *fontName)
+SCI_STYLEGETFONT(int styleNumber, char *fontName)
+SCI_STYLESETSIZE(int styleNumber, int sizeInPoints)
+SCI_STYLEGETSIZE(int styleNumber)
+SCI_STYLESETSIZEFRACTIONAL(int styleNumber, int sizeInHundredthPoints)
+SCI_STYLEGETSIZEFRACTIONAL(int styleNumber)
+SCI_STYLESETBOLD(int styleNumber, bool bold)
+SCI_STYLEGETBOLD(int styleNumber)
+SCI_STYLESETWEIGHT(int styleNumber, int weight)
+SCI_STYLEGETWEIGHT(int styleNumber)
+SCI_STYLESETITALIC(int styleNumber, bool italic)
+SCI_STYLEGETITALIC(int styleNumber)
+SCI_STYLESETUNDERLINE(int styleNumber, bool underline)
+SCI_STYLEGETUNDERLINE(int styleNumber)
+SCI_STYLESETFORE(int styleNumber, int colour)
+SCI_STYLEGETFORE(int styleNumber)
+SCI_STYLESETBACK(int styleNumber, int colour)
+SCI_STYLEGETBACK(int styleNumber)
+SCI_STYLESETEOLFILLED(int styleNumber, bool eolFilled)
+SCI_STYLEGETEOLFILLED(int styleNumber)
+SCI_STYLESETCHARACTERSET(int styleNumber, int charSet)
+SCI_STYLEGETCHARACTERSET(int styleNumber)
+SCI_STYLESETCASE(int styleNumber, int caseMode)
+SCI_STYLEGETCASE(int styleNumber)
+SCI_STYLESETVISIBLE(int styleNumber, bool visible)
+SCI_STYLEGETVISIBLE(int styleNumber)
+--SCI_STYLESETCHANGEABLE(int styleNumber, bool changeable)
+--SCI_STYLEGETCHANGEABLE(int styleNumber)
+SCI_STYLESETHOTSPOT(int styleNumber, bool hotspot)
+SCI_STYLEGETHOTSPOT(int styleNumber)*/
 
 static char* iScintillaGetCaseStyleAttrib(Ihandle* ih, int style)
 {
@@ -35,7 +63,7 @@ static char* iScintillaGetCaseStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
   
-  caseSty = IupScintillaSendMessage(ih, SCI_STYLEGETCASE, style, 0);
+  caseSty = (int)IupScintillaSendMessage(ih, SCI_STYLEGETCASE, style, 0);
   
   if(caseSty == SC_CASE_UPPER)
     return "UPPERCASE";
@@ -65,7 +93,7 @@ static char* iScintillaGetVisibleStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_STYLEGETVISIBLE, style, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_STYLEGETVISIBLE, style, 0)); 
 }
 
 static int iScintillaSetVisibleStyleAttrib(Ihandle* ih, int style, const char* value)
@@ -86,7 +114,7 @@ static char* iScintillaGetHotSpotStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_STYLEGETHOTSPOT, style, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_STYLEGETHOTSPOT, style, 0)); 
 }
 
 static int iScintillaSetHotSpotStyleAttrib(Ihandle* ih, int style, const char* value)
@@ -109,7 +137,7 @@ static char* iScintillaGetCharSetStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
   
-  charset = IupScintillaSendMessage(ih, SCI_STYLEGETCHARACTERSET, style, 0);
+  charset = (int)IupScintillaSendMessage(ih, SCI_STYLEGETCHARACTERSET, style, 0);
 
   if(charset == SC_CHARSET_EASTEUROPE)
     return "EASTEUROPE";
@@ -152,7 +180,7 @@ static char* iScintillaGetEolFilledStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_STYLEGETEOLFILLED, style, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_STYLEGETEOLFILLED, style, 0)); 
 }
 
 static int iScintillaSetEolFilledStyleAttrib(Ihandle* ih, int style, const char* value)
@@ -175,19 +203,19 @@ static char* iScintillaGetFontSizeFracStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  size = IupScintillaSendMessage(ih, SCI_STYLESETSIZEFRACTIONAL, style, 0);
+  size = (int)IupScintillaSendMessage(ih, SCI_STYLESETSIZEFRACTIONAL, style, 0);
 
-  return iupStrReturnFloat((float)size/(float)SC_FONT_SIZE_MULTIPLIER);
+  return iupStrReturnDouble((double)size / (double)SC_FONT_SIZE_MULTIPLIER);
 }
 
 static int iScintillaSetFontSizeFracStyleAttrib(Ihandle* ih, int style, const char* value)
 {
-  float size;
+  double size;
 
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  iupStrToFloat(value, &size);
+  iupStrToDouble(value, &size);
 
   IupScintillaSendMessage(ih, SCI_STYLESETSIZEFRACTIONAL, style, (int)(size*SC_FONT_SIZE_MULTIPLIER));
 
@@ -201,7 +229,7 @@ static char* iScintillaGetFontSizeStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  size = IupScintillaSendMessage(ih, SCI_STYLEGETSIZE, style, 0);
+  size = (int)IupScintillaSendMessage(ih, SCI_STYLEGETSIZE, style, 0);
   return iupStrReturnInt(size);
 }
 
@@ -243,12 +271,12 @@ static int iScintillaSetFontStyleAttrib(Ihandle* ih, int style, const char* valu
 
 static char* iScintillaGetWeightStyleAttrib(Ihandle* ih, int style)
 {
-  int weight = IupScintillaSendMessage(ih, SCI_STYLEGETWEIGHT, style, 0);
+  int weight = (int)IupScintillaSendMessage(ih, SCI_STYLEGETWEIGHT, style, 0);
 
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  weight = IupScintillaSendMessage(ih, SCI_STYLEGETWEIGHT, style, 0);
+  weight = (int)IupScintillaSendMessage(ih, SCI_STYLEGETWEIGHT, style, 0);
   return iupStrReturnInt(weight);
 }
 
@@ -284,7 +312,7 @@ static char* iScintillaGetUnderlineStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_STYLEGETUNDERLINE, style, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_STYLEGETUNDERLINE, style, 0)); 
 }
 
 static int iScintillaSetUnderlineStyleAttrib(Ihandle* ih, int style, const char* value)
@@ -305,7 +333,7 @@ static char* iScintillaGetItalicStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_STYLEGETITALIC, style, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_STYLEGETITALIC, style, 0)); 
 }
 
 static int iScintillaSetItalicStyleAttrib(Ihandle* ih, int style, const char* value)
@@ -326,7 +354,7 @@ static char* iScintillaGetBoldStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  return iupStrReturnBoolean(IupScintillaSendMessage(ih, SCI_STYLEGETBOLD, style, 0)); 
+  return iupStrReturnBoolean((int)IupScintillaSendMessage(ih, SCI_STYLEGETBOLD, style, 0)); 
 }
 
 static int iScintillaSetBoldStyleAttrib(Ihandle* ih, int style, const char* value)
@@ -350,7 +378,7 @@ static char* iScintillaGetFgColorStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  color = IupScintillaSendMessage(ih, SCI_STYLEGETFORE, style, 0);
+  color = (int)IupScintillaSendMessage(ih, SCI_STYLEGETFORE, style, 0);
   iupScintillaDecodeColor(color, &r, &g, &b);
   return iupStrReturnRGB(r, g, b);
 }
@@ -378,7 +406,7 @@ static char* iScintillaGetBgColorStyleAttrib(Ihandle* ih, int style)
   if(style == IUP_INVALID_ID)
     style = 0;  /* Lexer style default */
 
-  color = IupScintillaSendMessage(ih, SCI_STYLEGETBACK, style, 0);
+  color = (int)IupScintillaSendMessage(ih, SCI_STYLEGETBACK, style, 0);
   iupScintillaDecodeColor(color, &r, &g, &b);
   return iupStrReturnRGB(r, g, b);
 }
@@ -437,39 +465,63 @@ static int iScintillaSetFontAttrib(Ihandle* ih, const char* value)
     return iupdrvSetFontAttrib(ih, value);
   else
   {
-    int size = 0;
-    int is_bold = 0,
+    int i, size = 0,
+       is_bold = 0,
       is_italic = 0,
       is_underline = 0,
       is_strikeout = 0;
     char typeface[1024];
 
-    if (!value)
+    if (!iupdrvSetFontAttrib(ih, value))
       return 0;
 
     if (!iupGetFontInfo(value, typeface, &size, &is_bold, &is_italic, &is_underline, &is_strikeout))
       return 0;
 
-    iScintillaSetFontStyleAttrib(ih, 0, typeface);
-    IupScintillaSendMessage(ih, SCI_STYLESETSIZE, 0, size);
+    for (i = 0; i < 256; i++)
+    {
+      IupScintillaSendMessage(ih, SCI_STYLESETFONT, i, (sptr_t)typeface);
+      IupScintillaSendMessage(ih, SCI_STYLESETSIZE, i, size);
+      IupScintillaSendMessage(ih, SCI_STYLESETBOLD, i, is_bold);
+      IupScintillaSendMessage(ih, SCI_STYLESETITALIC, i, is_italic);
+      IupScintillaSendMessage(ih, SCI_STYLESETUNDERLINE, i, is_underline);
+    }
 
-    iScintillaSetBoldStyleAttrib(ih, 0, is_bold ? "Yes" : "No");
-    iScintillaSetItalicStyleAttrib(ih, 0, is_italic ? "Yes" : "No");
-    iScintillaSetUnderlineStyleAttrib(ih, 0, is_underline ? "Yes" : "No");
-
-    return iupdrvSetFontAttrib(ih, value);
+    return 1;
   }
 }
 
 static int iScintillaSetFgColorAttrib(Ihandle *ih, const char *value)
 {
-  iScintillaSetFgColorStyleAttrib(ih, 0, value);
+  unsigned char r, g, b;
+  long fgcolor;
+  int i;
+
+  if (!iupStrToRGB(value, &r, &g, &b))
+    return 0;
+
+  fgcolor = iupScintillaEncodeColor(r, g, b);
+
+  for (i = 0; i < 256; i++)
+    IupScintillaSendMessage(ih, SCI_STYLESETFORE, i, fgcolor);
+
   return 1;
 }
 
 static int iScintillaSetBgColorAttrib(Ihandle *ih, const char *value)
 {
-  iScintillaSetBgColorStyleAttrib(ih, 0, value);
+  unsigned char r, g, b;
+  long fgcolor;
+  int i;
+
+  if (!iupStrToRGB(value, &r, &g, &b))
+    return 0;
+
+  fgcolor = iupScintillaEncodeColor(r, g, b);
+
+  for (i = 0; i < 256; i++)
+    IupScintillaSendMessage(ih, SCI_STYLESETBACK, i, fgcolor);
+
   return 1;
 }
 

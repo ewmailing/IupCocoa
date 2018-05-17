@@ -29,6 +29,7 @@
 #include "iup_key.h"
 #include "iup_image.h"
 #include "iup_list.h"
+#include "iup_childtree.h"
 
 #include "iupgtk_drv.h"
 
@@ -121,20 +122,26 @@ void iupdrvListAppendItem(Ihandle* ih, const char* value)
 {
   GtkTreeModel *model = gtkListGetModel(ih);
   GtkTreeIter iter;
+
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
   gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_TEXT, iupgtkStrConvertToSystem(value), -1);
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_IMAGE, NULL, -1);
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 }
 
 void iupdrvListInsertItem(Ihandle* ih, int pos, const char* value)
 {
   GtkTreeModel *model = gtkListGetModel(ih);
   GtkTreeIter iter;
+
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
   gtk_list_store_insert(GTK_LIST_STORE(model), &iter, pos);
 
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_TEXT, iupgtkStrConvertToSystem(value), -1);
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, IUPGTK_LIST_IMAGE, NULL, -1);
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 
   iupListUpdateOldValue(ih, pos, 0);
 }
@@ -160,13 +167,15 @@ void iupdrvListRemoveItem(Ihandle* ih, int pos)
             curpos = -1; /* remove the selection */
         }
 
-        g_signal_handlers_block_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
         gtk_combo_box_set_active((GtkComboBox*)ih->handle, curpos);
-        g_signal_handlers_unblock_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       }
     }
 
+    iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
     gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+    iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 
     iupListUpdateOldValue(ih, pos, 1);
   }
@@ -175,7 +184,9 @@ void iupdrvListRemoveItem(Ihandle* ih, int pos)
 void iupdrvListRemoveAllItems(Ihandle* ih)
 {
   GtkTreeModel *model = gtkListGetModel(ih);
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
   gtk_list_store_clear(GTK_LIST_STORE(model));
+  iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
 }
 
 
@@ -184,7 +195,8 @@ void iupdrvListRemoveAllItems(Ihandle* ih)
 
 static int gtkListSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {
@@ -250,7 +262,7 @@ static int gtkListSetBgColorAttrib(Ihandle* ih, const char* value)
   unsigned char r, g, b;
 
   GtkScrolledWindow* scrolled_window = (GtkScrolledWindow*)iupAttribGet(ih, "_IUP_EXTRAPARENT");
-  if (scrolled_window && !ih->data->is_dropdown)
+  if (scrolled_window && !ih->data->is_dropdown && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     /* ignore given value, must use only from parent for the scrollbars */
     char* parent_value = iupBaseNativeParentGetBgColor(ih);
@@ -306,7 +318,7 @@ static int gtkListSetBgColorAttrib(Ihandle* ih, const char* value)
     if (renderer)
     {
       GdkColor color;
-      iupgdkColorSet(&color, r, g, b);
+      iupgdkColorSetRGB(&color, r, g, b);
       g_object_set(G_OBJECT(renderer), "cell-background-gdk", &color, NULL);
     }
   }
@@ -335,7 +347,7 @@ static int gtkListSetFgColorAttrib(Ihandle* ih, const char* value)
     if (renderer)
     {
       GdkColor color;
-      iupgdkColorSet(&color, r, g, b);
+      iupgdkColorSetRGB(&color, r, g, b);
       g_object_set(G_OBJECT(renderer), "foreground-gdk", &color, NULL);
     }
   }
@@ -412,8 +424,8 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
     {
       int pos;
       GtkTreeModel *model = gtkListGetModel(ih);
-      g_signal_handlers_block_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
-      if (iupStrToInt(value, &pos)==1 && 
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
+      if (iupStrToInt(value, &pos) == 1 &&
           (pos>0 && pos<=gtk_tree_model_iter_n_children(model, NULL)))
       {
         gtk_combo_box_set_active((GtkComboBox*)ih->handle, pos-1);    /* IUP starts at 1 */
@@ -424,7 +436,7 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
         gtk_combo_box_set_active((GtkComboBox*)ih->handle, -1);    /* none */
         iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
       }
-      g_signal_handlers_unblock_by_func(G_OBJECT(ih->handle), G_CALLBACK(gtkListComboBoxChanged), ih);
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
     }
     else
     {
@@ -432,8 +444,8 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
       if (!ih->data->is_multiple)
       {
         int pos;
-        g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
-        if (iupStrToInt(value, &pos)==1)
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
+        if (iupStrToInt(value, &pos) == 1)
         {
           GtkTreePath* path = gtk_tree_path_new_from_indices(pos-1, -1);   /* IUP starts at 1 */
           gtk_tree_selection_select_path(selection, path);
@@ -445,14 +457,14 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
           gtk_tree_selection_unselect_all(selection);
           iupAttribSet(ih, "_IUPLIST_OLDVALUE", NULL);
         }
-        g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       }
       else
       {
         /* User has changed a multiple selection on a simple list. */
 	      int i, len, count;
 
-        g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
 
         /* Clear all selections */
         gtk_tree_selection_unselect_all(selection);
@@ -479,7 +491,7 @@ static int gtkListSetValueAttrib(Ihandle* ih, const char* value)
           }
         }
         iupAttribSetStr(ih, "_IUPLIST_OLDVALUE", value);
-        g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+        iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       }
     }
   }
@@ -507,7 +519,7 @@ static int gtkListSetTopItemAttrib(Ihandle* ih, const char* value)
     if (iupStrToInt(value, &pos))
     {
       GtkTreePath* path = gtk_tree_path_new_from_indices(pos-1, -1);   /* IUP starts at 1 */
-      gtk_tree_view_scroll_to_cell((GtkTreeView*)ih->handle, path, NULL, FALSE, 0, 0);
+      gtk_tree_view_scroll_to_cell((GtkTreeView*)ih->handle, path, NULL, TRUE, 0, 0);  /* scroll to visible, top */
       gtk_tree_path_free(path);
     }
   }
@@ -545,10 +557,7 @@ static int gtkListSetPaddingAttrib(Ihandle* ih, const char* value)
   {
     GtkEntry* entry = (GtkEntry*)iupAttribGet(ih, "_IUPGTK_ENTRY");
 #if GTK_CHECK_VERSION(3, 4, 0)
-    g_object_set(G_OBJECT(entry), "margin-bottom", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(entry), "margin-top", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(entry), "margin-left", ih->data->horiz_padding, NULL);
-    g_object_set(G_OBJECT(entry), "margin-right", ih->data->horiz_padding, NULL);
+    iupgtkSetMargin(GTK_WIDGET(entry), ih->data->horiz_padding, ih->data->vert_padding, 0);
 #else
 #if GTK_CHECK_VERSION(2, 10, 0)
     GtkBorder border;
@@ -1150,9 +1159,9 @@ static gboolean gtkListEditKeyPressEvent(GtkWidget* entry, GdkEventKey *evt, Iha
     if (pos != -1)
     {
       GtkTreePath* path = gtk_tree_path_new_from_indices(pos, -1);
-      g_signal_handlers_block_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", "1");
       gtk_tree_selection_select_path(selection, path);
-      g_signal_handlers_unblock_by_func(G_OBJECT(selection), G_CALLBACK(gtkListSelectionChanged), ih);
+      iupAttribSet(ih, "_IUPLIST_IGNORE_ACTION", NULL);
       gtk_tree_path_free(path);
       iupAttribSetInt(ih, "_IUPLIST_OLDVALUE", pos+1); /* starts at 1 */
 
@@ -1251,7 +1260,12 @@ static void gtkListComboBoxPopupShown(GtkComboBox* widget, GParamSpec *pspec, Ih
 
 static void gtkListComboBoxChanged(GtkComboBox* widget, Ihandle* ih)
 {
-  IFnsii cb = (IFnsii)IupGetCallback(ih, "ACTION");
+  IFnsii cb;
+
+  if (iupAttribGet(ih, "_IUPLIST_IGNORE_ACTION"))
+    return;
+
+  cb = (IFnsii)IupGetCallback(ih, "ACTION");
   if (cb)
   {
     int pos = gtk_combo_box_get_active((GtkComboBox*)ih->handle);
@@ -1310,6 +1324,9 @@ static void gtkListSelectionChanged(GtkTreeSelection* selection, Ihandle* ih)
       gtk_tree_path_free(path);
     }
   }
+
+  if (iupAttribGet(ih, "_IUPLIST_IGNORE_ACTION"))
+    return;
 
   if (!ih->data->is_multiple)
   {
@@ -1455,9 +1472,10 @@ static int gtkListMapMethod(Ihandle* ih)
     else
     {
       GtkWidget *toggle = NULL;
+      Ihandle* native_parent = iupChildTreeGetNativeParent(ih);
 
       /* had to add an event box so it can be positioned in an IupCanvas based control */
-      if (ih->parent->iclass->nativetype == IUP_TYPECANVAS)
+      if (native_parent->iclass->nativetype == IUP_TYPECANVAS)
       {
         GtkWidget *box = gtk_event_box_new();
         gtk_container_add((GtkContainer*)box, ih->handle);

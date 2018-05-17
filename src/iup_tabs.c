@@ -22,7 +22,7 @@
 #include "iup_layout.h"
 #include "iup_image.h"
 #include "iup_tabs.h"
-
+#include "iup_varg.h"
 
 
 char* iupTabsGetTabPaddingAttrib(Ihandle* ih)
@@ -266,23 +266,6 @@ static void iTabsSetTab(Ihandle* ih, Ihandle* child, int pos)
 /* TABS - Sets and Gets - Attribs                                           */
 /* ------------------------------------------------------------------------- */
 
-static int iTabsSetValueHandleAttrib(Ihandle* ih, const char* value)
-{
-  int pos;
-  Ihandle *child;
-
-  child = (Ihandle*)value;
-
-  if (!iupObjectCheck(child))
-    return 0;
-
-  pos = IupGetChildPos(ih, child);
-  if (pos != -1) /* found child */
-    iTabsSetTab(ih, child, pos);
- 
-  return 0;
-}
-
 char* iupTabsGetTabTypeAttrib(Ihandle* ih)
 {
   switch(ih->data->type)
@@ -306,6 +289,28 @@ char* iupTabsGetTabOrientationAttrib(Ihandle* ih)
     return "VERTICAL";
 }
 
+static char* iTabsGetCountAttrib(Ihandle* ih)
+{
+  return iupStrReturnInt(IupGetChildCount(ih));
+}
+
+static int iTabsSetValueHandleAttrib(Ihandle* ih, const char* value)
+{
+  int pos;
+  Ihandle *child;
+
+  child = (Ihandle*)value;
+
+  if (!iupObjectCheck(child))
+    return 0;
+
+  pos = IupGetChildPos(ih, child);
+  if (pos != -1) /* found child */
+    iTabsSetTab(ih, child, pos);
+
+  return 0;
+}
+
 static char* iTabsGetValueHandleAttrib(Ihandle* ih)
 {
   if (ih->handle)
@@ -315,11 +320,6 @@ static char* iTabsGetValueHandleAttrib(Ihandle* ih)
   }
   else
     return iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
-}
-
-static char* iTabsGetCountAttrib(Ihandle* ih)
-{
-  return iupStrReturnInt(IupGetChildCount(ih));
 }
 
 static int iTabsSetValuePosAttrib(Ihandle* ih, const char* value)
@@ -374,7 +374,7 @@ static int iTabsSetValueAttrib(Ihandle* ih, const char* value)
 static char* iTabsGetValueAttrib(Ihandle* ih)
 {
   Ihandle* child = (Ihandle*)iTabsGetValueHandleAttrib(ih);
-  return IupGetName(child);
+  return IupGetName(child);  /* Name is guarantied at AddedMethod */
 }
 
 static char* iTabsGetClientSizeAttrib(Ihandle* ih)
@@ -549,6 +549,7 @@ Iclass* iupTabsNewClass(void)
   iupClassRegisterCallback(ic, "TABCHANGE_CB", "nn");
   iupClassRegisterCallback(ic, "TABCHANGEPOS_CB", "ii");
   iupClassRegisterCallback(ic, "RIGHTCLICK_CB", "i");
+  iupClassRegisterCallback(ic, "FOCUS_CB", "i");
 
   /* Common Callbacks */
   iupBaseRegisterCommonCallbacks(ic);
@@ -579,23 +580,24 @@ Iclass* iupTabsNewClass(void)
   return ic;
 }
 
-Ihandle* IupTabs(Ihandle* first,...)
-{
-  Ihandle **children;
-  Ihandle *ih;
-
-  va_list arglist;
-  va_start(arglist, first);
-  children = (Ihandle**)iupObjectGetParamList(first, arglist);
-  va_end(arglist);
-
-  ih = IupCreatev("tabs", (void**)children);
-  free(children);
-
-  return ih;
-}
-
 Ihandle* IupTabsv(Ihandle** params)
 {
   return IupCreatev("tabs", (void**)params);
+}
+
+Ihandle*  IupTabsV(Ihandle* child, va_list arglist)
+{
+  return IupCreateV("tabs", child, arglist);
+}
+
+Ihandle* IupTabs(Ihandle* child, ...)
+{
+  Ihandle *ih;
+
+  va_list arglist;
+  va_start(arglist, child);
+  ih = IupCreateV("tabs", child, arglist);
+  va_end(arglist);
+
+  return ih;
 }

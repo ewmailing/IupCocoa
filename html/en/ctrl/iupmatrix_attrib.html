@@ -14,6 +14,9 @@
 .style3 {
 	margin-left: 40px;
 }
+.auto-style1 {
+	font-size: medium;
+}
 </style>
 </head>
 <body>
@@ -32,19 +35,24 @@ By default an internal image will be used. (since 3.16) </p>
 <p><strong><a name="FOCUS_CELL">FOCUSCELL</a></strong>:
   Defines the current cell. Two numbers in the &quot;<strong><em>L</em></strong>:<strong><em>C</em></strong>&quot; format, 
     &nbsp;(<strong><em>L</em></strong>&gt;0 and <strong><em>C</em></strong>&gt;0, a title cell can NOT be the current cell). Default: &quot;1:1&quot;.</p>
+<p><strong>FLAT</strong>: removes the 3D appearance from the matrix. (since 
+3.25)</p>
+<p><a href="../attrib/iup_flatscrollbar.html">FLATSCROLLBAR</a>: enable the flat 
+scrollbars. Can be set only before map. SCROLLBAR is set to NO. Can be Yes, 
+Vertical or Horizontal. Default: not defined. (since 3.22)</p>
 <p><strong><a name="HIDEFOCUS">HIDEFOCUS</a></strong>: do not show the focus mark when 
   drawing the matrix. Default is NO.</p>
 <p><strong><a name="HIDDENTEXTMARKS">HIDDENTEXTMARKS</a></strong>: when text is greater than cell space, it is 
 normally cropped, but when set to YES a &quot;...&quot; mark will be added at the crop 
 point to indicate that there is more text not visible. Default: NO. (since 3.1)</p>
-<p><strong>HLCOLOR</strong> (<font size="3">non inheritable</font>): the overlay 
+<p><strong>HLCOLOR</strong>: the overlay 
 color for the selected cells. Default: TXTHLCOLOR global attribute. If set to &quot;&quot; 
 will only use the attenuation process. The color is composited using 
 HLCOLORALPHA attribute as alpha value (default is 128). (since 3.16)</p>
 
   
 <p><strong><a name="ORIGIN">ORIGIN</a></strong>: Scroll the visible area to the 
-given cell. Returns the cell at the upper left corner. To scroll to a line or a 
+given cell. Returns the cell at the top-left corner. To scroll to a line or a 
 column, use a value such as &quot;<strong><em>L</em></strong>:*&quot; or &quot;*:<strong><em>C</em></strong>&quot; (where
 <em><strong>L</strong></em>&gt;0 and <strong><em>C</em></strong>&gt;0). L and C 
 can not be a non scrollable cell either.</p>
@@ -184,18 +192,25 @@ or size (since
 <p><strong><a name="FRAMECOLOR">FRAMECOLOR</a></strong>:
   Sets the color to be used in the frame lines. (inheritable)<br>
 <strong>FRAMEVERTCOLOR<em>L:C</em></strong>: Color of the vertical right frame 
-line of the cell. When not defined the FRAMECOLOR is used. For a title column cell 
+line of the cell. When not defined the FRAMEVERTCOLOR<em>*:C</em> is used. For a title column cell 
 (col=0) defines 
-right and left frames. If value is &quot;BGCOLOR&quot; the frame line is not drawn.<br>
+right and left frames, except if FRAMETITLEVERTCOLOR<i>L</i><strong>:</strong><i>C</i>&nbsp; 
+is defined. If value is &quot;BGCOLOR&quot; the frame line is not drawn.<br>
 <strong>FRAMEVERTCOLOR<em>*:C</em></strong>: same as FRAMEVERTCOLOR<em>L:C</em> 
-but for all the cells of the column C. (since 3.5)<br>
-<strong>FRAMEHORIZCOLOR<em>L:C</em></strong>: Color of the horizontal bottom frame 
+but for all the cells of the column C. When not defined the FRAMECOLOR is used. (since 3.5)<strong><br>FRAMETITLEVERTCOLOR<em>L:</em></strong><em><strong>0</strong></em>: 
+color of the vertical left frame line of the cell. When not defined the FRAMEVERTCOLOR<em>L:0</em>&nbsp; 
+is used. &quot;L&quot; can also be &quot;*&quot; (since 3.22)<strong><br>
+FRAMEHORIZCOLOR<em>L:C</em></strong>: color of the horizontal bottom frame 
 line of the 
-cell. When not defined the 
-FRAMECOLOR is used. For a title line cell (lin=0) defines bottom and top frames. If value is 
+cell. When not defined the FRAMEHORIZCOLOR<em>L:* </em>is used. For a title line cell (lin=0) defines bottom and top frames, 
+except if FRAMETITLEHORIZCOLOR<i>L</i><strong>:</strong><i>C</i>&nbsp; is 
+defined. If value is 
 &quot;BGCOLOR&quot; the frame line is not drawn.<br>
-<strong>FRAMEHORIZCOLOR<em>L:*</em></strong>:same as FRAMEHORIZCOLOR<em>L:C </em>
-but for all the cells of the line L. (since 3.5)</p>
+<strong>FRAMEHORIZCOLOR<em>L:*</em></strong>: same as FRAMEHORIZCOLOR<em>L:C </em>
+but for all the cells of the line L. When not defined the FRAMECOLOR is used. (since 3.5)<br>
+<strong>FRAMETITLEHORIZCOLOR<em>0:C</em></strong>: color of the horizontal top 
+frame line of the cell. When not defined the FRAMEHORIZCOLOR<em>0:C</em>&nbsp; 
+is used. &quot;C&quot; can also be &quot;*&quot;. (since 3.22)</p>
 <p><strong>FRAMETITLEHIGHLIGHT</strong>: by default the title cells will have a 
 bright line at left and top to configure a raise appearance. Can be Yes or No. 
 Default: Yes. (since 3.9)</p>
@@ -222,13 +237,37 @@ EDITION_CB callback when mode is 0, then the return value is the new value
 (read-only): Returns the displayed cell value. Returns NULL if the cell does not 
 exists, or it is not visible, or the element is not mapped. (since 3.14)</p>
 <p><strong><a name="CELLBGCOLOR">CELLBGCOLOR</a><i>L</i>:<i>C</i></strong> 
-(read-only): Returns the actual cell background color, including mark and active 
+(read-only): Returns the actual cell background color, including lin and col 
+variations, callback returned values, mark and active 
 state modifications. Returns NULL if the cell does not 
 exists, or it is not visible, or the element is not mapped. (since 3.6)</p>
 <p><strong><a name="CELLFGCOLOR">CELLFGCOLOR</a><i>L</i>:<i>C</i></strong> 
-(read-only): Returns the actual cell foreground color, including mark state 
+(read-only): Returns the actual cell foreground color, including lin and col 
+variations, callback returned values, mark state 
 modifications. Returns NULL if the cell does not 
 exists, or it is not visible, or the element is not mapped. (since 3.6)</p>
+<p><strong>CELLFONT<i>L</i>:<i>C</i></strong> 
+(read-only): Returns the actual cell font, including lin and col variations, 
+callback returned values. Returns NULL if the cell does not 
+exists, or it is not visible, or the element is not mapped. (since 3.23)</p>
+<p><strong>CELL<i>TYPEL</i>:<i>C</i></strong> 
+(read-only): Returns the actual cell type, including lin and col variations, 
+callback returned values. Returns NULL if the cell does not 
+exists, or it is not visible, or the element is not mapped. (since 3.23)</p>
+<p><strong>CELLFRAMEHORIZCOLOR<i>L</i>:<i>C</i></strong> 
+(read-only): Returns the actual cell frame horizontal color, including lin and 
+col variations. Returns NULL if the cell does not 
+exists, or it is not visible, the element is not mapped, or the color is 
+transparent. (since 3.23)</p>
+<p><strong>CELLFRAMEVERTCOLOR<i>L</i>:<i>C</i></strong> 
+(read-only): Returns the actual cell frame vertical color, including lin and col 
+variations. Returns NULL if the cell does not 
+exists, or it is not visible, the element is not mapped, or the color is 
+transparent. (since 3.23)</p>
+<p><strong>CELLALIGNMENT<i>L</i>:<i>C</i></strong> 
+(read-only): Returns the actual cell text aligment, including lin and col 
+variations. Returns NULL if the cell does not 
+exists, or it is not visible, or the element is not mapped. (since 3.23)</p>
 <p><strong><a name="CELLOFFSET">CELLOFFSET</a><i>L</i>:<i>C</i></strong> (read-only): Returns the cell 
 computed offset in pixels from the top-left corner of the matrix, in the format 
 &quot;XxY&quot; or &quot;%dx%d&quot; in C. Returns NULL 
@@ -398,6 +437,8 @@ NUMLIN_VISIBLE attribute behavior nor Natural size computation. It will always
 use the first lines of the matrix. The cells appearance will be the same of 
 ordinary cells, and they can also receive the focus and be edited.&nbsp; Must be 
 less than the total number of lines. (since 3.5)</p>
+<p><strong>NOSCROLLASTITLE</strong>: Non scrollable lines and columns to look 
+and behave as title cells. Can be Yes or No. Default: No. (since 3.24)</p>
 <h3><a name="Mark_Attributes">Mark Attributes</a></h3>
 <p><strong>MARK<a name="MARKAREA">AREA</a></strong>:
   Defines if the area to be <strong>interactively</strong> 
@@ -434,6 +475,23 @@ MULTIPLE and AREA are NOT considered when setting MARKED or MARKL:C.</p>
   MARKMODE can be <strong>interactively</strong> 
   marked. Possible values: &quot;YES&quot; or &quot;NO&quot;. Default: 
     &quot;NO&quot;.</p>
+<h3><a name="Merge_Attributes">Merge Attributes</a><span class="auto-style1"> 
+(since 3.23)</span></h3>
+<p><strong>MERGE<i>L</i>:<i>C</i></strong>: merge a range of cells starting from 
+the given &quot;lin:col&quot; (in id), and ending at the given &quot;lin:col&quot; (in value). Title 
+cells can also be merge but only among them, i.e. in the line of column titles 
+(L=0) can only merge columns, and in the column of line titles (C=0) can only 
+merge lines. The corner cell (0:0) can not be merged with any other cell. Only 
+cells that are not already merged can be merged into a range. Returns if the 
+given cell belongs to a merged range, can be &quot;Yes&quot; or &quot;No&quot;.</p>
+<p><strong>MERGESPLIT</strong> (write-only): split a merged range. value is a 
+cell &quot;lin:col&quot; than belongs to the range, any cell of the range can be used.</p>
+<p><strong>MERGEDSTART<i>L</i>:<i>C</i> </strong>&nbsp;(read-only): returns the 
+start cell of the range given a cell that belongs to the range, any cell of the 
+range can be used.</p>
+<p><strong>MERGEDEND<i>L</i>:<i>C</i> </strong>&nbsp;(read-only): returns the 
+end cell of the range given a cell that belongs to the range, any cell of the 
+range can be used.</p>
 <h3><a name="Action_Attributes">Action Attributes</a></h3>
 <p>
 <strong>CLEARATTRIB</strong> (write-only):
@@ -452,7 +510,8 @@ is specified, all line attributes are also cleared. (since 3.6)<br>
 is specified, all column attributes are also cleared, including ALIGNMENT and 
 SORTSIGN. (since 3.6)</p>
 <p class="info">In all cases, attributes are set to NULL. Only the attributes 
-FONT*, BGCOLOR*, FGCOLOR*, FRAMEHORIZCOLOR*, FRAMEHORIZCOLOR*,&nbsp; ALIGNMENT* 
+FONT*, BGCOLOR*, FGCOLOR*, FRAMEHORIZCOLOR*, FRAMEVERTCOLOR*,&nbsp;ALIGNMENTLIN0, 
+LINEALIGNMENT*, ALIGNMENT* 
 and SORTSIGN* are affected. In 
 callback mode will not call the user callbacks.</p>
 <p>
@@ -553,14 +612,15 @@ value has been updated, but before the editing control is made invisible. (since
 3.13)</p>
 <p><strong><a name="EDITNEXT">EDITNEXT</a></strong>: controls how the next cell after editing is 
 chosen. Can be LIN, COL, LINCR, COLCR. Default: LIN. (since 3.4)</p>
-<p class="info">LIN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - go to the next line, if at 
-last line then go to the next column at the same line;<br>
-LINCR&nbsp; - go to the next line, if at last line then go to the next column at 
+<p class="info">LIN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - go to the next line at the 
+same column, if at 
+the last line then go to the next column at the same line;<br>
+LINCR&nbsp; - go to the next line at the same column, if at the last line then go to the next column at 
 the first line;<br>
-COL&nbsp;&nbsp;&nbsp;&nbsp; - go to the next column, if at last column then go 
+COL&nbsp;&nbsp;&nbsp;&nbsp; - go to the next column at the same line, if at the last column then go 
 to the next line at the same column;<br>
-COLCR - go to the next column, if at last column then go to the next line at the 
-first column;<br>NONE&nbsp;&nbsp; - stay in the same cell. (since 3.6)</p>
+COLCR - go to the next column at the same line, if at the last column then go to the next line at the 
+first column;<br>NONE&nbsp;&nbsp;- stay in the same cell. (since 3.6)</p>
 <p><strong>EDITTEXT</strong> (read-only): returns Yes if the editing is being 
 done by a text box. (since 3.14)</p>
 <p><strong>EDITVALUE</strong> (read-only): returns Yes if the display cell value 

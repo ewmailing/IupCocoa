@@ -1,5 +1,5 @@
 /** \file
- * \brief Dialog Public and Private Declarations
+ * \brief Dialog (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
@@ -50,7 +50,6 @@ void iupDialogUpdatePosition(Ihandle* ih);
 /* For external modal dialog stack control */
 void iupDialogLeaveModal(int popup_level);
 void iupDialogEnterModal(Ihandle* ih_popup, int popup_level);
-
 
 
 /*********************************************************************/

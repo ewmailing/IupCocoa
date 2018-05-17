@@ -55,7 +55,7 @@ else
   LOHDIR = loh$(LUASFX)
 endif
 
-SRCLUA = scintilla.lua
+SRCLUA = scintilla.lua scintilladlg.lua
 
 GC := $(addsuffix .c, $(basename $(SRCLUA)))
 GC := $(addprefix ctrl/il_, $(GC))

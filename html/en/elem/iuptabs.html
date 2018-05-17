@@ -37,6 +37,7 @@ according to the tab type. Also known as Notebook in native systems. </p>
 <h3><a name="Creation">Creation</a></h3>
 <div>
   <pre>Ihandle* IupTabs(Ihandle*<strong> child</strong>, ...); [in C]
+Ihandle* IupTabsV(Ihandle* <strong>child</strong>, va_list <strong>arglist</strong>); [in C]
 Ihandle* IupTabsv(Ihandle**<strong> children</strong>); [in C]
 iup.tabs{<strong>child</strong>, ...: ihandle} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
 tabs(<strong>child</strong>, ...) [in LED]</pre>
@@ -180,7 +181,8 @@ child. Works only if set before the child is added to the tabs.</p>
 <h3><a name="Callbacks">Callbacks</a></h3>
 
 <p><strong>TABCHANGE_CB</strong>: Callback called when the user changes the 
-current tab.</p>
+current tab. It is not called when the current tab is programmatically changed 
+or removed.</p>
 <div align="left">
   <pre>int function(Ihandle* <strong>ih</strong>, Ihandle* <strong>new_tab</strong>, Ihandle* <strong>old_tab</strong>); [in C]
 <strong>ih</strong>:tabchange_cb(<strong>new_tab, old_tab</strong>: ihandle) -&gt; (<strong>ret</strong>: number) [in Lua]</pre>
@@ -213,6 +215,26 @@ the event.<br>
 <p class="info"><u>Returns</u>: the tab will be hidden if the callback returns 
 IUP_DEFAULT or if it does not exists. If IUP_CONTINUE is returned the tab is 
 removed and its children are destroyed. If IUP_IGNORE is returned does nothing.</p>
+
+  
+<p><b><a name="FOCUS_CB">FOCUS_CB</a></b>: Called when a child of the container gets or looses the focus. It is called 
+  only if PROPAGATEFOCUS is defined in the child. (since 3.23)</p>
+
+  
+    
+<pre>int function(Ihandle *<b>ih</b>, int <b>focus</b>); [in C]<br><b>ih</b>:focus_cb(<b>focus</b>: number) -&gt; (ret: number) [in Lua]</pre>
+
+    
+<p class="info"><strong>ih</strong>:
+  identifier of the element that activated the 
+  event.<br>
+
+    <strong>focus</strong>: is non zero if the canvas is getting the focus, is zero 
+    if it is loosing the focus.</p>
+
+  
+
+  
 <p><strong>RIGHTCLICK_CB</strong>: Callback called when the user clicks on some 
 tab using the right mouse button (since 3.10).</p>
 <div align="left">
@@ -269,7 +291,7 @@ then inside the&nbsp;<strong>IupTabs</strong>, so the problem does not occur. </
 char* IupGetAttribute<span class="style3">Id</span>(Ihandle *ih, const char* name, int id);
 int   IupGetInt<span class="style3">Id</span>(Ihandle *ih, const char* name, int id);
 float IupGetFloat<span class="style3">Id</span>(Ihandle *ih, const char* name, int id);
-void  IupSetfAttribute<span class="style3">Id</span>(Ihandle *ih, const char* name, int id, const char* format, ...);
+void  IupSetfAttribute<span class="style3">Id</span>(Ihandle ih, const char* name, int id, const char* format, ...);
 void  IupSetIntId(Ihandle* ih, const char* name, int id, int value);
 void  IupSetFloatId(Ihandle* ih, const char* name, int id, float value);</pre>
 <p>They work just like the respective traditional set and get functions. But the attribute string is complemented with 

@@ -114,9 +114,12 @@ or &quot;iup64.manifest&quot;).</p>
 of your project to do NOT generate a manifest file or the Windows Visual 
 Styles from the RC file won't work. Also when using Visual C++ 8/9/10/... you 
 can avoid using the manifest by using the following pragma on your code:</p>
-<pre>#pragma comment(linker,"\"/manifestdependency:type='win32' \
-name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
-processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")</pre>
+<pre>#pragma comment(linker,&quot;\&quot;/manifestdependency:type = 'win32' \
+                                              name = 'Microsoft.Windows.Common-Controls' \
+                                           version = '6.0.0.0' \
+                             processorArchitecture = '*' \
+                                    publicKeyToken = '6595b64144ccf1df' \
+                                          language = '*'\&quot;&quot;)</pre>
 <p>If your Windows is using the Windows Classic theme or any other theme, IUP 
 controls appearance will follow the system appearance only if you are using the 
 manifest. If not using the manifest, then it will always look like Windows Classic.</p>

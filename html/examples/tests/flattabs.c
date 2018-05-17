@@ -144,7 +144,10 @@ static int cbTest(Ihandle* ih)
 {
   Ihandle* tabs = (Ihandle*)IupGetAttribute(ih, "APP_TABS");
 
-
+#if 1
+  int count = IupGetInt(tabs, "COUNT");
+  IupSetInt(tabs, "VALUEPOS", count - 1);
+#endif
 
 #if 0
   char att[50];
@@ -261,9 +264,9 @@ static int cbInsertTab(Ihandle* ih)
 static int cbRemoveTab(Ihandle* ih)
 {
   Ihandle* tabs = (Ihandle*)IupGetAttribute(ih, "APP_TABS");
-  Ihandle* vbox = IupGetHandle(IupGetAttribute(tabs, "VALUE"));
+  Ihandle* child = IupGetHandle(IupGetAttribute(tabs, "VALUE"));
 
-  IupDestroy(vbox);
+  IupDestroy(child);
 
   IupRefresh(tabs); /* update children layout */
 
@@ -368,6 +371,12 @@ static int enterwindow_cb(Ihandle *ih)
   return IUP_DEFAULT;
 }
 
+static int extrabutton_cb(Ihandle *ih, int button, int press)
+{
+  printf("EXTRABUTTON_CB(%d, %d)\n", button, press);
+  return IUP_DEFAULT;
+}
+
 static Ihandle* CreateTabs(int tab)
 {
   Ihandle *vboxA, *vboxB, *vboxG, *text, *button,
@@ -382,7 +391,7 @@ static Ihandle* CreateTabs(int tab)
 //  if (tab)  // to test Tabs inside Tabs
   //  vboxA = IupVbox(CreateTabs(0), NULL);
 //  else
-  vboxA = IupBackgroundBox(IupVbox(IupFill(), IupLabel("Label AAA"), IupButton("Button AAA", "cbChildButton"), //NULL));
+  vboxA = IupBackgroundBox(IupVbox(IupFill(), IupSetAttributes(IupLabel("Label AAA"), "EXPAND=HORIZONTAL"), IupButton("Button AAA", "cbChildButton"), //NULL));
                              text, IupToggle("Button TTTT", "cbChildButton"), 
                              IupVal(NULL), IupSetAttributes(IupProgressBar(), "VALUE=0.5"), NULL));
   vboxB = IupBackgroundBox(IupVbox(IupLabel("Label BBB"), IupButton("Button BBB", "cbChildButton"), NULL));
@@ -426,6 +435,8 @@ static Ihandle* CreateTabs(int tab)
 
   IupSetAttribute(tabs, "TABVISIBLE2", "NO");
   IupSetAttribute(tabs, "TABACTIVE3", "NO");
+//  IupSetAttribute(tabs, "TABSHIGHCOLOR", "192 0 0");
+  IupSetAttribute(tabs, "TABTIP4", "Tip Tab4");
 
   /* like Office 2016 */
   if (0)
@@ -437,8 +448,17 @@ static Ihandle* CreateTabs(int tab)
     IupSetAttribute(tabs, "TABSFORECOLOR", "255 255 255");
     IupSetAttribute(tabs, "SHOWLINES", "NO");
   }
+  
+//  IupSetAttribute(tabs, "EXTRABUTTONS", "3");
+//  IupSetAttribute(tabs, "EXTRATITLE1", "Button1");
+//  IupSetAttribute(tabs, "EXTRATITLE2", "But2");
+//  IupSetAttribute(tabs, "EXTRATIP2", "Tip But2");
+  //  IupSetAttribute(tabs, "EXTRATITLE3", "3");
+//  IupSetStrAttribute(tabs, "EXTRAIMAGE3", IupGetAttribute(tabs, "TABIMAGE1"));
 
-  IupSetAttribute(tabs, "SHOWCLOSE", "YES");
+//  IupSetAttribute(tabs, "EXPANDBUTTON", "Yes");
+
+//  IupSetAttribute(tabs, "SHOWCLOSE", "yes");
 //  IupSetAttribute(tabs, "TABSPADDING", "10x50");
 //  IupSetAttribute(tabs, "TABSFONTSIZE", "36");
 
@@ -456,7 +476,7 @@ static Ihandle* CreateTabs(int tab)
 
 //  IupSetAttribute(tabs, "EXPAND", "YES");
   IupSetAttribute(tabs, "MARGIN", "0x0");  /* for children */
-  IupSetAttribute(tabs, "RASTERSIZE", "300x200");  /* initial size */
+  IupSetAttribute(tabs, "RASTERSIZE", "500x200");  /* initial size */
   
   //IupSetCallback(tabs, "K_ANY",        (Icallback)k_any);
   //IupSetCallback(tabs, "HELP_CB",      (Icallback)help_cb);
@@ -465,6 +485,7 @@ static Ihandle* CreateTabs(int tab)
   //IupSetCallback(tabs, "KILLFOCUS_CB", (Icallback)killfocus_cb);
   //IupSetCallback(tabs, "ENTERWINDOW_CB", (Icallback)enterwindow_cb);
   //IupSetCallback(tabs, "LEAVEWINDOW_CB", (Icallback)leavewindow_cb);
+  IupSetCallback(tabs, "EXTRABUTTON_CB", (Icallback)extrabutton_cb);
 
   return tabs;
 }
@@ -476,6 +497,7 @@ void FlatTabsTest(void)
   tabs = CreateTabs(1);
   
   box = IupHbox(tabs, 
+#if 0
                 frm1 = IupFrame(IupRadio(IupVbox(IupToggle("TOP", "cbType"), 
                                                  IupToggle("LEFT", "cbType"), 
                                                  IupToggle("BOTTOM", "cbType"), 
@@ -484,6 +506,7 @@ void FlatTabsTest(void)
                 frm2 = IupFrame(IupRadio(IupVbox(IupToggle("HORIZONTAL", "cbOrientation"), 
                                                  IupToggle("VERTICAL", "cbOrientation"), 
                                                  NULL))), 
+#endif
                 IupVbox(IupSetAttributes(IupButton("Add Tab", "cbAddTab"), "TIP=\"Button Tip\""),
                         IupButton("Insert Tab", "cbInsertTab"),
                         IupButton("Remove Tab", "cbRemoveTab"),
@@ -494,12 +517,14 @@ void FlatTabsTest(void)
                         NULL), 
                 NULL);
 
+#if 0
   IupSetAttribute(frm1, "MARGIN", "5x5");
   IupSetAttribute(frm2, "MARGIN", "5x5");
   IupSetAttribute(frm1, "GAP", "0");
   IupSetAttribute(frm2, "GAP", "0");
   IupSetAttribute(frm1, "TITLE", "Type");
   IupSetAttribute(frm2, "TITLE", "Orientation");
+#endif
 
   IupSetAttribute(box, "MARGIN", "10x10");
   IupSetAttribute(box, "GAP", "10");

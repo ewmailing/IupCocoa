@@ -13,6 +13,16 @@
 #include "il.h"
 
 
+static int scintilla_action(Ihandle *self, int p0, int p1, int p2, char * p3)
+{
+  lua_State *L = iuplua_call_start(self, "action");
+  lua_pushinteger(L, p0);
+  lua_pushinteger(L, p1);
+  lua_pushinteger(L, p2);
+  lua_pushstring(L, p3);
+  return iuplua_call(L, 4);
+}
+
 static int scintilla_marginclick_cb(Ihandle *self, int p0, int p1, char * p2)
 {
   lua_State *L = iuplua_call_start(self, "marginclick_cb");
@@ -28,29 +38,6 @@ static int scintilla_autocselection_cb(Ihandle *self, int p0, char * p1)
   lua_pushinteger(L, p0);
   lua_pushstring(L, p1);
   return iuplua_call(L, 2);
-}
-
-static int scintilla_action(Ihandle *self, int p0, int p1, int p2, char * p3)
-{
-  lua_State *L = iuplua_call_start(self, "action");
-  lua_pushinteger(L, p0);
-  lua_pushinteger(L, p1);
-  lua_pushinteger(L, p2);
-  lua_pushstring(L, p3);
-  return iuplua_call(L, 4);
-}
-
-static int scintilla_autocchardeleted_cb(Ihandle *self)
-{
-  lua_State *L = iuplua_call_start(self, "autocchardeleted_cb");
-  return iuplua_call(L, 0);
-}
-
-static int scintilla_savepoint_cb(Ihandle *self, int p0)
-{
-  lua_State *L = iuplua_call_start(self, "savepoint_cb");
-  lua_pushinteger(L, p0);
-  return iuplua_call(L, 1);
 }
 
 static int scintilla_zoom_cb(Ihandle *self, int p0)
@@ -76,6 +63,61 @@ static int scintilla_autoccancelled_cb(Ihandle *self)
   return iuplua_call(L, 0);
 }
 
+static int scintilla_dwell_cb(Ihandle *self, int p0, int p1, int p2, int p3)
+{
+  lua_State *L = iuplua_call_start(self, "dwell_cb");
+  lua_pushinteger(L, p0);
+  lua_pushinteger(L, p1);
+  lua_pushinteger(L, p2);
+  lua_pushinteger(L, p3);
+  return iuplua_call(L, 4);
+}
+
+static int scintilla_updatehscroll_cb(Ihandle *self)
+{
+  lua_State *L = iuplua_call_start(self, "updatehscroll_cb");
+  return iuplua_call(L, 0);
+}
+
+static int scintilla_updateselection_cb(Ihandle *self)
+{
+  lua_State *L = iuplua_call_start(self, "updateselection_cb");
+  return iuplua_call(L, 0);
+}
+
+static int scintilla_autocchardeleted_cb(Ihandle *self)
+{
+  lua_State *L = iuplua_call_start(self, "autocchardeleted_cb");
+  return iuplua_call(L, 0);
+}
+
+static int scintilla_savepoint_cb(Ihandle *self, int p0)
+{
+  lua_State *L = iuplua_call_start(self, "savepoint_cb");
+  lua_pushinteger(L, p0);
+  return iuplua_call(L, 1);
+}
+
+static int scintilla_lineschanged_cb(Ihandle *self, Ihandle * p0, Ihandle * p1)
+{
+  lua_State *L = iuplua_call_start(self, "lineschanged_cb");
+  iuplua_pushihandle(L, p0);
+  iuplua_pushihandle(L, p1);
+  return iuplua_call(L, 2);
+}
+
+static int scintilla_updatecontent_cb(Ihandle *self)
+{
+  lua_State *L = iuplua_call_start(self, "updatecontent_cb");
+  return iuplua_call(L, 0);
+}
+
+static int scintilla_updatevscroll_cb(Ihandle *self)
+{
+  lua_State *L = iuplua_call_start(self, "updatevscroll_cb");
+  return iuplua_call(L, 0);
+}
+
 static int Scintilla(lua_State *L)
 {
   Ihandle *ih = IupScintilla();
@@ -88,14 +130,20 @@ int iupscintillalua_open(lua_State * L)
 {
   iuplua_register(L, Scintilla, "Scintilla");
 
+  iuplua_register_cb(L, "ACTION", (lua_CFunction)scintilla_action, "scintilla");
   iuplua_register_cb(L, "MARGINCLICK_CB", (lua_CFunction)scintilla_marginclick_cb, NULL);
   iuplua_register_cb(L, "AUTOCSELECTION_CB", (lua_CFunction)scintilla_autocselection_cb, NULL);
-  iuplua_register_cb(L, "ACTION", (lua_CFunction)scintilla_action, "scintilla");
-  iuplua_register_cb(L, "AUTOCCHARDELETED_CB", (lua_CFunction)scintilla_autocchardeleted_cb, NULL);
-  iuplua_register_cb(L, "SAVEPOINT_CB", (lua_CFunction)scintilla_savepoint_cb, NULL);
   iuplua_register_cb(L, "ZOOM_CB", (lua_CFunction)scintilla_zoom_cb, NULL);
   iuplua_register_cb(L, "HOTSPOTCLICK_CB", (lua_CFunction)scintilla_hotspotclick_cb, NULL);
   iuplua_register_cb(L, "AUTOCCANCELLED_CB", (lua_CFunction)scintilla_autoccancelled_cb, NULL);
+  iuplua_register_cb(L, "DWELL_CB", (lua_CFunction)scintilla_dwell_cb, NULL);
+  iuplua_register_cb(L, "UPDATEHSCROLL_CB", (lua_CFunction)scintilla_updatehscroll_cb, NULL);
+  iuplua_register_cb(L, "UPDATESELECTION_CB", (lua_CFunction)scintilla_updateselection_cb, NULL);
+  iuplua_register_cb(L, "AUTOCCHARDELETED_CB", (lua_CFunction)scintilla_autocchardeleted_cb, NULL);
+  iuplua_register_cb(L, "SAVEPOINT_CB", (lua_CFunction)scintilla_savepoint_cb, NULL);
+  iuplua_register_cb(L, "LINESCHANGED_CB", (lua_CFunction)scintilla_lineschanged_cb, NULL);
+  iuplua_register_cb(L, "UPDATECONTENT_CB", (lua_CFunction)scintilla_updatecontent_cb, NULL);
+  iuplua_register_cb(L, "UPDATEVSCROLL_CB", (lua_CFunction)scintilla_updatevscroll_cb, NULL);
 
 #ifdef IUPLUA_USELOH
 #include "scintilla.loh"
@@ -111,6 +159,8 @@ int iupscintillalua_open(lua_State * L)
 }
 
  
+int iupscintilladlglua_open(lua_State * L);
+
 int iup_scintillalua_open(lua_State* L)
 {
   if (iuplua_opencall_internal(L))
@@ -118,6 +168,7 @@ int iup_scintillalua_open(lua_State* L)
     
   iuplua_get_env(L);
   iupscintillalua_open(L);
+  iupscintilladlglua_open(L);
   return 0;
 }
 

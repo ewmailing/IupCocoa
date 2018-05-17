@@ -30,7 +30,7 @@ be used if you set the element handle to NULL.</p>
 <h3><strong><a name="LANGUAGE">LANGUAGE</a></strong></h3>
 <p>The
   language used by some pre-defined dialogs.</p>
-<p>Can have the values ENGLISH and PORTUGUESE. 
+<p>Can have the values ENGLISH, SPANISH (since 3.22) and PORTUGUESE. 
     Default: ENGLISH. Can also be set by <a href="../func/iupsetlanguage.html">IupSetLanguage</a>.</p>
 <h3><strong><a name="version">VERSION</a></strong> (read-only)</h3>
 <p>Returns the name of IUP's version.</p>
@@ -52,6 +52,12 @@ be used if you set the element handle to NULL.</p>
 <p>When the last visible dialog is closed the <b>IupExitLoop</b> function is called. To avoid that set 
 LOCKLOOP=YES before hiding the last dialog. Possible values: &quot;YES&quot; or &quot;NO&quot;. 
 Default: &quot;NO&quot;. </p>
+<h3><strong>EXITLOOP<span class="style2"> (since 3.23)</span></strong></h3>
+<p>Disable the <b>IupExitLoop</b> function when <strong>IupMainLoopLevel</strong> 
+is 1. Used when the application runs 
+secondary dialogs that behave as full applications but sharing the same IUP 
+environment, like in &quot;iupluascripter&quot;. Possible values: &quot;YES&quot; or &quot;NO&quot;. 
+Default: &quot;YES&quot;. </p>
 <h3>LASTERROR [Windows Only]<span class="style2">&nbsp; (read-only) (since 3.6)</span></h3>
 <p>If an error is found, returns a string with the system error description.</p>
 <h3><strong><a name="UTF8MODE">UTF8MODE</a></strong> [Windows and GTK Only]</h3>
@@ -72,6 +78,13 @@ IupGetParam</strong>). Local attributes may overwrite the default. Default: 2.</
 output by some controls (<strong>IupMatrixEx,</strong> <strong>
 IupGetParam</strong> and <strong>IupPlot</strong>). Can be &quot;.&quot; or &quot;,&quot; only. 
 Default uses the one defined by the system locale.</p>
+<h3>SB_BGCOLOR [GTK and Motif Only]<span class="style2"> (since 3.25)</span></h3>
+<p>By default the scrollbars will not be affected by the BGCOLOR in native 
+controls. If set to Yes, the system will try to render scrollbars in the same 
+color of the BGCOLOR, but notice that this may affect scrollbars visibility. Up 
+to version 3.24, IUP by default changed the background color of the scrollbars 
+in GTK and Motif. This affects <strong>IupCanvas</strong>, <strong>IupList</strong>,
+<strong>IupText</strong> and <strong>IupTree</strong>.</p>
 <h3>SHOWMENUIMAGES [GTK Only] <span class="style2">(since 3.5)</span></h3>
 <p>Force the display of images in menus. Default: Yes</p>
 <h3>OVERLAYSCROLLBAR [GTK Only] <span class="style2">(since 3.19)</span></h3>
@@ -96,7 +109,7 @@ increased and decreased. Images are not changed.</span></font></p>
 <p>Automatically scale all images, except stock images, by a given real factor. 
 If &quot;DPI&quot; value is used then the factor will be automatically calculated from the 
 ratio between screen resolution and IMAGESDPI. Only images with BPP &gt; 8 are scaled. </p>
-<h3>IMAGESDPI<span class="style2"> (since 3.16)</span></h3>
+<h3><a name="IMAGESDPI">IMAGESDPI</a><span class="style2"> (since 3.16)</span></h3>
 <p>Defines the resolution of the images of the application. Common values are 
 96, 144, 192, and 288 DPI. Default: 96. Used when IMAGEAUTOSCALE=DPI.</p>
 <h3>IMAGESTOCKSIZE <b><span class="style2">(since 3.16)</span></b></h3>
@@ -119,14 +132,14 @@ IupClose</strong> and returning from <em>main</em>.</p>
 <h3><strong><a name="cursorpos">CURSORPOS</a></strong></h3>
 <p>Controls and returns the cursor position in absolute coordinates relative to the 
 origin 
-of the main screen. The origin of the main screen is at the upper left corner, 
+of the main screen. The origin of the main screen is at the top-left corner, 
 in Windows it is affected by the position of the Start Menu when it is at the 
 top or left side of the screen. Accept values in the format &quot;X<b>x</b>Y&quot; (in C &quot;%dx%d), example &quot;200x200&quot;. 
 In GTK and Motif also generates mouse motion messages. (since GTK 2.8)</p>
 <h3><strong><a name="MOUSEBUTTON">MOUSEBUTTON</a> </strong>(write-only) 
 <span class="style2">(since 3.3)</span></h3>
 <p>Simulates a mouse button press, release or motion at the given coordinates. The position 
-is in absolute coordinates relative to the upper left corner 
+is in absolute coordinates relative to the top-left corner 
 of the screen. Accept values in the format &quot;X<b>x</b>Y button state&quot; 
 (in C &quot;%dx%d %c %d&quot;), example &quot;200x200 1 1&quot;. 
 <strong>button</strong> can be one of the IUP_BUTTON1,... definitions. <strong>

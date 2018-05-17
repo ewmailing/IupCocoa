@@ -1,5 +1,5 @@
 /** \file
- * \brief lexical analysis manager for LED.
+ * \brief lexical analysis manager for LED (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
@@ -42,7 +42,6 @@ unsigned char iupLexByte (void);
 int     iupLexInt        (void);
 float   iupLexFloat      (void);
 char*   iupLexGetName    (void);
-char*   iupLexName       (void);
 float   iupLexGetNumber  (void);
 int     iupLexError      (int n, ...);
 Iclass* iupLexGetClass   (void);

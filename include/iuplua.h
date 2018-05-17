@@ -27,17 +27,6 @@ extern "C" {
 #endif /* IUPLUA_EXPORT */
 
 
-#ifdef LUA_NOOBJECT  /* Lua 3 */
-int iuplua_open (void);
-int iupkey_open (void);
-
-/* utilities */
-Ihandle* iuplua_checkihandle(int pos);
-void iuplua_pushihandle(Ihandle *n);
-int iuplua_dofile (char *filename);
-#endif
-
-#ifdef LUA_TNONE  /* Lua 5 */
 IUPLUA_EXPORT int iuplua_open(lua_State *L);
 IUPLUA_EXPORT int iupkey_open(lua_State *L);  /* does nothing, kept for backward compatibility */
 IUPLUA_EXPORT int iuplua_close(lua_State * L);
@@ -50,8 +39,6 @@ IUPLUA_EXPORT int iuplua_dofile(lua_State *L, const char *filename);
 IUPLUA_EXPORT int iuplua_dostring(lua_State *L, const char *string, const char *chunk_name);
 IUPLUA_EXPORT int iuplua_dobuffer(lua_State *L, const char *buffer, int len, const char *chunk_name);
 IUPLUA_EXPORT void iuplua_show_error_message(const char *pname, const char* msg);
-
-#endif
 
 #ifdef __cplusplus
 }

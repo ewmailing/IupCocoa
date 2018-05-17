@@ -23,7 +23,7 @@ extern "C" {
 /** Returns a non zero value if the two strings are equal.
  * str1 or str2 can be NULL.
  * \ingroup str */
-int iupStrEqual(const char* str1, const char* str2);
+IUP_EXPORTI int iupStrEqual(const char* str1, const char* str2);
 
 /** Returns a non zero value if the two strings are equal but ignores case.
  * str1 or str2 can be NULL.
@@ -82,7 +82,7 @@ const char* iupStrNextLine(const char* str, int *len);
  * \ingroup str */
 const char* iupStrNextValue(const char* str, int str_len, int *len, char sep);
 
-/** Returns the number of repetitions of the character occours in the string.
+/** Returns the number of repetitions of the character occurs in the string.
  * \ingroup str */
 IUP_EXPORTI int iupStrCountChar(const char *str, char c);
 
@@ -179,6 +179,10 @@ char* iupStrReturnChecked(int i);
  * \ingroup str */
 IUP_EXPORTI char* iupStrReturnInt(int i);
 
+/** Returns an unsigned int value in a string using \ref iupStrGetMemory.
+* \ingroup str */
+char* iupStrReturnUInt(unsigned int i);
+
 /** maximum float precision
 * \ingroup str */
 #define IUP_FLOAT2STR "%.9f"
@@ -230,11 +234,16 @@ int iupStrToRGB(const char *str, unsigned char *r, unsigned char *g, unsigned ch
 int iupStrToRGBA(const char *str, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a);
 
 /** Converts the string to an int. The string must contains only the integer value.
- * Returns a a non zero value if sucessfull.
+ * Returns a a non zero value if successful.
  * \ingroup str */
 IUP_EXPORTI int iupStrToInt(const char *str, int *i);
 
-/** Converts the string to two int. The string must contains two integer values in sequence, 
+/** Converts the string to an unsigned int. The string must contains only the integer value.
+* Returns a a non zero value if successful.
+* \ingroup str */
+int iupStrToUInt(const char *str, unsigned int *i);
+
+/** Converts the string to two int. The string must contains two integer values in sequence,
  * separated by the given character (usually 'x' or ':').
  * Returns the number of converted values.
  * Values not extracted are not changed.
@@ -242,20 +251,20 @@ IUP_EXPORTI int iupStrToInt(const char *str, int *i);
 int iupStrToIntInt(const char *str, int *i1, int *i2, char sep);
 
 /** Converts the string to a float. The string must contains only the real value.
- * Returns a a non zero value if sucessfull.
+ * Returns a a non zero value if successful.
  * \ingroup str */
 int iupStrToFloat(const char *str, float *f);
 int iupStrToFloatDef(const char *str, float *f, float def);
 
 /** Converts the string to a double. The string must contains only the real value.
- * Returns a a non zero value if sucessfull.
+ * Returns a a non zero value if successful.
  * \ingroup str */
 int iupStrToDouble(const char *str, double *d);
 int iupStrToDoubleDef(const char *str, double *d, double def);
 
 /** Converts the string to a double using the given decimal symbol. 
  * The string must contains only the real value.
- * Returns a a non zero value if sucessfull. Returns 2 if a locale was set.
+ * Returns a a non zero value if successful. Returns 2 if a locale was set.
  * \ingroup str */
 int iupStrToDoubleLocale(const char *str, double *d, const char* decimal_symbol);
 

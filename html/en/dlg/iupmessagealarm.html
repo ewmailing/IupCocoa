@@ -1,0 +1,50 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupMessageAlarm</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.auto-style1 {
+	font-size: large;
+}
+.style1 {
+	text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<h2>IupMessageAlarm <span class="auto-style1">(since 3.22)</span></h2>
+<p>Shows a modal dialog containing a question message, similar to <strong>
+IupAlarm</strong>. It simply creates and popup a <b>IupMessageDlg</b> 
+with DIALOGTYPE=QUESTION.</p>
+<h3>Creation and Show</h3>
+<pre>void IupMessageAlarm(Ihandle* <strong>parent</strong>, const char *<strong>title, </strong>const char *<strong>message</strong>, const char*<strong> buttons</strong>); [in C]
+iup.MessageAlarm(<strong>parent</strong>: ihandle, <strong>title, message, buttons</strong>: string) [in Lua]</pre>
+<p><strong>parent</strong>: parent dialog, can be NULL.<br>
+<strong>title</strong>:
+  dialog&#8217;s title, can be NULL.&nbsp; It can be a language pre-defined 
+string without the "_@" prefix.<strong><br>
+message</strong>: text message contents.&nbsp; It can be a language pre-defined 
+string without the "_@" prefix.<br><strong>buttons</strong>: list of 
+buttons. Can have values: "OK", "OKCANCEL", "RETRYCANCEL", "YESNO", or 
+"YESNOCANCEL". </p>
+<p><span class="style1">Returns:</span> the number of the <strong>button</strong> 
+selected by the user (1, 2 or 3).</p>
+<h3>Notes</h3>
+<p>If parent is NULL the title defaults to "Attention!" and tries the global 
+attribute "PARENTDIALOG" as the parent dialog.</p>
+<p>The dialog is shown centered relative to its parent.</p>
+<h3><a name="Examples">Examples</a></h3>
+<p><a href="../../examples/">Browse for Example Files</a></p>
+<h3>See Also</h3>
+<p><a href="iupgetfile.html">IupGetFile</a>, <a href="iupscanf.html">IupScanf</a>,
+  <a href="iuplistdialog.html">IupListDialog</a>, <a href="iupalarm.html">IupAlarm</a>,
+<a href="iupmessage.html">IupMessage</a>,
+<a href="iupmessagedlg.html">IupMessageDlg</a></p>
+
+</body>
+
+</html>

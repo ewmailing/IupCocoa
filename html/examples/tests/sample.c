@@ -163,6 +163,12 @@ static int valuechanged_cb(Ihandle *ih)
   return IUP_DEFAULT;
 }
 
+static int resize_cb(Ihandle *ih, int w, int h)
+{
+  printf("RESIZE_CB(%d, %d) RASTERSIZE=%s CLIENTSIZE=%s\n", w, h, IupGetAttribute(ih, "RASTERSIZE"), IupGetAttribute(ih, "CLIENTSIZE"));
+  return IUP_DEFAULT;
+}
+
 static int focus_cb(Ihandle *ih, int focus)
 {
   printf("FOCUS_CB(%s, %d)\n", IupGetClassName(ih), focus);
@@ -241,14 +247,14 @@ static void show_menu(Ihandle* ih)
 
 static int action1_cb(Ihandle* ih)
 {
-//  IupSetAttribute(IupGetDialog(ih), "BACKGROUND", "255 128 128");
+  IupSetAttribute(IupGetDialog(ih), "BACKGROUND", "255 128 128");
   show_menu(ih);
   return IUP_DEFAULT;
 }
 
 static int action2_cb(Ihandle* ih)
 {
-  IupSetAttribute(IupGetDialog(ih), "BGCOLOR", "0 128 0");
+  IupSetAttribute(IupGetDialog(ih), "BGCOLOR", "0 128 0");    // at the dialog
 //  IupSetAttribute(IupGetDialog(ih), "RASTERSIZE", "600x300");
 //  IupRefresh(IupGetDialog(ih));
 //  IupFlush();
@@ -257,9 +263,13 @@ static int action2_cb(Ihandle* ih)
 
 static int action3_cb(Ihandle* ih)
 {
-  (void)ih;
-  printf("ACTION3\n");
-//  IupSetAttribute(IupGetChild(IupGetDialog(ih), 0), "BGCOLOR", "128 0 0");
+  IupSetAttribute(IupGetChild(IupGetDialog(ih), 0), "BGCOLOR", "128 0 0");  // at the dialog first child
+  return IUP_DEFAULT;
+}
+
+static int action4_cb(Ihandle* ih)
+{
+  IupSetAttribute(IupGetChild(IupGetDialog(ih), 0), "ACTIVE", "NO");
   return IUP_DEFAULT;
 }
 
@@ -275,6 +285,9 @@ static Ihandle* set_callbacks(Ihandle* ih)
 
   IupSetCallback(ih, "K_ANY", (Icallback)k_any);
 //  IupSetCallback(ih, "HELP_CB", (Icallback)help_cb);
+
+
+  IupSetAttribute(ih,"PROPAGATEFOCUS","YES");
 
   return ih;
 }
@@ -383,7 +396,7 @@ static Ihandle* create_matrix(void)
 }
 #endif
 
-static int drawbg_cb(Ihandle* ih)
+static int draw_cb(Ihandle* ih)
 {
   int w, h;
 
@@ -412,69 +425,7 @@ static Ihandle* myFrame(Ihandle* child)
   return IupVbox(child, NULL);
 }
 
-#ifndef WIN32
-static int dialog_move_motion(Ihandle* ih, int x, int y, char *status)
-{
-  Ihandle* dlg = IupGetDialog(ih);
-  int is_moving = IupGetInt(dlg, "_IUP_MOVING");
-
-  if (is_moving)
-  {
-    if (iup_isbutton1(status))  /* DRAG MOVE */
-    {
-      int cur_end_x, cur_end_y, cur_start_x, cur_start_y, dlg_start_x, dlg_start_y;
-
-      IupGetIntInt(NULL, "CURSORPOS", &cur_end_x, &cur_end_y);
-      dlg_start_x = IupGetInt(dlg, "_IUP_DLG_START_X");
-      dlg_start_y = IupGetInt(dlg, "_IUP_DLG_START_Y");
-      cur_start_x = IupGetInt(dlg, "_IUP_CUR_START_X");
-      cur_start_y = IupGetInt(dlg, "_IUP_CUR_START_Y");
-
-      x = dlg_start_x + (cur_end_x - cur_start_x);
-      y = dlg_start_y + (cur_end_y - cur_start_y);
-
-      IupShowXY(dlg, x, y);
-    }
-    else
-      IupSetAttribute(dlg, "_IUP_MOVING", NULL);
-  }
-
-  return IUP_DEFAULT;
-}
-
-static int dialog_move_button(Ihandle* ih, int button, int pressed)
-{
-  Ihandle* dlg = IupGetDialog(ih);
-  int is_moving = IupGetInt(dlg, "_IUP_MOVING");
-
-  if (button!=IUP_BUTTON1)
-    return IUP_DEFAULT;
-
-  if (!is_moving && pressed)  /* DRAG BEGIN */
-  {
-    int cur_start_x, cur_start_y, dlg_start_x, dlg_start_y;
-
-    IupSetAttribute(dlg, "_IUP_MOVING", "1");
-
-    IupGetIntInt(NULL, "CURSORPOS", &cur_start_x, &cur_start_y);
-    dlg_start_x = IupGetInt(dlg, "X");
-    dlg_start_y = IupGetInt(dlg, "Y");
-
-    IupSetInt(dlg, "_IUP_DLG_START_X", dlg_start_x);
-    IupSetInt(dlg, "_IUP_DLG_START_Y", dlg_start_y);
-    IupSetInt(dlg, "_IUP_CUR_START_X", cur_start_x);
-    IupSetInt(dlg, "_IUP_CUR_START_Y", cur_start_y);
-  }
-  else if (is_moving)  /* DRAG END */
-  {
-    IupSetAttribute(dlg, "_IUP_MOVING", NULL);
-  }
-
-  return IUP_DEFAULT;
-}
-#endif
-
-static int dialog_minimize(Ihandle* ih)
+static int dialog_custom_minimize(Ihandle* ih)
 {
   Ihandle* dlg = IupGetDialog(ih);
   if (IupGetInt(dlg, "MINIMIZED"))
@@ -485,7 +436,7 @@ static int dialog_minimize(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
-static int dialog_maximize(Ihandle* ih)
+static int dialog_custom_maximize(Ihandle* ih)
 {
   Ihandle* dlg = IupGetDialog(ih);
   if (IupGetInt(dlg, "MAXIMIZED"))            
@@ -496,7 +447,7 @@ static int dialog_maximize(Ihandle* ih)
   return IUP_DEFAULT;
 }
 
-static int dialog_close(Ihandle* ih)
+static int dialog_custom_close(Ihandle* ih)
 {
   Ihandle* dlg = IupGetDialog(ih);
   IupHide(dlg);
@@ -505,7 +456,7 @@ static int dialog_close(Ihandle* ih)
 
 void SampleTest(void)
 {
-  Ihandle *mnu, *_hbox_1, *_cnv_1, *_vbox_1, *dlg, *img, 
+  Ihandle *mnu, *_hbox_1, *_cnv_1, *_vbox_1, *dlg, *img, *dial,
     *_frm_1, *_frm_2, *_frm_3, *_frm_4, *_frm_5, *pbar, *val, *tabs,
     *_list_1, *_list_2, *_list_3, *_text_1, *_ml_1, *tree;
 
@@ -543,7 +494,7 @@ void SampleTest(void)
       IupSetCallbacks(set_callbacks(IupSetAttributes(IupButton("Text", NULL), "IMAGE=img1, PADDING=5x5")),"ACTION", action1_cb, NULL), 
       IupSetCallbacks(set_callbacks(IupSetAttributes(IupButton(NULL, NULL), "IMAGE=img1")),"ACTION", action2_cb, NULL), 
       IupSetCallbacks(set_callbacks(IupSetAttributes(IupButton("", NULL), "IMAGE=img1,IMPRESS=img2")),"ACTION", action3_cb, NULL), 
-      IupSetCallbacks(set_callbacks(IupSetAttributes(IupButton(NULL, NULL), "BGCOLOR=\"255 0 128\", SIZE=20x10")),"ACTION", action3_cb, NULL), 
+      IupSetCallbacks(set_callbacks(IupSetAttributes(IupButton(NULL, NULL), "BGCOLOR=\"255 0 128\", RASTERSIZE=40x40")),"ACTION", action4_cb, NULL), 
       NULL));
   IupSetAttribute(_frm_1,"TITLE","IupButton");
 
@@ -590,7 +541,12 @@ void SampleTest(void)
   IupSetAttribute(_list_1,"1","Item 1 Text");
   IupSetAttribute(_list_1,"2","Item 2 Text");
   IupSetAttribute(_list_1,"3","Item 3 Text");
-  IupSetAttribute(_list_1,"TIP","List 1");
+  IupSetAttribute(_list_1, "4", "Item 4 Text");
+  IupSetAttribute(_list_1, "5", "Item 5 Text");
+  IupSetAttribute(_list_1, "6", "Item 6 Text");
+  IupSetAttribute(_list_1, "7", "Item 7 Text");
+  IupSetAttribute(_list_1, "TIP", "List 1");
+  IupSetAttribute(_list_1, "VISIBLELINES", "3");
 
   _list_2 = IupList( NULL);
   IupSetAttribute(_list_2,"DROPDOWN","YES");
@@ -605,11 +561,16 @@ void SampleTest(void)
   _list_3 = IupList( NULL);
   IupSetAttribute(_list_3,"EDITBOX","YES");
 //  IupSetAttribute(_list_3,"EXPAND","YES");
+  IupSetAttribute(_list_3, "VISIBLELINES", "3");
   IupSetAttribute(_list_3,"VALUE","3");
   IupSetAttribute(_list_3,"1","Item 1 Text");
   IupSetAttribute(_list_3,"2","Item 2 Text");
   IupSetAttribute(_list_3,"3","Item 3 Text");
-  IupSetAttribute(_list_3,"TIP","List 3");
+  IupSetAttribute(_list_3, "4", "Item 4 Text");
+  IupSetAttribute(_list_3, "5", "Item 5 Text");
+  IupSetAttribute(_list_3, "6", "Item 6 Text");
+  IupSetAttribute(_list_3, "7", "Item 7 Text");
+  IupSetAttribute(_list_3, "TIP", "List 3");
 
   _frm_5 =  IupFrame(IupVbox(
       set_callbacks(_list_1),
@@ -645,10 +606,13 @@ void SampleTest(void)
 //  IupSetAttribute(tabs,"TABPADDING","5x5");
   set_callbacks(tabs);
 
+  dial = IupDial("HORIZONTAL");
+  IupSetAttribute(dial, "RASTERSIZE", "200x30");
+
   tree = IupTree();
   IupSetAttribute(tree, "SHOWRENAME",   "YES");
   IupSetAttribute(tree,"RASTERSIZE","100x150");
-  IupSetAttribute(tree,"TIP","Treee TIP");
+  IupSetAttribute(tree,"TIP","Tree TIP");
   set_callbacks(tree);
 
   _cnv_1 = IupCanvas(NULL);
@@ -658,12 +622,14 @@ void SampleTest(void)
   IupSetAttribute(_cnv_1,"RASTERSIZE","x100");
   IupSetAttribute(_cnv_1,"TIP","Canvas TIP");
 //  IupSetAttribute(_cnv_1,"CANFOCUS","NO");
+  IupSetCallback(_cnv_1, "ACTION", draw_cb);
   set_callbacks(_cnv_1);
 
   _vbox_1 = IupVbox(
     _hbox_1,
     IupHbox(IupSetAttributes(IupFrame(IupHbox(val, NULL)), "TITLE=IupVal"),
             IupSetAttributes(IupFrame(IupHbox(pbar, NULL)), "TITLE=IupProgressBar"),
+            IupSetAttributes(IupFrame(IupHbox(dial, NULL)), "TITLE=IupDial"),
             IupSetAttributes(IupFrame(IupHbox(tabs, NULL)), "TITLE=IupTabs"),
             NULL),
 #ifdef IUP_CONTROLS
@@ -678,7 +644,9 @@ void SampleTest(void)
   IupSetAttribute(_vbox_1, "GAP", "5");
 
 //  _vbox_1 = IupBackgroundBox(_vbox_1);
-//  IupSetCallback(_vbox_1, "ACTION", drawbg_cb);
+//  IupSetCallback(_vbox_1, "ACTION", draw_cb);
+
+//  IupSetAttribute(_vbox_1, "ACTIVE", "NO");
 
   dlg = IupDialog(_vbox_1);
   IupSetHandle("dlg",dlg);
@@ -688,26 +656,28 @@ void SampleTest(void)
 //  IupSetAttribute(dlg, "OPACITY", "192");
 //  IupSetAttribute(dlg, "RESIZE", "NO");
   IupSetCallback(dlg, "FOCUS_CB", (Icallback)focus_cb);
+  IupSetCallback(dlg, "RESIZE_CB", (Icallback)resize_cb);
 
-#if 0
+#if 0    // NO decorations
+  IupSetAttribute(dlg, "RESIZE", "NO");
+  IupSetAttribute(dlg, "MAXBOX", "NO");
+  IupSetAttribute(dlg, "MENUBOX", "NO");
+  IupSetAttribute(dlg, "MINBOX", "NO");
+  IupSetAttribute(dlg, "TITLE", NULL);
+#endif
+
+#if 0  // custom frame
   {
     Ihandle* label;
     Ihandle* caption_bar = IupSetAttributes(IupBackgroundBox(IupHbox(
-      label = IupSetAttributes(IupLabel("Custom Dialog Title"), "EXPAND=HORIZONTAL, HTTRANSPARENT=Yes"), 
-      IupSetCallbacks(IupSetAttributes(IupButton("_", NULL), "RASTERSIZE=50, FLAT=Yes, CANFOCUS=NO, FONTSTYLE=Bold"), "ACTION", dialog_minimize, NULL),
-      IupSetCallbacks(IupSetAttributes(IupButton("Max", NULL), "RASTERSIZE=50"), "ACTION", dialog_maximize, NULL),
-      IupSetCallbacks(IupSetAttributes(IupButton(" X ", NULL), "RASTERSIZE=50"), "ACTION", dialog_close, NULL),
+      label = IupSetAttributes(IupLabel("Custom Dialog Title"), "EXPAND=HORIZONTAL, HTTRANSPARENT=Yes, NAME=CUSTOMFRAMECAPTION"),
+      IupSetCallbacks(IupSetAttributes(IupButton("_", NULL), "RASTERSIZE=50, FLAT=Yes, CANFOCUS=NO, FONTSTYLE=Bold"), "ACTION", dialog_custom_minimize, NULL),
+      IupSetCallbacks(IupSetAttributes(IupButton("Max", NULL), "RASTERSIZE=50"), "ACTION", dialog_custom_maximize, NULL),
+      IupSetCallbacks(IupSetAttributes(IupButton(" X ", NULL), "RASTERSIZE=50"), "ACTION", dialog_custom_close, NULL),
       NULL)), "HTTRANSPARENT=Yes, BGCOLOR=\"100 150 255\"");
     IupInsert(_vbox_1, NULL, caption_bar);
 
-#ifdef WIN32
-    IupSetAttribute(dlg, "CUSTOMFRAMEEX", "YES");
-    IupSetAttribute(dlg, "CUSTOMFRAMECAPTIONLIMITS", "0:150");
-#else
-    IupSetCallbacks(label, "BUTTON_CB", dialog_move_button, "MOTION_CB", dialog_move_motion, NULL);
-//    IupSetAttribute(dlg, "MENUBOX", "NO");
-    IupSetAttribute(dlg, "HIDETITLEBAR", "Yes");
-#endif
+    IupSetAttribute(dlg, "CUSTOMFRAME", "YES");
   }
 #endif
 
@@ -729,7 +699,9 @@ void SampleTest(void)
 //  IupSetAttribute(dlg,"RASTERSIZE","1000x800");
 //  IupSetAttribute(dlg,"RASTERSIZE","600x500");
 
-  IupSetCallback(dlg, "COPYDATA_CB", (Icallback)copydata_cb);
+//  IupSetCallback(dlg, "COPYDATA_CB", (Icallback)copydata_cb);
+
+//  IupSetGlobal("SB_BGCOLOR", "No");
 
   //IupSetGlobal("INPUTCALLBACKS", "Yes");
   //IupSetFunction("GLOBALKEYPRESS_CB", (Icallback)globalkeypress_cb);
@@ -745,6 +717,14 @@ void SampleTest(void)
   IupSetAttribute(tree, "ADDLEAF2",     "equilateral");  /* ... */
   IupSetAttribute(tree, "ADDLEAF3",     "isoceles");
   IupSetAttribute(tree, "ADDLEAF4",     "scalenus");
+  IupSetAttribute(tree, "INSERTBRANCH2", "More");  /* new id=6 */
+  IupSetAttribute(tree, "ADDLEAF6", "item 1");  /* ... */
+  IupSetAttribute(tree, "ADDLEAF7", "item 2");  /* ... */
+  IupSetAttribute(tree, "ADDLEAF8", "item 3");  /* ... */
+  IupSetAttribute(tree, "ADDLEAF9", "item 4");  /* ... */
+  IupSetAttribute(tree, "ADDLEAF10", "item 5");  /* ... */
+  IupSetAttribute(tree, "ADDLEAF11", "item 6");  /* ... */
+  IupSetAttribute(tree, "ADDLEAF12", "item 7");  /* ... */
 
   IupShow(dlg);
 

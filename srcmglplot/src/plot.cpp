@@ -211,8 +211,10 @@ void MGL_EXPORT mgl_candle_xyv(HMGL gr, HCDT x, HCDT v1, HCDT v2, HCDT y1, HCDT 
 	bool d1=false,d2=false;
 	if(!y1)	{	y1 = new mglData(n);	d1=true;	((mglData *)y1)->Fill(NAN,NAN);	}
 	if(!y2)	{	y2 = new mglData(n);	d2=true;	((mglData *)y2)->Fill(NAN,NAN);	}
-	if(y1->GetNx()!=n || y2->GetNx()!=n)
-	{	gr->SetWarn(mglWarnDim,"Candle");	return;	}
+	if(y1->GetNx()!=n || y2->GetNx()!=n) {	gr->SetWarn(mglWarnDim,"Candle");	
+        if(d1)	delete y1;	if(d2)	delete y2;
+        return;	
+  }
 	static int cgid=1;	gr->StartGroup("Candle",cgid++);
 	gr->SaveState(opt);	gr->SetPenPal(pen,&pal);	gr->Reserve(8*n);
 	bool sh = mglchr(pen,'!');

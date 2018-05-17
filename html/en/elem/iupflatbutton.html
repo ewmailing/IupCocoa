@@ -84,13 +84,12 @@ but redefines a few attributes.</p>
 <p><b>ALIGNMENT</b> (<font size="3">non inheritable</font>): horizontal and 
 vertical alignment of the set image+text. Possible values: &quot;ALEFT&quot;, &quot;ACENTER&quot; and &quot;ARIGHT&quot;,&nbsp; 
 combined to &quot;ATOP&quot;, &quot;ACENTER&quot; and &quot;ABOTTOM&quot;. Default: &quot;ACENTER:ACENTER&quot;. Partial 
-values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be used 
-from the current alignment. </p>
+values are also accepted, like &quot;ARIGHT&quot; or &quot;:ATOP&quot;, the other value will be 
+obtained from the default value. </p>
 
 
   <p><strong>BACKIMAGE</strong> (<font SIZE="3">non inheritable</font>):
-  image name to be used as background. It will be zoomed to fill the background 
-  (it does not includes the border). Use
+  image name to be used as background. Use
 	<a href="../func/iupsethandle.html">IupSetHandle</a> or
 	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
 	associate an image to a name. See also
@@ -108,13 +107,10 @@ then the BACKIMAGE is used.</p>
 background image name of the element in pressed state. If it is not defined then 
 the BACKIMAGE is used.</p>
 
-<p><a href="../attrib/iup_bgcolor.html">BGCOLOR</a>:
-  Background color. If text and image are not defined, the button 
-is configured to simply show a color, in 
-this case set the button size because the natural size will be very small. Default: 
-it will use used the background from the native parent the global 
-attribute DLGBGCOLOR. BGCOLOR is ignored when FLAT=YES because it will be used 
-the background from the native parent. </p>
+<p><a href="../attrib/iup_bgcolor.html">BGCOLOR</a>: Background color. If text 
+and image are not defined, the button is configured to simply show a color, in 
+this case set the button size because the natural size will be very small. If 
+not defined it will use the background color of the native parent. </p>
 
 <p><b>BORDER </b>(creation only):
   
@@ -128,10 +124,17 @@ Default use BORDERCOLOR. (since 3.19)</p>
 <p><strong>BORDERWIDTH</strong>: line width used for borders. Default: &quot;1&quot;. Any borders can be 
 hidden by simply setting 
 this value to 0. This is for the <strong>IupFlatButton</strong> drawn border.</p>
+<p><strong>SHOWBORDER</strong>: by default borders are drawn only when the 
+button is highlighted, if SHOWBORDER=Yes borders are always show. When 
+SHOWBORDER=Yes and BGCOLOR is not defined, the actual BGCOLOR will be a darker 
+version of the background color of the native parent. (since 3.25)</p>
 
 <p><strong>CANFOCUS</strong> (creation only)<strong> </strong>(<font size="3">non inheritable</font>): 
 enables the focus traversal of the control. In Windows the button will respect 
 CANFOCUS in opposite to the other controls. Default: YES.</p>
+
+<p><strong>PROPAGATEFOCUS</strong>(<font size="3">non inheritable</font>): enables the focus callback forwarding to the next native parent with FOCUS_CB defined. Default: NO. (since 3.23)</p>
+
 <p>
 <a href="../attrib/iup_expand.html" style="font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
 EXPAND</a><span style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);"><span class="Apple-converted-space">&nbsp;</span>(</span><font size="3" style="color: rgb(0, 0, 0); font-family: tahoma, verdana, arial, helvetica, geneva, sans-serif; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 20.7999992370605px; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 1; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">non 
@@ -152,8 +155,8 @@ Yes or No. Default: No.</p>
 
 
   <p><strong>FRONTIMAGE</strong> (<font SIZE="3">non inheritable</font>):
-  image name to be used as foreground. It will be zoomed to fill the foreground 
-  (it does not includes the border). The foreground has the same are as the 
+  image name to be used as foreground. The foreground image is drawn in the same 
+  position as the 
   background, but it is drawn at last. Use
 	<a href="../func/iupsethandle.html">IupSetHandle</a> or
 	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
@@ -173,7 +176,9 @@ foreground image name of the element in pressed state. If it is not defined then
 the FRONTIMAGE is used.</p>
 <p><strong>HASFOCUS </strong> (read-only): returns the button state if has 
 focus. Can be Yes or No. (since 3.21)</p>
-<p><strong>HLCOLOR</strong>: color used to indicate a highlight state. Default: &quot;200 225 245&quot;.</p>
+<p><strong>HLCOLOR</strong>: background color used to indicate a highlight state. 
+Pre-defined to &quot;200 225 245&quot;. Can be set to NULL. If NULL BGCOLOR will 
+be used instead.</p>
 <p><strong>HIGHLIGHTED </strong> (read-only): returns the button state if 
 highlighted. Can be Yes or No. (since 3.21)</p>
 <p><strong>IMAGE</strong> (<font SIZE="3">non inheritable</font>):
@@ -205,7 +210,9 @@ LEFT, RIGHT, TOP, BOTTOM. Default: LEFT.</p>
 a different name to avoid inheritance problems. Default value: &quot;0x0&quot;.</p>
 <p><strong>PRESSED </strong> (read-only): returns the button state if pressed. 
 Can be Yes or No. (since 3.21)</p>
-<p><strong>PSCOLOR</strong>: color used to indicate a press state. Default: &quot;150 200 235&quot;.</p>
+<p><strong>PSCOLOR</strong>: background color used to indicate a press state. 
+Pre-defined to &quot;150 200 235&quot;. Can be set to NULL. If NULL BGCOLOR will 
+be used instead.</p>
 
 
 <p><strong>RADIO</strong> (read-only): returns if the toggle is inside a radio. 
@@ -225,6 +232,9 @@ image and the text. Default: &quot;2&quot;.</p>
   <p><a href="../attrib/iup_title.html">TITLE</a> (<font SIZE="3">non inheritable</font>): 
 	Label's text. The '\n' character is accepted for line change.</p>
 <p><strong>TOGGLE</strong>: enabled the toggle behavior. Default: NO.</p>
+<p><strong>TEXTALIGNMENT </strong>(<font size="3">non inheritable</font>): 
+Horizontal text alignment for multiple lines. Can be: ALEFT, ARIGHT or ACENTER. 
+Default: ALEFT. (since 3.22)</p>
 
 
 
@@ -234,7 +244,7 @@ image and the text. Default: &quot;2&quot;.</p>
   "OFF" or &quot;TOGGLE&quot;. 
   Default: "OFF". 
 	The TOGGLE option will invert the current state. Valid only when TOGGLE=Yes. 
-Can only be set to Yes for a toggle inside a radio, it will automatically set to 
+Can only be set to ON for a toggle inside a radio, it will automatically set to 
 OFF the previous toggle that was ON.</p>
 
   
@@ -335,6 +345,22 @@ changed. </p>
 <p>When TOGGLE=Yes, the button that is a child of an <strong>IupRadio</strong> automatically receives a name when 
 its is mapped into the native system. 
 (since 3.16)</p>
+<p>To replace a <strong>IupButton</strong> by a <strong>IupFlatButton</strong> 
+you must change the function call (<strong>IupFlatButton</strong> does not 
+includes the action callback in the constructor) and change the ACTION callback 
+name to FLAT_ACTION. </p>
+<p>To replace a <strong>IupToggle</strong> by a <strong>
+IupFlatButton</strong> you must do the same, and set TOGGLE=Yes. But notice that 
+there will be no check box nor radio button. </p>
+<p>Finally notice that the name of the 
+secondary image attributes are different (for instance IMINACTIVE is 
+IMAGEINACTIVE, IMPRESS is IMAGEPRESS, and so on). To define a button that only 
+shows a color, do the same as in <strong>IupButton</strong> and don't define 
+TITLE nor IMAGE, but instead of BGCOLOR use FGCOLOR to set the color of the 
+button.</p>
+<p>When the <strong>IupFlatButton</strong> displays only a text it will look 
+like a label, use SHOWBORDER=Yes to force the display of the borders all the 
+time.</p>
 
 
 <h3><a name="Examples">Examples</a></h3>

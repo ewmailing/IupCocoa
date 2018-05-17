@@ -79,7 +79,7 @@
   and "ABOTTOM". 
   Default:
   "ACENTER:ACENTER". Partial values are also accepted, like "ARIGHT" or 
-  ":ATOP", the other value will be used from the current alignment. In Motif, 
+  ":ATOP", the other value will be obtained from the default value. In Motif, 
   vertical alignment is restricted to "ACENTER". In GTK, horizontal alignment 
 for multiple lines will align only the text block. (since 3.0)</p>
 
@@ -94,6 +94,9 @@ the background from the native parent. </p>
 
 <p><strong>CANFOCUS</strong> (creation only)<strong> </strong>(<font size="3">non inheritable</font>): enables the focus traversal of the control. In Windows the button will respect CANFOCUS 
 differently to some other controls. Default: YES. (since 3.0)</p>
+
+<p><strong>PROPAGATEFOCUS</strong>(<font size="3">non inheritable</font>): enables the focus callback forwarding to the next native parent with FOCUS_CB defined. Default: NO. 
+(since 3.23)</p>
 
   
 <p><b>FLAT</b> (creation only): Hides the button borders until the mouse cursor enters the 

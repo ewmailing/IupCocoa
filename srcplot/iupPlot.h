@@ -21,6 +21,7 @@ enum iupPlotMode { IUP_PLOT_LINE, IUP_PLOT_MARK, IUP_PLOT_MARKLINE, IUP_PLOT_ARE
 enum iupPlotLegendPosition { IUP_PLOT_TOPRIGHT, IUP_PLOT_TOPLEFT, IUP_PLOT_BOTTOMRIGHT, IUP_PLOT_BOTTOMLEFT, IUP_PLOT_BOTTOMCENTER, IUP_PLOT_XY };
 enum iupPlotSliceLabel { IUP_PLOT_NONE, IUP_PLOT_X, IUP_PLOT_Y, IUP_PLOT_PERCENT };
 enum iupPlotHighlight { IUP_PLOT_HIGHLIGHT_NONE, IUP_PLOT_HIGHLIGHT_SAMPLE, IUP_PLOT_HIGHLIGHT_CURVE, IUP_PLOT_HIGHLIGHT_BOTH };
+enum iupPlotClipping { IUP_PLOT_CLIPNONE, IUP_PLOT_CLIPAREA, IUP_PLOT_CLIPAREAOFFSET };
 
 const double kFloatSmall = 1e-20;
 const double kLogMinClipValue = 1e-10;  // pragmatism to avoid problems with small values in log plot
@@ -329,7 +330,7 @@ protected:
 class iupPlotTickIterLinear : public iupPlotTickIterBase
 {
 public:
-  iupPlotTickIterLinear() :mCurrentTick(0), mDelta(0){}
+  iupPlotTickIterLinear() :mCurrentTick(0), mCount(0), mDelta(0){}
 
   virtual bool Init();
   virtual bool GetNextTick(double &outTick, bool &outIsMajorTick, char* outFormatString);
@@ -345,7 +346,7 @@ protected:
 class iupPlotTickIterLog : public iupPlotTickIterBase
 {
 public:
-  iupPlotTickIterLog() :mCurrentTick(0), mDelta(0){}
+  iupPlotTickIterLog() :mCurrentTick(0), mCount(0), mDelta(0){}
 
   virtual bool Init();
   virtual bool GetNextTick(double &outTick, bool &outIsMajorTick, char* outFormatString);
@@ -415,7 +416,8 @@ public:
     mMaxDecades(-1), mLogBase(10), mLabelCentered(true), mHasZoom(false),
     mDiscrete(false), mLabel(NULL), mShowArrow(true), mLineWidth(1), mLabelSpacing(-1),
     mFontSize(0), mFontStyle(-1), mDefaultFontSize(inDefaultFontSize),
-    mTrafo(NULL), mTickIter(NULL), mDefaultFontStyle(inDefaultFontStyle)
+    mTrafo(NULL), mTickIter(NULL), mDefaultFontStyle(inDefaultFontStyle),
+    mNoZoomMin(0), mNoZoomMax(0), mNoZoomAutoScaleMin(false), mNoZoomAutoScaleMax(false), mPanMin(0)
   {
     strcpy(mTipFormatString, "%.2f");
   }
@@ -427,6 +429,8 @@ public:
   void Init();
   void SetNamedTickIter(const iupPlotDataString *inStringXData);
   void GetTickNumberSize(cdCanvas* canvas, int *outWitdh, int *outHeight) const;
+  double GetScreenYOriginX(const iupPlotAxis& inAxisY) const;
+  double GetScreenXOriginY(const iupPlotAxis& inAxisX) const;
 
   bool DrawX(const iupPlotRect &inRect, cdCanvas* canvas, const iupPlotAxis& inAxisY) const;
   bool DrawY(const iupPlotRect &inRect, cdCanvas* canvas, const iupPlotAxis& inAxisX) const;
@@ -611,8 +615,10 @@ public:
   bool mScaleEqual;
   int mDefaultFontSize;
   int mDefaultFontStyle;
+  iupPlotClipping mDataSetClipping;
 
   void SetViewport(int x, int y, int w, int h);
+  void DataSetClipArea(cdCanvas* canvas, int xmin, int xmax, int ymin, int ymax);
   bool Render(cdCanvas* canvas);
   void ConfigureAxis();
   void SetFont(cdCanvas* canvas, int inFontStyle, int inFontSize) const;

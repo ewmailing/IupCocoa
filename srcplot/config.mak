@@ -18,9 +18,15 @@ DEF_FILE = iup_plot.def
 
 INCLUDES = ../include ../src ../srccd
 LDIR = ../lib/$(TEC_UNAME)  
-LIBS = iup iupgl iupcd cdgl cdcontextplus
+LIBS = iup iupgl iupcd cdgl 
 
 DEFINES = CD_NO_OLD_INTERFACE
+
+USE_CONTEXTPLUS = Yes
+ifdef USE_CONTEXTPLUS
+  LIBS += cdcontextplus
+  DEFINES += USE_CONTEXTPLUS
+endif
 
 SRC = iup_plot.cpp  iupPlotCalc.cpp iupPlot.cpp iupPlotDraw.cpp iupPlotTick.cpp iup_plot_attrib.cpp
 

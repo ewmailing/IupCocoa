@@ -28,6 +28,7 @@
 #include "iup_array.h"
 #include "iup_assert.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_childtree.h"
 
 #include "iupwin_drv.h"
@@ -436,14 +437,18 @@ static LRESULT CALLBACK winTabsPageWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
   {
   case WM_ERASEBKGND:
     {
-      RECT rect;
-      HDC hDC = (HDC)wp;
       Ihandle* ih = iupwinHandleGet(hWnd);
-      GetClientRect(ih->handle, &rect); 
-      winTabsDrawPageBackground(ih, hDC, &rect);
+      if (ih) /* should never happen */
+      {
+        RECT rect;
+        HDC hDC = (HDC)wp;
+        GetClientRect(ih->handle, &rect);
+        winTabsDrawPageBackground(ih, hDC, &rect);
 
-      /* return non zero value */
-      return 1;
+        /* return non zero value */
+        return 1;
+      }
+      break;
     }
   case WM_COMMAND:
   case WM_CTLCOLORSCROLLBAR:
@@ -481,7 +486,7 @@ static void winTabsInsertItem(Ihandle* ih, Ihandle* child, int pos, HWND tab_con
 {
   TCITEM tie;
   char *tabtitle, *tabimage;
-  int old_rowcount, old_num_tabs, p;
+  int old_rowcount = 0, old_num_tabs, p;
   RECT rect;
 
   tabtitle = iupAttribGet(child, "TABTITLE");
@@ -502,7 +507,9 @@ static void winTabsInsertItem(Ihandle* ih, Ihandle* child, int pos, HWND tab_con
     tabtitle = "     ";
 
   old_num_tabs = (int)SendMessage(ih->handle, TCM_GETITEMCOUNT, 0, 0);
-  old_rowcount = (int)SendMessage(ih->handle, TCM_GETROWCOUNT, 0, 0);
+
+  if (ih->data->is_multiline)
+    old_rowcount = (int)SendMessage(ih->handle, TCM_GETROWCOUNT, 0, 0);
 
   tie.mask = TCIF_PARAM;
 
@@ -536,11 +543,12 @@ static void winTabsInsertItem(Ihandle* ih, Ihandle* child, int pos, HWND tab_con
 
   if (ih->data->is_multiline)
   {
-    if (ih->data->type == ITABS_LEFT || ih->data->type == ITABS_RIGHT)
+    int rowcount = (int)SendMessage(ih->handle, TCM_GETROWCOUNT, 0, 0);
+    if (rowcount != old_rowcount)
     {
-      int rowcount = (int)SendMessage(ih->handle, TCM_GETROWCOUNT, 0, 0);
-      if (rowcount != old_rowcount)
-        winTabsPlacePageWindows(ih, &rect);
+      winTabsPlacePageWindows(ih, &rect);
+
+      IupRefreshChildren(ih);
     }
 
     iupdrvRedrawNow(ih);
@@ -560,10 +568,31 @@ static void winTabsInsertItem(Ihandle* ih, Ihandle* child, int pos, HWND tab_con
 
 static void winTabsDeleteItem(Ihandle* ih, int p, HWND tab_container)
 {
+  int old_rowcount = 0;
+  if (ih->data->is_multiline)
+    old_rowcount = (int)SendMessage(ih->handle, TCM_GETROWCOUNT, 0, 0);
+
   /* Make sure tab container is hidden */
   ShowWindow(tab_container, SW_HIDE);
 
   SendMessage(ih->handle, TCM_DELETEITEM, p, 0);
+
+  if (ih->data->is_multiline)
+  {
+    int rowcount = (int)SendMessage(ih->handle, TCM_GETROWCOUNT, 0, 0);
+    if (rowcount != old_rowcount)
+    {
+      RECT rect;
+      GetClientRect(ih->handle, &rect);
+      SendMessage(ih->handle, TCM_ADJUSTRECT, FALSE, (LPARAM)&rect);
+
+      winTabsPlacePageWindows(ih, &rect);
+
+      IupRefreshChildren(ih);
+    }
+
+    iupdrvRedrawNow(ih);
+  }
 
 #if PRINT_VISIBLE_ARRAY
   winTabsPrintVisibleArray(ih);
@@ -1206,6 +1235,8 @@ static void winTabsDrawItem(Ihandle* ih, DRAWITEMSTRUCT *drawitem)
   COLORREF fgcolor;
   COLORREF bgcolor;
 
+  /* called only when SHOWCLOSE=Yes */
+
   /* If there are no tab items, skip this message */
   if (drawitem->itemID == -1)
     return;
@@ -1367,8 +1398,18 @@ static int winTabsMapMethod(Ihandle* ih)
   if (ih->firstchild)
   {
     Ihandle* child;
+    Ihandle* current_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
+
     for (child = ih->firstchild; child; child = child->brother)
       winTabsChildAddedMethod(ih, child);
+
+    if (current_child)
+    {
+      IupSetAttribute(ih, "VALUE_HANDLE", (char*)current_child);
+
+      /* current value is now given by the native system */
+      iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
+    }
   }
 
   return IUP_NOERROR;
@@ -1414,6 +1455,14 @@ static void winTabsRegisterClass(void)
   RegisterClass(&wndclass);
 }
 
+static void winTabsRelease(Iclass* ic)
+{
+  (void)ic;
+
+  if (iupwinClassExist(TEXT("IupTabsPage")))
+    UnregisterClass(TEXT("IupTabsPage"), iupwin_hinstance);
+}
+
 void iupdrvTabsInitClass(Iclass* ic)
 {
   if (!iupwinClassExist(TEXT("IupTabsPage")))
@@ -1424,6 +1473,7 @@ void iupdrvTabsInitClass(Iclass* ic)
   ic->UnMap = winTabsUnMapMethod;
   ic->ChildAdded     = winTabsChildAddedMethod;
   ic->ChildRemoved   = winTabsChildRemovedMethod;
+  ic->Release = winTabsRelease;
 
   /* Driver Dependent Attribute functions */
 

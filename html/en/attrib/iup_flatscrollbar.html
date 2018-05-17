@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>FLATSCROLLBAR</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	font-size: large;
+}
+.style2 {
+	color: #FF0000;
+}
+.style3 {
+	color: #008000;
+}
+</style>
+</head>
+<body>
+
+<h2>FLATSCROLLBAR<span class="style1"> (since 3.22)</span></h2>
+<p>Complementary attributes when a flat scrollbar is used (a drawn scrollbar). </p>
+<p>Used in <a href="../elem/iupflatscrollbox.html">IupFlatScrollBox</a>, and in
+<a href="../ctrl/iupmatrix.html">IupMatrix</a> when FLATSCROLLBAR is defined.</p>
+<h3>Attributes (<font size="3">non inheritable</font>)</h3>
+
+  <p>
+  <strong>BACKCOLOR</strong> (<font SIZE="3">non inheritable</font>): color 
+  used as background for the scrollbar. By default it will inherit from BGCOLOR.</p>
+<p><strong>FORECOLOR</strong> (<font SIZE="3">non inheritable</font>): handler 
+and arrow 
+color. Default: &quot;220 220 220&quot;. Used instead of 
+FGCOLOR to avoid inheritance problems. </p>
+
+
+  <p><strong>HIGHCOLOR</strong> (<font SIZE="3">non inheritable</font>): handler 
+  and arrow color when highlight. Default: 
+  &quot;132 132 132&quot;.</p>
+
+
+  <p><strong>PRESSCOLOR</strong> (<font SIZE="3">non inheritable</font>): 
+  handler and arrow color when pressed. Default: 
+  &quot;96 96 96&quot;.</p>
+<p><strong>SCROLLBARSIZE</strong> (<font SIZE="3">non inheritable</font>): The width of the vertical scrollbar or the 
+height of the horizontal scrollbar. Default: 15.</p>
+<p><strong>SHOWARROWS</strong> (<font SIZE="3">non inheritable</font>): Allow to 
+show or hide the arrows. Default: Yes.</p>
+<p><strong>SHOWFLOATING</strong> (<font SIZE="3">non inheritable</font>): the 
+scrollbar is shown only when used, over the space it occupied. Move the mouse over 
+the scrollbar area to show the 
+scrollbars. They are automatically hidden after not being used by the time defined in 
+FLOATINGDELAY.</p>
+<p><strong>FLOATINGDELAY</strong> (<font SIZE="3">non inheritable</font>): time 
+to hide the scrollbar when SHOWFLOATING=Yes in milliseconds. Default: 2000.</p>
+<p><strong>ARROWIMAGES</strong> (<font SIZE="3">non inheritable</font>): replace 
+the drawn arrows by the following images. Default: No.</p>
+<p><strong>IMAGELEFT, IMAGERIGHT, IMAGETOP, IMAGEBOTTOM</strong> (<font SIZE="3">non inheritable</font>):
+  Arrow image name (the attribute is relative to where the arrow is pointing). Use
+	<a href="../func/iupsethandle.html">IupSetHandle</a> or
+	<a href="../func/iupsetattributehandle.html">IupSetAttributeHandle</a> to 
+	associate an image to a name. See also
+	<a href="../elem/iupimage.html">IupImage</a>. IMPORTANT = all images must be 
+square with side equals to SCROLLBARSIZE.</p>
+<p><strong>IMAGE*HIGHLIGHT</strong> (<font SIZE="3">non inheritable</font>): 
+Arrow image name of the element in highlight state. If it is not defined then the 
+IMAGE<strong>*</strong> is used.</p>
+  <p><strong>IMAGE*INACTIVE</strong> (<font SIZE="3">non inheritable</font>): 
+  Arrow image name of the element when inactive. If it is not defined then the IMAGE<strong>*</strong>  
+  is used and its colors will be replaced by a modified version creating the 
+  disabled effect. </p>
+
+  
+<p><strong>IMAGE*PRESS </strong>(<font size="3">non inheritable</font>): Arrow image 
+name of the element in pressed state. If it is not defined then the IMAGE<strong>*</strong> is 
+used.</p>
+
+  <h3>Affects</h3>
+<p><a href="../elem/iupflatscrollbox.html">IupFlatScrollBox</a>,
+<a href="../ctrl/iupmatrix.html">IupMatrix</a></p>
+
+<h3>Notes</h3>
+<p>When SHOWFLOATING=Yes the natural size of the <strong>IupMatrix</strong> is 
+reduced because it will not include the scrollbars area. But notice that when 
+vertically scrolling the last column or horizontally scrolling the last line the 
+visibility or the cells are reduced because the scrollbar is show above the 
+cells.</p>
+<p>The flat scrollbar does not support the XMIN nor YMIN attributes. They are 
+considered to be 0 always. The XAUTOHIDE and YAUTOHIDE are considered to be YES 
+always.</p>
+<p>Also, all numeric attributes are integer numbers.</p>
+<h3>See Also</h3>
+<p><a href="iup_scrollbar.html">SCROLLBAR</a>, <a href="iup_posx.html">POSX</a>,
+<a href="iup_xmax.html">XMAX</a>,
+<a href="iup_dx.html">DX</a>, <a href="iup_posy.html">POSY</a>,
+<a href="iup_ymax.html">YMAX</a>,
+<a href="iup_dy.html">DY</a></p>
+
+</body>
+
+</html>

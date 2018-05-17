@@ -20,10 +20,10 @@ extern "C" {
 
 #define IUP_NAME "IUP - Portable User Interface"
 #define IUP_DESCRIPTION	"Multi-platform Toolkit for Building Graphical User Interfaces"
-#define IUP_COPYRIGHT "Copyright (C) 1994-2017 Tecgraf/PUC-Rio"
-#define IUP_VERSION "3.21"         /* bug fixes are reported only by IupVersion functions */
-#define IUP_VERSION_NUMBER 321000
-#define IUP_VERSION_DATE "2017/01/20"  /* does not include bug fix releases */
+#define IUP_COPYRIGHT "Copyright (C) 1994-2018 Tecgraf/PUC-Rio"
+#define IUP_VERSION "3.24"         /* bug fixes are reported only by IupVersion functions */
+#define IUP_VERSION_NUMBER 324000
+#define IUP_VERSION_DATE "2018/01/22"  /* does not include bug fix releases */
 
 typedef struct Ihandle_ Ihandle;
 typedef int (*Icallback)(Ihandle*);
@@ -76,6 +76,7 @@ IUP_EXPORT void      IupRefreshChildren(Ihandle* ih);
 IUP_EXPORT int       IupExecute(const char *filename, const char* parameters);
 IUP_EXPORT int       IupExecuteWait(const char *filename, const char* parameters);
 IUP_EXPORT int       IupHelp(const char* url);
+IUP_EXPORT void      IupLog(const char* type, const char* format, ...);
 
 IUP_EXPORT char*     IupLoad          (const char *filename);
 IUP_EXPORT char*     IupLoadBuffer    (const char *buffer);
@@ -215,7 +216,7 @@ IUP_EXPORT Ihandle*  IupVbox       (Ihandle* child, ...);
 IUP_EXPORT Ihandle*  IupVboxv      (Ihandle* *children);
 IUP_EXPORT Ihandle*  IupZbox       (Ihandle* child, ...);
 IUP_EXPORT Ihandle*  IupZboxv      (Ihandle* *children);
-IUP_EXPORT Ihandle*  IupHbox       (Ihandle* child,...);
+IUP_EXPORT Ihandle*  IupHbox       (Ihandle* child, ...);
 IUP_EXPORT Ihandle*  IupHboxv      (Ihandle* *children);
 
 IUP_EXPORT Ihandle*  IupNormalizer (Ihandle* ih_first, ...);
@@ -226,6 +227,7 @@ IUP_EXPORT Ihandle*  IupCboxv      (Ihandle* *children);
 IUP_EXPORT Ihandle*  IupSbox       (Ihandle* child);
 IUP_EXPORT Ihandle*  IupSplit      (Ihandle* child1, Ihandle* child2);
 IUP_EXPORT Ihandle*  IupScrollBox  (Ihandle* child);
+IUP_EXPORT Ihandle*  IupFlatScrollBox(Ihandle* child);
 IUP_EXPORT Ihandle*  IupGridBox    (Ihandle* child, ...);
 IUP_EXPORT Ihandle*  IupGridBoxv   (Ihandle* *children);
 IUP_EXPORT Ihandle*  IupExpander   (Ihandle* child);
@@ -242,11 +244,15 @@ IUP_EXPORT Ihandle*  IupImageRGBA  (int width, int height, const unsigned char *
 IUP_EXPORT Ihandle*  IupItem       (const char* title, const char* action);
 IUP_EXPORT Ihandle*  IupSubmenu    (const char* title, Ihandle* child);
 IUP_EXPORT Ihandle*  IupSeparator  (void);
-IUP_EXPORT Ihandle*  IupMenu       (Ihandle* child,...);
+IUP_EXPORT Ihandle*  IupMenu       (Ihandle* child, ...);
 IUP_EXPORT Ihandle*  IupMenuv      (Ihandle* *children);
 
 IUP_EXPORT Ihandle*  IupButton     (const char* title, const char* action);
 IUP_EXPORT Ihandle*  IupFlatButton (const char* title);
+IUP_EXPORT Ihandle*  IupFlatToggle (const char* title);
+IUP_EXPORT Ihandle*  IupDropButton (Ihandle* dropchild);
+IUP_EXPORT Ihandle*  IupFlatLabel  (const char* title);
+IUP_EXPORT Ihandle*  IupFlatSeparator(void);
 IUP_EXPORT Ihandle*  IupCanvas     (const char* action);
 IUP_EXPORT Ihandle*  IupDialog     (Ihandle* child);
 IUP_EXPORT Ihandle*  IupUser       (void);
@@ -268,6 +274,10 @@ IUP_EXPORT Ihandle*  IupLink       (const char* url, const char* title);
 IUP_EXPORT Ihandle*  IupAnimatedLabel(Ihandle* animation);
 IUP_EXPORT Ihandle*  IupDatePick   (void);
 IUP_EXPORT Ihandle*  IupCalendar   (void);
+IUP_EXPORT Ihandle*  IupColorbar   (void);
+IUP_EXPORT Ihandle*  IupGauge      (void);
+IUP_EXPORT Ihandle*  IupDial       (const char* type);
+IUP_EXPORT Ihandle*  IupColorBrowser(void);
 
 /* Old controls, use SPIN attribute of IupText */
 IUP_EXPORT Ihandle*  IupSpin       (void);
@@ -320,6 +330,8 @@ IUP_EXPORT Ihandle* IupProgressDlg(void);
 IUP_EXPORT int  IupGetFile(char *arq);
 IUP_EXPORT void IupMessage(const char *title, const char *msg);
 IUP_EXPORT void IupMessagef(const char *title, const char *format, ...);
+IUP_EXPORT void IupMessageError(Ihandle* parent, const char* message);
+IUP_EXPORT int IupMessageAlarm(Ihandle* parent, const char* title, const char *message, const char *buttons);
 IUP_EXPORT int  IupAlarm(const char *title, const char *msg, const char *b1, const char *b2, const char *b3);
 IUP_EXPORT int  IupScanf(const char *format, ...);
 IUP_EXPORT int  IupListDialog(int type, const char *title, int size, const char** list,
@@ -331,8 +343,8 @@ typedef int (*Iparamcb)(Ihandle* dialog, int param_index, void* user_data);
 IUP_EXPORT int IupGetParam(const char* title, Iparamcb action, void* user_data, const char* format,...);
 IUP_EXPORT int IupGetParamv(const char* title, Iparamcb action, void* user_data, const char* format, int param_count, int param_extra, void** param_data);
 IUP_EXPORT Ihandle* IupParam(const char* format);
-IUP_EXPORT Ihandle*  IupParamBox(Ihandle* child, ...);
-IUP_EXPORT Ihandle*  IupParamBoxv(Ihandle* *children);
+IUP_EXPORT Ihandle*  IupParamBox(Ihandle* param, ...);
+IUP_EXPORT Ihandle*  IupParamBoxv(Ihandle* *param_array);
 
 IUP_EXPORT Ihandle* IupLayoutDialog(Ihandle* dialog);
 IUP_EXPORT Ihandle* IupElementPropertiesDialog(Ihandle* elem);
@@ -422,6 +434,7 @@ enum{IUP_SBUP,   IUP_SBDN,    IUP_SBPGUP,   IUP_SBPGDN,    IUP_SBPOSV, IUP_SBDRA
 #define IUP_MASK_FLOAT       "[+/-]?(/d+/.?/d*|/./d+)"
 #define IUP_MASK_UFLOAT            "(/d+/.?/d*|/./d+)"
 #define IUP_MASK_EFLOAT      "[+/-]?(/d+/.?/d*|/./d+)([eE][+/-]?/d+)?"
+#define IUP_MASK_UEFLOAT           "(/d+/.?/d*|/./d+)([eE][+/-]?/d+)?"
 #define IUP_MASK_FLOATCOMMA  "[+/-]?(/d+/,?/d*|/,/d+)"
 #define IUP_MASK_UFLOATCOMMA       "(/d+/,?/d*|/,/d+)"
 #define IUP_MASK_INT          "[+/-]?/d+"
@@ -448,6 +461,11 @@ enum{IUP_SBUP,   IUP_SBDN,    IUP_SBPGUP,   IUP_SBPGDN,    IUP_SBPOSV, IUP_SBDRA
 #define IUP_GETPARAM_CANCEL IUP_GETPARAM_BUTTON2
 #define IUP_GETPARAM_HELP   IUP_GETPARAM_BUTTON3
 
+/************************************************************************/
+/*                   Used by IupColorbar                                */
+/************************************************************************/
+#define IUP_PRIMARY -1
+#define IUP_SECONDARY -2
 
 /************************************************************************/
 /*                   Record Input Modes                                 */
@@ -470,7 +488,7 @@ int IupMain (int argc, char** argv); /* In C++ we have to declare the prototype 
 #endif
 
 /******************************************************************************
-* Copyright (C) 1994-2016 Tecgraf/PUC-Rio.
+* Copyright (C) 1994-2018 Tecgraf/PUC-Rio.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the

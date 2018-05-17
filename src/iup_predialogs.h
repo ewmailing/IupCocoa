@@ -1,5 +1,5 @@
 /** \file
- * \brief IUP Core pre-defined dialogs.
+ * \brief IUP Core pre-defined dialogs (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
@@ -18,9 +18,6 @@ IUP_EXPORTI int iupDataEntry(int maxlin, int* maxcol, int* maxscr, char* title, 
 
 /* Popups a dialog with IUP Version, used in IupOpen */
 void iupShowVersion(void);
-
-/** Pre-defined dialog to show an error message. */
-void iupShowError(Ihandle* parent, const char* message);
 
 /* Other functions declared in <iup.h> and implemented here. 
 IupListDialog

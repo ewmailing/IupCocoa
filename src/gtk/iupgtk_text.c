@@ -231,26 +231,26 @@ static void gtkTextParseCharacterFormat(Ihandle* formattag, GtkTextTag* tag)
   format = iupAttribGet(formattag, "FONTSCALE");
   if (format)
   {
-    float fval = 0;
+    double fval = 0;
     if (iupStrEqualNoCase(format, "XX-SMALL"))
-      fval = (float)PANGO_SCALE_XX_SMALL;
+      fval = PANGO_SCALE_XX_SMALL;
     else if (iupStrEqualNoCase(format, "X-SMALL"))
-      fval = (float)PANGO_SCALE_X_SMALL;
+      fval = PANGO_SCALE_X_SMALL;
     else if (iupStrEqualNoCase(format, "SMALL"))
-      fval = (float)PANGO_SCALE_SMALL;
+      fval = PANGO_SCALE_SMALL;
     else if (iupStrEqualNoCase(format, "MEDIUM"))
-      fval = (float)PANGO_SCALE_MEDIUM;
+      fval = PANGO_SCALE_MEDIUM;
     else if (iupStrEqualNoCase(format, "LARGE"))
-      fval = (float)PANGO_SCALE_LARGE;
+      fval = PANGO_SCALE_LARGE;
     else if (iupStrEqualNoCase(format, "X-LARGE"))
-      fval = (float)PANGO_SCALE_X_LARGE;
+      fval = PANGO_SCALE_X_LARGE;
     else if (iupStrEqualNoCase(format, "XX-LARGE"))
-      fval = (float)PANGO_SCALE_XX_LARGE;
+      fval = PANGO_SCALE_XX_LARGE;
     else 
-      iupStrToFloat(format, &fval);
+      iupStrToDouble(format, &fval);
 
     if (fval > 0)
-      g_object_set(G_OBJECT(tag), "scale", (double)fval, NULL);
+      g_object_set(G_OBJECT(tag), "scale", fval, NULL);
   }
 
   format = iupAttribGet(formattag, "FONTFACE");
@@ -271,7 +271,7 @@ static void gtkTextParseCharacterFormat(Ihandle* formattag, GtkTextTag* tag)
     if (iupStrToRGB(format, &r, &g, &b))
     {
       GdkColor color;
-      iupgdkColorSet(&color, r, g, b);
+      iupgdkColorSetRGB(&color, r, g, b);
       g_object_set(G_OBJECT(tag), "foreground-gdk", &color, NULL);
     }
   }
@@ -283,7 +283,7 @@ static void gtkTextParseCharacterFormat(Ihandle* formattag, GtkTextTag* tag)
     if (iupStrToRGB(format, &r, &g, &b))
     {
       GdkColor color;
-      iupgdkColorSet(&color, r, g, b);
+      iupgdkColorSetRGB(&color, r, g, b);
       g_object_set(G_OBJECT(tag), "background-gdk", &color, NULL);
     }
   }
@@ -971,7 +971,7 @@ static int gtkTextSetAppendAttrib(Ihandle* ih, const char* value)
 
 static int gtkTextSetAlignmentAttrib(Ihandle* ih, const char* value)
 {
-  float xalign;
+  gfloat xalign;
   GtkJustification justification;
 
   if (iupStrEqualNoCase(value, "ARIGHT"))
@@ -1012,10 +1012,7 @@ static int gtkTextSetPaddingAttrib(Ihandle* ih, const char* value)
     else
     {
 #if GTK_CHECK_VERSION(3, 4, 0)
-      g_object_set(G_OBJECT(ih->handle), "margin-bottom", ih->data->vert_padding, NULL);
-      g_object_set(G_OBJECT(ih->handle), "margin-top", ih->data->vert_padding, NULL);
-      g_object_set(G_OBJECT(ih->handle), "margin-left", ih->data->horiz_padding, NULL);
-      g_object_set(G_OBJECT(ih->handle), "margin-right", ih->data->horiz_padding, NULL);
+      iupgtkSetMargin(ih->handle, ih->data->horiz_padding, ih->data->vert_padding, 1);
 #else
 #if GTK_CHECK_VERSION(2, 10, 0)
       GtkBorder border;
@@ -1117,7 +1114,7 @@ static char* gtkTextGetReadOnlyAttrib(Ihandle* ih)
 
 static int gtkTextSetBgColorAttrib(Ihandle* ih, const char* value)
 {
-  if (ih->data->is_multiline)
+  if (ih->data->is_multiline && iupStrBoolean(IupGetGlobal("SB_BGCOLOR")))
   {
     GtkScrolledWindow* scrolled_window = (GtkScrolledWindow*)iupAttribGet(ih, "_IUP_EXTRAPARENT");
     unsigned char r, g, b;
@@ -1404,7 +1401,10 @@ static char* gtkTextGetSpinValueAttrib(Ihandle* ih)
     if (iupAttribGet(ih, "_IUPGTK_SPIN_NOAUTO"))
       pos = iupAttribGetInt(ih, "_IUPGTK_SPIN_VALUE");
     else
+    {
+      gtk_spin_button_update((GtkSpinButton*)ih->handle);
       pos = gtk_spin_button_get_value_as_int((GtkSpinButton*)ih->handle);
+    }
 
     return iupStrReturnInt(pos);
   }

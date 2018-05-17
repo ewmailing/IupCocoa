@@ -1,5 +1,5 @@
 /** \file
- * \brief global attributes enviroment
+ * \brief global attributes environment (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */

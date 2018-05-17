@@ -27,13 +27,6 @@ static XtEventDispatchProc motButtonPressEventDispatchProc_OLD = NULL;
 static XtEventDispatchProc motButtonReleaseEventDispatchProc_OLD = NULL;
 
 
-int iupdrvCheckMainScreen(int *w, int *h)
-{
-  (void)w;
-  (void)h;
-  return 0;
-}
-
 static Boolean motKeyEventDispatchProc(XEvent* evt)
 {
   IFii cb = (IFii)IupGetFunction("GLOBALKEYPRESS_CB");

@@ -231,10 +231,10 @@ static int gtkToggleSetAlignmentAttrib(Ihandle* ih, const char* value)
 
   if (iupStrEqualNoCase(value1, "ARIGHT"))
     xalign = 1.0f;
-  else if (iupStrEqualNoCase(value1, "ACENTER"))
-    xalign = 0.5f;
-  else /* "ALEFT" */
+  else if (iupStrEqualNoCase(value1, "ALEFT"))
     xalign = 0;
+  else /* "ACENTER" (default) */
+    xalign = 0.5f;
 
   if (iupStrEqualNoCase(value2, "ABOTTOM"))
     yalign = 1.0f;
@@ -254,11 +254,8 @@ static int gtkToggleSetPaddingAttrib(Ihandle* ih, const char* value)
   iupStrToIntInt(value, &ih->data->horiz_padding, &ih->data->vert_padding, 'x');
   if (ih->handle && ih->data->type == IUP_TOGGLE_IMAGE)
   {
-#if GTK_CHECK_VERSION(3, 14, 0)
-    g_object_set(G_OBJECT(ih->handle), "margin-bottom", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-top", ih->data->vert_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-left", ih->data->horiz_padding, NULL);
-    g_object_set(G_OBJECT(ih->handle), "margin-right", ih->data->horiz_padding, NULL);
+#if GTK_CHECK_VERSION(3, 4, 0)
+    iupgtkSetMargin(ih->handle, ih->data->horiz_padding, ih->data->vert_padding, 0);
 #else
     GtkButton* button = (GtkButton*)ih->handle;
     GtkMisc* misc = (GtkMisc*)gtk_button_get_image(button);
@@ -286,7 +283,8 @@ static int gtkToggleSetFgColorAttrib(Ihandle* ih, const char* value)
 
 static int gtkToggleSetFontAttrib(Ihandle* ih, const char* value)
 {
-  iupdrvSetFontAttrib(ih, value);
+  if (!iupdrvSetFontAttrib(ih, value))
+    return 0;
 
   if (ih->handle)
   {
@@ -479,16 +477,13 @@ static int gtkToggleMapMethod(Ihandle* ih)
   if (!ih->parent)
     return IUP_ERROR;
 
-  if (radio)
-    ih->data->is_radio = 1;
-
   value = iupAttribGet(ih, "IMAGE");
   if (value)
     ih->data->type = IUP_TOGGLE_IMAGE;
   else
     ih->data->type = IUP_TOGGLE_TEXT;
 
-  if (ih->data->is_radio)
+  if (radio)
   {
     GtkRadioButton* last_tg = (GtkRadioButton*)iupAttribGet(radio, "_IUPGTK_LASTRADIOBUTTON");
     if (last_tg)
@@ -500,6 +495,8 @@ static int gtkToggleMapMethod(Ihandle* ih)
     /* make sure it has at least one name */
     if (!iupAttribGetHandleName(ih))
       iupAttribSetHandleName(ih);
+
+    ih->data->is_radio = 1;
   }
   else
   {

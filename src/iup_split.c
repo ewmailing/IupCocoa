@@ -21,6 +21,7 @@
 #include "iup_layout.h"
 #include "iup_childtree.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 
 
 enum { ISPLIT_VERT, ISPLIT_HORIZ };
@@ -71,16 +72,16 @@ static void iSplitAutoHide(Ihandle* ih)
     if (ih->data->orientation == ISPLIT_VERT)
     {
       if (ih->currentwidth <= ih->data->barsize)
-        return;
-
-      tol = (1000*ih->data->barsize)/ih->currentwidth;
+        tol = 50;
+      else
+        tol = (1000*ih->data->barsize)/ih->currentwidth;
     }
     else
     {
       if (ih->currentheight <= ih->data->barsize)
-        return;
-
-      tol = (1000*ih->data->barsize)/ih->currentheight;
+        tol = 50;
+      else
+        tol = (1000 * ih->data->barsize) / ih->currentheight;
     }
 
     iSplitAutoHideChild(child1, ih->data->val<=tol? ISPLIT_HIDE: ISPLIT_SHOW);
@@ -90,11 +91,16 @@ static void iSplitAutoHide(Ihandle* ih)
   }
 }
 
+static int iupRoundUp(double d)
+{
+  return (int)ceil(d);
+}
+
 static int iSplitGetWidth1(Ihandle* ih)
 {
   /* This is the space available for the child,
      It does NOT depends on the child. */
-  int width1 = (int)(((ih->currentwidth-ih->data->barsize)*ih->data->val)/1000.0 + 0.5);
+  int width1 = iupRoundUp(((ih->currentwidth - ih->data->barsize)*ih->data->val) / 1000.0);
   if (width1 < 0) width1 = 0;
   return width1;
 }
@@ -112,7 +118,7 @@ static int iSplitGetHeight1(Ihandle* ih)
 {
   /* This is the space available for the child,
      It does NOT depends on the child. */
-  int height1 = (int)(((ih->currentheight-ih->data->barsize)*ih->data->val)/1000.0 + 0.5);
+  int height1 = iupRoundUp(((ih->currentheight - ih->data->barsize)*ih->data->val) / 1000.0);
   if (height1 < 0) height1 = 0;
   return height1;
 }
@@ -126,12 +132,12 @@ static int iSplitGetHeight2(Ihandle* ih, int height1)
   return height2;
 }
 
-static int iSplitCalcVal(Ihandle* ih, int size1)
+static void iSplitCalcVal(Ihandle* ih, int size1)
 {
   if (ih->data->orientation == ISPLIT_VERT)
-    return (size1*1000)/(ih->currentwidth - ih->data->barsize);
+    ih->data->val = (size1 * 1000) / (ih->currentwidth - ih->data->barsize);
   else
-    return (size1*1000)/(ih->currentheight - ih->data->barsize);
+    ih->data->val = (size1 * 1000) / (ih->currentheight - ih->data->barsize);
 }
 
 static void iSplitAdjustVal(Ihandle* ih)
@@ -232,104 +238,10 @@ static void iSplitSetBarPosition(Ihandle* ih)
 }
 
 
-
 /*****************************************************************************\
 |* Callbacks of canvas bar                                                   *|
 \*****************************************************************************/
 
-
-static int iSplitAction_CB(Ihandle* bar)
-{
-  Ihandle* ih = bar->parent;
-  IdrawCanvas* dc;
-
-  dc = iupdrvDrawCreateCanvas(bar);
-
-  iupdrvDrawParentBackground(dc);
-
-  if (ih->data->showgrip)
-  {
-    int w, h, x, y;
-    unsigned char r = 160, g = 160, b = 160;
-    iupdrvDrawGetSize(dc, &w, &h);
-
-    iupStrToRGB(iupAttribGetStr(ih, "COLOR"), &r, &g, &b);
-
-    if (ih->data->showgrip == 1)
-    {
-      int i, count;
-      unsigned char bg_r, bg_g, bg_b;
-
-      if (r + g + b > 3 * 190)
-      {
-        bg_r = 100; bg_g = 100; bg_b = 100;
-      }
-      else
-      {
-        bg_r = 255; bg_g = 255; bg_b = 255;
-      }
-
-      if (ih->data->orientation == ISPLIT_VERT)
-      {
-        x = ih->data->barsize / 2 - 1;
-        y = 2;
-        count = (h - 2) / 5;
-      }
-      else
-      {
-        x = 2;
-        y = ih->data->barsize / 2 - 1;
-        count = (w - 2) / 5;
-      }
-
-      for (i = 0; i < count; i++)
-      {
-        iupdrvDrawRectangle(dc, x + 1, y + 1, x + 2, y + 2, bg_r, bg_g, bg_b, IUP_DRAW_FILL);
-        iupdrvDrawRectangle(dc, x, y, x + 1, y + 1, r, g, b, IUP_DRAW_FILL);
-        if (ih->data->orientation == ISPLIT_VERT)
-          y += 5;
-        else
-          x += 5;
-      }
-    }
-    else
-    {
-      if (ih->data->orientation == ISPLIT_VERT)
-      {
-        x = ih->data->barsize / 2;
-
-        iupdrvDrawLine(dc, x - 1, 0, x - 1, h - 1, r, g, b, IUP_DRAW_STROKE);
-        iupdrvDrawLine(dc, x + 1, 0, x + 1, h - 1, r, g, b, IUP_DRAW_STROKE);
-      }
-      else
-      {
-        y = ih->data->barsize / 2;
-
-        iupdrvDrawLine(dc, 0, y - 1, w - 1, y - 1, r, g, b, IUP_DRAW_STROKE);
-        iupdrvDrawLine(dc, 0, y + 1, w - 1, y + 1, r, g, b, IUP_DRAW_STROKE);
-      }
-    }
-  }
-  else
-  {
-    char* color = iupAttribGet(ih, "COLOR");
-    if (color)
-    {
-      unsigned char r = 160, g = 160, b = 160;
-      int w, h;
-      iupdrvDrawGetSize(dc, &w, &h);
-
-      iupStrToRGB(iupAttribGetStr(ih, "COLOR"), &r, &g, &b);
-      iupdrvDrawRectangle(dc, 0, 0, w-1, h-1, r, g, b, IUP_DRAW_FILL);
-    }
-  }
-
-  iupdrvDrawFlush(dc);
-
-  iupdrvDrawKillCanvas(dc);
-
-  return IUP_DEFAULT;
-}
 
 static int iSplitMotion_CB(Ihandle* bar, int x, int y, char *status)
 {
@@ -348,13 +260,13 @@ static int iSplitMotion_CB(Ihandle* bar, int x, int y, char *status)
       {
         int width1 = ih->data->start_size + (cur_x - ih->data->start_pos);
         iSplitAdjustWidth1(ih, &width1);
-        ih->data->val = iSplitCalcVal(ih, width1);
+        iSplitCalcVal(ih, width1);
       }
       else
       {
         int height1 = ih->data->start_size + (cur_y - ih->data->start_pos);
         iSplitAdjustHeight1(ih, &height1);
-        ih->data->val = iSplitCalcVal(ih, height1);
+        iSplitCalcVal(ih, height1);
       }
 
       iSplitAdjustVal(ih);
@@ -458,15 +370,21 @@ static char* iSplitGetClientSizeAttrib(Ihandle* ih)
 
 static int iSplitSetColorAttrib(Ihandle* ih, const char* value)
 {
-  (void)value;
-  IupUpdate(ih);
-  return 1;  /* store value in hash table */
+  IupSetStrAttribute(ih->firstchild, "COLOR", value);
+  return 0;
+}
+
+static char* iSplitGetColorAttrib(Ihandle* ih)
+{
+  return IupGetAttribute(ih->firstchild, "COLOR");
 }
 
 static int iSplitSetOrientationAttrib(Ihandle* ih, const char* value)
 {
   if (ih->handle) /* only before map */
     return 0;
+
+  IupSetStrAttribute(ih->firstchild, "ORIENTATION", value);
 
   if (iupStrEqualNoCase(value, "HORIZONTAL"))
     ih->data->orientation = ISPLIT_HORIZ;
@@ -515,6 +433,8 @@ static int iSplitSetBarSizeAttrib(Ihandle* ih, const char* value)
 {
   if (iupStrToInt(value, &ih->data->barsize))
   {
+    IupSetInt(ih->firstchild, "BARSIZE", ih->data->barsize);
+
     if (ih->data->barsize == 0)
       IupSetAttribute(ih->firstchild, "VISIBLE", "NO");
     else
@@ -579,13 +499,20 @@ static char* iSplitGetLayoutDragAttrib(Ihandle* ih)
 static int iSplitSetShowGripAttrib(Ihandle* ih, const char* value)
 {
   if (iupStrBoolean(value))
+  {
     ih->data->showgrip = 1;
+    IupSetAttribute(ih->firstchild, "STYLE", "GRIP");
+  }
   else
   {
     if (iupStrEqualNoCase(value, "LINES"))
+    {
+      IupSetAttribute(ih->firstchild, "STYLE", "DUALLINES");
       ih->data->showgrip = 2;
+    }
     else
     {
+      IupSetAttribute(ih->firstchild, "STYLE", "FILL");
       ih->data->showgrip = 0;
 
       if (ih->data->barsize == 5)
@@ -699,11 +626,11 @@ static void iSplitComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *chi
   {
     if (child1)
     {
-      /* just is just an initial value based on natural size of the split and the child */
+      /* just is just an initial value based on natural size of the split and the child, similar to iSplitCalcVal */
       if (ih->data->orientation == ISPLIT_VERT)
-        ih->data->val = (child1->naturalwidth*1000)/(natural_w-ih->data->barsize);
+        ih->data->val = (child1->naturalwidth*1000)/(natural_w - ih->data->barsize);
       else
-        ih->data->val = (child1->naturalheight*1000)/(natural_h-ih->data->barsize);
+        ih->data->val = (child1->naturalheight*1000)/(natural_h - ih->data->barsize);
     }
     else
       ih->data->val = ih->data->min;
@@ -727,7 +654,7 @@ static void iSplitSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
   {
     int width1 = iSplitGetWidth1(ih);
     if (iSplitAdjustWidth1(ih, &width1))    /* this will check for child1 and child2 */
-      ih->data->val = iSplitCalcVal(ih, width1);  /* has a MINMAX size, must fix split value */
+      iSplitCalcVal(ih, width1);  /* has a MINMAX size, must fix split value */
 
     if (child1 && !(child1->flags & IUP_FLOATING_IGNORE))
     {
@@ -737,7 +664,7 @@ static void iSplitSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
       {
         /* has a minimum size, must fix split value */
         width1 = child1->currentwidth;
-        ih->data->val = iSplitCalcVal(ih, width1);
+        iSplitCalcVal(ih, width1);
       }
     }
 
@@ -755,7 +682,7 @@ static void iSplitSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
         /* has a minimum size, must fix split value */
         width2 = child2->currentwidth;
         width1 = (ih->currentwidth-ih->data->barsize) - width2;
-        ih->data->val = iSplitCalcVal(ih, width1);
+        iSplitCalcVal(ih, width1);
         if (child1)
           iupBaseSetCurrentSize(child1, width1, ih->currentheight, shrink);
       }
@@ -765,7 +692,7 @@ static void iSplitSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
   {
     int height1 = iSplitGetHeight1(ih);
     if (iSplitAdjustHeight1(ih, &height1))  /* this will check for child1 and child2 */
-      ih->data->val = iSplitCalcVal(ih, height1);  /* has a MINMAX size, must fix split value */
+      iSplitCalcVal(ih, height1);  /* has a MINMAX size, must fix split value */
 
     if (child1 && !(child1->flags & IUP_FLOATING_IGNORE))
     {
@@ -775,7 +702,7 @@ static void iSplitSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
       {
         /* has a minimum size, must fix split value */
         height1 = child1->currentheight;
-        ih->data->val = iSplitCalcVal(ih, height1);
+        iSplitCalcVal(ih, height1);
       }
     }
 
@@ -793,7 +720,7 @@ static void iSplitSetChildrenCurrentSizeMethod(Ihandle* ih, int shrink)
         /* has a minimum size, must fix split value */
         height2 = child2->currentheight;
         height1 = (ih->currentheight-ih->data->barsize) - height2;
-        ih->data->val = iSplitCalcVal(ih, height1);
+        iSplitCalcVal(ih, height1);
         if (child1)
           iupBaseSetCurrentSize(child1, ih->currentwidth, height1, shrink);
       }
@@ -858,20 +785,19 @@ static int iSplitCreateMethod(Ihandle* ih, void** params)
   ih->data->min = 0; 
   ih->data->max = 1000;
 
-  bar = IupCanvas(NULL);
+  bar = IupFlatSeparator();
   iupChildTreeAppend(ih, bar);  /* bar will always be the firstchild */
   bar->flags |= IUP_INTERNAL;
 
-  IupSetAttribute(bar, "CANFOCUS", "NO");
-  IupSetAttribute(bar, "BORDER", "NO");
   IupSetAttribute(bar, "EXPAND", "NO");
   IupSetAttribute(bar, "CURSOR", "SPLITTER_VERT");
+  IupSetAttribute(bar, "STYLE", "GRIP");
+  IupSetAttribute(bar, "ORIENTATION", "VERTICAL");
 
   /* Setting callbacks */
   IupSetCallback(bar, "BUTTON_CB", (Icallback) iSplitButton_CB);
   IupSetCallback(bar, "FOCUS_CB",  (Icallback) iSplitFocus_CB);
   IupSetCallback(bar, "MOTION_CB", (Icallback) iSplitMotion_CB);
-  IupSetCallback(bar, "ACTION", (Icallback) iSplitAction_CB);
 
   if (params)
   {
@@ -913,15 +839,18 @@ Iclass* iupSplitNewClass(void)
   iupClassRegisterAttribute(ic, "CLIENTOFFSET", iupBaseGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_READONLY|IUPAF_NO_INHERIT);
 
   /* IupSplit only */
-  iupClassRegisterAttribute(ic, "COLOR",     NULL, iSplitSetColorAttrib,     IUPAF_SAMEASSYSTEM, "160 160 160", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ORIENTATION", NULL, iSplitSetOrientationAttrib, IUPAF_SAMEASSYSTEM, "VERTICAL", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "DIRECTION", NULL, iSplitSetOrientationAttrib, IUPAF_SAMEASSYSTEM, "VERTICAL", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "VALUE", iSplitGetValueAttrib, iSplitSetValueAttrib, IUPAF_SAMEASSYSTEM, "500", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "LAYOUTDRAG", iSplitGetLayoutDragAttrib, iSplitSetLayoutDragAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SHOWGRIP", iSplitGetShowGripAttrib, iSplitSetShowGripAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "AUTOHIDE", iSplitGetAutoHideAttrib, iSplitSetAutoHideAttrib, IUPAF_SAMEASSYSTEM, "NO", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "BARSIZE", iSplitGetBarSizeAttrib, iSplitSetBarSizeAttrib, IUPAF_SAMEASSYSTEM, "5", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "MINMAX", iSplitGetMinMaxAttrib, iSplitSetMinMaxAttrib, IUPAF_SAMEASSYSTEM, "0:1000", IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+
+
+  iupClassRegisterAttribute(ic, "COLOR", iSplitGetColorAttrib, iSplitSetColorAttrib, IUPAF_SAMEASSYSTEM, "160 160 160", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ORIENTATION", NULL, iSplitSetOrientationAttrib, IUPAF_SAMEASSYSTEM, "VERTICAL", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SHOWGRIP", iSplitGetShowGripAttrib, iSplitSetShowGripAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BARSIZE", iSplitGetBarSizeAttrib, iSplitSetBarSizeAttrib, IUPAF_SAMEASSYSTEM, "5", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
+
 
   return ic;
 }
