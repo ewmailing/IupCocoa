@@ -647,6 +647,9 @@ ELSEIF(IUP_USE_ANDROID)
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupActivity.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupCommon.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupLaunchActivity.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jnicacheglobals.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jnicacheglobals.h
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jnimacros.h
 		#${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_key.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_label.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_list.c
