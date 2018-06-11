@@ -63,6 +63,7 @@ IUP_EXPORT int       IupLoopStepWait  (void);
 IUP_EXPORT int       IupMainLoopLevel (void);
 IUP_EXPORT void      IupFlush         (void);
 IUP_EXPORT void      IupExitLoop      (void);
+IUP_EXPORT void      IupPostMessage   (Ihandle* ih, char*, void* message_data, int);
 
 IUP_EXPORT int       IupRecordInput(const char* filename, int mode);
 IUP_EXPORT int       IupPlayInput(const char* filename);

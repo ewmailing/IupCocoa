@@ -263,6 +263,7 @@ IupDial
 IupGauge
 IupColorbar
 IupColorBrowser
+IupPostMessage
 
 iupdrvSetVisible
 iupdrvSetFontAttrib

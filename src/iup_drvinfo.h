@@ -86,10 +86,6 @@ void* iupdrvGetDisplay(void);
  * \ingroup drvinfo */
 char* iupdrvLocaleInfo(void);
 
-/** Changes the current directory.
-* \ingroup drvinfo */
-int iupdrvSetCurrentDirectory(const char* dir);
-
 /** Returns the path to the preference directory.
  * Path will always have a trailing slash so it is easy to strlcat to.
  * May return ""
@@ -98,6 +94,10 @@ int iupdrvSetCurrentDirectory(const char* dir);
  * strlen probably should be size_t instead of int, but this header includes no headers.
  * \ingroup drvinfo */
 int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name);
+
+/** Changes the current directory.
+* \ingroup drvinfo */
+int iupdrvSetCurrentDirectory(const char* dir);
 
 /** Returns the current directory.
 * \ingroup drvinfo */

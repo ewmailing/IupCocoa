@@ -150,17 +150,23 @@ ELSEIF(UNIX)
 		OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" ON)
 		OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" OFF)
 		OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
+		OPTION(IUPWEB_OPTION_USEDLOPEN "Use dlopen to load libwebkitgtk-1.0" ON)
 	elseif(GTK3_FOUND)
 		OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" OFF)
 		OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" ON)
 		OPTION(IUP_OPTION_MOTIF "Use Motif backend" OFF)
+		OPTION(IUPWEB_OPTION_USEDLOPEN "Use dlopen to load libwebkitgtk-3.0" ON)
 	elseif(MOTIF_FOUND)
 		OPTION(IUP_OPTION_GTK2 "Use GTK2 backend" OFF)
 		OPTION(IUP_OPTION_GTK3 "Use GTK3 backend" OFF)
 		OPTION(IUP_OPTION_MOTIF "Use Motif backend" ON)
+		OPTION(IUPWEB_OPTION_USEDLOPEN "Use dlopen to load libwebkit" OFF)
 	else()
 		MESSAGE(FATAL_ERROR "Platform backend dependencies were not found.")
 	endif()
+
+
+	
 
 ENDIF()
 
@@ -184,9 +190,12 @@ ELSEIF(IUP_OPTION_GTK2)
 		MESSAGE(FATAL_ERROR "GTK2 dependencies not found")
 	endif()
 
-	pkg_check_modules(WEBKIT QUIET webkit-1.0)
-	if(NOT WEBKIT_FOUND)
-		pkg_check_modules(WEBKIT QUIET webkitgtk-2.0)
+	if(IUPWEB_OPTION_USEDLOPEN)
+	else()
+		pkg_check_modules(WEBKIT QUIET webkit-1.0)
+		if(NOT WEBKIT_FOUND)
+			pkg_check_modules(WEBKIT QUIET webkitgtk-2.0)
+		endif()
 	endif()
 
 ELSEIF(IUP_OPTION_GTK3)
@@ -203,9 +212,12 @@ ELSEIF(IUP_OPTION_GTK3)
 		MESSAGE(FATAL_ERROR "GTK3 dependencies not found")
 	endif()
 
-	pkg_check_modules(WEBKIT QUIET webkit-1.0)
-	if(NOT WEBKIT_FOUND)
-		pkg_check_modules(WEBKIT QUIET webkitgtk-3.0)
+	if(IUPWEB_OPTION_USEDLOPEN)
+	else()
+		pkg_check_modules(WEBKIT QUIET webkit-1.0)
+		if(NOT WEBKIT_FOUND)
+			pkg_check_modules(WEBKIT QUIET webkitgtk-3.0)
+		endif()
 	endif()
 
 ELSEIF(IUP_OPTION_MOTIF)
@@ -1100,12 +1112,22 @@ ELSEIF(IUP_USE_GTK3 OR IUP_USE_GTK2)
 		${IUPWEB_GTK_SOURCE_FILES}
 	)
 
-	IF(WEBKIT_FOUND)
+	IF(IUPWEB_OPTION_USEDLOPEN)
+		SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
+		INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/gtk)
+		SET(IUPWEB_C_FLAGS "${IUPWEB_C_FLAGS} -DIUPWEB_USE_DLOPEN")
+		LIST(APPEND IUPWEB_LINK_LIBRARIES 
+			${APPLE_WEBKIT_LIBRARY}
+		)
+		ELSEIF(WEBKIT_FOUND)
 		SET(IUP_SHOULD_BUILD_IUPWEB TRUE)
 		INCLUDE_DIRECTORIES(${WEBKIT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src/gtk)
-		LIST(APPEND IUPWEB_LINK_LIBRARIES 
-			${WEBKIT_LIBRARIES}
-		)
+		IF(UNIX)
+			FIND_LIBRARY(DLOPEN_LIBRARY dl)
+			LIST(APPEND IUPWEB_LINK_LIBRARIES 
+				${DLOPEN_LIBRARY}
+			)
+		ENDIF()
 	ELSE()
 		SET(IUP_SHOULD_BUILD_IUPWEB FALSE)
 	ENDIF()
@@ -1378,6 +1400,7 @@ BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
 BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
 BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c")
 BUILD_IUP_TEST(tree "${CMAKE_SOURCE_DIR}/html/examples/tests/tree.c")
+BUILD_IUP_TEST(postmessage "${CMAKE_SOURCE_DIR}/html/examples/tests/postmessage.c")
 
 # Things with dependencies on iupimglib
 #BUILD_IUPIMGLIB_TEST(bigtest "${CMAKE_SOURCE_DIR}/html/examples/tests/bigtest.c")

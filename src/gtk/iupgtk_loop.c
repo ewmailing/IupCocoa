@@ -6,6 +6,7 @@
 
 #include <stdio.h>    
 #include <string.h>    
+#include <stdlib.h>
 
 #include <gtk/gtk.h>
 
@@ -128,4 +129,34 @@ void IupFlush(void)
 
   if (old_gtk_idle_cb)
     iupdrvSetIdleFunction((Icallback)old_gtk_idle_cb);
+}
+
+
+typedef struct {
+  Ihandle* ih;
+  void* messageData;
+} gtkPostMessageUserData;
+
+static gint gtkPostMessageCallback(void *user_data)
+{
+  gtkPostMessageUserData* message_user_data = (gtkPostMessageUserData*)user_data;
+  Ihandle* ih = message_user_data->ih;
+  /* TODO: Figure out callback type. For now, I'm reusing an existing type so I don't have to add one until we decide. */
+  IFnsVi post_message_callback = (IFnsVi)IupGetCallback(ih, "POSTMESSAGE_CB");
+  if (post_message_callback)
+  {
+    void* message_data = message_user_data->messageData;
+    post_message_callback(ih, NULL, message_data, 0);
+  }
+  free(user_data);
+  return FALSE; // call only once
+}
+
+/* TODO: Make decision on final API. For now, this API is just to get a usable demo. */
+void IupPostMessage(Ihandle* ih, char* unusedchar, void* message_data, int unusedint)
+{
+  gtkPostMessageUserData* user_data = (gtkPostMessageUserData*)malloc(sizeof(gtkPostMessageUserData));
+  user_data->ih = ih;
+  user_data->messageData = message_data;
+  g_idle_add(gtkPostMessageCallback, user_data);  
 }
