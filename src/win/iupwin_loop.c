@@ -164,15 +164,29 @@ void IupFlush(void)
     IupExitLoop();
 }
 
+typedef struct {
+  Ihandle* ih;
+  void* messageData;
+  char* ptrParam;
+  int intParam;
+} winPostMessageUserData;
+
 /* Based on Raymond Chen's discussion of PostThreadMessage
 https://blogs.msdn.microsoft.com/oldnewthing/20050428-00/?p=35753
 TODO: Make decision on final API. For now, this API is just to get a usable demo.
 */
 void IupPostMessage(Ihandle* ih, char* unusedchar, void* message_data, int unusedint)
 {
-  /* REVIEW: I am passing the Ihandle* ih into the WPARAM field because I'm using the LPARAM field for message_data. */
-  /* I think this is okay because the size of WPARAM should be the same as LPARAM. */
-  PostThreadMessage(iupwin_mainthreadid, WM_APP, (WPARAM)ih, (LPARAM)message_data);
+  winPostMessageUserData* user_data = (winPostMessageUserData*)malloc(sizeof(winPostMessageUserData));
+  user_data->ih = ih;
+  user_data->messageData = message_data;
+  user_data->ptrParam = unusedchar;
+  user_data->intParam = unusedint;
+
+  /* I am passing IWIN_POSTMESSAGE_ID for the WPARAM parameter as a redundancy. */
+  /* If in the future, we need to use PostThreadMessage for another unrelated feature, */
+  /* we can use different unique WPARAM values to distinguish which feature is using it. */
+  PostThreadMessage(iupwin_mainthreadid, WM_APP, (WPARAM)IWIN_POSTMESSAGE_ID, (LPARAM)user_data);
 }
 
 LRESULT CALLBACK iupwinPostMessageFilterProc(int code, WPARAM wParam, LPARAM lParam)
@@ -195,15 +209,20 @@ LRESULT CALLBACK iupwinPostMessageFilterProc(int code, WPARAM wParam, LPARAM lPa
     {
       case WM_APP: 
       {
-        Ihandle* ih = (Ihandle*)pmsg->wParam;
-        /* TODO: Figure out callback type. For now, I'm reusing an existing type so I don't have to add one until we decide. */
-        IFnsVi post_message_callback = (IFnsVi)IupGetCallback(ih, "POSTMESSAGE_CB");
-        if (post_message_callback)
+        /* For future additions, we use the wParam to distinguish which feature is invoked. */
+        if (IWIN_POSTMESSAGE_ID == pmsg->wParam)
         {
-          void* message_data = (Ihandle*)pmsg->lParam;
-          post_message_callback(ih, NULL, message_data, 0);
+          winPostMessageUserData* user_data = (winPostMessageUserData*)pmsg->lParam;
+          Ihandle* ih = user_data->ih;
+          /* TODO: Figure out callback type. For now, I'm reusing an existing type so I don't have to add one until we decide. */
+          IFnsVi post_message_callback = (IFnsVi)IupGetCallback(ih, "POSTMESSAGE_CB");
+          if (post_message_callback)
+          {
+            post_message_callback(ih, user_data->ptrParam, user_data->messageData, user_data->intParam);
+          }
+          free(user_data);
+          return TRUE;
         }
-        return TRUE;
       }
     }
   }

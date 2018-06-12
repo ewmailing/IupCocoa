@@ -119,6 +119,8 @@ void IupFlush(void)
 typedef struct {
   Ihandle* ih;
   void* messageData;
+  char* ptrParam;
+  int intParam;
 } gtkPostMessageUserData;
 
 static gint gtkPostMessageCallback(void *user_data)
@@ -130,7 +132,9 @@ static gint gtkPostMessageCallback(void *user_data)
   if (post_message_callback)
   {
     void* message_data = message_user_data->messageData;
-    post_message_callback(ih, NULL, message_data, 0);
+    char* ptr_param = message_user_data->ptrParam;
+    void* int_param = message_user_data->intParam;
+    post_message_callback(ih, ptr_param, message_data, int_param);
   }
   free(user_data);
   return FALSE; // call only once
@@ -142,5 +146,7 @@ void IupPostMessage(Ihandle* ih, char* unusedchar, void* message_data, int unuse
   gtkPostMessageUserData* user_data = (gtkPostMessageUserData*)malloc(sizeof(gtkPostMessageUserData));
   user_data->ih = ih;
   user_data->messageData = message_data;
+  user_data->ptrParam = unusedchar;
+  user_data->intParam = unusedint;
   g_idle_add(gtkPostMessageCallback, user_data);  
 }
