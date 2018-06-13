@@ -133,7 +133,7 @@ static gint gtkPostMessageCallback(void *user_data)
   {
     void* message_data = message_user_data->messageData;
     char* ptr_param = message_user_data->ptrParam;
-    void* int_param = message_user_data->intParam;
+    int int_param = message_user_data->intParam;
     post_message_callback(ih, ptr_param, message_data, int_param);
   }
   free(user_data);
