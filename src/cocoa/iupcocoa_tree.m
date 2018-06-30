@@ -151,6 +151,9 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 - (void) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
 - (void) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new;
+- (void) removeAllObjects;
+- (void) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item;
+- (void) removeItem:(IupCocoaTreeItem*)tree_item;
 
 //- (NSMutableArray*) dataArray;
 
@@ -163,6 +166,16 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 
 
 @end
+
+static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
+{
+	NSUInteger counter = 1;
+	for(IupCocoaTreeItem* a_item in [the_item childrenArray])
+	{
+		counter += Helper_RecursivelyCountItems(a_item);
+	}
+	return counter;
+}
 
 @implementation IupCocoaTreeDelegate
 @synthesize numberOfItems = numberOfItems;
@@ -183,12 +196,12 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	[super dealloc];
 }
 
-- (void) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:tree_item_parent
+- (void) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent
 {
 	// IUP always inserts the child in the first position, not the last
 	[[tree_item_parent childrenArray] insertObject:tree_item_child atIndex:0];
 	[tree_item_child setParentItem:tree_item_parent];
-	numberOfItems = numberOfItems + 1;
+	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_child);
 }
 
 - (void) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev
@@ -208,16 +221,52 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	{
 		[children_array insertObject:tree_item_new atIndex:target_index];
 	}
-	numberOfItems = numberOfItems + 1;
+	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_new);
+
 }
 
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new
 {
 	// IUP always inserts the child in the first position, not the last
 	[treeRootTopLevelObjects insertObject:tree_item_new atIndex:0];
-	numberOfItems = numberOfItems + 1;
+	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_new);
 }
 
+- (void) removeAllObjects
+{
+	[treeRootTopLevelObjects removeAllObjects];
+	numberOfItems = 0;
+}
+
+- (void) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item
+{
+	if(nil == tree_item)
+	{
+		return;
+	}
+	NSUInteger number_of_descendents = Helper_RecursivelyCountItems(tree_item) - 1; // subtract one because we don't want to count the tree_item itself, just children/grandchildren
+
+	NSMutableArray* children_array = [tree_item childrenArray];
+	[children_array removeAllObjects];
+	numberOfItems = numberOfItems - number_of_descendents;
+}
+
+- (void) removeItem:(IupCocoaTreeItem*)tree_item
+{
+	if(nil == tree_item)
+	{
+		return;
+	}
+	NSUInteger number_of_items_to_remove = Helper_RecursivelyCountItems(tree_item);
+	
+	IupCocoaTreeItem* tree_item_parent = [tree_item parentItem];
+	NSMutableArray* children_array = [tree_item_parent childrenArray];
+	[children_array removeObject:tree_item];
+	numberOfItems = numberOfItems - number_of_items_to_remove;
+
+	// removing the item should release the object since nothing else should be holding a reference.
+	// children should automatically be removed.
+}
 
 - (NSInteger) outlineView:(NSOutlineView*)outline_view numberOfChildrenOfItem:(nullable id)the_item
 {
@@ -400,13 +449,13 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 	[tree_item_new setKind:kind];
 	NSString* ns_title = [NSString stringWithUTF8String:title];
 	[tree_item_new setTitle:ns_title];
-	InodeHandle* inode_new = (InodeHandle*)calloc(1, sizeof(InodeHandle));
-	inode_new->userdata = tree_item_new; // NOTE: retain count is 1 from alloc. We are not going to retain it again.
+//	InodeHandle* inode_new = (InodeHandle*)calloc(1, sizeof(InodeHandle));
+	InodeHandle* inode_new = (InodeHandle*)tree_item_new; // NOTE: retain count is 1 from alloc. We are not going to retain it again.
 	
 	//  If the reference node exists then
 	if(inode_prev)
 	{
-		IupCocoaTreeItem* tree_item_prev = inode_prev->userdata;
+		IupCocoaTreeItem* tree_item_prev = inode_prev;
 		int kind_prev = [tree_item_prev kind];
 	
 		
@@ -448,23 +497,33 @@ int iupdrvTreeTotalChildCount(Ihandle* ih, InodeHandle* node_handle)
 //	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
 //	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
 	
-	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)node_handle->userdata;
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)node_handle;
 	NSUInteger number_of_items = [tree_item numberOfChildren];
 	return (int)number_of_items;
 }
 
 InodeHandle* iupdrvTreeGetFocusNode(Ihandle* ih)
 {
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+
+	id selected_item = [outline_view itemAtRow:[outline_view selectedRow]];
+
 	
 	
-	
-	return NULL;
+	return (InodeHandle*)selected_item;
 }
 
 
+// FIXME: Why does the GTK version look so different?
 void iupdrvTreeUpdateMarkMode(Ihandle *ih)
 {
-	
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	const char* mark_mode = iupAttribGet(ih, "MARKMODE");
+	if(iupStrEqualNoCase(mark_mode, "MULTIPLE"))
+	{
+		[outline_view setAllowsMultipleSelection:YES];
+	}
+
 }
 
 
@@ -480,6 +539,81 @@ void iupdrvTreeDragDropCopyNode(Ihandle* src, Ihandle* dst, InodeHandle *itemSrc
 /*****************************************************************************/
 
 
+static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value)
+{
+  if (!ih->handle)  /* do not do the action before map */
+    return 0;
+
+  	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+
+
+  if (iupStrEqualNoCase(value, "ALL"))
+  {
+  
+    [data_source_delegate removeAllObjects];
+
+
+    return 0;
+  }
+  if (iupStrEqualNoCase(value, "SELECTED"))  /* selected here means the reference node */
+  {
+
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
+//    HTREEITEM hChildItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)hItem);
+
+    if(!tree_item)
+    {
+      return 0;
+	}
+	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
+	  
+	[data_source_delegate removeItem:tree_item];
+
+	  
+  }
+  else if(iupStrEqualNoCase(value, "CHILDREN"))  /* children of the reference node */
+  {
+
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
+//    HTREEITEM hChildItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)hItem);
+
+    if(!tree_item)
+    {
+      return 0;
+	}
+	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
+	  
+	[data_source_delegate removeAllChildrenForItem:tree_item];
+    return 0;
+	  
+  }
+  else if(iupStrEqualNoCase(value, "MARKED"))  /* Delete the array of marked nodes */
+  {
+  #if 1
+  [outline_view beginUpdates];
+			NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+
+			NSUInteger selected_i = [selected_index firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				id selected_item = [outline_view itemAtRow:selected_i];
+
+				[data_source_delegate removeItem:selected_item];
+				// get the next index in the set
+				selected_i = [selected_index indexGreaterThanIndex:selected_i];
+			}
+  [outline_view endUpdates];
+
+//			[outline_view removeItemsAtIndexes:selected_index inParent:nil withAnimation:NSTableViewAnimationEffectNone];
+			
+
+    #endif
+  }
+
+  return 0;
+}
+
 
 static char* cocoaTreeGetTitleAttrib(Ihandle* ih, int item_id)
 {
@@ -490,7 +624,8 @@ static char* cocoaTreeGetTitleAttrib(Ihandle* ih, int item_id)
 
 	if(inode_handle)
 	{
-		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle->userdata;
+		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
 		NSString* ns_title = [tree_item title];
 		return iupStrReturnStr([ns_title UTF8String]);
 	}
@@ -512,7 +647,8 @@ static int cocoaTreeSetTitleAttrib(Ihandle* ih, int item_id, const char* value)
 			ns_title = [NSString stringWithUTF8String:value];
 		}
 		
-		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle->userdata;
+		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
 		[tree_item setTitle:ns_title];
 		NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
 
@@ -564,7 +700,7 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	[outline_view setDataSource:tree_delegate];
 	[outline_view setDelegate:tree_delegate];
 	
-	
+
 	
 	// We're going to use OBJC_ASSOCIATION_RETAIN because I do believe it will do the right thing for us.
 	// I'm attaching to the scrollview instead of the outline view because I'm a little worried about circular references and I'm hoping this helps a little
@@ -674,7 +810,9 @@ void iupdrvTreeInitClass(Iclass* ic)
 	iupClassRegisterAttribute  (ic, "VALUE", cocoaTreeGetValueAttrib, cocoaTreeSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	
 	/* IupTree Attributes - ACTION */
+#endif
 	iupClassRegisterAttributeId(ic, "DELNODE", NULL, cocoaTreeSetDelNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttribute(ic, "RENAME", NULL, cocoaTreeSetRenameAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "MOVENODE", NULL, cocoaTreeSetMoveNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "COPYNODE", NULL, cocoaTreeSetCopyNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);

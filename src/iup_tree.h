@@ -35,6 +35,8 @@ typedef char InodeHandle;   /* should be void, but we use char to force compiler
 typedef struct _WidgetRec InodeHandle;
 #elif defined(WINVER)
 typedef struct _TREEITEM InodeHandle;
+#elif defined(__APPLE__)
+typedef void InodeHandle;   /* should be id, but don't want Obj-C in C header, and don't want id* */
 #else
 typedef struct _InodeData InodeHandle;
 #endif
