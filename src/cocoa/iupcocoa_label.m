@@ -138,6 +138,7 @@ static int cocoaLabelSetActiveAttrib(Ihandle* ih, const char* value)
 		// But it's a pretty common thing to do, so everybody explicitly sets the color using the Cocoa predefined color constants.
 		if(is_active)
 		{
+			// FIXME: If the user has requested a different text color, we need to use that color instead
 			[the_label setTextColor:[NSColor controlTextColor]];
 		}
 		else

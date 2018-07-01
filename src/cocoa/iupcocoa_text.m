@@ -632,6 +632,78 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 	return 0;
 }
 
+// NSControl's setEnabled didn't seem to do anything on NSTextField. Also, NSTextView isn't an NSControl.
+static int cocoaTextSetActiveAttrib(Ihandle* ih, const char* value)
+{
+	BOOL is_active = (BOOL)iupStrBoolean(value);
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			[text_view setSelectable:is_active];
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			[text_field setSelectable:is_active];
+			// This doesn't seem to have any visible effect
+			[text_field setEnabled:is_active];
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return 0;
+}
+
+static char* cocoaTextGetActiveAttrib(Ihandle* ih)
+{
+	int is_active = true;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			is_active = [text_view isSelectable];
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+//			is_active = [text_field isEditable];
+			is_active = [text_field isSelectable];
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	return iupStrReturnBoolean(is_active);
+}
+
 static int cocoaTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 {
 	BOOL is_editable = !(BOOL)iupStrBoolean(value);
@@ -1490,7 +1562,11 @@ void iupdrvTextInitClass(Iclass* ic)
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, gtkTextSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);
+#endif
+  // need to override active behavior for text
+  iupClassRegisterAttribute(ic, "ACTIVE", cocoaTextGetActiveAttrib, cocoaTextSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
+#if 0
   /* Special */
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iupdrvBaseSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
 
