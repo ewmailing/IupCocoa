@@ -145,7 +145,9 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	NSUInteger numberOfItems;
 	
 	NSMutableArray* treeRootTopLevelObjects;
-
+	
+	NSMutableArray* orderedArrayOfSelections;
+	NSIndexSet* previousSelections;
 }
 @property(nonatomic, assign) NSUInteger numberOfItems;
 - (void) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
@@ -163,6 +165,8 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 - (BOOL) outlineView:(NSOutlineView*)outline_view isItemExpandable:(id)the_item;
 // NSOutlineViewDelegate
 - (nullable NSView *)outlineView:(NSOutlineView*)outline_view viewForTableColumn:(nullable NSTableColumn*)table_column item:(id)the_item;
+// NSOutlineViewDelegate
+- (void) outlineViewSelectionDidChange:(NSNotification*)the_notification;
 
 
 @end
@@ -251,21 +255,73 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	numberOfItems = numberOfItems - number_of_descendents;
 }
 
+// This is a helper for removeItem:
+// This is a special helper because when using fast enumeration in removeItem: we can't change the parent's childrenArray to remove this node.
+// So in this helper, we don't try and assume removeItem: will handle that last step itself.
+// So this method is here so we can clear the children data and update the count.
+- (void) removeRecursiveChildItemHelper:(IupCocoaTreeItem*)tree_item
+{
+	// First, if this node has any children, recursively traverse through all the children and remove them.
+	NSMutableArray* children_array = [tree_item childrenArray];
+	for(IupCocoaTreeItem* an_item in children_array)
+	{
+		[self removeRecursiveChildItemHelper:an_item];
+	}
+	// clear the children array so in case there is another reference that is still using this pointer, it will have updated info that there are no children.
+	[children_array removeAllObjects];
+	[tree_item setParentItem:nil];
+	numberOfItems = numberOfItems - 1;
+}
+
 - (void) removeItem:(IupCocoaTreeItem*)tree_item
 {
 	if(nil == tree_item)
 	{
 		return;
 	}
+	// If we already removed this item, the parentItem is nil.
+	if(nil == [tree_item parentItem])
+	{
+		return;
+	}
+	
+#if 0
 	NSUInteger number_of_items_to_remove = Helper_RecursivelyCountItems(tree_item);
 	
 	IupCocoaTreeItem* tree_item_parent = [tree_item parentItem];
 	NSMutableArray* children_array = [tree_item_parent childrenArray];
-	[children_array removeObject:tree_item];
-	numberOfItems = numberOfItems - number_of_items_to_remove;
+	
+	// When we delete multiple nodes, there is a chance that a parent gets deleted before its children,
+	// so if we call this method during an iteration, the object may no longer exist.
+	// We don't want to subtract the numberOfItems if is no longer there.
+	// So check to make sure the object exists first.
+	NSUInteger object_index = [children_array indexOfObject:tree_item];
+	if(object_index != NSNotFound)
+	{
+	   [children_array removeObjectAtIndex:object_index];
+		numberOfItems = numberOfItems - number_of_items_to_remove;
+	}
+#endif
 
-	// removing the item should release the object since nothing else should be holding a reference.
-	// children should automatically be removed.
+	// First, if this node has any children, recursively traverse through all the children and remove them.
+	NSMutableArray* children_array = [tree_item childrenArray];
+	for(IupCocoaTreeItem* an_item in children_array)
+	{
+		[self removeRecursiveChildItemHelper:an_item];
+	}
+	// clear the children array so in case there is another reference that is still using this pointer, it will have updated info that there are no children.
+	[children_array removeAllObjects];
+
+	// now remove this node by going to the parent and removing this from the parent's childrenArray
+	IupCocoaTreeItem* tree_item_parent = [tree_item parentItem];
+	NSUInteger object_index = [[tree_item_parent childrenArray] indexOfObject:tree_item];
+	if(object_index != NSNotFound)
+	{
+	   [[tree_item_parent childrenArray] removeObjectAtIndex:object_index];
+		numberOfItems = numberOfItems - 1;
+	}
+
+
 }
 
 - (NSInteger) outlineView:(NSOutlineView*)outline_view numberOfChildrenOfItem:(nullable id)the_item
@@ -312,6 +368,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	{
 		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
 		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"Expected IupCocoaTreeItem");
+#if 0
 		if([tree_item numberOfChildren] > 0)
 		{
 			return YES;
@@ -320,6 +377,21 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		{
 			return NO;
 		}
+#else
+		// We are preferring this implementation over the numberOfChildren > 0
+		// because when we first add a branch without children, expandItem won't work.
+		// The workaround for that is to use dispatch_async, but this causes a delay and flicker.
+		// Since IUP makes users declare the difference between a leaf & branch, we can assume all branches should be expandable.
+		// And we have that information immediately.
+		if([tree_item kind] == ITREE_BRANCH)
+		{
+			return YES;
+		}
+		else
+		{
+			return NO;
+		}
+#endif
 	}
 }
 
@@ -381,6 +453,63 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	return the_result;
 }
 
+- (void) handleSelectionDidChange:(NSOutlineView*)outline_view
+{
+
+	NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+
+			NSUInteger selected_i = [selected_index firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				id selected_item = [outline_view itemAtRow:selected_i];
+NSLog(@"all selected_item: %@", [selected_item title]);
+				// get the next index in the set
+				selected_i = [selected_index indexGreaterThanIndex:selected_i];
+			}
+	
+	{
+	
+	NSMutableIndexSet* previous_selection = [previousSelections mutableCopy];
+	if(previous_selection != nil)
+	{
+	[previous_selection removeIndexes:[outline_view selectedRowIndexes]];
+				selected_i = [previous_selection firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				id selected_item = [outline_view itemAtRow:selected_i];
+NSLog(@"removed selected_item: %@", [selected_item title]);
+				// get the next index in the set
+				selected_i = [previous_selection indexGreaterThanIndex:selected_i];
+			}
+	[previous_selection release];
+	}
+	}
+	
+	{
+	
+	NSMutableIndexSet* changed_selection = [[outline_view selectedRowIndexes] mutableCopy];
+	[changed_selection removeIndexes:previousSelections];
+				selected_i = [changed_selection firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				id selected_item = [outline_view itemAtRow:selected_i];
+NSLog(@"added selected_item: %@", [selected_item title]);
+				// get the next index in the set
+				selected_i = [changed_selection indexGreaterThanIndex:selected_i];
+			}
+	[changed_selection release];
+	}
+	
+	[previousSelections release];
+	previousSelections = [[outline_view selectedRowIndexes] copy];
+}
+
+- (void) outlineViewSelectionDidChange:(NSNotification*)the_notification
+{
+	NSOutlineView* outline_view = [the_notification object];
+	[self handleSelectionDidChange:outline_view];
+
+}
 @end
 
 /*****************************************************************************/
@@ -465,6 +594,7 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 			// insert the new node after the reference node, as first child
 			/* depth+1 */
 			[data_source_delegate insertChild:tree_item_new withParent:tree_item_prev];
+
 		}
 		else
 		{
@@ -488,6 +618,35 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 	}
 	// Just reloading the single item (even with children=YES) wasn't working. Do full reloadData
 	[outline_view reloadData];
+
+	if(ITREE_BRANCH == kind)
+	{
+		BOOL should_expand = IupGetInt(ih, "ADDEXPANDED");
+		if(should_expand)
+		{
+			// Just in case we do have children already, expand now which may skip the animation delay.
+			//[outline_view expandItem:tree_item_new];
+			[outline_view expandItem:tree_item_new expandChildren:YES];
+#if 0
+			// Tricky: This wasn't working until I added dispatch_async.
+			// I think the problem is that when I expand a branch, the children may not be added yet.
+			// So if there are no children at the time, my expand request gets ignored.
+			// The dispatch_async will force the expand to happen on the next event loop pass, after any children have been added from this loop.
+			// So the expand will work now that the children exist.
+			// UPDATE: This is now fixed by using
+			// - (BOOL) outlineView:(NSOutlineView*)outline_view isItemExpandable:(id)the_item
+			// and making it rely on "kind" to determine if expandable instead of number of children.
+			dispatch_async(dispatch_get_main_queue(), ^{
+//				[outline_view expandItem:tree_item_new];
+				[outline_view expandItem:tree_item_new expandChildren:YES];
+				}
+			);
+#endif
+		}
+	}
+	
+	// make sure to release since it should now be retained by the data_source_delegate
+	[tree_item_new release];
 }
 
 
@@ -523,7 +682,10 @@ void iupdrvTreeUpdateMarkMode(Ihandle *ih)
 	{
 		[outline_view setAllowsMultipleSelection:YES];
 	}
-
+	else
+	{
+		[outline_view setAllowsMultipleSelection:NO];
+	}
 }
 
 
@@ -552,6 +714,8 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
   {
   
     [data_source_delegate removeAllObjects];
+	[outline_view reloadData];
+	[data_source_delegate handleSelectionDidChange:outline_view];
 
 
     return 0;
@@ -569,6 +733,8 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
 	  
 	[data_source_delegate removeItem:tree_item];
+	[outline_view reloadData];
+	[data_source_delegate handleSelectionDidChange:outline_view];
 
 	  
   }
@@ -585,13 +751,15 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
 	  
 	[data_source_delegate removeAllChildrenForItem:tree_item];
+	[outline_view reloadData];
+	[data_source_delegate handleSelectionDidChange:outline_view];
+
     return 0;
 	  
   }
   else if(iupStrEqualNoCase(value, "MARKED"))  /* Delete the array of marked nodes */
   {
-  #if 1
-  [outline_view beginUpdates];
+  		[outline_view beginUpdates];
 			NSIndexSet* selected_index = [outline_view selectedRowIndexes];
 
 			NSUInteger selected_i = [selected_index firstIndex];
@@ -603,12 +771,11 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 				// get the next index in the set
 				selected_i = [selected_index indexGreaterThanIndex:selected_i];
 			}
-  [outline_view endUpdates];
+	  [outline_view endUpdates];
+	[outline_view reloadData];
+	[data_source_delegate handleSelectionDidChange:outline_view];
 
-//			[outline_view removeItemsAtIndexes:selected_index inParent:nil withAnimation:NSTableViewAnimationEffectNone];
-			
-
-    #endif
+	  
   }
 
   return 0;
@@ -718,7 +885,8 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	
 	
 	
-	
+	[outline_view setHeaderView:nil];
+
 	if (iupAttribGetInt(ih, "ADDROOT"))
 	{
 		iupdrvTreeAddNode(ih, -1, ITREE_BRANCH, "", 0);
@@ -743,7 +911,6 @@ static void cocoaTreeUnMapMethod(Ihandle* ih)
 {
 	id root_view = ih->handle;
 	
-	// FIXME: IupCocoaTreeItem's and InodeHandle's are LEAKING
 	
 	iupCocoaRemoveFromParent(ih);
 	[root_view release];
