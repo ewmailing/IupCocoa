@@ -660,16 +660,23 @@ void iupdrvListAppendItem(Ihandle* ih, const char* value)
 			
 			NSString* ns_string = [NSString stringWithUTF8String:value];
 			[data_array addObject:ns_string];
-			
+	
+#if 0
 			// reloadData will do the job, but may lose user's currently selected items
 			// reloadDataForRowIndexes might be better and more optimized,
 			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
 			[table_view reloadData];
-
-//			NSUInteger data_count = [data_array count];
+#else
+			NSUInteger data_count = [data_array count];
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:data_count-1];
+			[table_view insertRowsAtIndexes:index_set withAnimation:NSTableViewAnimationEffectNone];
+			
 //			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
 //			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, data_count)] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
 
+
+
+#endif
 			break;
 		}
 		case IUPCOCOALISTSUBTYPE_EDITBOX:
@@ -715,16 +722,18 @@ void iupdrvListInsertItem(Ihandle* ih, int pos, const char* value)
 			
 			NSString* ns_string = [NSString stringWithUTF8String:value];
 			[data_array insertObject:ns_string atIndex:pos];
-			
+
+#if 0
 			// reloadData will do the job, but may lose user's currently selected items
 			// reloadDataForRowIndexes might be better and more optimized,
 			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
 			[table_view reloadData];
-			
-//			NSUInteger data_count = [data_array count];
-//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+#else
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:pos];
+			[table_view insertRowsAtIndexes:index_set withAnimation:NSTableViewAnimationEffectNone];
+			//			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
 //			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, data_count)] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
-
+#endif
 			break;
 		}
 		case IUPCOCOALISTSUBTYPE_EDITBOX:
@@ -768,10 +777,15 @@ void iupdrvListRemoveItem(Ihandle* ih, int pos)
 			
 			[data_array removeObjectAtIndex:pos];
 			
+#if 0
 			// reloadData will do the job, but may lose user's currently selected items
 			// reloadDataForRowIndexes might be better and more optimized,
 			// however, I don't know how IUP's SORT feature interacts with everything. (Append may no longer be put in the last row. (and not to mention that I haven't actually figured out how to make it work.)
 			[table_view reloadData];
+#else
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:pos];
+			[table_view removeRowsAtIndexes:index_set withAnimation:NSTableViewAnimationEffectNone];
+#endif
 			
 //			NSUInteger data_count = [data_array count];
 //			[table_view reloadDataForRowIndexes:[NSIndexSet indexSetWithIndex:data_count-1] columnIndexes:[NSIndexSet indexSetWithIndex:0]];
