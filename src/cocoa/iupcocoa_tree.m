@@ -150,12 +150,12 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	NSIndexSet* previousSelections;
 }
 @property(nonatomic, assign) NSUInteger numberOfItems;
-- (void) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
-- (void) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
+- (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
+- (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new;
 - (void) removeAllObjects;
 - (void) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item;
-- (void) removeItem:(IupCocoaTreeItem*)tree_item;
+- (NSUInteger) removeItem:(IupCocoaTreeItem*)tree_item;
 
 //- (NSMutableArray*) dataArray;
 
@@ -200,15 +200,16 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	[super dealloc];
 }
 
-- (void) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent
+- (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent
 {
 	// IUP always inserts the child in the first position, not the last
 	[[tree_item_parent childrenArray] insertObject:tree_item_child atIndex:0];
 	[tree_item_child setParentItem:tree_item_parent];
 	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_child);
+	return 0; // always index 0 since we always insert in the first position
 }
 
-- (void) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev
+- (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev
 {
 	IupCocoaTreeItem* tree_item_parent = [tree_item_prev parentItem];
 	[tree_item_new setParentItem:tree_item_parent];
@@ -219,6 +220,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 	if(target_index > [children_array count])
 	{
+		target_index = [children_array count];
 		[children_array addObject:tree_item_new];
 	}
 	else
@@ -226,7 +228,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		[children_array insertObject:tree_item_new atIndex:target_index];
 	}
 	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_new);
-
+	return target_index;
 }
 
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new
@@ -273,16 +275,16 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	numberOfItems = numberOfItems - 1;
 }
 
-- (void) removeItem:(IupCocoaTreeItem*)tree_item
+- (NSUInteger) removeItem:(IupCocoaTreeItem*)tree_item
 {
 	if(nil == tree_item)
 	{
-		return;
+		return NSNotFound;
 	}
 	// If we already removed this item, the parentItem is nil.
 	if(nil == [tree_item parentItem])
 	{
-		return;
+		return NSNotFound;
 	}
 	
 #if 0
@@ -320,8 +322,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	   [[tree_item_parent childrenArray] removeObjectAtIndex:object_index];
 		numberOfItems = numberOfItems - 1;
 	}
-
-
+	return object_index;
 }
 
 - (NSInteger) outlineView:(NSOutlineView*)outline_view numberOfChildrenOfItem:(nullable id)the_item
@@ -593,15 +594,27 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 		{
 			// insert the new node after the reference node, as first child
 			/* depth+1 */
-			[data_source_delegate insertChild:tree_item_new withParent:tree_item_prev];
+			// IUP always inserts the child in the first position, not the last
+			// update the data source
+			NSUInteger target_index = [data_source_delegate insertChild:tree_item_new withParent:tree_item_prev];
+
+			// directly update the outlineview so we don't have to reloadData
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+			[outline_view insertItemsAtIndexes:index_set inParent:tree_item_prev withAnimation:NSTableViewAnimationEffectNone];
 
 		}
 		else
 		{
 			// insert the new node after reference node
 			/* same depth */
-			[data_source_delegate insertPeer:tree_item_new withSibling:tree_item_prev];
+			
+			// update the data source
+			NSUInteger target_index = [data_source_delegate insertPeer:tree_item_new withSibling:tree_item_prev];
 
+			// directly update the outlineview so we don't have to reloadData
+			IupCocoaTreeItem* tree_item_parent = [tree_item_prev parentItem];
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+			[outline_view insertItemsAtIndexes:index_set inParent:tree_item_parent withAnimation:NSTableViewAnimationEffectNone];
 
 		}
 
@@ -612,12 +625,14 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 	{
 		//  add the new node at root
 		[data_source_delegate insertAtRoot:tree_item_new];
+		// directly update the outlineview so we don't have to reloadData
+		[outline_view insertItemsAtIndexes:[NSIndexSet indexSetWithIndex:0] inParent:nil withAnimation:NSTableViewAnimationEffectNone];
 
 		iupTreeAddToCache(ih, 0, 0, NULL, inode_new);
 
 	}
-	// Just reloading the single item (even with children=YES) wasn't working. Do full reloadData
-	[outline_view reloadData];
+	// We don't need to reloadData if we update the outline view directly.
+//	[outline_view reloadData];
 
 	if(ITREE_BRANCH == kind)
 	{
@@ -714,9 +729,11 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
   {
   
     [data_source_delegate removeAllObjects];
-	[outline_view reloadData];
+//	[outline_view reloadData];
 	[data_source_delegate handleSelectionDidChange:outline_view];
 
+	NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:0];
+	[outline_view removeItemsAtIndexes:index_set inParent:nil withAnimation:NSTableViewAnimationEffectNone];
 
     return 0;
   }
@@ -731,9 +748,15 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
       return 0;
 	}
 	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
-	  
-	[data_source_delegate removeItem:tree_item];
-	[outline_view reloadData];
+	
+	IupCocoaTreeItem* parent_tree_item = [tree_item parentItem]; // get parent before removing because it may nil out the parent in removeItem
+	NSUInteger target_index = [data_source_delegate removeItem:tree_item];
+//	[outline_view reloadData];
+	if(NSNotFound != target_index)
+	{
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+		[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectNone];
+	}
 	[data_source_delegate handleSelectionDidChange:outline_view];
 
 	  
