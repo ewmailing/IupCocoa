@@ -100,7 +100,8 @@ void iupdrvTimerRun(Ihandle* ih)
 	[timer_controller setTheTimer:the_timer];
 	  [timer_controller setStartTime:start_time];
 
-	  ih->handle = (__unsafe_unretained void*)timer_controller;
+	  ih->handle = timer_controller;
+	  ih->serial = (int)(intptr_t)timer_controller; // for WID
   }
 	
 }
@@ -128,11 +129,41 @@ void iupdrvTimerStop(Ihandle* ih)
 
 }
 
+// copied from iTimerSetRunAttrib because it is static, and we needed to override TimerGetRunAttrib, but must also override this to do so.
+static int cocoaSetRunAttrib(Ihandle *ih, const char *value)
+{
+  if (iupStrBoolean(value))
+    iupdrvTimerRun(ih);
+  else
+    iupdrvTimerStop(ih);
+
+  return 0;
+}
+
+static char* cocoaTimerGetRunAttrib(Ihandle *ih)
+{
+  return iupStrReturnBoolean(ih->handle != nil);
+}
+
+static char* cocoaTimerGetWidAttrib(Ihandle *ih)
+{
+  // WARNING: This is going to truncate the pointer, which means it will be useless by anybody who actually gets the WID.
+  // The WID API is mostly useless, except for maybe checking if the timer is running.
+  return iupStrReturnInt((int)(intptr_t)ih->handle);
+}
+
 void iupdrvTimerInitClass(Iclass* ic)
 {
 	(void)ic;
 	// This must be UnMap and not Destroy because we're using the ih->handle and UnMap will clear the pointer to NULL before we reach Destroy.
 	ic->UnMap = cocoaTimerDestroy;
+	
+	// We need to override because we don't use ih->serial to store the timer.
+	// We need a full pointer and serial would truncate and be wrong.
+	// The base code assumes serial.
+	iupClassRegisterAttribute(ic, "WID", cocoaTimerGetWidAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT|IUPAF_NO_STRING);
+	iupClassRegisterAttribute(ic, "RUN", cocoaTimerGetRunAttrib, cocoaSetRunAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+
 
 	
 }
