@@ -32,6 +32,9 @@
 
 #include "iupcocoa_drv.h"
 
+// TODO:
+// Removing the disclosure triangle, Disable indenting
+// https://stackoverflow.com/questions/4251790/nsoutlineview-remove-disclosure-triangle-and-indent
 
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_TREE_DELEGATE_OBJ_KEY = "IUP_COCOA_TREE_DELEGATE_OBJ_KEY";
@@ -202,7 +205,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent
 {
-	// IUP always inserts the child in the first position, not the last
+	// IUP always inserts the child in the first position, not the last, when in this parent/child relationship
 	[[tree_item_parent childrenArray] insertObject:tree_item_child atIndex:0];
 	[tree_item_child setParentItem:tree_item_parent];
 	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_child);
@@ -212,23 +215,42 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev
 {
 	IupCocoaTreeItem* tree_item_parent = [tree_item_prev parentItem];
-	[tree_item_new setParentItem:tree_item_parent];
-	// insert the new node after reference node
-	NSMutableArray* children_array = [tree_item_parent childrenArray];
-	NSUInteger prev_index = [children_array indexOfObject:tree_item_prev];
-	NSUInteger target_index = prev_index + 1;
-
-	if(target_index > [children_array count])
+	if(nil != tree_item_parent)
 	{
-		target_index = [children_array count];
-		[children_array addObject:tree_item_new];
+		[tree_item_new setParentItem:tree_item_parent];
+		// insert the new node after reference node
+		NSMutableArray* children_array = [tree_item_parent childrenArray];
+		NSUInteger prev_index = [children_array indexOfObject:tree_item_prev];
+		NSUInteger target_index = prev_index + 1;
+
+		if(target_index > [children_array count])
+		{
+			target_index = [children_array count];
+			[children_array addObject:tree_item_new];
+		}
+		else
+		{
+			[children_array insertObject:tree_item_new atIndex:target_index];
+		}
+		numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_new);
+		return target_index;
 	}
 	else
 	{
-		[children_array insertObject:tree_item_new atIndex:target_index];
+		// we are adding a peer to the root (case is ADDROOT=NO)
+		NSUInteger target_index = 0;
+
+		NSUInteger object_index = [treeRootTopLevelObjects indexOfObject:tree_item_prev];
+		if(object_index != NSNotFound)
+		{
+			// insert after the previous (reference) node
+			target_index = object_index + 1;
+		}
+	
+		[treeRootTopLevelObjects insertObject:tree_item_new atIndex:target_index];
+		numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_new);
+		return target_index;
 	}
-	numberOfItems = numberOfItems + Helper_RecursivelyCountItems(tree_item_new);
-	return target_index;
 }
 
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new
@@ -612,6 +634,7 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 			NSUInteger target_index = [data_source_delegate insertPeer:tree_item_new withSibling:tree_item_prev];
 
 			// directly update the outlineview so we don't have to reloadData
+			// It is okay if the parent is nil. This also handles the case where ADDROOT=NO and we are adding another top-level node.
 			IupCocoaTreeItem* tree_item_parent = [tree_item_prev parentItem];
 			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
 			[outline_view insertItemsAtIndexes:index_set inParent:tree_item_parent withAnimation:NSTableViewAnimationEffectNone];
@@ -727,13 +750,23 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 
   if (iupStrEqualNoCase(value, "ALL"))
   {
-  
-    [data_source_delegate removeAllObjects];
-//	[outline_view reloadData];
-	[data_source_delegate handleSelectionDidChange:outline_view];
+  	NSUInteger number_of_items = [data_source_delegate numberOfItems];
+	if(number_of_items > 0)
+	{
 
-	NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:0];
-	[outline_view removeItemsAtIndexes:index_set inParent:nil withAnimation:NSTableViewAnimationEffectNone];
+	    [data_source_delegate removeAllObjects];
+	
+			[data_source_delegate handleSelectionDidChange:outline_view];
+
+		[outline_view reloadData];
+	
+		// Doesn't work when ADDROOT=NO (have multiple roots). reloadData is probably better here.
+//		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:0];
+//		[outline_view removeItemsAtIndexes:index_set inParent:nil withAnimation:NSTableViewAnimationEffectNone];
+
+
+	
+	}
 
     return 0;
   }
