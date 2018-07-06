@@ -130,7 +130,7 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 }
 
 @end
-
+/*
 @interface IupCocoaTreeRoot : NSObject
 {
 	// Array of IupCocoaTreeItems
@@ -141,16 +141,17 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 @implementation IupCocoaTreeRoot
 
 @end
+*/
 
 // We need to override NSOutlineView in order to implement things like keyDown for k_any
-@interface IupOutlineView : NSOutlineView
+@interface IupCocoaOutlineView : NSOutlineView
 {
 	Ihandle* _ih;
 }
 @property(nonatomic, assign) Ihandle* ih;
 @end
 
-@implementation IupOutlineView
+@implementation IupCocoaOutlineView
 @synthesize ih = _ih;
 
 // TODO: k_any
@@ -191,7 +192,8 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 - (nullable NSView *)outlineView:(NSOutlineView*)outline_view viewForTableColumn:(nullable NSTableColumn*)table_column item:(id)the_item;
 // NSOutlineViewDelegate
 - (void) outlineViewSelectionDidChange:(NSNotification*)the_notification;
-
+// NSOutlineViewDelegate, for CANFOCUS
+- (NSIndexSet*) outlineView:(NSOutlineView*)outline_view selectionIndexesForProposedSelection:(NSIndexSet*)proposed_selection_indexes;
 
 @end
 
@@ -541,8 +543,8 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	// But this is why I broke this into a helper method, in case it needs to be called directly instead of just on Apple's selection notification.
 	// (Apple does not seem to give selection notification callbacks for changes caused by delete or reloadData either.)
 
-	NSCAssert([outline_view isKindOfClass:[IupOutlineView class]], @"Expected IupOutlineView");
-	Ihandle* ih = [(IupOutlineView*)outline_view ih];
+	NSCAssert([outline_view isKindOfClass:[IupCocoaOutlineView class]], @"Expected IupCocoaOutlineView");
+	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
 	if(NULL == ih)
 	{
 		return;
@@ -730,6 +732,20 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	[self handleSelectionDidChange:outline_view];
 
 }
+
+- (NSIndexSet*) outlineView:(NSOutlineView*)outline_view selectionIndexesForProposedSelection:(NSIndexSet*)proposed_selection_indexes
+{
+	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
+	if(iupAttribGetBoolean(ih, "CANFOCUS"))
+	{
+		return proposed_selection_indexes;
+	}
+	else
+	{
+		return nil;
+	}
+}
+
 @end
 
 /*****************************************************************************/
@@ -1099,19 +1115,36 @@ static int cocoaTreeSetTitleAttrib(Ihandle* ih, int item_id, const char* value)
 	return 0;
 }
 
+static int cocoaTreeSetExpandAllAttrib(Ihandle* ih, const char* value)
+{
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	bool should_expand = iupStrBoolean(value);
+	
+	if(should_expand)
+	{
+		// item=nil should do all root items
+		[outline_view expandItem:nil expandChildren:YES];
+	}
+	else
+	{
+		// item=nil should do all root items
+		[outline_view collapseItem:nil collapseChildren:YES];
+	}
 
+  return 0;
+}
 
 static int cocoaTreeMapMethod(Ihandle* ih)
 {
 	
 	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
-	NSNib* outline_nib = [[NSNib alloc] initWithNibNamed:@"IupOutlineView" bundle:framework_bundle];
+	NSNib* outline_nib = [[NSNib alloc] initWithNibNamed:@"IupCocoaOutlineView" bundle:framework_bundle];
 	
 	
 	NSArray* top_level_objects = nil;
 	
 	
-	IupOutlineView* outline_view = nil;
+	IupCocoaOutlineView* outline_view = nil;
 	NSScrollView* scroll_view = nil;
 	
 	if([outline_nib instantiateWithOwner:nil topLevelObjects:&top_level_objects])
@@ -1127,8 +1160,8 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 		}
 	}
 	
-	outline_view = (IupOutlineView*)[scroll_view documentView];
-	NSCAssert([outline_view isKindOfClass:[IupOutlineView class]], @"Expected IupOutlineView");
+	outline_view = (IupCocoaOutlineView*)[scroll_view documentView];
+	NSCAssert([outline_view isKindOfClass:[IupCocoaOutlineView class]], @"Expected IupCocoaOutlineView");
 	
 	// ScrollView is expected to hold on to all the other objects we need
 	[scroll_view retain];
@@ -1205,9 +1238,10 @@ void iupdrvTreeInitClass(Iclass* ic)
 	/* Visual */
 	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, cocoaTreeSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);
 	iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaTreeSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
-	
+#endif
 	/* IupTree Attributes - GENERAL */
 	iupClassRegisterAttribute(ic, "EXPANDALL", NULL, cocoaTreeSetExpandAllAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttribute(ic, "INDENTATION", cocoaTreeGetIndentationAttrib, cocoaTreeSetIndentationAttrib, NULL, NULL, IUPAF_DEFAULT);
 	iupClassRegisterAttribute(ic, "SPACING", iupTreeGetSpacingAttrib, cocoaTreeSetSpacingAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
 	iupClassRegisterAttribute(ic, "TOPITEM", NULL, cocoaTreeSetTopItemAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
