@@ -88,6 +88,7 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 @synthesize kind = kind;
 @synthesize title = title;
 @synthesize parentItem = parentItem;
+@synthesize isDeleted = isDeleted;
 
 
 // Creates, caches, and returns the array of children
@@ -139,23 +140,39 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 
 @implementation IupCocoaTreeRoot
 
-
-
 @end
 
+// We need to override NSOutlineView in order to implement things like keyDown for k_any
+@interface IupOutlineView : NSOutlineView
+{
+	Ihandle* _ih;
+}
+@property(nonatomic, assign) Ihandle* ih;
+@end
+
+@implementation IupOutlineView
+@synthesize ih = _ih;
+
+// TODO: k_any
+- (void) keyDown:(NSEvent*)the_event
+{
+	NSLog(@"keyDown: %@", the_event);
+	[super keyDown:the_event];
+	
+}
+
+@end
 
 // We are not using NSComboBoxDataSource
 @interface IupCocoaTreeDelegate : NSObject <NSOutlineViewDataSource, NSOutlineViewDelegate>
 {
-	Ihandle* _ih;
 	NSUInteger numberOfItems;
 	
 	NSMutableArray* treeRootTopLevelObjects;
 	
-	NSMutableArray* orderedArrayOfSelections;
+//	NSMutableArray* orderedArrayOfSelections; // TODO: If we decide selection order is important enough and worth the risks of edge cases missing updates (like delnode)
 	NSIndexSet* previousSelections;
 }
-@property(nonatomic, assign) Ihandle* ih;
 @property(nonatomic, assign) NSUInteger numberOfItems;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
@@ -190,7 +207,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 @implementation IupCocoaTreeDelegate
 @synthesize numberOfItems = numberOfItems;
-@synthesize ih = _ih;
 
 - (instancetype) init
 {
@@ -525,9 +541,8 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	// But this is why I broke this into a helper method, in case it needs to be called directly instead of just on Apple's selection notification.
 	// (Apple does not seem to give selection notification callbacks for changes caused by delete or reloadData either.)
 
-	IupCocoaTreeDelegate* tree_delegate = (IupCocoaTreeDelegate*)[outline_view delegate];
-	NSCAssert([tree_delegate isKindOfClass:[IupCocoaTreeDelegate class]], @"Expected IupCocoaTreeDelegate");
-	Ihandle* ih = [tree_delegate ih];
+	NSCAssert([outline_view isKindOfClass:[IupOutlineView class]], @"Expected IupOutlineView");
+	Ihandle* ih = [(IupOutlineView*)outline_view ih];
 	if(NULL == ih)
 	{
 		return;
@@ -1096,7 +1111,7 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	NSArray* top_level_objects = nil;
 	
 	
-	NSOutlineView* outline_view = nil;
+	IupOutlineView* outline_view = nil;
 	NSScrollView* scroll_view = nil;
 	
 	if([outline_nib instantiateWithOwner:nil topLevelObjects:&top_level_objects])
@@ -1112,19 +1127,18 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 		}
 	}
 	
-	outline_view = (NSOutlineView*)[scroll_view documentView];
-	NSCAssert([outline_view isKindOfClass:[NSOutlineView class]], @"Expected NSOutlineView");
+	outline_view = (IupOutlineView*)[scroll_view documentView];
+	NSCAssert([outline_view isKindOfClass:[IupOutlineView class]], @"Expected IupOutlineView");
 	
 	// ScrollView is expected to hold on to all the other objects we need
 	[scroll_view retain];
 	[outline_nib release];
 	
-	
-	
+	// We need a way to get the ih during Cocoa callbacks, such as for selection changed notifications.
+	[outline_view setIh:ih];
+
 	
 	IupCocoaTreeDelegate* tree_delegate = [[IupCocoaTreeDelegate alloc] init];
-	// We need a way to get the ih during Cocoa callbacks, such as for selection changed notifications.
-	[tree_delegate setIh:ih];
 	
 	[outline_view setDataSource:tree_delegate];
 	[outline_view setDelegate:tree_delegate];
