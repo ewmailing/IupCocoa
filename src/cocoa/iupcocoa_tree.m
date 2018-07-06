@@ -70,11 +70,13 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	NSMutableArray* childrenArray;
 	int kind; // ITREE_BRANCH ITREE_LEAF
 	NSString* title;
+	BOOL isDeleted;
 }
 
 @property(nonatomic, assign) int kind;
 @property(nonatomic, copy) NSString* title;
 @property(nonatomic, weak) IupCocoaTreeItem* parentItem;
+@property(nonatomic, assign) BOOL isDeleted;
 
 - (IupCocoaTreeItem*) childAtIndex:(NSUInteger)the_index;
 
@@ -145,6 +147,7 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 // We are not using NSComboBoxDataSource
 @interface IupCocoaTreeDelegate : NSObject <NSOutlineViewDataSource, NSOutlineViewDelegate>
 {
+	Ihandle* _ih;
 	NSUInteger numberOfItems;
 	
 	NSMutableArray* treeRootTopLevelObjects;
@@ -152,12 +155,13 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	NSMutableArray* orderedArrayOfSelections;
 	NSIndexSet* previousSelections;
 }
+@property(nonatomic, assign) Ihandle* ih;
 @property(nonatomic, assign) NSUInteger numberOfItems;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new;
 - (void) removeAllObjects;
-- (void) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item;
+- (NSIndexSet*) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item;
 - (NSUInteger) removeItem:(IupCocoaTreeItem*)tree_item;
 
 //- (NSMutableArray*) dataArray;
@@ -186,6 +190,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 @implementation IupCocoaTreeDelegate
 @synthesize numberOfItems = numberOfItems;
+@synthesize ih = _ih;
 
 - (instancetype) init
 {
@@ -266,17 +271,20 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	numberOfItems = 0;
 }
 
-- (void) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item
+// Returns the indexes of the top-level children that get removed
+- (NSIndexSet*) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item
 {
 	if(nil == tree_item)
 	{
-		return;
+		return nil;
 	}
 	NSUInteger number_of_descendents = Helper_RecursivelyCountItems(tree_item) - 1; // subtract one because we don't want to count the tree_item itself, just children/grandchildren
 
 	NSMutableArray* children_array = [tree_item childrenArray];
+	NSIndexSet* top_level_children_indexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [children_array count])];
 	[children_array removeAllObjects];
 	numberOfItems = numberOfItems - number_of_descendents;
+	return top_level_children_indexes;
 }
 
 // This is a helper for removeItem:
@@ -293,7 +301,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	}
 	// clear the children array so in case there is another reference that is still using this pointer, it will have updated info that there are no children.
 	[children_array removeAllObjects];
-	[tree_item setParentItem:nil];
+	[tree_item setIsDeleted:YES];
 	numberOfItems = numberOfItems - 1;
 }
 
@@ -304,7 +312,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		return NSNotFound;
 	}
 	// If we already removed this item, the parentItem is nil.
-	if(nil == [tree_item parentItem])
+	if(YES == [tree_item isDeleted])
 	{
 		return NSNotFound;
 	}
@@ -338,13 +346,27 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 	// now remove this node by going to the parent and removing this from the parent's childrenArray
 	IupCocoaTreeItem* tree_item_parent = [tree_item parentItem];
-	NSUInteger object_index = [[tree_item_parent childrenArray] indexOfObject:tree_item];
-	if(object_index != NSNotFound)
+	if(nil != tree_item_parent)
 	{
-	   [[tree_item_parent childrenArray] removeObjectAtIndex:object_index];
-		numberOfItems = numberOfItems - 1;
+		NSUInteger object_index = [[tree_item_parent childrenArray] indexOfObject:tree_item];
+		if(object_index != NSNotFound)
+		{
+			[[tree_item_parent childrenArray] removeObjectAtIndex:object_index];
+			numberOfItems = numberOfItems - 1;
+		}
+		return object_index;
 	}
-	return object_index;
+	else
+	{
+		// this is top level node
+		NSUInteger object_index = [treeRootTopLevelObjects indexOfObject:tree_item];
+		if(object_index != NSNotFound)
+		{
+			[treeRootTopLevelObjects removeObjectAtIndex:object_index];
+			numberOfItems = numberOfItems - 1;
+		}
+		return object_index;
+	}
 }
 
 - (NSInteger) outlineView:(NSOutlineView*)outline_view numberOfChildrenOfItem:(nullable id)the_item
@@ -478,51 +500,211 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 - (void) handleSelectionDidChange:(NSOutlineView*)outline_view
 {
+	// Rules:
+	// If we are in single selection mode, we use the single_cb
+	// If we are in multiple selection mode, then one of the following:
+	// - If it is a single selection, then use single_cb
+	// - If it is a multiple selection, then use multi_cb and skip single_cb
+	//     - but if multi_cb is not defined, invoke multiple callbacks of single_cb
+	// Also, we need to remember that to do multi-unselection_cb.
+	// - This fires if there was a multi-selection from the last time.
+	
+	// Additional notes:
+	
+	// (1) Multi_cb is supposed to be a contiguous range for a single action.
+	// While I expect that will be the typical case on Mac,
+	// I do worry that Apple may have or introduce some built-in key-shortcut (e.g. cmd-a selects all) that can create a non-contiguous selection.
+	// For example, what if there is an "invert selection" option?
+	// So say you pick the middle item. Then you invert it which gets you everything except the middle item.
+	// You now have a discontinuous selection created in one-shot.
 
-	NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+	// (2) Delete nodes and selection.
+	// I asked Scuri if we are supposed to trigger a selection callback when nodes are deleted,
+	// since this will alter the list of selected items.
+	// He says that IUP does not do a callback for this case.
+	// But this is why I broke this into a helper method, in case it needs to be called directly instead of just on Apple's selection notification.
+	// (Apple does not seem to give selection notification callbacks for changes caused by delete or reloadData either.)
 
-			NSUInteger selected_i = [selected_index firstIndex];
-			while(selected_i != NSNotFound)
-			{
-				id selected_item = [outline_view itemAtRow:selected_i];
-NSLog(@"all selected_item: %@", [selected_item title]);
-				// get the next index in the set
-				selected_i = [selected_index indexGreaterThanIndex:selected_i];
-			}
-	
+	IupCocoaTreeDelegate* tree_delegate = (IupCocoaTreeDelegate*)[outline_view delegate];
+	NSCAssert([tree_delegate isKindOfClass:[IupCocoaTreeDelegate class]], @"Expected IupCocoaTreeDelegate");
+	Ihandle* ih = [tree_delegate ih];
+	if(NULL == ih)
 	{
-	
-	NSMutableIndexSet* previous_selection = [previousSelections mutableCopy];
-	if(previous_selection != nil)
-	{
-	[previous_selection removeIndexes:[outline_view selectedRowIndexes]];
-				selected_i = [previous_selection firstIndex];
-			while(selected_i != NSNotFound)
-			{
-				id selected_item = [outline_view itemAtRow:selected_i];
-NSLog(@"removed selected_item: %@", [selected_item title]);
-				// get the next index in the set
-				selected_i = [previous_selection indexGreaterThanIndex:selected_i];
-			}
-	[previous_selection release];
-	}
+		return;
 	}
 	
+
+	// May not be the best way to determine callback type since the user can change this on the fly.
+//	BOOL in_mulitple_selection_mode = [outline_view allowsMultipleSelection];
+	IFnii single_selection_cb = (IFnii)IupGetCallback(ih, "SELECTION_CB");
+    IFnIi multi_selection_cb = (IFnIi)IupGetCallback(ih, "MULTISELECTION_CB");
+    IFnIi multi_unselection_cb = (IFnIi)IupGetCallback(ih, "MULTIUNSELECTION_CB");
+
+	// No sense doing any work if callbacks are not set.
+	// NOTE: setting previousSelection will also be skipped in this case.
+	if((single_selection_cb == NULL) && (multi_selection_cb == NULL) && (multi_unselection_cb == NULL))
 	{
-	
-	NSMutableIndexSet* changed_selection = [[outline_view selectedRowIndexes] mutableCopy];
-	[changed_selection removeIndexes:previousSelections];
-				selected_i = [changed_selection firstIndex];
-			while(selected_i != NSNotFound)
-			{
-				id selected_item = [outline_view itemAtRow:selected_i];
-NSLog(@"added selected_item: %@", [selected_item title]);
-				// get the next index in the set
-				selected_i = [changed_selection indexGreaterThanIndex:selected_i];
-			}
-	[changed_selection release];
+		return;
 	}
+
+#if 0
+	// debug: print all currently selected items
+	{
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		while(selected_i != NSNotFound)
+		{
+			id selected_item = [outline_view itemAtRow:selected_i];
+			NSLog(@"all selected_item: %@", [selected_item title]);
+			// get the next index in the set
+			selected_i = [selected_index indexGreaterThanIndex:selected_i];
+		}
+	}
+#endif
 	
+	// First handle the unselections
+	{
+		// We will get a copy of the previous selections.
+		NSMutableIndexSet* unselected_set = [previousSelections mutableCopy];
+		if(unselected_set != nil)
+		{
+			// Then remove the current selections from the previous selections.
+			// This will leave the unselected items.
+			[unselected_set removeIndexes:[outline_view selectedRowIndexes]];
+			
+			NSUInteger number_of_items = [unselected_set count];
+
+			// If the previous selection had more than 1, it was a multi-selection.
+			// That means we need to do a multi-unselection to balance it.
+			// This is safer than testing for whether the outlineview is in multi-mode or not because the user could have changed it on the fly.
+			if(number_of_items == 0)
+			{
+				// do nothing
+			}
+			else if([previousSelections count] > 1)
+			{
+				if((NULL != multi_unselection_cb) || (NULL != single_selection_cb))
+				{
+					// We are in the multiple unselection case
+					// VLA
+					int array_of_ids[number_of_items];
+					NSUInteger selected_i = [unselected_set firstIndex];
+					size_t i = 0;
+					while(selected_i != NSNotFound)
+					{
+						NSCAssert(i<number_of_items, @"Overflow: More indexes than expected.");
+
+						array_of_ids[i] = (int)selected_i;
+						i++;
+						// id selected_item = [outline_view itemAtRow:selected_i];
+						//	NSLog(@"removed selected_item: %@", [selected_item title]);
+						// get the next index in the set
+						selected_i = [unselected_set indexGreaterThanIndex:selected_i];
+					}
+
+					if(NULL != multi_unselection_cb)
+					{
+						multi_unselection_cb(ih, array_of_ids, (int)number_of_items);
+					}
+					else if(NULL != single_selection_cb)
+					{
+						for(size_t j=0; j<number_of_items; j++)
+						{
+							single_selection_cb(ih, array_of_ids[j], 1);
+						}
+					}
+				}
+
+			
+			}
+			else
+			{
+				// We are in the single unselection case
+				// This should be 0, but just in case there are more, use the first one.
+				if(number_of_items > 0)
+				{
+					if(NULL != single_selection_cb)
+					{
+						NSUInteger selected_i = [unselected_set firstIndex];
+			           	single_selection_cb(ih, (int)selected_i, 0);
+					}
+				}
+				// else do nothing since there was nothing unselected
+
+			}
+			
+			[unselected_set release];
+		}
+	} // end unselections
+	
+	
+	
+	// handle the selections
+	{
+		// Get a copy of all the current selections
+		NSMutableIndexSet* added_selected_set = [[outline_view selectedRowIndexes] mutableCopy];
+		// Subtract out the previousSelections from the current selections which leaves just the newly added selections.
+		[added_selected_set removeIndexes:previousSelections];
+
+		if(added_selected_set != nil)
+		{
+			NSUInteger number_of_items = [added_selected_set count];
+
+			if(number_of_items == 0)
+			{
+				// do nothing
+			}
+			else if(number_of_items > 1)
+			{
+				if((NULL != multi_selection_cb) || (NULL != single_selection_cb))
+				{
+					// We are in the multiple selection case
+					// VLA
+					int array_of_ids[number_of_items];
+					NSUInteger selected_i = [added_selected_set firstIndex];
+					size_t i = 0;
+					while(selected_i != NSNotFound)
+					{
+						NSCAssert(i<number_of_items, @"Overflow: More indexes than expected.");
+
+						array_of_ids[i] = (int)selected_i;
+						i++;
+						// id selected_item = [outline_view itemAtRow:selected_i];
+						// NSLog(@"added selected_item: %@", [selected_item title]);
+						// get the next index in the set
+						selected_i = [added_selected_set indexGreaterThanIndex:selected_i];
+					}
+
+					if(NULL != multi_selection_cb)
+					{
+						multi_selection_cb(ih, array_of_ids, (int)number_of_items);
+					}
+					else if(NULL != single_selection_cb)
+					{
+						for(size_t j=0; j<number_of_items; j++)
+						{
+							single_selection_cb(ih, array_of_ids[j], 1);
+						}
+					}
+				}
+			}
+			else // number_of_items == 1
+			{
+				// We are in the single selection case
+
+				if(NULL != single_selection_cb)
+				{
+					NSUInteger selected_i = [added_selected_set firstIndex];
+					single_selection_cb(ih, (int)selected_i, 1);
+				}
+			}
+			
+			[added_selected_set release];
+		}
+	} // end selections
+	
+	
+	// Release the old previousSelections and save the new/current selections as previousSelections for the next time this is called.
 	[previousSelections release];
 	previousSelections = [[outline_view selectedRowIndexes] copy];
 }
@@ -741,100 +923,121 @@ void iupdrvTreeDragDropCopyNode(Ihandle* src, Ihandle* dst, InodeHandle *itemSrc
 
 static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value)
 {
-  if (!ih->handle)  /* do not do the action before map */
-    return 0;
+	if (!ih->handle)  /* do not do the action before map */
+	return 0;
 
-  	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
 	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
 
 
-  if (iupStrEqualNoCase(value, "ALL"))
-  {
-  	NSUInteger number_of_items = [data_source_delegate numberOfItems];
-	if(number_of_items > 0)
+	if (iupStrEqualNoCase(value, "ALL"))
+	{
+		NSUInteger number_of_items = [data_source_delegate numberOfItems];
+		if(number_of_items > 0)
+		{
+
+			[data_source_delegate removeAllObjects];
+
+			// Scuri says not required to handle for delete.
+			// [data_source_delegate handleSelectionDidChange:outline_view];
+
+			// If there are multiple nodes at the root (ADDROOT=NO), it seems easier to reloadData than to hunt down and remove each node.
+			[outline_view reloadData];
+
+		}
+
+		return 0;
+	}
+	if (iupStrEqualNoCase(value, "SELECTED"))  /* selected here means the reference node */
 	{
 
-	    [data_source_delegate removeAllObjects];
-	
-			[data_source_delegate handleSelectionDidChange:outline_view];
+		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
+
+		if(!tree_item)
+		{
+			return 0;
+		}
+		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
+
+		[outline_view beginUpdates];
+
+		IupCocoaTreeItem* parent_tree_item = [tree_item parentItem]; // get parent before removing because it may nil out the parent in removeItem
+		NSUInteger target_index = [data_source_delegate removeItem:tree_item];
+		//	[outline_view reloadData];
+
+		if(NSNotFound != target_index)
+		{
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+			[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectNone];
+		}
+
+		// Scuri says not required to handle for delete.
+		// [data_source_delegate handleSelectionDidChange:outline_view];
+
+		[outline_view endUpdates];
+
+	}
+	else if(iupStrEqualNoCase(value, "CHILDREN"))  /* children of the reference node */
+	{
+		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
+
+		if(!tree_item)
+		{
+			return 0;
+		}
+		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
+		
+		[outline_view beginUpdates];
+
+		NSIndexSet* index_set = [data_source_delegate removeAllChildrenForItem:tree_item];
+		[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectNone];
+
+		//[outline_view reloadData];
+
+		// Scuri says not required to handle for delete.
+		// [data_source_delegate handleSelectionDidChange:outline_view];
+
+		[outline_view endUpdates];
+
+		return 0;
+		
+	}
+	else if(iupStrEqualNoCase(value, "MARKED"))  /* Delete the array of marked nodes */
+	{
+		[outline_view beginUpdates];
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+
+		NSUInteger selected_i = [selected_index firstIndex];
+		while(selected_i != NSNotFound)
+		{
+			id selected_item = [outline_view itemAtRow:selected_i];
+
+			// I can't figure out how to make this work correctly when you select both parents and its children to be deleted.
+			// Use reloadData for now.
+#if 0
+			IupCocoaTreeItem* parent_tree_item  = [(IupCocoaTreeItem*)selected_item parentItem];
+			NSUInteger target_index = [data_source_delegate removeItem:selected_item];
+			
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+			[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectNone];
+#else
+			[data_source_delegate removeItem:selected_item];
+#endif
+
+			
+			// get the next index in the set
+			selected_i = [selected_index indexGreaterThanIndex:selected_i];
+		}
 
 		[outline_view reloadData];
-	
-		// Doesn't work when ADDROOT=NO (have multiple roots). reloadData is probably better here.
-//		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:0];
-//		[outline_view removeItemsAtIndexes:index_set inParent:nil withAnimation:NSTableViewAnimationEffectNone];
 
+		// Scuri says not required to handle for delete.
+		// [data_source_delegate handleSelectionDidChange:outline_view];
+		[outline_view endUpdates];
 
-	
 	}
 
-    return 0;
-  }
-  if (iupStrEqualNoCase(value, "SELECTED"))  /* selected here means the reference node */
-  {
-
-	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
-//    HTREEITEM hChildItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)hItem);
-
-    if(!tree_item)
-    {
-      return 0;
-	}
-	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
-	
-	IupCocoaTreeItem* parent_tree_item = [tree_item parentItem]; // get parent before removing because it may nil out the parent in removeItem
-	NSUInteger target_index = [data_source_delegate removeItem:tree_item];
-//	[outline_view reloadData];
-	if(NSNotFound != target_index)
-	{
-		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
-		[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectNone];
-	}
-	[data_source_delegate handleSelectionDidChange:outline_view];
-
-	  
-  }
-  else if(iupStrEqualNoCase(value, "CHILDREN"))  /* children of the reference node */
-  {
-
-	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
-//    HTREEITEM hChildItem = (HTREEITEM)SendMessage(ih->handle, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)hItem);
-
-    if(!tree_item)
-    {
-      return 0;
-	}
-	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
-	  
-	[data_source_delegate removeAllChildrenForItem:tree_item];
-	[outline_view reloadData];
-	[data_source_delegate handleSelectionDidChange:outline_view];
-
-    return 0;
-	  
-  }
-  else if(iupStrEqualNoCase(value, "MARKED"))  /* Delete the array of marked nodes */
-  {
-  		[outline_view beginUpdates];
-			NSIndexSet* selected_index = [outline_view selectedRowIndexes];
-
-			NSUInteger selected_i = [selected_index firstIndex];
-			while(selected_i != NSNotFound)
-			{
-				id selected_item = [outline_view itemAtRow:selected_i];
-
-				[data_source_delegate removeItem:selected_item];
-				// get the next index in the set
-				selected_i = [selected_index indexGreaterThanIndex:selected_i];
-			}
-	  [outline_view endUpdates];
-	[outline_view reloadData];
-	[data_source_delegate handleSelectionDidChange:outline_view];
-
-	  
-  }
-
-  return 0;
+	return 0;
 }
 
 
@@ -920,6 +1123,9 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	
 	
 	IupCocoaTreeDelegate* tree_delegate = [[IupCocoaTreeDelegate alloc] init];
+	// We need a way to get the ih during Cocoa callbacks, such as for selection changed notifications.
+	[tree_delegate setIh:ih];
+	
 	[outline_view setDataSource:tree_delegate];
 	[outline_view setDelegate:tree_delegate];
 	
@@ -929,7 +1135,6 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	// I'm attaching to the scrollview instead of the outline view because I'm a little worried about circular references and I'm hoping this helps a little
 	objc_setAssociatedObject(scroll_view, IUP_COCOA_TREE_DELEGATE_OBJ_KEY, (id)tree_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 	[tree_delegate release];
-	
 	
 	ih->handle = scroll_view;
 	
