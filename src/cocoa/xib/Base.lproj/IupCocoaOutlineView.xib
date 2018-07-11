@@ -36,13 +36,18 @@
                                 </textFieldCell>
                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                 <prototypeCellViews>
-                                    <tableCellView id="RjS-rz-8C4">
+                                    <tableCellView identifier="IupCocoaTreeTableViewCell" id="RjS-rz-8C4">
                                         <rect key="frame" x="1" y="1" width="235" height="17"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
+                                            <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pZe-z5-L9l">
+                                                <rect key="frame" x="4" y="0.0" width="32" height="32"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="pG0-Ki-3cl"/>
+                                            </imageView>
                                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LkM-bB-qfg">
-                                                <rect key="frame" x="0.0" y="0.0" width="235" height="17"/>
-                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="216" height="17"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" id="33I-y8-0H4">
                                                     <font key="font" metaFont="system"/>
                                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -51,6 +56,7 @@
                                             </textField>
                                         </subviews>
                                         <connections>
+                                            <outlet property="imageView" destination="pZe-z5-L9l" id="VWU-Jm-KVQ"/>
                                             <outlet property="textField" destination="LkM-bB-qfg" id="HGl-XK-5bE"/>
                                         </connections>
                                     </tableCellView>

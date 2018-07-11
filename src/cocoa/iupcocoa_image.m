@@ -573,10 +573,40 @@ void* iupdrvImageLoad(const char* name, int type)
 
 int iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp)
 {
+  if(w) *w = 0;
+  if(h) *h = 0;
+  if(bpp) *bpp = 0;
+  if(NULL == handle)
+  {
+    return 0;
+  }
   NSImage *image = (__bridge NSImage*)handle;
-  NSBitmapImageRep *bitmap = nil;
-  if([[image representations] count]>0) bitmap = [[image representations] objectAtIndex:0];
-  if(bitmap==nil) return 0;
+  NSBitmapImageRep* bitmap = nil;
+	
+
+   for(NSImageRep* image_rep in [image representations])
+   {
+      if([image_rep isKindOfClass:[NSBitmapImageRep class]] )
+      {
+ 	     bitmap = (NSBitmapImageRep*)image_rep;
+ 	     break;
+      }
+	}
+	
+//  if([[image representations] count]>0) bitmap = [[image representations] objectAtIndex:0];
+  if(bitmap==nil)
+  {
+  	CGImageRef cg_image = [image CGImageForProposedRect:nil context:nil hints:nil];
+	bitmap = [[[NSBitmapImageRep alloc] initWithCGImage:cg_image] autorelease];
+
+
+  
+  
+  }
+  if(bitmap==nil)
+  {
+    return 0;
+  }
   if(w) *w = [bitmap pixelsWide];
   if(h) *h = [bitmap pixelsHigh];
   if(bpp) *bpp = [bitmap bitsPerPixel];
