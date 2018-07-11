@@ -447,15 +447,9 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 - (BOOL) outlineView:(NSOutlineView*)outline_view isItemExpandable:(id)the_item
 {
-	// FIXME: temp placeholder
-	if ([outline_view parentForItem:the_item] == nil)
-	{
-		return YES;
-	}
-	else
-	{
-		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
-		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"Expected IupCocoaTreeItem");
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
+
+	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"Expected IupCocoaTreeItem");
 		
 #if 0
 		// This is the basic implementation.
@@ -499,7 +493,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 			return NO;
 		}
 #endif
-	}
 }
 
 /* // Not needed for View based NSOutlineView
