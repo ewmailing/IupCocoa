@@ -74,9 +74,6 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	int kind; // ITREE_BRANCH ITREE_LEAF
 	NSString* title;
 	BOOL isDeleted;
-	BOOL hasImage;
-	CGFloat imageWidth;
-	CGFloat imageHeight;
 	NSImage* bitmapImage;
 	NSImage* collapsedImage;
 	NSTableCellView* tableCellView; // kind of a hack to force layout in heightOf
@@ -87,12 +84,9 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 @property(nonatomic, copy) NSString* title;
 @property(nonatomic, weak) IupCocoaTreeItem* parentItem;
 @property(nonatomic, assign) BOOL isDeleted;
-@property(nonatomic, assign) BOOL hasImage;
-@property(nonatomic, assign) CGFloat imageWidth;
-@property(nonatomic, assign) CGFloat imageHeight;
 @property(nonatomic, retain) NSImage* bitmapImage;
 @property(nonatomic, retain) NSImage* collapsedImage;
-@property(nonatomic, weak) NSTableCellView* tableCellView; // this is kind of a hack to force layout in heightOf. I'm not sure if I want to keep a strong reference.
+@property(nonatomic, weak) NSTableCellView* tableCellView; // this is kind of a hack to force layout in heightOf. I'm not sure if I want to keep a strong reference because I don't know if there is a possible circular reference here.
 
 - (IupCocoaTreeItem*) childAtIndex:(NSUInteger)the_index;
 
@@ -108,9 +102,6 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 @synthesize title = title;
 @synthesize parentItem = parentItem;
 @synthesize isDeleted = isDeleted;
-@synthesize hasImage = hasImage;
-@synthesize imageWidth = imageWidth;
-@synthesize imageHeight = imageHeight;
 @synthesize bitmapImage = bitmapImage; // is the expandedImage for branches
 @synthesize collapsedImage = collapsedImage;
 @synthesize tableCellView = tableCellView;
@@ -387,24 +378,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		return NSNotFound;
 	}
 	
-#if 0
-	NSUInteger number_of_items_to_remove = Helper_RecursivelyCountItems(tree_item);
-	
-	IupCocoaTreeItem* tree_item_parent = [tree_item parentItem];
-	NSMutableArray* children_array = [tree_item_parent childrenArray];
-	
-	// When we delete multiple nodes, there is a chance that a parent gets deleted before its children,
-	// so if we call this method during an iteration, the object may no longer exist.
-	// We don't want to subtract the numberOfItems if is no longer there.
-	// So check to make sure the object exists first.
-	NSUInteger object_index = [children_array indexOfObject:tree_item];
-	if(object_index != NSNotFound)
-	{
-	   [children_array removeObjectAtIndex:object_index];
-		numberOfItems = numberOfItems - number_of_items_to_remove;
-	}
-#endif
-
 	// First, if this node has any children, recursively traverse through all the children and remove them.
 	NSMutableArray* children_array = [tree_item childrenArray];
 	for(IupCocoaTreeItem* an_item in children_array)
@@ -483,7 +456,12 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	{
 		IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
 		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"Expected IupCocoaTreeItem");
+		
 #if 0
+		// This is the basic implementation.
+		// The problem is if you add children after this gets called, this happens too late.
+		// The workaround would be to use dispatch_async, but that causes a delay and flicker.
+		// One other possible solution to to force a reload on the parent item on delete and add node events.
 		if([tree_item numberOfChildren] > 0)
 		{
 			return YES;
@@ -498,6 +476,8 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		// The workaround for that is to use dispatch_async, but this causes a delay and flicker.
 		// Since IUP makes users declare the difference between a leaf & branch, we can assume all branches should be expandable.
 		// And we have that information immediately.
+		// The downside "bug" with this implementation is empty branches always show the triangle which is not typical.
+		// One other possible solution is to go back to the above or do a hybrid, and try the reload parent idea.
 		if([tree_item kind] == ITREE_BRANCH)
 		{
 			return YES;
@@ -527,30 +507,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	
 }
 */
-
-static Ihandle* load_image_LogoTecgraf(void)
-{
-  unsigned char imgdata[] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 108, 120, 143, 125, 132, 148, 178, 173, 133, 149, 178, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 110, 130, 48, 130, 147, 177, 254, 124, 139, 167, 254, 131, 147, 176, 137, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 115, 128, 153, 134, 142, 159, 191, 194, 47, 52, 61, 110, 114, 128, 154, 222, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 143, 172, 192, 140, 156, 188, 99, 65, 69, 76, 16, 97, 109, 131, 251, 129, 144, 172, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 131, 147, 175, 232, 140, 157, 188, 43, 0, 0, 0, 0, 100, 112, 134, 211, 126, 141, 169, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 72, 78, 88, 26, 48, 52, 57, 60, 135, 150, 178, 254, 108, 121, 145, 83, 105, 118, 142, 76, 106, 119, 143, 201, 118, 133, 159, 122, 117, 129, 152, 25, 168, 176, 190, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    118, 128, 145, 3, 104, 117, 140, 92, 114, 127, 152, 180, 131, 147, 177, 237, 133, 149, 178, 249, 38, 42, 50, 222, 137, 152, 180, 249, 126, 142, 170, 182, 114, 128, 154, 182, 104, 117, 140, 227, 95, 107, 128, 238, 83, 93, 112, 248, 84, 95, 113, 239, 104, 117, 141, 180, 115, 129, 155, 93, 127, 140, 165, 4,
-    98, 109, 130, 153, 109, 123, 147, 254, 145, 163, 195, 153, 138, 154, 182, 56, 115, 123, 138, 5, 92, 99, 109, 35, 134, 149, 177, 230, 0, 0, 0, 0, 0, 0, 0, 0, 120, 133, 159, 143, 135, 151, 181, 115, 86, 89, 93, 5, 41, 45, 51, 54, 40, 45, 53, 150, 107, 120, 144, 254, 122, 137, 164, 154,
-    51, 57, 66, 147, 83, 93, 112, 255, 108, 121, 145, 159, 113, 126, 151, 62, 123, 136, 159, 8, 87, 93, 103, 35, 125, 141, 169, 230, 0, 0, 0, 0, 0, 0, 0, 0, 129, 143, 169, 143, 140, 156, 184, 115, 134, 147, 172, 8, 124, 138, 165, 60, 124, 139, 167, 155, 131, 147, 177, 255, 131, 147, 176, 153,
-    64, 68, 73, 2, 36, 39, 45, 86, 41, 46, 54, 173, 60, 67, 80, 232, 75, 84, 101, 251, 89, 100, 120, 228, 105, 118, 142, 250, 110, 123, 148, 187, 118, 132, 158, 187, 126, 141, 169, 229, 134, 149, 177, 239, 136, 152, 179, 250, 136, 152, 181, 234, 139, 156, 186, 175, 130, 145, 173, 90, 124, 134, 151, 3,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 74, 79, 19, 60, 64, 73, 50, 92, 103, 124, 254, 86, 95, 111, 84, 90, 100, 117, 76, 126, 141, 168, 201, 113, 126, 150, 119, 99, 105, 117, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 93, 105, 125, 231, 135, 151, 181, 46, 0, 0, 0, 0, 137, 154, 184, 212, 123, 137, 164, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 83, 98, 191, 133, 149, 179, 102, 111, 121, 139, 17, 134, 150, 180, 252, 126, 140, 166, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 43, 48, 57, 132, 121, 136, 164, 197, 121, 135, 161, 115, 130, 146, 175, 221, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 43, 47, 52, 46, 87, 98, 118, 254, 126, 142, 170, 254, 124, 139, 166, 135, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51, 57, 67, 118, 115, 128, 152, 170, 127, 140, 164, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-  Ihandle* image = IupImageRGBA(16, 16, imgdata);
-  return image;
-}
 
 
 static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, IupCocoaOutlineView* outline_view, CGFloat* out_width, CGFloat* out_height)
@@ -604,10 +560,11 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	return active_image;
 }
 
+// WARNING: This method needs to be fast for performance.
+// I'm worried the image support is already a bit too complicated because it allows for any image size. But I think it will be fine for desktop.
 - (CGFloat) outlineView:(NSOutlineView*)outline_view heightOfRowByItem:(id)the_item
 {
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
-//return 16;
 	CGFloat text_height = 17.0;
 	
 	// TODO: Height needs to also account for font if the user changed it
@@ -615,47 +572,27 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	CGFloat image_height = 0.0;
 	NSImage* active_image = helperGetActiveImageForTreeItem(tree_item, (IupCocoaOutlineView*)outline_view, &image_width, &image_height);
 	
+	NSTableCellView* table_cell_view = [tree_item tableCellView];
+	NSTextField* text_field = [table_cell_view textField];
+	NSSize text_field_size = { 0, 0 };
+	if(text_field)
+	{
+		text_field_size = [text_field fittingSize];
+	}
 	
-#if 0
-//	NSInteger int_row = [outline_view rowForItem:the_item];
-//	NSTableRowView* row_view = [outline_view rowViewAtRow:int_row makeIfNecessary:NO];
-//	NSTableCellView* the_result = [row_view viewAtColumn:0];
-NSTableCellView* the_result = [tree_item tableCellView];
-	NSTextField* text_field = nil;
-	text_field = [the_result textField];
-	NSImageView* image_view = nil;
-	image_view = [the_result imageView];
-		const CGFloat IMAGE_MARGIN_WIDTH = 4.0;
-
-
-		// FIXME: What if the width and height change? Do we change it or leave it alone?
-//		NSSize new_size = NSMakeSize(image_width, image_height);
-	//	NSRect the_frame = [image_view frame];
-//		the_frame.size = new_size;
-		NSRect image_view_frame = NSMakeRect(IMAGE_MARGIN_WIDTH, 0, image_width, image_height);
-		[image_view setFrame:image_view_frame];
-
-
-		[image_view setImage:active_image];
-//		[image_view setImageScaling:NSImageScaleProportionallyUpOrDown];
-
-			//	[image_view setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH, 0)];
-
-		NSSize text_field_size = [text_field fittingSize];
-		NSPoint text_field_origin = NSMakePoint(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0);
-		if(image_height > text_field_size.height)
-		{
-			text_field_origin.y = image_height - (text_field_size.height * 0.5);
-		}
-		else if(image_height < text_field_size.height)
-		{
-		
-		}
-		//NSRect text_field_frame = NSMakeRect(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0, image_width, image_height);
-		//[text_field setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0)];
-	//	[text_field setFrame:NSMakeRect(text_field_origin.x, text_field_origin.y, text_field_size.width, text_field_size.height)];
-		[text_field setFrame:NSMakeRect(text_field_origin.x, -30, text_field_size.width, text_field_size.height)];
-#endif
+	if(text_field_size.height > text_height)
+	{
+		text_height = text_field_size.height;
+	}
+	else if(text_field_size.height == 0)
+	{
+		// don't allow 0
+	}
+	else
+	{
+		// should I allow smaller text heights?
+		text_height = text_field_size.height;
+	}
 
 
 	if(active_image)
@@ -677,6 +614,7 @@ NSTableCellView* the_result = [tree_item tableCellView];
 }
 
 // NSOutlineViewDelegate
+// WARNING: This is another method that should be fast for performance.
 - (nullable NSView *)outlineView:(NSOutlineView*)outline_view viewForTableColumn:(nullable NSTableColumn*)table_column item:(id)the_item
 {
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
@@ -685,33 +623,27 @@ NSTableCellView* the_result = [tree_item tableCellView];
 
 
 	// Get an existing cell with the MyView identifier if it exists
-	NSTableCellView* the_result = [outline_view makeViewWithIdentifier:@"IupCocoaTreeTableViewCell" owner:self];
+	NSTableCellView* table_cell_view = [outline_view makeViewWithIdentifier:@"IupCocoaTreeTableViewCell" owner:self];
 
 	// There is no existing cell to reuse so create a new one
-	NSTextField* text_field = nil;
-	if(nil == the_result)
+	if(nil == table_cell_view)
 	{
-	//	the_result = [[NSView alloc] initWithFrame:NSZeroRect];
-			the_result = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
-
-		// Create the new NSTextField with a frame of the {0,0} with the width of the table.
-		// Note that the height of the frame is not really relevant, because the row height will modify the height.
-		//		the_result = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSPopUpButton, kIupCocoaDefaultHeightNSPopUpButton)];
+		table_cell_view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
 
 		// The identifier of the NSTextField instance is set to MyView.
 		// This allows the cell to be reused.
 		
-		[the_result setIdentifier:@"IupCocoaTreeTableViewCell"];
+		[table_cell_view setIdentifier:@"IupCocoaTreeTableViewCell"];
 	}
-	text_field = [the_result textField];
-	NSImageView* image_view = nil;
-	image_view = [the_result imageView];
-	// result is now guaranteed to be valid, either as a reused cell
+
+	// table_cell_view is now guaranteed to be valid, either as a reused cell
 	// or as a new cell, so set the stringValue of the cell to the
 	// nameArray value at row
-	//[text_field setStringValue:string_item];
-	[[the_result textField] setStringValue:string_item];
-
+	NSTextField* text_field = nil;
+	text_field = [table_cell_view textField];
+	NSImageView* image_view = nil;
+	image_view = [table_cell_view imageView];
+	[text_field setStringValue:string_item];
 
 
 	CGFloat image_width = 0.0;
@@ -720,73 +652,35 @@ NSTableCellView* the_result = [tree_item tableCellView];
 	
 	if(nil == active_image)
 	{
-		[text_field setFrameOrigin:NSMakePoint(0, 0)];
 		[image_view setHidden:YES];
 		[image_view setImage:nil];
-
 	}
 	else
 	{
 		[image_view setHidden:NO];
-//				[image_view setImageAlignment:NSImageAlignBottomLeft];
-
-			[image_view setImage:active_image];
-
-		Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
-#if 0
-		const CGFloat IMAGE_MARGIN_WIDTH = 4.0;
-
-
-		// FIXME: What if the width and height change? Do we change it or leave it alone?
-//		NSSize new_size = NSMakeSize(image_width, image_height);
-	//	NSRect the_frame = [image_view frame];
-//		the_frame.size = new_size;
-		NSRect image_view_frame = NSMakeRect(IMAGE_MARGIN_WIDTH, 0, image_width, image_height);
-		[image_view setFrame:image_view_frame];
-
-
-//		[image_view setImageScaling:NSImageScaleProportionallyUpOrDown];
-
-			//	[image_view setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH, 0)];
-
-		NSSize text_field_size = [text_field fittingSize];
-		NSPoint text_field_origin = NSMakePoint(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0);
-		if(image_height > text_field_size.height)
-		{
-			text_field_origin.y = image_height - (text_field_size.height * 0.5);
-		}
-		else if(image_height < text_field_size.height)
-		{
-		
-		}
-		//NSRect text_field_frame = NSMakeRect(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0, image_width, image_height);
-		//[text_field setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0)];
-//		[text_field setFrame:NSMakeRect(text_field_origin.x, text_field_origin.y, text_field_size.width, text_field_size.height)];
-		[text_field setFrame:NSMakeRect(text_field_origin.x, -30, text_field_size.width, text_field_size.height)];
-//		[text_field setBounds:NSMakeRect(text_field_origin.x, text_field_origin.y, text_field_size.width, text_field_size.height)];
-#endif
-//				[text_field setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0)];
-		
-			//	[tree_item setHasImage:YES];
-			//	[tree_item setImageWidth:(CGFloat)width];
-			//	[tree_item setImageHeight:(CGFloat)height];
-
+		[image_view setImage:active_image];
 	}
-	
 
-	[tree_item setTableCellView:the_result]; // we're doing some bad things to force layout in heightOf
+	[tree_item setTableCellView:table_cell_view]; // kind of a hack. We need it to compute the size in heightOf
  
 	// Return the result
-	return the_result;
+	return table_cell_view;
 }
 
-
+// I think it is a really bad idea to change images based on expanded or closed
+// because this creates another potential reload (which loses selection data)
+// and another potential performance bottleneck.
+// This is not a typical Mac/Cocoa behavior.
+// But the IUP API demands it.
+// There is an optimization here to not swap images if the image is the same.
+// However, this is a pointer comparison and requires both the user and IUP implementation to not accidentally load the same image twice
+// or create two separate object wrappers around the same image.
+// I recommend we add something to the official API documation that separate images is a bad idea.
 - (void) outlineViewItemWillExpand:(NSNotification*)the_notification
 {
 	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)[the_notification object];
 		NSDictionary* user_info = [the_notification userInfo];
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[user_info objectForKey:@"NSObject"];
-	NSLog(@"NSOutlineViewItemWillExpandNotification: %@", NSOutlineViewItemWillExpandNotification);
 	Ihandle* ih = [outline_view ih];
 	
 	if(nil == tree_item)
@@ -834,12 +728,21 @@ NSTableCellView* the_result = [tree_item tableCellView];
 	
 
 }
+
+// I think it is a really bad idea to change images based on expanded or closed
+// because this creates another potential reload (which loses selection data)
+// and another potential performance bottleneck.
+// This is not a typical Mac/Cocoa behavior.
+// But the IUP API demands it.
+// There is an optimization here to not swap images if the image is the same.
+// However, this is a pointer comparison and requires both the user and IUP implementation to not accidentally load the same image twice
+// or create two separate object wrappers around the same image.
+// I recommend we add something to the official API documation that separate images is a bad idea.
 - (void) outlineViewItemWillCollapse:(NSNotification*)the_notification
 {
 
 	IupCocoaOutlineView* outline_view = [the_notification object];
 	NSDictionary* user_info = [the_notification userInfo];
-	NSLog(@"NSImageNameFolder: %@", NSImageNameFolder);
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[user_info objectForKey:@"NSObject"];
 	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
 	
@@ -1494,80 +1397,22 @@ static void cocoaTreeUpdateImages(Ihandle* ih, int mode)
 
 static NSImage* helperGetImage(Ihandle* ih, int node_id, const char* value, IupCocoaTreeItem* tree_item)
 {
-
-//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
-//	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
-
 	if(!tree_item)
 	{
 		return nil;
 	}
 
-		int width;
-		int height;
-		int bpp;
-
 	NSImage* bitmap_image = nil;
 	
 	if(iupStrEqualNoCase("IMGEMPTY", value))
 	{
-					[tree_item setHasImage:NO];
-				[tree_item setImageWidth:0.0];
-				[tree_item setImageHeight:0.0];
-	
-
 		bitmap_image = nil;
-//				[tree_item setBitmapImage:nil];
 	}
 	else
 	{
 		bitmap_image = (NSImage*)iupImageGetImage(value, ih, 0);
-		iupdrvImageGetInfo(bitmap_image, &width, &height, &bpp);
-	//	width = 64;
-	//	height = 64;
-
-#if 0
-		// FIXME: What if the width and height change? Do we change it or leave it alone?
-		NSSize new_size = NSMakeSize(width, height);
-		NSRect the_frame = [image_view frame];
-		the_frame.size = new_size;
-		[image_view setFrame:the_frame];
-
-		[image_view setImage:bitmap_image];
-		[image_view setImageScaling:NSImageScaleProportionallyUpOrDown];
-
-				[text_field setFrameOrigin:NSMakePoint(0+width, 0)];
-#endif
-
-
-				[tree_item setHasImage:YES];
-				[tree_item setImageWidth:(CGFloat)width];
-				[tree_item setImageHeight:(CGFloat)height];
-	
-
-	
-		//		[tree_item setBitmapImage:bitmap_image];
-	
 	}
-/*
-	if(IUPCOCOA_HELPER_TREE_EXPANDED == image_kind)
-	{
-		[tree_item setBitmapImage:bitmap_image];
 
-	}
-	if(IUPCOCOA_HELPER_TREE_EXPANDED == image_kind)
-	{
-		[tree_item setCollapsedImage:bitmap_image];
-
-	}
-	else
-	{
-		[tree_item setBitmapImage:bitmap_image];
-	}
-	cocoaTreeReloadItem(tree_item, outline_view);
-
-	return 0;
-*/
 	return bitmap_image;
 }
 
@@ -1577,7 +1422,6 @@ static int cocoaTreeSetImageExpandedAttrib(Ihandle* ih, int node_id, const char*
 	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
 
 	NSImage* bitmap_image = helperGetImage(ih, node_id, value, tree_item);
-
 	
 	// Oh how ironic and tragic.
 	// I combined expanded and leaf into the same variable and made collapsed separate.
@@ -1585,27 +1429,7 @@ static int cocoaTreeSetImageExpandedAttrib(Ihandle* ih, int node_id, const char*
 	[tree_item setBitmapImage:bitmap_image];
 	cocoaTreeReloadItem(tree_item, outline_view);
 
-/*
-  int kind;
-  GtkTreeStore*  store = GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(ih->handle)));
-  GdkPixbuf* pixExpand = iupImageGetImage(value, ih, 0);
-  GtkTreeIter iterItem;
-  if (!gtkTreeFindNode(ih, id, &iterItem))
-    return 0;
-
-  gtk_tree_model_get(GTK_TREE_MODEL(store), &iterItem, IUPGTK_NODE_KIND, &kind, -1);
-
-  if (kind == ITREE_BRANCH)
-  {
-    if (pixExpand)
-      gtk_tree_store_set(store, &iterItem, IUPGTK_NODE_IMAGE_EXPANDED, pixExpand,
-                                           IUPGTK_NODE_HAS_IMAGE_EXPANDED, TRUE, -1);
-    else
-      gtk_tree_store_set(store, &iterItem, IUPGTK_NODE_IMAGE_EXPANDED, ih->data->def_image_expanded,
-                                           IUPGTK_NODE_HAS_IMAGE_EXPANDED, FALSE, -1);
-  }
-*/
-  return 1;
+	return 1;
 }
 
 static int cocoaTreeSetImageAttrib(Ihandle* ih, int node_id, const char* value)
@@ -1629,31 +1453,7 @@ static int cocoaTreeSetImageAttrib(Ihandle* ih, int node_id, const char* value)
 	}
 	cocoaTreeReloadItem(tree_item, outline_view);
 
-/*
-  GtkTreeStore* store = GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(ih->handle)));
-  GdkPixbuf* pixImage = iupImageGetImage(value, ih, 0);
-  GtkTreeIter iterItem;
-  if (!gtkTreeFindNode(ih, id, &iterItem))
-    return 0;
-
-  if (pixImage)
-  {
-    gtk_tree_store_set(store, &iterItem, IUPGTK_NODE_IMAGE, pixImage,
-                                         IUPGTK_NODE_HAS_IMAGE, TRUE, -1);
-  }
-  else
-  {
-    int kind;
-    gtk_tree_model_get(GTK_TREE_MODEL(store), &iterItem, IUPGTK_NODE_KIND, &kind, -1);
-    if (kind == ITREE_BRANCH)
-      gtk_tree_store_set(store, &iterItem, IUPGTK_NODE_IMAGE, ih->data->def_image_collapsed,
-                                           IUPGTK_NODE_HAS_IMAGE, FALSE, -1);
-    else
-      gtk_tree_store_set(store, &iterItem, IUPGTK_NODE_IMAGE, ih->data->def_image_leaf,
-                                           IUPGTK_NODE_HAS_IMAGE, FALSE, -1);
-  }
-*/
-  return 0;
+	return 0;
 }
 
 static void helperSetImageBranchExpanded(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, NSImage* ns_image)
