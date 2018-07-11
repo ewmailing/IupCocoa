@@ -1353,6 +1353,78 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 /* MANIPULATING IMAGES                                                       */
 /*****************************************************************************/
 
+/* Apple has a built-in Folder image we are supposed to use.
+	Also, the default IUP one looks awful on Mac. (The resolution is too low and the colors are wrong.)
+ 	So we will override the default IUP one here.
+ 	IUP has different images for expanded and collaspsed, but that is not a normal thing for Mac.
+ 	Additionally, there is a performance cost and possible issues with losing selections due to reloading items when we switch on Mac.
+ 	And Apple does not provide an 'open' folder image.
+	So we will make the expanded and collapsed images point to the same image here.
+	This will allow us to get back a little performance by default.
+ 	TODO: Redesign the core iup_tree.c code to not load the default images for performance.
+*/
+static void helperReplaceDefaultImages(Ihandle* ih, IupCocoaOutlineView* outline_view)
+{
+	NSImage* ns_folder_image = [NSImage imageNamed:NSImageNameFolder];
+
+	// The default IUP image 16x16.
+	// The default table cell height accomodates height=16 perfectly.
+	// But the Apple icon is currently 32x32 (subject to get bigger over time).
+	// So we will scale the image down to 16x16.
+	CGRect resize_rect = { 0, 0, 16, 16 };
+	
+	CGImageRef cg_image = [ns_folder_image CGImageForProposedRect:&resize_rect context:nil hints:nil];
+//	CGImageRef cg_image = [ns_folder_image CGImageForProposedRect:nil context:nil hints:nil];
+
+	NSUInteger bytes_per_row  = resize_rect.size.width * 4; // rgba
+  	NSUInteger total_bytes  = bytes_per_row * resize_rect.size.height;
+
+  	void* copy_pixel_buffer = malloc(total_bytes);
+	CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+	
+	 CGContextRef offscreen_context_ref = CGBitmapContextCreate(
+		copy_pixel_buffer,
+		resize_rect.size.width,
+		resize_rect.size.height,
+		8, // bits per component
+		bytes_per_row,
+		color_space,
+		kCGImageAlphaPremultipliedLast
+	);
+	CGColorSpaceRelease(color_space);
+	CGContextDrawImage(offscreen_context_ref, resize_rect, cg_image);
+	
+//	CFDataRef raw_data = CGDataProviderCopyData(CGImageGetDataProvider(offscreen_context_ref));
+//	unsigned char* raw_data = CGBitmapContextGetData(offscreen_context_ref);
+
+//	CFIndex data_length = CFDataGetLength(raw_data);
+  	Ihandle* ih_folder_image = IupImageRGBA(resize_rect.size.width, resize_rect.size.height, (unsigned char*)copy_pixel_buffer);
+//	CFRelease(raw_data);
+	CFRelease(offscreen_context_ref);
+	free(copy_pixel_buffer);
+	// Copied from collapsed_image. I don't know if these colors make sense, or if they are ever used.
+#if 1
+	IupSetAttribute(ih_folder_image, "0", "BGCOLOR");
+	IupSetAttribute(ih_folder_image, "1", "255 206 156");
+	IupSetAttribute(ih_folder_image, "2", "156 156 0");
+	IupSetAttribute(ih_folder_image, "3", "0 0 0");
+	IupSetAttribute(ih_folder_image, "4", "206 206 99");
+	IupSetAttribute(ih_folder_image, "5", "255 255 206");
+	IupSetAttribute(ih_folder_image, "6", "247 247 247");
+	IupSetAttribute(ih_folder_image, "7", "255 255 156");
+#endif
+
+	IupSetHandle("IMGCOLLAPSED", ih_folder_image);
+	IupSetHandle("IMGEXPANDED",  ih_folder_image);
+	
+	// just in case there was any transformation between setting/getting
+	NSImage* ns_folder_image_roundtrip = iupImageGetImage(iupAttribGetStr(ih, "IMAGEBRANCHCOLLAPSED"), ih, 0);
+	
+	[outline_view setCollapsedImage:ns_folder_image_roundtrip];
+	[outline_view setExpandedImage:ns_folder_image_roundtrip];
+
+}
+
 static NSImage* helperGetImage(Ihandle* ih, int node_id, const char* value, IupCocoaTreeItem* tree_item)
 {
 	if(!tree_item)
@@ -1660,14 +1732,21 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 //	NSImage* collapsed_image = iupImageGetImage(iupAttribGetStr(ih, "IMAGEBRANCHCOLLAPSED"), ih, 0);
 //	NSImage* expanded_image = iupImageGetImage(iupAttribGetStr(ih, "IMAGEBRANCHEXPANDED"), ih, 0);
 
+
+
+
+	[outline_view setLeafImage:leaf_image];
+
+#if 1
+	helperReplaceDefaultImages(ih, outline_view);
+#else
 	NSImage* collapsed_image = [NSImage imageNamed:NSImageNameFolder];
 //	NSImage* expanded_image = [NSImage imageNamed:NSImageNameFolder];
 	NSImage* expanded_image = collapsed_image;
-
-	[outline_view setLeafImage:leaf_image];
+	
 	[outline_view setCollapsedImage:collapsed_image];
 	[outline_view setExpandedImage:expanded_image];
-
+#endif
 
 	if (iupAttribGetInt(ih, "ADDROOT"))
 	{
