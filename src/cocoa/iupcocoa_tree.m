@@ -730,9 +730,10 @@ NSTableCellView* the_result = [tree_item tableCellView];
 		[image_view setHidden:NO];
 //				[image_view setImageAlignment:NSImageAlignBottomLeft];
 
-		
-		Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
+			[image_view setImage:active_image];
 
+		Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
+#if 0
 		const CGFloat IMAGE_MARGIN_WIDTH = 4.0;
 
 
@@ -744,7 +745,6 @@ NSTableCellView* the_result = [tree_item tableCellView];
 		[image_view setFrame:image_view_frame];
 
 
-		[image_view setImage:active_image];
 //		[image_view setImageScaling:NSImageScaleProportionallyUpOrDown];
 
 			//	[image_view setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH, 0)];
@@ -764,7 +764,7 @@ NSTableCellView* the_result = [tree_item tableCellView];
 //		[text_field setFrame:NSMakeRect(text_field_origin.x, text_field_origin.y, text_field_size.width, text_field_size.height)];
 		[text_field setFrame:NSMakeRect(text_field_origin.x, -30, text_field_size.width, text_field_size.height)];
 //		[text_field setBounds:NSMakeRect(text_field_origin.x, text_field_origin.y, text_field_size.width, text_field_size.height)];
-
+#endif
 //				[text_field setFrameOrigin:NSMakePoint(IMAGE_MARGIN_WIDTH+image_width+IMAGE_MARGIN_WIDTH, 0)];
 		
 			//	[tree_item setHasImage:YES];
