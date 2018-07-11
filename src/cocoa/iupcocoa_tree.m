@@ -480,7 +480,19 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		// One other possible solution is to go back to the above or do a hybrid, and try the reload parent idea.
 		if([tree_item kind] == ITREE_BRANCH)
 		{
+#if 1
+			// UPDATE: This might work now an only show the triangle when has children, due to all the other changes I made with adding/deleting.
+			if([tree_item numberOfChildren] > 0)
+			{
+				return YES;
+			}
+			else
+			{
+				return NO;
+			}
+#else
 			return YES;
+#endif
 		}
 		else
 		{
@@ -681,7 +693,7 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)[the_notification object];
 		NSDictionary* user_info = [the_notification userInfo];
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[user_info objectForKey:@"NSObject"];
-	Ihandle* ih = [outline_view ih];
+//	Ihandle* ih = [outline_view ih];
 	
 	if(nil == tree_item)
 	{
@@ -744,7 +756,7 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	IupCocoaOutlineView* outline_view = [the_notification object];
 	NSDictionary* user_info = [the_notification userInfo];
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[user_info objectForKey:@"NSObject"];
-	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
+//	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
 	
 	if(nil == tree_item)
 	{
@@ -1347,53 +1359,6 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 /*****************************************************************************/
 /* MANIPULATING IMAGES                                                       */
 /*****************************************************************************/
-static void cocoaTreeUpdateImages(Ihandle* ih, int mode)
-{
-#if 0
-  GtkTreeModel* model = gtk_tree_view_get_model(GTK_TREE_VIEW(ih->handle));
-  GtkTreeIter iterItem;
-  int i, kind;
-
-  for (i=0; i<ih->data->node_count; i++)
-  {
-    gtkTreeIterInit(ih, &iterItem, ih->data->node_cache[i].node_handle);
-
-    gtk_tree_model_get(model, &iterItem, IUPGTK_NODE_KIND, &kind, -1);
-
-    if (kind == ITREE_BRANCH)
-    {
-      if (mode == ITREE_UPDATEIMAGE_EXPANDED)
-      {
-        gboolean has_image_expanded = FALSE;
-        gtk_tree_model_get(model, &iterItem, IUPGTK_NODE_HAS_IMAGE_EXPANDED, &has_image_expanded, -1);
-        if (!has_image_expanded)
-          gtk_tree_store_set(GTK_TREE_STORE(model), &iterItem, IUPGTK_NODE_IMAGE_EXPANDED, ih->data->def_image_expanded, -1);
-      }
-      else if(mode == ITREE_UPDATEIMAGE_COLLAPSED)
-      {
-        gboolean has_image = FALSE;
-        gtk_tree_model_get(model, &iterItem, IUPGTK_NODE_HAS_IMAGE, &has_image, -1);
-        if (!has_image)
-          gtk_tree_store_set(GTK_TREE_STORE(model), &iterItem, IUPGTK_NODE_IMAGE, ih->data->def_image_collapsed, -1);
-      }
-    }
-    else
-    {
-      if (mode == ITREE_UPDATEIMAGE_LEAF)
-      {
-        gboolean has_image = FALSE;
-        gtk_tree_model_get(model, &iterItem, IUPGTK_NODE_HAS_IMAGE, &has_image, -1);
-        if (!has_image)
-          gtk_tree_store_set(GTK_TREE_STORE(model), &iterItem, IUPGTK_NODE_IMAGE, ih->data->def_image_leaf, -1);
-      }
-    }
-  }
-#endif
-}
-
-#define IUPCOCOA_HELPER_TREE_EXPANDED 0
-#define IUPCOCOA_HELPER_TREE_COLLAPSED 0
-#define IUPCOCOA_HELPER_TREE_LEAF 0
 
 static NSImage* helperGetImage(Ihandle* ih, int node_id, const char* value, IupCocoaTreeItem* tree_item)
 {
