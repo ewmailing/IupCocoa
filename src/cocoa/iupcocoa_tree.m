@@ -39,7 +39,7 @@
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_TREE_DELEGATE_OBJ_KEY = "IUP_COCOA_TREE_DELEGATE_OBJ_KEY";
 
-static  NSString* const IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE = @"public.text";
+static  NSString* const IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE = @"iupcocoa.outlineview.dragdrop";
 
 
 
@@ -1111,7 +1111,6 @@ static NSData* helperDataWithValue(NSValue* the_value)
 	// archivedDataWithRootObject throws an exception using a pointer
 //	NSData* data_value = [NSKeyedArchiver archivedDataWithRootObject:pointer_value];
     [paste_board_item setData:data_value forType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
-NSLog(@"In:  pointer:%p, value:%@, data:%@", tree_item, pointer_value, data_value);
     return paste_board_item;
 }
 
@@ -1130,55 +1129,37 @@ NSLog(@"In:  pointer:%p, value:%@, data:%@", tree_item, pointer_value, data_valu
 
 - (NSDragOperation)outlineView:(NSOutlineView *)outline_view validateDrop:(id < NSDraggingInfo >)drag_info proposedItem:(id)target_item proposedChildIndex:(NSInteger)child_index
 {
-	/*
-    BOOL canDrag = index >= 0 && target_item;
-
-    if (canDrag) {
-        return NSDragOperationMove;
-    }else {
-        return NSDragOperationNone;
-    }
-    */
-     NSArray<NSPasteboardType>* drag_types = [[drag_info draggingPasteboard] types];
+	NSArray<NSPasteboardType>* drag_types = [[drag_info draggingPasteboard] types];
 	
-NSLog(@"target_item title %@", [target_item title]);
-NSLog(@"child_index %d", child_index);
-NSLog(@"itemBeingDragged title %@", [[self itemBeingDragged] title]);
-
     if([drag_types containsObject:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE])
     {
         BOOL can_drag = child_index >= 0 && target_item;
 
     	if(can_drag)
     	{
-			NSInteger index_of_target_item = [outline_view rowForItem:target_item];
-		NSLog(@"index_of_target_item %d", index_of_target_item);
-		
-				if (self.itemBeingDragged) {
-                    // We have a single item being dragged to move; validate if we can move it or not
-                    // A move is only valid if the target isn't a child of the thing being dragged. We validate that now
-                    id itemWalker = target_item;
-                    while (itemWalker) {
-                        if (itemWalker == self.itemBeingDragged) {
-                            return NSDragOperationNone; // Can't do it!
-                        }
-                        itemWalker = [outline_view parentForItem:itemWalker];
-                    }
-                    return NSDragOperationMove;
-                } else {
-                    // For multiple items, we do a copy and don't allow moving
-                    return NSDragOperationCopy;
-                }
-		
-		
-			if([self itemBeingDragged] == target_item)
+			//	NSInteger index_of_target_item = [outline_view rowForItem:target_item];
+
+			// This code (from Apple example) seems to be to prevent dragging a branch as a child of itself (which will throw an exception if allowed).
+			if([self itemBeingDragged])
 			{
-				return NSDragOperationNone;
+				// We have a single item being dragged to move; validate if we can move it or not
+				// A move is only valid if the target isn't a child of the thing being dragged. We validate that now
+				id item_walker = target_item;
+				while(item_walker)
+				{
+					if(item_walker == [self itemBeingDragged])
+					{
+						return NSDragOperationNone; // Can't do it!
+					}
+					item_walker = [outline_view parentForItem:item_walker];
+				}
+				return NSDragOperationMove;
 			}
 			else
 			{
-	        return NSDragOperationMove;
-	        }
+				// For multiple items, we do a copy and don't allow moving
+				return NSDragOperationCopy;
+			}
     	}
     	else
     	{
@@ -1286,46 +1267,19 @@ static IupCocoaTreeItem* helperIsPointerValid(intptr_t look_for_pointer, IupCoco
 	{
 		return NO;
 	}
-//NSLog(@"Out: pointer:%p, value:%@, data:%@", tree_item, pointer_value, data_value);
-NSLog(@"Out: pointer:%p, data:%@", tree_item, data_value);
 
-NSLog(@"Out: tree_item:%@", tree_item);
 
-NSLog(@"Out: target_item:%@, child_index:%d", parent_target_tree_item, target_child_index);
-
+	// NOTE: Apple has this in their example. I still don't understand what this does.
     // If it was a drop "on", then we add it at the start
-    if (target_child_index == NSOutlineViewDropOnItemIndex) {
+    if(target_child_index == NSOutlineViewDropOnItemIndex)
+    {
         target_child_index = 0;
     }
     [outline_view beginUpdates];
 
-helperMoveNode(outline_view, tree_item, parent_target_tree_item, target_child_index);
+	helperMoveNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index);
 
-
-//		[outline_view reloadData];
-
-	    [outline_view endUpdates];
-
-#if 0
-    NSString *title = [p stringForType:@"public.text"];
-    NSTreeNode *sourceNode;
-	
-    for(NSTreeNode *b in [targetItem childNodes]){
-        if ([[[b representedObject] title] isEqualToString:title]){
-            sourceNode = b;
-        }
-    }
-
-    if(!sourceNode){
-        // Not found
-        return NO;
-    }
-	
-    NSUInteger indexArr[] = {0,index};
-    NSIndexPath *toIndexPATH =[NSIndexPath indexPathWithIndexes:indexArr length:2];
-
-    [self.booksController moveNode:sourceNode toIndexPath:toIndexPATH];
-#endif
+	[outline_view endUpdates];
 
     return YES;
 }
@@ -1725,26 +1679,16 @@ static int cocoaTreeSetMoveNodeAttrib(Ihandle* ih, int node_id, const char* valu
 
 		if(is_target_expanded)
 		{
-		/*
-			NSUInteger target_index;
-			if(parent_target_tree_item)
-			{
-				target_index = [[parent_target_tree_item childrenArray] indexOfObject:target_tree_item];
-			}
-			else
-			{
-				target_index = [treeRootTopLevelObjects indexOfObject:target_tree_item];
-			}
-			*/
+		
+
 			// update the data source
-			[data_source_delegate removeItem:tree_item];
-			NSUInteger target_index = [data_source_delegate insertChild:tree_item withParent:parent_target_tree_item];
-			[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:target_index inParent:parent_target_tree_item];
+			
+			helperMoveNode(outline_view, tree_item, parent_target_tree_item, 0);
+
 
 		}
 		else
 		{
-		/*
 			NSUInteger target_index;
 			if(parent_target_tree_item)
 			{
@@ -1752,18 +1696,15 @@ static int cocoaTreeSetMoveNodeAttrib(Ihandle* ih, int node_id, const char* valu
 			}
 			else
 			{
-				target_index = [treeRootTopLevelObjects indexOfObject:target_tree_item];
+				target_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:target_tree_item];
 			}
-			*/
 			// update the data source
-			[data_source_delegate removeItem:tree_item];
-			NSUInteger target_index = [data_source_delegate insertPeer:tree_item withSibling:target_tree_item];
-			[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:target_index inParent:[parent_target_tree_item parentItem]];
+			helperMoveNode(outline_view, tree_item, parent_target_tree_item, target_index);
+
 		}
 	}
 	else
 	{
-	/*
 		NSUInteger target_index;
 		if(parent_target_tree_item)
 		{
@@ -1771,13 +1712,11 @@ static int cocoaTreeSetMoveNodeAttrib(Ihandle* ih, int node_id, const char* valu
 		}
 		else
 		{
-			target_index = [treeRootTopLevelObjects indexOfObject:target_tree_item];
+			target_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:target_tree_item];
 		}
-		*/
-			// update the data source
-			[data_source_delegate removeItem:tree_item];
-			NSUInteger target_index = [data_source_delegate insertPeer:tree_item withSibling:target_tree_item];
-			[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:target_index inParent:[parent_target_tree_item parentItem]];
+		// update the data source
+		helperMoveNode(outline_view, tree_item, parent_target_tree_item, target_index);
+
 	
 	}
 	
