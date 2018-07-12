@@ -1740,7 +1740,7 @@ static int cocoaTreeSetMoveNodeAttrib(Ihandle* ih, int node_id, const char* valu
 	This will allow us to get back a little performance by default.
  	TODO: Redesign the core iup_tree.c code to not load the default images for performance.
 */
-static void helperReplaceDefaultImages(Ihandle* ih, IupCocoaOutlineView* outline_view)
+static void helperLoadReplacementDefaultImages()
 {
 	NSImage* ns_folder_image = [NSImage imageNamed:NSImageNameFolder];
 
@@ -1793,10 +1793,15 @@ static void helperReplaceDefaultImages(Ihandle* ih, IupCocoaOutlineView* outline
 
 	IupSetHandle("IMGCOLLAPSED", ih_folder_image);
 	IupSetHandle("IMGEXPANDED",  ih_folder_image);
-	
-	// just in case there was any transformation between setting/getting
+}
+
+static void helperReplaceDefaultImages(Ihandle* ih, IupCocoaOutlineView* outline_view)
+{
+	// This was loaded in helperLoadReplacementDefaultImages.
+	// Round-tripping the image through IUP is intentional in case IUP does any additional transformations.
 	NSImage* ns_folder_image_roundtrip = iupImageGetImage(iupAttribGetStr(ih, "IMAGEBRANCHCOLLAPSED"), ih, 0);
 	
+	// We use the same pointer for both. This allows for an optimization to kick in to not reload items when expand/collapse happens.
 	[outline_view setCollapsedImage:ns_folder_image_roundtrip];
 	[outline_view setExpandedImage:ns_folder_image_roundtrip];
 
@@ -2142,7 +2147,7 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 
 	
 	
-	// HACK:
+	// Registering a custom type so we can do internal drag-and-drop (reordering)
 	[outline_view registerForDraggedTypes:[NSArray arrayWithObjects:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE, nil]];
 
 	
@@ -2234,4 +2239,6 @@ void iupdrvTreeInitClass(Iclass* ic)
 	/* IupTree Attributes - GTK Only */
 	iupClassRegisterAttribute  (ic, "RUBBERBAND", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
 #endif
+
+	helperLoadReplacementDefaultImages();
 }
