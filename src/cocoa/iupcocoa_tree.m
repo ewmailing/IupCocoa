@@ -39,6 +39,7 @@
 // the point of this is we have a unique memory address for an identifier
 static const void* IUP_COCOA_TREE_DELEGATE_OBJ_KEY = "IUP_COCOA_TREE_DELEGATE_OBJ_KEY";
 
+static  NSString* const IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE = @"public.text";
 
 
 
@@ -213,15 +214,19 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	
 //	NSMutableArray* orderedArrayOfSelections; // TODO: If we decide selection order is important enough and worth the risks of edge cases missing updates (like delnode)
 	NSIndexSet* previousSelections;
+	
+	id itemBeingDragged; // This is used to compare whether the item being dragged ends up dragging onto itself so we can reject it in validation
 }
 @property(nonatomic, assign) NSUInteger totalNumberOfItems;
 @property(nonatomic, copy) NSArray* treeRootTopLevelObjects; // This is intended for external read-only access to iterate through all items, such as changing the branch/leaf images
+@property(nonatomic, weak) id itemBeingDragged;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new;
 - (void) removeAllObjects;
 - (NSIndexSet*) removeAllChildrenForItem:(IupCocoaTreeItem*)tree_item;
 - (NSUInteger) removeItem:(IupCocoaTreeItem*)tree_item;
+- (void) moveItem:(IupCocoaTreeItem*)tree_item targetParent:(IupCocoaTreeItem*)tree_item_parent targetChildIndex:(NSInteger)target_child_index;
 
 //- (NSMutableArray*) dataArray;
 
@@ -251,6 +256,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 @implementation IupCocoaTreeDelegate
 @synthesize totalNumberOfItems = totalNumberOfItems;
 @synthesize treeRootTopLevelObjects = treeRootTopLevelObjects;
+@synthesize itemBeingDragged = itemBeingDragged;
 
 - (instancetype) init
 {
@@ -412,6 +418,34 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	}
 }
 
+- (void) moveItem:(IupCocoaTreeItem*)tree_item targetParent:(IupCocoaTreeItem*)target_parent_tree_item targetChildIndex:(NSInteger)target_child_index
+{
+	IupCocoaTreeItem* parent_tree_item = [tree_item parentItem];
+
+	// remove from the old location (don't call removeItem: because it kills the children)
+	if(parent_tree_item)
+	{
+		[[parent_tree_item childrenArray] removeObject:tree_item];
+	}
+	else
+	{
+		[treeRootTopLevelObjects removeObject:tree_item];
+	}
+	
+	// insert to the new location
+	if(target_parent_tree_item)
+	{
+		[[target_parent_tree_item childrenArray] insertObject:tree_item atIndex:target_child_index];
+	}
+	else
+	{
+		[treeRootTopLevelObjects insertObject:tree_item atIndex:target_child_index];
+	}
+
+	// Now that the node is moved, it has a new parent
+	[tree_item setParentItem:target_parent_tree_item];
+}
+
 - (NSInteger) outlineView:(NSOutlineView*)outline_view numberOfChildrenOfItem:(nullable id)the_item
 {
 	// FIXME: temp placeholder
@@ -474,8 +508,11 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		// One other possible solution is to go back to the above or do a hybrid, and try the reload parent idea.
 		if([tree_item kind] == ITREE_BRANCH)
 		{
-#if 1
-			// UPDATE: This might work now an only show the triangle when has children, due to all the other changes I made with adding/deleting.
+#if 0
+			// UPDATE1: This might work now an only show the triangle when has children, due to all the other changes I made with adding/deleting.
+			// UPDATE2: UPDATE1 seemed to work, but it caused a different problem. For moving (reordering) nodes via drag-and-drop,
+			// if a branch is empty, we are unable to move nodes under it.
+			// So I think I must keep this path disabled unless there is a different workaround.
 			if([tree_item numberOfChildren] > 0)
 			{
 				return YES;
@@ -1028,6 +1065,272 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	}
 }
 
+
+// Drag and drop
+// Cocoa makes you do overkill for moving/copying nodes via drag-and-drop and you must implement full blown pasteboard support.
+// General idea here:
+// https://stackoverflow.com/questions/42315288/how-to-create-nspasteboardwriting-for-drag-and-drop-in-nscollectionview
+// Also, suggestions for putting a pointer in NSData
+// https://stackoverflow.com/questions/38890174/use-nsvalue-to-wrap-a-c-pointer
+
+static NSData* helperDataWithValue(NSValue* the_value)
+{
+    NSUInteger size;
+    const char* encoding = [the_value objCType];
+    NSGetSizeAndAlignment(encoding, &size, NULL);
+
+    void* ptr = malloc(size);
+    [the_value getValue:ptr];
+    NSData* ret_data = [NSData dataWithBytes:ptr length:size];
+    free(ptr);
+
+    return ret_data;
+}
+
+- (id <NSPasteboardWriting>)outlineView:(NSOutlineView *)outlineView pasteboardWriterForItem:(id)the_item
+{
+    // No dragging if <some condition isn't met>
+	if(![the_item isKindOfClass:[IupCocoaTreeItem class]])
+	{
+		return nil;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
+	
+	
+//    Book *book = (Book *)(((NSTreeNode *)item).representedObject);
+//    NSString *identifier = book.title;
+	
+    NSPasteboardItem* paste_board_item = [[NSPasteboardItem alloc] init];
+    [paste_board_item autorelease];
+//    NSString* unique_id_string = [NSString stringWithFormat:@"%p", tree_item];
+//    [paste_board_item setString:unique_id_string forType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
+
+	NSValue* pointer_value = [NSValue valueWithPointer:tree_item];
+	NSData* data_value = helperDataWithValue(pointer_value);
+	
+	// archivedDataWithRootObject throws an exception using a pointer
+//	NSData* data_value = [NSKeyedArchiver archivedDataWithRootObject:pointer_value];
+    [paste_board_item setData:data_value forType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
+NSLog(@"In:  pointer:%p, value:%@, data:%@", tree_item, pointer_value, data_value);
+    return paste_board_item;
+}
+
+
+- (void)outlineView:(NSOutlineView *)outlineView draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint forItems:(NSArray *)dragged_items
+{
+	[self setItemBeingDragged:nil];
+
+    // If only one item is being dragged, mark it so we can reorder it with a special pboard indicator
+    if([dragged_items count] == 1)
+    {
+    	[self setItemBeingDragged:[dragged_items lastObject]];
+	}
+}
+
+
+- (NSDragOperation)outlineView:(NSOutlineView *)outline_view validateDrop:(id < NSDraggingInfo >)drag_info proposedItem:(id)target_item proposedChildIndex:(NSInteger)child_index
+{
+	/*
+    BOOL canDrag = index >= 0 && target_item;
+
+    if (canDrag) {
+        return NSDragOperationMove;
+    }else {
+        return NSDragOperationNone;
+    }
+    */
+     NSArray<NSPasteboardType>* drag_types = [[drag_info draggingPasteboard] types];
+	
+NSLog(@"target_item title %@", [target_item title]);
+NSLog(@"child_index %d", child_index);
+NSLog(@"itemBeingDragged title %@", [[self itemBeingDragged] title]);
+
+    if([drag_types containsObject:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE])
+    {
+        BOOL can_drag = child_index >= 0 && target_item;
+
+    	if(can_drag)
+    	{
+			NSInteger index_of_target_item = [outline_view rowForItem:target_item];
+		NSLog(@"index_of_target_item %d", index_of_target_item);
+		
+				if (self.itemBeingDragged) {
+                    // We have a single item being dragged to move; validate if we can move it or not
+                    // A move is only valid if the target isn't a child of the thing being dragged. We validate that now
+                    id itemWalker = target_item;
+                    while (itemWalker) {
+                        if (itemWalker == self.itemBeingDragged) {
+                            return NSDragOperationNone; // Can't do it!
+                        }
+                        itemWalker = [outline_view parentForItem:itemWalker];
+                    }
+                    return NSDragOperationMove;
+                } else {
+                    // For multiple items, we do a copy and don't allow moving
+                    return NSDragOperationCopy;
+                }
+		
+		
+			if([self itemBeingDragged] == target_item)
+			{
+				return NSDragOperationNone;
+			}
+			else
+			{
+	        return NSDragOperationMove;
+	        }
+    	}
+    	else
+    	{
+			return NSDragOperationNone;
+		}
+	}
+	return NSDragOperationNone;
+}
+
+static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, IupCocoaTreeItem* parent_target_tree_item, NSInteger target_child_index)
+{
+	if(!tree_item)
+	{
+		return;
+	}
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+	IupCocoaTreeItem* parent_tree_item  = [tree_item parentItem];
+	
+	NSUInteger object_index;
+	if(parent_tree_item)
+	{
+		object_index = [[parent_tree_item childrenArray] indexOfObject:tree_item];
+
+	}
+	else
+	{
+		object_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:tree_item];
+	}
+	
+		// If the destination node is a branch and it is expanded,
+	// then the specified node is inserted as the first child of the destination node.
+	// If the branch is not expanded or the destination node is a leaf,
+	// then it is inserted as the next brother of the leaf.
+	
+//	BOOL is_target_expanded = NO;
+//	int target_kind = [target_tree_item kind];
+	
+	// target_child_index seems to be +1 too much.
+	NSInteger adjusted_index = target_child_index - 1;
+	if(adjusted_index < 0)
+	{
+		adjusted_index = 0;
+	}
+	
+	// update the data source
+	[data_source_delegate moveItem:tree_item targetParent:parent_target_tree_item targetChildIndex:adjusted_index];
+	[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:adjusted_index inParent:parent_target_tree_item];
+	
+
+}
+
+static IupCocoaTreeItem* helperRecursiveIsPointerValid(intptr_t look_for_pointer, IupCocoaTreeItem* current_item)
+{
+	if(look_for_pointer == (intptr_t)current_item)
+	{
+		return current_item;
+	}
+	
+	for(IupCocoaTreeItem* a_item in [current_item childrenArray])
+	{
+		IupCocoaTreeItem* is_found = helperRecursiveIsPointerValid(look_for_pointer, a_item);
+		if(is_found)
+		{
+			return is_found;
+		}
+	}
+	return NULL;
+}
+
+static IupCocoaTreeItem* helperIsPointerValid(intptr_t look_for_pointer, IupCocoaTreeDelegate* tree_delegate)
+{
+	for(IupCocoaTreeItem* tree_item in [tree_delegate treeRootTopLevelObjects])
+	{
+		IupCocoaTreeItem* is_found = helperRecursiveIsPointerValid(look_for_pointer, tree_item);
+		if(is_found)
+		{
+			return is_found;
+		}
+	}
+	return NULL;
+}
+
+- (BOOL) outlineView:(NSOutlineView*)outline_view acceptDrop:(id <NSDraggingInfo>)drag_info item:(id)parent_target_tree_item childIndex:(NSInteger)target_child_index
+{
+	[self setItemBeingDragged:nil];
+    NSPasteboard* paste_board = [drag_info draggingPasteboard];
+	NSData* data_value = [paste_board dataForType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
+	if(nil == data_value)
+	{
+		return NO;
+	}
+	
+//	NSValue* pointer_value = [NSKeyedUnarchiver unarchiveObjectWithData:data_value];
+//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[pointer_value pointerValue];
+
+	intptr_t decoded_integer;
+	[data_value getBytes:&decoded_integer length:sizeof(intptr_t)];
+
+	// Could be a wild pointer at this point?
+	// We can iterate through all the nodes to find it if we need to be extra safe.
+//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)decoded_integer;
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+	IupCocoaTreeItem* tree_item = helperIsPointerValid(decoded_integer, data_source_delegate);
+	if(nil == tree_item)
+	{
+		return NO;
+	}
+//NSLog(@"Out: pointer:%p, value:%@, data:%@", tree_item, pointer_value, data_value);
+NSLog(@"Out: pointer:%p, data:%@", tree_item, data_value);
+
+NSLog(@"Out: tree_item:%@", tree_item);
+
+NSLog(@"Out: target_item:%@, child_index:%d", parent_target_tree_item, target_child_index);
+
+    // If it was a drop "on", then we add it at the start
+    if (target_child_index == NSOutlineViewDropOnItemIndex) {
+        target_child_index = 0;
+    }
+    [outline_view beginUpdates];
+
+helperMoveNode(outline_view, tree_item, parent_target_tree_item, target_child_index);
+
+
+//		[outline_view reloadData];
+
+	    [outline_view endUpdates];
+
+#if 0
+    NSString *title = [p stringForType:@"public.text"];
+    NSTreeNode *sourceNode;
+	
+    for(NSTreeNode *b in [targetItem childNodes]){
+        if ([[[b representedObject] title] isEqualToString:title]){
+            sourceNode = b;
+        }
+    }
+
+    if(!sourceNode){
+        // Not found
+        return NO;
+    }
+	
+    NSUInteger indexArr[] = {0,index};
+    NSIndexPath *toIndexPATH =[NSIndexPath indexPathWithIndexes:indexArr length:2];
+
+    [self.booksController moveNode:sourceNode toIndexPath:toIndexPATH];
+#endif
+
+    return YES;
+}
+
+
 @end
 
 /*****************************************************************************/
@@ -1361,6 +1664,128 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 	return 0;
 }
 
+
+static int cocoaTreeSetMoveNodeAttrib(Ihandle* ih, int node_id, const char* value)
+{
+
+
+	if(!ih->handle)  /* do not do the action before map */
+	{
+		return 0;
+	}
+
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
+
+	if(!tree_item)
+	{
+		return 0;
+	}
+	IupCocoaTreeItem* parent_tree_item  = [tree_item parentItem];
+
+	IupCocoaTreeItem* target_tree_item = (IupCocoaTreeItem*)iupTreeGetNodeFromString(ih, value);
+	IupCocoaTreeItem* parent_target_tree_item = [target_tree_item parentItem];
+
+	/* If Drag item is an ancestor of Drop item then return */
+	if([tree_item isEqual:target_tree_item])
+	{
+		return 0;
+	}
+#if 0
+	if([tree_item isEqual:parent_target_tree_item])
+	{
+		return 0;
+	}
+#endif
+
+	NSUInteger object_index;
+	if(parent_tree_item)
+	{
+		object_index = [[parent_tree_item childrenArray] indexOfObject:tree_item];
+
+	}
+	else
+	{
+		object_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:tree_item];
+	}
+
+	// If the destination node is a branch and it is expanded,
+	// then the specified node is inserted as the first child of the destination node.
+	// If the branch is not expanded or the destination node is a leaf,
+	// then it is inserted as the next brother of the leaf.
+	
+	BOOL is_target_expanded = NO;
+	int target_kind = [target_tree_item kind];
+	if(ITREE_BRANCH == target_kind)
+	{
+		is_target_expanded = [outline_view isItemExpanded:target_tree_item];
+
+
+		if(is_target_expanded)
+		{
+		/*
+			NSUInteger target_index;
+			if(parent_target_tree_item)
+			{
+				target_index = [[parent_target_tree_item childrenArray] indexOfObject:target_tree_item];
+			}
+			else
+			{
+				target_index = [treeRootTopLevelObjects indexOfObject:target_tree_item];
+			}
+			*/
+			// update the data source
+			[data_source_delegate removeItem:tree_item];
+			NSUInteger target_index = [data_source_delegate insertChild:tree_item withParent:parent_target_tree_item];
+			[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:target_index inParent:parent_target_tree_item];
+
+		}
+		else
+		{
+		/*
+			NSUInteger target_index;
+			if(parent_target_tree_item)
+			{
+				target_index = [[parent_target_tree_item childrenArray] indexOfObject:target_tree_item];
+			}
+			else
+			{
+				target_index = [treeRootTopLevelObjects indexOfObject:target_tree_item];
+			}
+			*/
+			// update the data source
+			[data_source_delegate removeItem:tree_item];
+			NSUInteger target_index = [data_source_delegate insertPeer:tree_item withSibling:target_tree_item];
+			[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:target_index inParent:[parent_target_tree_item parentItem]];
+		}
+	}
+	else
+	{
+	/*
+		NSUInteger target_index;
+		if(parent_target_tree_item)
+		{
+			target_index = [[parent_target_tree_item childrenArray] indexOfObject:target_tree_item];
+		}
+		else
+		{
+			target_index = [treeRootTopLevelObjects indexOfObject:target_tree_item];
+		}
+		*/
+			// update the data source
+			[data_source_delegate removeItem:tree_item];
+			NSUInteger target_index = [data_source_delegate insertPeer:tree_item withSibling:target_tree_item];
+			[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:target_index inParent:[parent_target_tree_item parentItem]];
+	
+	}
+	
+	
+
+
+  return 0;
+}
 
 /*****************************************************************************/
 /* MANIPULATING IMAGES                                                       */
@@ -1778,6 +2203,11 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 
 	
 	
+	// HACK:
+	[outline_view registerForDraggedTypes:[NSArray arrayWithObjects:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE, nil]];
+
+	
+	
 	return IUP_NOERROR;
 }
 
@@ -1857,7 +2287,9 @@ void iupdrvTreeInitClass(Iclass* ic)
 	iupClassRegisterAttributeId(ic, "DELNODE", NULL, cocoaTreeSetDelNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
 	iupClassRegisterAttribute(ic, "RENAME", NULL, cocoaTreeSetRenameAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#endif
 	iupClassRegisterAttributeId(ic, "MOVENODE", NULL, cocoaTreeSetMoveNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttributeId(ic, "COPYNODE", NULL, cocoaTreeSetCopyNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	
 	/* IupTree Attributes - GTK Only */
