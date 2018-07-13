@@ -89,6 +89,8 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 @property(nonatomic, retain) NSImage* collapsedImage;
 @property(nonatomic, weak) NSTableCellView* tableCellView; // this is kind of a hack to force layout in heightOf. I'm not sure if I want to keep a strong reference because I don't know if there is a possible circular reference here.
 
+- (instancetype) clone;
+
 - (IupCocoaTreeItem*) childAtIndex:(NSUInteger)the_index;
 
 @end
@@ -113,6 +115,16 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 - (NSMutableArray*) childrenArray
 {
 	return childrenArray;
+}
+
+- (void) setChildrenArray:(NSMutableArray*)new_array
+{
+	if(childrenArray == new_array)
+	{
+		return;
+	}
+	[childrenArray release];
+	childrenArray = [new_array retain];
 }
 
 
@@ -151,6 +163,32 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	[title release];
 	parentItem = nil; // weak ref
 	[super dealloc];
+}
+
+- (instancetype) cloneWithNewParentItem:(IupCocoaTreeItem*)new_parent_item
+{
+	IupCocoaTreeItem* new_copy = [[IupCocoaTreeItem alloc] init];
+	[new_copy setParentItem:new_parent_item];
+	[new_copy setTableCellView:nil];
+	[new_copy setIsDeleted:NO];
+	
+	[new_copy setBitmapImage:[self bitmapImage]];
+	[new_copy setCollapsedImage:[self collapsedImage]];
+
+	[new_copy setTitle:[self title]]; // this is a copy property
+	[new_copy setKind:[self kind]];
+
+	NSMutableArray* new_children_array = [[NSMutableArray alloc] init];
+	[new_copy setChildrenArray:new_children_array];
+	[new_children_array autorelease];
+	
+	for(IupCocoaTreeItem* original_item in childrenArray)
+	{
+		IupCocoaTreeItem* child_copy = [original_item cloneWithNewParentItem:new_copy];
+		[new_children_array addObject:child_copy];
+	}
+
+	return new_copy;
 }
 
 @end
@@ -221,6 +259,7 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 @property(nonatomic, copy) NSArray* treeRootTopLevelObjects; // This is intended for external read-only access to iterate through all items, such as changing the branch/leaf images
 @property(nonatomic, weak) id itemBeingDragged;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
+- (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent targetChildIndex:(NSInteger)target_child_index;
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
 - (void) insertAtRoot:(IupCocoaTreeItem*)tree_item_new;
 - (void) removeAllObjects;
@@ -277,11 +316,17 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent
 {
+	[self insertChild:tree_item_child withParent:tree_item_parent targetChildIndex:0];
+	return 0; // always index 0 since we always insert in the first position
+}
+
+- (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent targetChildIndex:(NSInteger)target_child_index
+{
 	// IUP always inserts the child in the first position, not the last, when in this parent/child relationship
-	[[tree_item_parent childrenArray] insertObject:tree_item_child atIndex:0];
+	[[tree_item_parent childrenArray] insertObject:tree_item_child atIndex:target_child_index];
 	[tree_item_child setParentItem:tree_item_parent];
 	totalNumberOfItems = totalNumberOfItems + Helper_RecursivelyCountItems(tree_item_child);
-	return 0; // always index 0 since we always insert in the first position
+	return target_child_index;
 }
 
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev
@@ -614,7 +659,13 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	CGFloat image_height = 0.0;
 	NSImage* active_image = helperGetActiveImageForTreeItem(tree_item, (IupCocoaOutlineView*)outline_view, &image_width, &image_height);
 	
+	
+	// This is a ugly hack keeping the table cell view in the item.
+	// All my other attempts to get the table cell view have failed.
+	// DOC: If you call viewAtColumn:row:makeIfNecessary: or rowViewAtRow:makeIfNecessary: within your implementation of this method, an exception is thrown.
+	// Perhaps I could compute the raw string height if I know the font and hard code a value for the textfield padding.
 	NSTableCellView* table_cell_view = [tree_item tableCellView];
+
 	NSTextField* text_field = [table_cell_view textField];
 	NSSize text_field_size = { 0, 0 };
 	if(text_field)
@@ -1133,37 +1184,57 @@ static NSData* helperDataWithValue(NSValue* the_value)
 	
     if([drag_types containsObject:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE])
     {
-        BOOL can_drag = child_index >= 0 && target_item;
-
-    	if(can_drag)
-    	{
-			//	NSInteger index_of_target_item = [outline_view rowForItem:target_item];
-
-			// This code (from Apple example) seems to be to prevent dragging a branch as a child of itself (which will throw an exception if allowed).
-			if([self itemBeingDragged])
-			{
-				// We have a single item being dragged to move; validate if we can move it or not
-				// A move is only valid if the target isn't a child of the thing being dragged. We validate that now
-				id item_walker = target_item;
-				while(item_walker)
+		// If the sender is ourselves, then we accept it as a move or copy, depending on the modifier key
+        if([drag_info draggingSource] == outline_view)
+        {
+            if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
+            {
+				BOOL can_drag = child_index >= 0 && target_item;
+				if(can_drag)
 				{
-					if(item_walker == [self itemBeingDragged])
-					{
-						return NSDragOperationNone; // Can't do it!
-					}
-					item_walker = [outline_view parentForItem:item_walker];
+                	return NSDragOperationCopy;
 				}
-				return NSDragOperationMove;
+				else
+				{
+					// This seems to prevent copying under a leaf which would force us to convert branches to leaves, which I don't think IUP allows.
+					return NSDragOperationNone;
+				}
+            }
+            else
+            {
+            	BOOL can_drag = child_index >= 0 && target_item;
+
+				if(can_drag)
+				{
+					//	NSInteger index_of_target_item = [outline_view rowForItem:target_item];
+
+					// This code (from Apple example) seems to be to prevent dragging a branch as a child of itself (which will throw an exception if allowed).
+					if([self itemBeingDragged])
+					{
+						// We have a single item being dragged to move; validate if we can move it or not
+						// A move is only valid if the target isn't a child of the thing being dragged. We validate that now
+						id item_walker = target_item;
+						while(item_walker)
+						{
+							if(item_walker == [self itemBeingDragged])
+							{
+								return NSDragOperationNone; // Can't do it!
+							}
+							item_walker = [outline_view parentForItem:item_walker];
+						}
+						return NSDragOperationMove;
+					}
+					else
+					{
+						// For multiple items, what do we do?
+						return NSDragOperationNone;
+					}
+				}
+				else
+				{
+					return NSDragOperationNone;
+				}
 			}
-			else
-			{
-				// For multiple items, we do a copy and don't allow moving
-				return NSDragOperationCopy;
-			}
-    	}
-    	else
-    	{
-			return NSDragOperationNone;
 		}
 	}
 	return NSDragOperationNone;
@@ -1189,7 +1260,7 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 		object_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:tree_item];
 	}
 	
-		// If the destination node is a branch and it is expanded,
+	// If the destination node is a branch and it is expanded,
 	// then the specified node is inserted as the first child of the destination node.
 	// If the branch is not expanded or the destination node is a leaf,
 	// then it is inserted as the next brother of the leaf.
@@ -1197,8 +1268,20 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 //	BOOL is_target_expanded = NO;
 //	int target_kind = [target_tree_item kind];
 	
-	// target_child_index seems to be +1 too much.
-	NSInteger adjusted_index = target_child_index - 1;
+	NSInteger adjusted_index = target_child_index;
+
+	// If the node is being moved under the same immediate parent,
+	// we need to subtract 1 if
+	// the current placement of the node is earlier than the target.
+	// because the node's current placement counts against us
+	// and target_child_index is +1 too much.
+	if([parent_tree_item isEqual:parent_target_tree_item])
+	{
+		if(object_index < target_child_index)
+		{
+			adjusted_index = target_child_index - 1;
+		}
+	}
 	if(adjusted_index < 0)
 	{
 		adjusted_index = 0;
@@ -1207,8 +1290,42 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 	// update the data source
 	[data_source_delegate moveItem:tree_item targetParent:parent_target_tree_item targetChildIndex:adjusted_index];
 	[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:adjusted_index inParent:parent_target_tree_item];
-	
+}
 
+// tree_item should be a copy
+static void helperCopyAndInsertNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, IupCocoaTreeItem* parent_target_tree_item, NSInteger target_child_index, NSTableViewAnimationOptions copy_insert_animation)
+{
+	if(!tree_item)
+	{
+		return;
+	}
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+
+	//IupCocoaTreeItem* new_copy_tree_item = [[IupCocoaTreeItem alloc] init];
+	IupCocoaTreeItem* new_copy_tree_item = [tree_item cloneWithNewParentItem:parent_target_tree_item];
+		// If the destination node is a branch and it is expanded,
+	// then the specified node is inserted as the first child of the destination node.
+	// If the branch is not expanded or the destination node is a leaf,
+	// then it is inserted as the next brother of the leaf.
+	
+//	BOOL is_target_expanded = NO;
+//	int target_kind = [target_tree_item kind];
+	
+	// Unlike move, we don't seem to need to subtract 1.
+//	NSInteger adjusted_index = target_child_index - 1;
+	NSInteger adjusted_index = target_child_index;
+	if(adjusted_index < 0)
+	{
+		adjusted_index = 0;
+	}
+	
+	// update the data source
+	[data_source_delegate insertChild:new_copy_tree_item withParent:parent_target_tree_item targetChildIndex:adjusted_index];
+
+	// directly update the outlineview so we don't have to reloadData
+	NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:adjusted_index];
+	[outline_view insertItemsAtIndexes:index_set inParent:parent_target_tree_item withAnimation:copy_insert_animation];
+	
 }
 
 static IupCocoaTreeItem* helperRecursiveIsPointerValid(intptr_t look_for_pointer, IupCocoaTreeItem* current_item)
@@ -1277,7 +1394,17 @@ static IupCocoaTreeItem* helperIsPointerValid(intptr_t look_for_pointer, IupCoco
     }
     [outline_view beginUpdates];
 
-	helperMoveNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index);
+
+    // Are we copying the data or moving something?
+    if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
+    {
+        // Yes, this is an insert from the pasteboard (even if it is a copy of itemBeingDragged)
+		helperCopyAndInsertNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index, NSTableViewAnimationEffectGap);
+    }
+    else
+    {
+    	helperMoveNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index);
+    }
 
 	[outline_view endUpdates];
 
