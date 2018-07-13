@@ -246,8 +246,6 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 // We are not using NSComboBoxDataSource
 @interface IupCocoaTreeDelegate : NSObject <NSOutlineViewDataSource, NSOutlineViewDelegate>
 {
-	NSUInteger totalNumberOfItems;
-	
 	NSMutableArray* treeRootTopLevelObjects;
 	
 //	NSMutableArray* orderedArrayOfSelections; // TODO: If we decide selection order is important enough and worth the risks of edge cases missing updates (like delnode)
@@ -255,7 +253,6 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	
 	id itemBeingDragged; // This is used to compare whether the item being dragged ends up dragging onto itself so we can reject it in validation
 }
-@property(nonatomic, assign) NSUInteger totalNumberOfItems;
 @property(nonatomic, copy) NSArray* treeRootTopLevelObjects; // This is intended for external read-only access to iterate through all items, such as changing the branch/leaf images
 @property(nonatomic, weak) id itemBeingDragged;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
@@ -293,7 +290,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 }
 
 @implementation IupCocoaTreeDelegate
-@synthesize totalNumberOfItems = totalNumberOfItems;
 @synthesize treeRootTopLevelObjects = treeRootTopLevelObjects;
 @synthesize itemBeingDragged = itemBeingDragged;
 
@@ -325,7 +321,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	// IUP always inserts the child in the first position, not the last, when in this parent/child relationship
 	[[tree_item_parent childrenArray] insertObject:tree_item_child atIndex:target_child_index];
 	[tree_item_child setParentItem:tree_item_parent];
-	totalNumberOfItems = totalNumberOfItems + Helper_RecursivelyCountItems(tree_item_child);
 	return target_child_index;
 }
 
@@ -349,7 +344,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		{
 			[children_array insertObject:tree_item_new atIndex:target_index];
 		}
-		totalNumberOfItems = totalNumberOfItems + Helper_RecursivelyCountItems(tree_item_new);
 		return target_index;
 	}
 	else
@@ -365,7 +359,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		}
 	
 		[treeRootTopLevelObjects insertObject:tree_item_new atIndex:target_index];
-		totalNumberOfItems = totalNumberOfItems + Helper_RecursivelyCountItems(tree_item_new);
 		return target_index;
 	}
 }
@@ -374,13 +367,11 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 {
 	// IUP always inserts the child in the first position, not the last
 	[treeRootTopLevelObjects insertObject:tree_item_new atIndex:0];
-	totalNumberOfItems = totalNumberOfItems + Helper_RecursivelyCountItems(tree_item_new);
 }
 
 - (void) removeAllObjects
 {
 	[treeRootTopLevelObjects removeAllObjects];
-	totalNumberOfItems = 0;
 }
 
 // Returns the indexes of the top-level children that get removed
@@ -395,7 +386,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	NSMutableArray* children_array = [tree_item childrenArray];
 	NSIndexSet* top_level_children_indexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [children_array count])];
 	[children_array removeAllObjects];
-	totalNumberOfItems = totalNumberOfItems - number_of_descendents;
 	return top_level_children_indexes;
 }
 
@@ -414,7 +404,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	// clear the children array so in case there is another reference that is still using this pointer, it will have updated info that there are no children.
 	[children_array removeAllObjects];
 	[tree_item setIsDeleted:YES];
-	totalNumberOfItems = totalNumberOfItems - 1;
 }
 
 - (NSUInteger) removeItem:(IupCocoaTreeItem*)tree_item
@@ -446,7 +435,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		if(object_index != NSNotFound)
 		{
 			[[tree_item_parent childrenArray] removeObjectAtIndex:object_index];
-			totalNumberOfItems = totalNumberOfItems - 1;
 		}
 		return object_index;
 	}
@@ -457,7 +445,6 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 		if(object_index != NSNotFound)
 		{
 			[treeRootTopLevelObjects removeObjectAtIndex:object_index];
-			totalNumberOfItems = totalNumberOfItems - 1;
 		}
 		return object_index;
 	}
@@ -1583,11 +1570,6 @@ int iupdrvTreeTotalChildCount(Ihandle* ih, InodeHandle* node_handle)
 	{
 		number_of_items = number_of_items - 1;
 	}
-/*
-	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
-	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
-	NSUInteger number_of_items = [data_source_delegate totalNumberOfItems];
-*/
 	return (int)number_of_items;
 }
 
@@ -1637,8 +1619,8 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 
 	if (iupStrEqualNoCase(value, "ALL"))
 	{
-		NSUInteger number_of_items = [data_source_delegate totalNumberOfItems];
-		if(number_of_items > 0)
+		NSUInteger number_of_root_items = [[data_source_delegate treeRootTopLevelObjects] count];
+		if(number_of_root_items > 0)
 		{
 
 			[data_source_delegate removeAllObjects];
