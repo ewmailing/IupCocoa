@@ -243,6 +243,7 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 
 @end
 
+
 // We are not using NSComboBoxDataSource
 @interface IupCocoaTreeDelegate : NSObject <NSOutlineViewDataSource, NSOutlineViewDelegate>
 {
@@ -251,10 +252,8 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 //	NSMutableArray* orderedArrayOfSelections; // TODO: If we decide selection order is important enough and worth the risks of edge cases missing updates (like delnode)
 	NSIndexSet* previousSelections;
 	
-	id itemBeingDragged; // This is used to compare whether the item being dragged ends up dragging onto itself so we can reject it in validation
 }
 @property(nonatomic, copy) NSArray* treeRootTopLevelObjects; // This is intended for external read-only access to iterate through all items, such as changing the branch/leaf images
-@property(nonatomic, weak) id itemBeingDragged;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent;
 - (NSUInteger) insertChild:(IupCocoaTreeItem*)tree_item_child withParent:(IupCocoaTreeItem*)tree_item_parent targetChildIndex:(NSInteger)target_child_index;
 - (NSUInteger) insertPeer:(IupCocoaTreeItem*)tree_item_new withSibling:(IupCocoaTreeItem*)tree_item_prev;
@@ -289,9 +288,18 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	return counter;
 }
 
+static NSUInteger Helper_CountAllItems(IupCocoaTreeDelegate* tree_delegate)
+{
+	NSUInteger counter = 0;
+	for(IupCocoaTreeItem* a_item in [tree_delegate treeRootTopLevelObjects])
+	{
+		counter += Helper_RecursivelyCountItems(a_item);
+	}
+	return counter;
+}
+
 @implementation IupCocoaTreeDelegate
 @synthesize treeRootTopLevelObjects = treeRootTopLevelObjects;
-@synthesize itemBeingDragged = itemBeingDragged;
 
 - (instancetype) init
 {
@@ -1103,6 +1111,28 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	}
 }
 
+@end // IupCocoaTreeDelegate
+
+
+/*****************************************************************************/
+/* DRAG AND DROP                                                             */
+/*****************************************************************************/
+// We need to make a separate delegate subclass because there is no way to toggle the drag-and-drop behavior directly.
+// Those who want drag-and-drop must use a delegate instance of this subclass type,
+// whereas those who don't must use the base class.
+
+@interface IupCocoaTreeDragDropDelegate : IupCocoaTreeDelegate
+{
+	id itemBeingDragged; // This is used to compare whether the item being dragged ends up dragging onto itself so we can reject it in validation
+
+}
+@property(nonatomic, weak) id itemBeingDragged;
+@end
+
+
+@implementation IupCocoaTreeDragDropDelegate
+
+@synthesize itemBeingDragged = itemBeingDragged;
 
 // Drag and drop
 // Cocoa makes you do overkill for moving/copying nodes via drag-and-drop and you must implement full blown pasteboard support.
@@ -1165,10 +1195,43 @@ static NSData* helperDataWithValue(NSValue* the_value)
 }
 
 
+static int helperCallDragDropCb(Ihandle* ih, IupCocoaTreeItem* tree_item_drag, IupCocoaTreeItem* tree_item_drop, NSInteger child_index, bool is_copy)
+{
+	IFniiii drag_drop_cb = (IFniiii)IupGetCallback(ih, "DRAGDROP_CB");
+	int is_shift = 0;
+
+	// Cocoa has higher-level APIs to determine move vs. copy to support track pads and acessibility.
+	// Also Cocoa uses 'Option', not Control for copy-drag.
+	// So I will not use the key states.
+	// (They also aren't implemented yet as I do this.)
+	// For consistency, I think I rather always pass is_shift=0 because we aren't reading the keyboard for control,
+	// and shift doesn't do anything natively for this operation.
+  /*
+  char key[5];
+  iupdrvGetKeyState(key);
+  if (key[0] == 'S')
+    is_shift = 1;
+  if (key[1] == 'C')
+    *is_ctrl = 1;
+  else
+    *is_ctrl = 0;
+*/
+
+	if(drag_drop_cb)
+	{
+		int drag_id = iupTreeFindNodeId(ih, (InodeHandle*)tree_item_drag);
+		int drop_id = iupTreeFindNodeId(ih, (InodeHandle*)tree_item_drop) + (int)child_index;
+		return drag_drop_cb(ih, drag_id, drop_id, is_shift, (int)is_copy);
+	}
+
+	return IUP_CONTINUE; /* allow to move by default if callback not defined */
+}
+
 - (NSDragOperation)outlineView:(NSOutlineView *)outline_view validateDrop:(id < NSDraggingInfo >)drag_info proposedItem:(id)target_item proposedChildIndex:(NSInteger)child_index
 {
 	NSArray<NSPasteboardType>* drag_types = [[drag_info draggingPasteboard] types];
-	
+	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
+
     if([drag_types containsObject:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE])
     {
 		// If the sender is ourselves, then we accept it as a move or copy, depending on the modifier key
@@ -1179,7 +1242,14 @@ static NSData* helperDataWithValue(NSValue* the_value)
 				BOOL can_drag = child_index >= 0 && target_item;
 				if(can_drag)
 				{
-                	return NSDragOperationCopy;
+					if(IUP_CONTINUE == helperCallDragDropCb(ih, [self itemBeingDragged], target_item, child_index, true))
+					{
+	                	return NSDragOperationCopy;
+					}
+					else
+					{
+						return NSDragOperationNone;
+					}
 				}
 				else
 				{
@@ -1209,7 +1279,15 @@ static NSData* helperDataWithValue(NSValue* the_value)
 							}
 							item_walker = [outline_view parentForItem:item_walker];
 						}
-						return NSDragOperationMove;
+						
+						if(IUP_CONTINUE == helperCallDragDropCb(ih, [self itemBeingDragged], target_item, child_index, false))
+						{
+							return NSDragOperationMove;
+						}
+						else
+						{
+							return NSDragOperationNone;
+						}
 					}
 					else
 					{
@@ -1227,15 +1305,46 @@ static NSData* helperDataWithValue(NSValue* the_value)
 	return NSDragOperationNone;
 }
 
+
+
+static void cocoaTreeChildRebuildCacheRec(Ihandle* ih, IupCocoaTreeItem* tree_item, int* object_id)
+{
+	for(IupCocoaTreeItem* a_item in [tree_item childrenArray])
+	{
+    (*object_id)++;
+    ih->data->node_cache[*object_id].node_handle = tree_item; // I don't think should be retained
+
+    /* go recursive to children */
+    cocoaTreeChildRebuildCacheRec(ih, a_item, object_id);
+
+		
+ 	 }
+}
+
+static void cocoaTreeRebuildNodeCache(Ihandle* ih, int object_id, IupCocoaTreeItem* tree_item)
+{
+  ih->data->node_cache[object_id].node_handle = tree_item;
+  cocoaTreeChildRebuildCacheRec(ih, tree_item, &object_id);
+}
+
+
 static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, IupCocoaTreeItem* parent_target_tree_item, NSInteger target_child_index)
 {
 	if(!tree_item)
 	{
 		return;
 	}
+	IupCocoaOutlineView* iup_outline_view = (IupCocoaOutlineView*)outline_view;
 	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+	Ihandle* ih = [iup_outline_view ih];
+	int id_dst = iupTreeFindNodeId(ih, (InodeHandle*)parent_target_tree_item) + (int)target_child_index;
+	int id_src = iupTreeFindNodeId(ih, (InodeHandle*)tree_item);
+	int id_new = id_dst+1; /* contains the position for a copy operation */
+	int count_of_all_nodes = (int)Helper_CountAllItems(data_source_delegate);
+		int count_of_new_nodes = (int)Helper_RecursivelyCountItems(tree_item);
 	IupCocoaTreeItem* parent_tree_item  = [tree_item parentItem];
-	
+  int old_count = ih->data->node_count;
+
 	NSUInteger object_index;
 	if(parent_tree_item)
 	{
@@ -1267,16 +1376,36 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 		if(object_index < target_child_index)
 		{
 			adjusted_index = target_child_index - 1;
+	//		id_new = id_new - 1;
 		}
 	}
 	if(adjusted_index < 0)
 	{
 		adjusted_index = 0;
 	}
-	
+
 	// update the data source
 	[data_source_delegate moveItem:tree_item targetParent:parent_target_tree_item targetChildIndex:adjusted_index];
 	[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:adjusted_index inParent:parent_target_tree_item];
+	
+
+	// This is a mess. iup's internal API assumes I copied the nodes, and then will delete.
+	// But I directly moved. So I have to fake copying.
+	
+//	iupTreeCopyMoveCache(ih, id_src, id_new, 0, false);
+	iupTreeCopyMoveCache(ih, id_src, id_new, count_of_new_nodes, false);
+	
+	    /* restore count, because we remove src */
+ //   ih->data->node_count = old_count;
+ //   ih->data->node_count = count_of_all_nodes;
+
+    /* compensate position for a move */
+    if (id_new > id_src)
+    {
+      id_new -= count_of_new_nodes;
+	}
+	
+	cocoaTreeRebuildNodeCache(ih, id_new, tree_item);
 }
 
 // tree_item should be a copy
@@ -1286,8 +1415,14 @@ static void helperCopyAndInsertNode(IupCocoaOutlineView* outline_view, IupCocoaT
 	{
 		return;
 	}
+	IupCocoaOutlineView* iup_outline_view = (IupCocoaOutlineView*)outline_view;
 	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
-
+	Ihandle* ih = [iup_outline_view ih];
+	int id_src = iupTreeFindNodeId(ih, (InodeHandle*)parent_target_tree_item) + (int)target_child_index;
+	int id_dst = iupTreeFindNodeId(ih, (InodeHandle*)tree_item);
+	int id_new = id_dst+1; /* contains the position for a copy operation */
+//	int count_of_all_nodes = (int)Helper_CountAllItems(data_source_delegate);
+	
 	//IupCocoaTreeItem* new_copy_tree_item = [[IupCocoaTreeItem alloc] init];
 	IupCocoaTreeItem* new_copy_tree_item = [tree_item cloneWithNewParentItem:parent_target_tree_item];
 		// If the destination node is a branch and it is expanded,
@@ -1313,6 +1448,14 @@ static void helperCopyAndInsertNode(IupCocoaOutlineView* outline_view, IupCocoaT
 	NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:adjusted_index];
 	[outline_view insertItemsAtIndexes:index_set inParent:parent_target_tree_item withAnimation:copy_insert_animation];
 	
+	int count_of_new_nodes = (int)Helper_RecursivelyCountItems(new_copy_tree_item);
+	iupTreeCopyMoveCache(ih, id_src, id_new, count_of_new_nodes, true);
+	
+	
+	
+	cocoaTreeRebuildNodeCache(ih, id_new, tree_item);
+	
+
 }
 
 static IupCocoaTreeItem* helperRecursiveIsPointerValid(intptr_t look_for_pointer, IupCocoaTreeItem* current_item)
@@ -1399,7 +1542,7 @@ static IupCocoaTreeItem* helperIsPointerValid(intptr_t look_for_pointer, IupCoco
 }
 
 
-@end
+@end // IupCocoaTreeDragDropDelegate
 
 /*****************************************************************************/
 /* ADDING ITEMS                                                              */
@@ -1607,6 +1750,66 @@ void iupdrvTreeDragDropCopyNode(Ihandle* src, Ihandle* dst, InodeHandle *itemSrc
 	
 }
 
+static void cocoaTreeRemoveNodeDataRec(Ihandle* ih, IupCocoaTreeItem* tree_item, IFns cb, int* object_id)
+{
+  int node_id = *object_id;
+
+  /* Check whether we have child items */
+  /* remove from children first */
+	
+	for(IupCocoaTreeItem* a_item in [tree_item childrenArray])
+	{
+    (*object_id)++;
+    cocoaTreeRemoveNodeDataRec(ih, a_item, cb, object_id);
+
+		
+ 	 }
+	
+	
+  /* actually do it for the node */
+  cb(ih, (char*)ih->data->node_cache[node_id].userdata);
+
+  /* update count */
+  ih->data->node_count--;
+}
+
+static void cocoaTreeRemoveNodeData(Ihandle* ih, IupCocoaTreeItem* tree_item, int call_cb)
+{
+  IFns cb = call_cb? (IFns)IupGetCallback(ih, "NODEREMOVED_CB"): NULL;
+  int old_count = ih->data->node_count;
+  int object_id = iupTreeFindNodeId(ih, tree_item);
+  int start_id = object_id;
+
+
+
+  if (cb)
+    cocoaTreeRemoveNodeDataRec(ih, tree_item, cb, &object_id);
+  else
+  {
+    int removed_count = iupdrvTreeTotalChildCount(ih, tree_item)+1;
+    ih->data->node_count -= removed_count;
+  }
+
+  iupTreeDelFromCache(ih, start_id, old_count-ih->data->node_count);
+}
+
+static void cocoaTreeRemoveAllNodeData(Ihandle* ih, int call_cb)
+{
+  IFns cb = (IFns)IupGetCallback(ih, "NODEREMOVED_CB");
+  int i, old_count = ih->data->node_count;
+
+  if (cb)
+  {
+    for (i = 0; i < ih->data->node_count; i++)
+    {
+      cb(ih, (char*)ih->data->node_cache[i].userdata);
+    }
+  }
+
+  ih->data->node_count = 0;
+
+  iupTreeDelFromCache(ih, 0, old_count);
+}
 
 static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value)
 {
@@ -1622,6 +1825,7 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 		NSUInteger number_of_root_items = [[data_source_delegate treeRootTopLevelObjects] count];
 		if(number_of_root_items > 0)
 		{
+			cocoaTreeRemoveAllNodeData(ih, 1);
 
 			[data_source_delegate removeAllObjects];
 
@@ -1647,6 +1851,7 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
 
 		[outline_view beginUpdates];
+    cocoaTreeRemoveNodeData(ih, tree_item, 1);
 
 		IupCocoaTreeItem* parent_tree_item = [tree_item parentItem]; // get parent before removing because it may nil out the parent in removeItem
 		NSUInteger target_index = [data_source_delegate removeItem:tree_item];
@@ -1675,6 +1880,7 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 		NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"expecting class IupCocoaTreeItem");
 		
 		[outline_view beginUpdates];
+    cocoaTreeRemoveNodeData(ih, tree_item, 1);
 
 		NSIndexSet* index_set = [data_source_delegate removeAllChildrenForItem:tree_item];
 		[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectNone];
@@ -1698,6 +1904,7 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 		while(selected_i != NSNotFound)
 		{
 			id selected_item = [outline_view itemAtRow:selected_i];
+    cocoaTreeRemoveNodeData(ih, selected_item, 1);
 
 			// I can't figure out how to make this work correctly when you select both parents and its children to be deleted.
 			// Use reloadData for now.
@@ -2193,8 +2400,19 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	// We need a way to get the ih during Cocoa callbacks, such as for selection changed notifications.
 	[outline_view setIh:ih];
 
-	
-	IupCocoaTreeDelegate* tree_delegate = [[IupCocoaTreeDelegate alloc] init];
+
+	IupCocoaTreeDelegate* tree_delegate = nil;
+	// This line is not working. (Why not?) Use ih->data->show_dragdrop instead.
+//	if(iupAttribGetInt(ih, "SHOWDRAGDROP")==1)
+	if(ih->data->show_dragdrop)
+	{
+		tree_delegate = [[IupCocoaTreeDragDropDelegate alloc] init];
+	}
+	else
+	{
+		tree_delegate = [[IupCocoaTreeDelegate alloc] init];
+
+	}
 	
 	[outline_view setDataSource:tree_delegate];
 	[outline_view setDelegate:tree_delegate];
