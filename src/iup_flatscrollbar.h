@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
 
 int iupFlatScrollBarCreate(Ihandle* ih);
 void iupFlatScrollBarRegister(Iclass* ic);
@@ -18,10 +19,10 @@ void iupFlatScrollBarRegister(Iclass* ic);
 int iupFlatScrollBarGet(Ihandle* ih);
                                                
 void iupFlatScrollBarSetChildrenCurrentSize(Ihandle* ih, int shrink);
-void iupFlatScrollBarSetChildrenPosition(Ihandle* ih);
+IUP_EXPORTI void iupFlatScrollBarSetChildrenPosition(Ihandle* ih);
 
 void iupFlatScrollBarWheelUpdate(Ihandle* ih, float delta);
-void iupFlatScrollBarMotionUpdate(Ihandle* ih, int x, int y);
+IUP_EXPORTI void iupFlatScrollBarMotionUpdate(Ihandle* ih, int x, int y);
 
 /* used only in IupFlatScrollBox */
 void iupFlatScrollBarSetPos(Ihandle *ih, int posx, int posy);
