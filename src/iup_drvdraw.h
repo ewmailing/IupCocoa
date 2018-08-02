@@ -12,6 +12,8 @@ extern "C"
 {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup drvdraw Driver Draw API
  * \par
  * See \ref iup_drvdraw.h
