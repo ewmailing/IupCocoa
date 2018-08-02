@@ -497,6 +497,7 @@ void FlatTabsTest(void)
   tabs = CreateTabs(1);
   
   box = IupHbox(tabs, 
+#if 0
                 frm1 = IupFrame(IupRadio(IupVbox(IupToggle("TOP", "cbType"), 
                                                  IupToggle("LEFT", "cbType"), 
                                                  IupToggle("BOTTOM", "cbType"), 
@@ -505,6 +506,7 @@ void FlatTabsTest(void)
                 frm2 = IupFrame(IupRadio(IupVbox(IupToggle("HORIZONTAL", "cbOrientation"), 
                                                  IupToggle("VERTICAL", "cbOrientation"), 
                                                  NULL))), 
+#endif
                 IupVbox(IupSetAttributes(IupButton("Add Tab", "cbAddTab"), "TIP=\"Button Tip\""),
                         IupButton("Insert Tab", "cbInsertTab"),
                         IupButton("Remove Tab", "cbRemoveTab"),
@@ -515,12 +517,14 @@ void FlatTabsTest(void)
                         NULL), 
                 NULL);
 
+#if 0
   IupSetAttribute(frm1, "MARGIN", "5x5");
   IupSetAttribute(frm2, "MARGIN", "5x5");
   IupSetAttribute(frm1, "GAP", "0");
   IupSetAttribute(frm2, "GAP", "0");
   IupSetAttribute(frm1, "TITLE", "Type");
   IupSetAttribute(frm2, "TITLE", "Orientation");
+#endif
 
   IupSetAttribute(box, "MARGIN", "10x10");
   IupSetAttribute(box, "GAP", "10");

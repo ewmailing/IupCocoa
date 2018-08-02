@@ -50,7 +50,8 @@ SRC = iup_array.c iup_callback.c iup_dlglist.c iup_attrib.c iup_focus.c iup_font
       iup_gridbox.c iup_detachbox.c iup_backgroundbox.c iup_linefile.c iup_config.c \
       iup_flatbutton.c iup_animatedlabel.c iup_draw.c iup_flatframe.c iup_flattabs.c \
       iup_flatscrollbar.c iup_flatscrollbox.c iup_gauge.c iup_dial.c iup_colorbar.c \
-      iup_colorbrowser.c iup_colorhsi.c iup_flatlabel.c iup_dropbutton.c iup_flattoggle.c
+      iup_colorbrowser.c iup_colorhsi.c iup_flatlabel.c iup_dropbutton.c iup_flattoggle.c \
+      iup_flatseparator.c
 
 ifdef USE_HAIKU
   # Since Haiku has no GTK and no Motif, we can only use the native implementation

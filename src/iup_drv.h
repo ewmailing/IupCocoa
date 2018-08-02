@@ -47,7 +47,7 @@ int iupdrvIsVisible(Ihandle* ih);
 
 /** Returns true if the element is active.
  * \ingroup drv */
-int iupdrvIsActive(Ihandle* ih);
+IUP_EXPORTI int iupdrvIsActive(Ihandle* ih);
 
 /** Actually changes the focus to the given element.
  * \ingroup drv */
