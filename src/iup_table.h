@@ -13,6 +13,8 @@ extern "C"
 {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup table Hash Table
  * \par
  * The hash table can be indexed by strings or pointer address, 
