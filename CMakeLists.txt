@@ -1398,6 +1398,7 @@ endfunction()
 
 BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
 BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
+BUILD_IUP_TEST(menu "${CMAKE_SOURCE_DIR}/html/examples/tests/menu.c")
 BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c")
 BUILD_IUP_TEST(tree "${CMAKE_SOURCE_DIR}/html/examples/tests/tree.c")
 BUILD_IUP_TEST(postmessage "${CMAKE_SOURCE_DIR}/html/examples/tests/postmessage.c")
