@@ -395,9 +395,10 @@ libraries (standard structures like FILE* are also non interchangeable). But now
 we have to include all those libraries and their dependencies in the 
 distribution package. The fist time you build the distribution package is 
 problematic because you have to make sure that you get everything you will need 
-in a foreign system. In Windows a very useful application in the
+in a foreign system. In Windows a very useful application is the
 <a href="http://www.dependencywalker.com/" target="_blank">Dependency Walker</a> 
-(Free). It will list all the DLLs linked to the application and their respective 
+(Free) or the newer <a href="https://github.com/lucasg/Dependencies">
+Dependencies</a>. It will list all the DLLs linked to the application and their respective 
 dependencies (don't forget to include the C Run Time DLL too, usually 
 &quot;msvcrXX.dll&quot;). In Linux you can use the &quot;ldd&quot; application, and in MacOSX the &quot;otool&quot; 
 application, for that purpose, but they are more limited.</p>

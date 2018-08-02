@@ -19,6 +19,7 @@
 #include "iup_layout.h"
 #include "iup_register.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_image.h"
 
 
@@ -235,6 +236,14 @@ static int iFlatFrameCreateMethod(Ihandle* ih, void** params)
   return IUP_NOERROR;
 }
 
+static int iFlatFrameSetAttribPostRedraw(Ihandle* ih, const char* value)
+{
+  (void)value;
+  if (ih->handle)
+    iupdrvPostRedraw(ih);
+  return 1;
+}
+
 
 /******************************************************************************/
 
@@ -253,7 +262,7 @@ Iclass* iupFlatFrameNewClass(void)
 
   ic->name = "flatframe";
   ic->format = "h"; /* one Ihandle* */
-  ic->nativetype = IUP_TYPECONTROL;
+  ic->nativetype = IUP_TYPECANVAS;
   ic->childtype = IUP_CHILDMANY+1;   /* one child */
   ic->is_interactive = 0;
 
@@ -270,7 +279,7 @@ Iclass* iupFlatFrameNewClass(void)
   iupClassRegisterAttribute(ic, "DECOROFFSET", iFlatFrameGetDecorOffsetAttrib, NULL, NULL, NULL, IUPAF_NOT_MAPPED | IUPAF_READONLY | IUPAF_NO_INHERIT);
 
   /* FlatFrame */
-  iupClassRegisterAttribute(ic, "TITLE", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", NULL, iFlatFrameSetAttribPostRedraw, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLECOLOR", NULL, NULL, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLEBGCOLOR", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TITLELINE", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);

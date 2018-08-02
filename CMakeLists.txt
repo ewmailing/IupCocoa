@@ -396,6 +396,8 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.c
 	${CMAKE_SOURCE_DIR}/src/iup_dlglist.h
 	${CMAKE_SOURCE_DIR}/src/iup_draw.c
+	${CMAKE_SOURCE_DIR}/src/iup_draw.h
+	${CMAKE_SOURCE_DIR}/src/iup_dropbutton.c
 	${CMAKE_SOURCE_DIR}/src/iup_drv.h
 	${CMAKE_SOURCE_DIR}/src/iup_drvdraw.h
 	${CMAKE_SOURCE_DIR}/src/iup_drvfont.h
@@ -409,7 +411,9 @@ SET(IUP_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.c
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbar.h
 	${CMAKE_SOURCE_DIR}/src/iup_flatscrollbox.c
+	${CMAKE_SOURCE_DIR}/src/iup_flatseparator.c
 	${CMAKE_SOURCE_DIR}/src/iup_flattabs.c
+	${CMAKE_SOURCE_DIR}/src/iup_flattoggle.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.c
 	${CMAKE_SOURCE_DIR}/src/iup_focus.h
 	${CMAKE_SOURCE_DIR}/src/iup_font.c
@@ -1372,6 +1376,7 @@ endfunction()
 
 BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
 BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
+BUILD_IUP_TEST(menu "${CMAKE_SOURCE_DIR}/html/examples/tests/menu.c")
 BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c")
 BUILD_IUP_TEST(tree "${CMAKE_SOURCE_DIR}/html/examples/tests/tree.c")
 

@@ -22,6 +22,7 @@
 #include "iup_stdcontrols.h"
 #include "iup_register.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_key.h"
 
 
@@ -48,22 +49,7 @@ struct _IcontrolData
 
 /****************************************************************/
 
-static char* iFlatGetDarkerBgColor(Ihandle* ih)
-{
-  char* value = iupAttribGet(ih, "DARK_DLGBGCOLOR");
-  if (!value)
-  {
-    unsigned char r, g, b;
-    iupStrToRGB(IupGetGlobal("DLGBGCOLOR"), &r, &g, &b);
-    r = (r * 90) / 100;
-    g = (g * 90) / 100;
-    b = (b * 90) / 100;
-    iupAttribSetStrf(ih, "DARK_DLGBGCOLOR", "%d %d %d", r, g, b);
-    return iupAttribGet(ih, "DARK_DLGBGCOLOR");
-  }
-  else
-    return value;
-}
+
 static int iFlatButtonRedraw_CB(Ihandle* ih)
 {
   char *image = iupAttribGet(ih, "IMAGE");
@@ -87,7 +73,7 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
   if (!bgcolor)
   {
     if (draw_border)
-      bgcolor = iFlatGetDarkerBgColor(ih);
+      bgcolor = iupFlatGetDarkerBgColor(ih);
     else
       bgcolor = iupBaseNativeParentGetBgColorAttrib(ih);
   }
@@ -127,10 +113,9 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
         bordercolor = hlcolor;
     }
 
-
     iupFlatDrawBorder(dc, 0, ih->currentwidth - 1, 
-                              0, ih->currentheight - 1, 
-                              border_width, bordercolor, bgcolor, active);
+                          0, ih->currentheight - 1, 
+                          border_width, bordercolor, bgcolor, active);
   }
 
   /* simulate pressed when selected and has images (but colors and borders are not included) */
@@ -146,21 +131,22 @@ static int iFlatButtonRedraw_CB(Ihandle* ih)
   }
   else
     iupFlatDrawBox(dc, border_width, ih->currentwidth - 1 - border_width,
-                           border_width, ih->currentheight - 1 - border_width,
-                           bgcolor, NULL, 1);  /* background is always active */
+                       border_width, ih->currentheight - 1 - border_width,
+                       bgcolor, NULL, 1);  /* background is always active */
 
+  /* draw icon */
   draw_image = iupFlatGetImageName(ih, "IMAGE", image, image_pressed, ih->data->highlighted, active, &make_inactive);
   iupFlatDrawIcon(ih, dc, border_width, border_width,
-                  ih->currentwidth - 2 * border_width, ih->currentheight - 2 * border_width,
-                  ih->data->img_position, ih->data->spacing, ih->data->horiz_alignment, ih->data->vert_alignment, ih->data->horiz_padding, ih->data->vert_padding,
-                  draw_image, make_inactive, title, text_align, fgcolor, bgcolor, active);
+                          ih->currentwidth - 2 * border_width, ih->currentheight - 2 * border_width,
+                          ih->data->img_position, ih->data->spacing, ih->data->horiz_alignment, ih->data->vert_alignment, ih->data->horiz_padding, ih->data->vert_padding,
+                          draw_image, make_inactive, title, text_align, fgcolor, bgcolor, active);
 
   if (fgimage)
   {
     draw_image = iupFlatGetImageName(ih, "FRONTIMAGE", fgimage, image_pressed, ih->data->highlighted, active, &make_inactive);
     iupdrvDrawImage(dc, draw_image, make_inactive, border_width, border_width);
   }
-  else if (!image && !title)
+  else if (!image && !title)  /* color only button */
   {
     int space = border_width + 2;
     iupFlatDrawBorder(dc, space, ih->currentwidth - 1 - space,
@@ -374,10 +360,11 @@ static int iFlatButtonSetPaddingAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-static int iFlatButtonSetBgColorAttrib(Ihandle* ih, const char* value)
+static int iFlatButtonSetAttribPostRedraw(Ihandle* ih, const char* value)
 {
   (void)value;
-  iupdrvPostRedraw(ih);
+  if (ih->handle)
+    iupdrvPostRedraw(ih);
   return 1;
 }
 
@@ -655,7 +642,7 @@ Iclass* iupFlatButtonNewClass(void)
   iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, iFlatButtonSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
   /* Special */
-  iupClassRegisterAttribute(ic, "TITLE", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", NULL, iFlatButtonSetAttribPostRedraw, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
 
   /* IupFlatButton */
   iupClassRegisterAttribute(ic, "VALUE", NULL, iFlatButtonSetValueAttrib, NULL, NULL, IUPAF_NO_INHERIT);
@@ -675,7 +662,7 @@ Iclass* iupFlatButtonNewClass(void)
   iupClassRegisterAttribute(ic, "BORDERHLCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "BORDERWIDTH", iFlatButtonGetBorderWidthAttrib, iFlatButtonSetBorderWidthAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, NULL, "DLGFGCOLOR", NULL, IUPAF_NOT_MAPPED);  /* force the new default value */
-  iupClassRegisterAttribute(ic, "BGCOLOR", iFlatButtonGetBgColorAttrib, iFlatButtonSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "BGCOLOR", iFlatButtonGetBgColorAttrib, iFlatButtonSetAttribPostRedraw, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);
   iupClassRegisterAttribute(ic, "HLCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "PSCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
 

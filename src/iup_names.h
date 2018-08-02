@@ -1,5 +1,5 @@
 /** \file
- * \brief Ihandle <-> Name table manager.
+ * \brief Ihandle <-> Name table manager (not exported API).
  *
  * See Copyright Notice in "iup.h"
  */
