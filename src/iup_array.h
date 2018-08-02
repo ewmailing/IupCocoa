@@ -12,6 +12,8 @@ extern "C"
 {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup iarray Simple Array
  * \par
  * Expandable array using a simple pointer.
