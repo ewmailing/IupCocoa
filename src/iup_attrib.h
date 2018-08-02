@@ -52,7 +52,7 @@ IUP_EXPORTI void iupAttribSet(Ihandle* ih, const char* name, const char* value);
  * The string is internally duplicated. \n
  * It ignores children.
  * \ingroup attrib */
-void iupAttribSetStr(Ihandle* ih, const char* name, const char* value);
+IUP_EXPORTI void iupAttribSetStr(Ihandle* ih, const char* name, const char* value);
 
 /** Sets the attribute only in the hash table as a string. \n 
  * Use same format as sprintf. \n
@@ -60,66 +60,66 @@ void iupAttribSetStr(Ihandle* ih, const char* name, const char* value);
  * This is not supposed to be used for very large strings,
  * just for combinations of numeric data or constant strings.
  * \ingroup attrib */
-void iupAttribSetStrf(Ihandle *ih, const char* name, const char* format, ...);
+IUP_EXPORTI void iupAttribSetStrf(Ihandle *ih, const char* name, const char* format, ...);
 
 /** Sets an integer attribute only in the hash table. \n
  * It will be stored as a string. \n
  * It ignores children.
  * \ingroup attrib */
-void iupAttribSetInt(Ihandle *ih, const char* name, int num);
+IUP_EXPORTI void iupAttribSetInt(Ihandle *ih, const char* name, int num);
 
 /** Same as \ref iupAttribSet with an id.
  * \ingroup attrib */
-void iupAttribSetId(Ihandle *ih, const char* name, int id, const char* value);
+IUP_EXPORTI void iupAttribSetId(Ihandle *ih, const char* name, int id, const char* value);
 
 /** Same as \ref iupAttribSetStr with an id.
  * \ingroup attrib */
-void iupAttribSetStrId(Ihandle *ih, const char* name, int id, const char* value);
+IUP_EXPORTI void iupAttribSetStrId(Ihandle *ih, const char* name, int id, const char* value);
 
 /** Same as \ref iupAttribSet with lin and col.
  * \ingroup attrib */
-void iupAttribSetId2(Ihandle *ih, const char* name, int lin, int col, const char* value);
+IUP_EXPORTI void iupAttribSetId2(Ihandle *ih, const char* name, int lin, int col, const char* value);
 
 /** Same as \ref iupAttribSetStr with lin and col.
  * \ingroup attrib */
-void iupAttribSetStrId2(Ihandle *ih, const char* name, int lin, int col, const char* value);
+IUP_EXPORTI void iupAttribSetStrId2(Ihandle *ih, const char* name, int lin, int col, const char* value);
 
 /** Same as \ref iupAttribSetInt with an id.
  * \ingroup attrib */
-void iupAttribSetIntId(Ihandle *ih, const char* name, int id, int num);
+IUP_EXPORTI void iupAttribSetIntId(Ihandle *ih, const char* name, int id, int num);
 
 /** Same as \ref iupAttribSetInt with lin and col.
  * \ingroup attrib */
-void iupAttribSetIntId2(Ihandle *ih, const char* name, int lin, int col, int num);
+IUP_EXPORTI void iupAttribSetIntId2(Ihandle *ih, const char* name, int lin, int col, int num);
 
 /** Sets an floating point attribute only in the hash table. \n
  * It will be stored as a string. \n
  * It ignores children.
  * \ingroup attrib */
-void iupAttribSetFloat(Ihandle *ih, const char* name, float num);
+IUP_EXPORTI void iupAttribSetFloat(Ihandle *ih, const char* name, float num);
 
 /** Same as \ref iupAttribSetFloat with an id.
  * \ingroup attrib */
-void iupAttribSetFloatId(Ihandle *ih, const char* name, int id, float num);
+IUP_EXPORTI void iupAttribSetFloatId(Ihandle *ih, const char* name, int id, float num);
 
 /** Same as \ref iupAttribSetFloat with lin and col.
  * \ingroup attrib */
-void iupAttribSetFloatId2(Ihandle *ih, const char* name, int lin, int col, float num);
+IUP_EXPORTI void iupAttribSetFloatId2(Ihandle *ih, const char* name, int lin, int col, float num);
 
 
 /** Sets an floating point attribute only in the hash table. \n
 * It will be stored as a string. \n
 * It ignores children.
 * \ingroup attrib */
-void iupAttribSetDouble(Ihandle *ih, const char* name, double num);
+IUP_EXPORTI void iupAttribSetDouble(Ihandle *ih, const char* name, double num);
 
 /** Same as \ref iupAttribSetDouble with an id.
 * \ingroup attrib */
-void iupAttribSetDoubleId(Ihandle *ih, const char* name, int id, double num);
+IUP_EXPORTI void iupAttribSetDoubleId(Ihandle *ih, const char* name, int id, double num);
 
 /** Same as \ref iupAttribSetDouble with lin and col.
 * \ingroup attrib */
-void iupAttribSetDoubleId2(Ihandle *ih, const char* name, int lin, int col, double num);
+IUP_EXPORTI void iupAttribSetDoubleId2(Ihandle *ih, const char* name, int lin, int col, double num);
 
 
 /** Returns the attribute from the hash table only.  \n
@@ -132,62 +132,62 @@ IUP_EXPORTI char* iupAttribGet(Ihandle* ih, const char* name);
  * if still not defined then returns the registered default value if any.
  * NO control implementation, only checks inheritance and default value from it.
  * \ingroup attrib */
-char* iupAttribGetStr(Ihandle* ih, const char* name);   
+IUP_EXPORTI char* iupAttribGetStr(Ihandle* ih, const char* name);   
 
 /** Same as \ref iupAttribGetStr but returns an integer number.
  * Checks also for boolean values.
  * \ingroup attrib */
-int iupAttribGetInt(Ihandle* ih, const char* name);
+IUP_EXPORTI int iupAttribGetInt(Ihandle* ih, const char* name);
 
 /** Same as \ref iupAttribGetInt but returns two integer numbers. \n
  * Returns the number of valid integers: 0, 1 or 2.
  * \ingroup attrib */
-int iupAttribGetIntInt(Ihandle *ih, const char* name, int *i1, int *i2, char sep);
+IUP_EXPORTI int iupAttribGetIntInt(Ihandle *ih, const char* name, int *i1, int *i2, char sep);
 
 /** Same as \ref iupAttribGetStr but checks for boolean values.
  * Use \ref iupStrBoolean.
  * \ingroup attrib */
-int iupAttribGetBoolean(Ihandle* ih, const char* name);
+IUP_EXPORTI int iupAttribGetBoolean(Ihandle* ih, const char* name);
 
 /** Same as \ref iupAttribGetStr but returns an floating point number.
  * \ingroup attrib */
-float iupAttribGetFloat(Ihandle* ih, const char* name);
+IUP_EXPORTI float iupAttribGetFloat(Ihandle* ih, const char* name);
 
 /** Same as \ref iupAttribGetStr but returns an floating point number.
 * \ingroup attrib */
-double iupAttribGetDouble(Ihandle* ih, const char* name);
+IUP_EXPORTI double iupAttribGetDouble(Ihandle* ih, const char* name);
 
 /** Same as \ref iupAttribGet but with an id.
  * \ingroup attrib */
-char* iupAttribGetId(Ihandle* ih, const char* name, int id);
+IUP_EXPORTI char* iupAttribGetId(Ihandle* ih, const char* name, int id);
 
 /** Same as \ref iupAttribGetInt but with an id.
  * \ingroup attrib */
-int iupAttribGetIntId(Ihandle* ih, const char* name, int id);
+IUP_EXPORTI int iupAttribGetIntId(Ihandle* ih, const char* name, int id);
 
 /** Same as \ref iupAttribGetBoolean but with an id.
  * \ingroup attrib */
-int iupAttribGetBooleanId(Ihandle* ih, const char* name, int id);
+IUP_EXPORTI int iupAttribGetBooleanId(Ihandle* ih, const char* name, int id);
 
 /** Same as \ref iupAttribGetFloat but with an id.
  * \ingroup attrib */
-float iupAttribGetFloatId(Ihandle* ih, const char* name, int id);
+IUP_EXPORTI float iupAttribGetFloatId(Ihandle* ih, const char* name, int id);
 
 /** Same as \ref iupAttribGet but with an lin and col.
  * \ingroup attrib */
-char* iupAttribGetId2(Ihandle* ih, const char* name, int lin, int col);
+IUP_EXPORTI char* iupAttribGetId2(Ihandle* ih, const char* name, int lin, int col);
 
 /** Same as \ref iupAttribGetInt but with lin and col.
  * \ingroup attrib */
-int iupAttribGetIntId2(Ihandle* ih, const char* name, int lin, int col);
+IUP_EXPORTI int iupAttribGetIntId2(Ihandle* ih, const char* name, int lin, int col);
 
 /** Same as \ref iupAttribGetBoolean but with lin and col.
  * \ingroup attrib */
-int iupAttribGetBooleanId2(Ihandle* ih, const char* name, int lin, int col);
+IUP_EXPORTI int iupAttribGetBooleanId2(Ihandle* ih, const char* name, int lin, int col);
 
 /** Same as \ref iupAttribGetFloat but with lin and col.
  * \ingroup attrib */
-float iupAttribGetFloatId2(Ihandle* ih, const char* name, int lin, int col);
+IUP_EXPORTI float iupAttribGetFloatId2(Ihandle* ih, const char* name, int lin, int col);
 
 
 
@@ -196,7 +196,7 @@ float iupAttribGetFloatId2(Ihandle* ih, const char* name, int lin, int col);
  * NO control implementation, NO defalt value here. \n
  * Used for EXPAND and internal attributes inside a dialog.
  * \ingroup attrib */
-char* iupAttribGetInherit(Ihandle* ih, const char* name);
+IUP_EXPORTI char* iupAttribGetInherit(Ihandle* ih, const char* name);
 
 /** Returns the attribute from the hash table of a native parent.
  * Don't check for default values. Don't check at the element.
@@ -229,12 +229,12 @@ IUP_EXPORTI char* iupAttribGetHandleName(Ihandle *ih);
  * Only generic pointers and constant strings can be set as value. \n
  * It ignores children.
  * \ingroup attrib */
-void iupAttribSetClassObject(Ihandle* ih, const char* name, const char* value);
-void iupAttribSetClassObjectId(Ihandle* ih, const char* name, int id, const char* value);
-void iupAttribSetClassObjectId2(Ihandle* ih, const char* name, int lin, int col, const char* value);
-char* iupAttribGetClassObject(Ihandle* ih, const char* name);
-char* iupAttribGetClassObjectId(Ihandle* ih, const char* name, int id);
-char* iupAttribGetClassObjectId2(Ihandle* ih, const char* name, int lin, int col);
+IUP_EXPORTI void iupAttribSetClassObject(Ihandle* ih, const char* name, const char* value);
+IUP_EXPORTI void iupAttribSetClassObjectId(Ihandle* ih, const char* name, int id, const char* value);
+IUP_EXPORTI void iupAttribSetClassObjectId2(Ihandle* ih, const char* name, int lin, int col, const char* value);
+IUP_EXPORTI char* iupAttribGetClassObject(Ihandle* ih, const char* name);
+IUP_EXPORTI char* iupAttribGetClassObjectId(Ihandle* ih, const char* name, int id);
+IUP_EXPORTI char* iupAttribGetClassObjectId2(Ihandle* ih, const char* name, int lin, int col);
 
 
 
