@@ -60,7 +60,7 @@ char* iupGetFontValue(Ihandle* ih);
 /** Parse the font format description.
  * Returns a non zero value if successful.
  * \ingroup drvfont */
-int iupGetFontInfo(const char* font, char* typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout);
+IUP_EXPORTI int iupGetFontInfo(const char* font, char* typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout);
 
 /** Parse the Pango font format description.
  * Returns a non zero value if successful.

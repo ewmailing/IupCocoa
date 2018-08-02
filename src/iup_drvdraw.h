@@ -27,11 +27,11 @@ enum{ IUP_DRAW_FILL, IUP_DRAW_STROKE, IUP_DRAW_STROKE_DASH, IUP_DRAW_STROKE_DOT 
 /** Creates a draw canvas based on an IupCanvas.
  * This will create an image for offscreen drawing.
  * \ingroup draw */
-IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih);
+IUP_EXPORTI IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih);
 
 /** Destroys the IdrawCanvas.
  * \ingroup draw */
-void iupdrvDrawKillCanvas(IdrawCanvas* dc);
+IUP_EXPORTI void iupdrvDrawKillCanvas(IdrawCanvas* dc);
 
 /** Draws the ofscreen image on the screen.
  * \ingroup draw */
@@ -44,11 +44,11 @@ void iupdrvDrawUpdateSize(IdrawCanvas* dc);
 
 /** Returns the canvas size available for drawing.
  * \ingroup draw */
-void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h);
+IUP_EXPORTI void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h);
 
 /** Draws a line.
  * \ingroup draw */
-void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width);
+IUP_EXPORTI void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width);
 
 /** Draws a filled/hollow rectangle.
  * \ingroup draw */
@@ -56,7 +56,7 @@ void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long c
 
 /** Draws a filled/hollow arc.
  * \ingroup draw */
-void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width);
+IUP_EXPORTI void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width);
 
 /** Draws a filled/hollow polygon.
  * points are arranged xyxyxy...
@@ -75,7 +75,7 @@ void iupdrvDrawImage(IdrawCanvas* dc, const char* name, int make_inactive, int x
 
 /** Sets a rectangle clipping area.
  * \ingroup draw */
-void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2);
+IUP_EXPORTI void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2);
 
 /** Removes clipping.
  * \ingroup draw */

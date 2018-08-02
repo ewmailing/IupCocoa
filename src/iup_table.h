@@ -63,7 +63,7 @@ Itable *iupTableCreateSized(Itable_IndexTypes indexType, unsigned int initialSiz
 /** Destroys the Itable.
  * Calls \ref iupTableClear.
  * \ingroup table */
-void iupTableDestroy(Itable *it);
+IUP_EXPORTI void iupTableDestroy(Itable *it);
 
 /** Removes all items in the table.
  * This function does also free the memory of strings contained in the table!!!!
@@ -113,11 +113,11 @@ void iupTableRemove(Itable *it, const char *key);
  * iupTableGetCurr() to access the value of the key
  * very fast.
  * \ingroup table */
-char *iupTableFirst(Itable *it);
+IUP_EXPORTI char *iupTableFirst(Itable *it);
 
 /** Key iteration function. See \ref iupTableNext.
  * \ingroup table */
-char *iupTableNext(Itable *it);
+IUP_EXPORTI char *iupTableNext(Itable *it);
 
 /** Returns the value at the current position.  \n
  * The current context is an iterator
@@ -137,7 +137,7 @@ int iupTableGetCurrType(Itable *it);
 
 /** Replaces the data at the current position.
  * \ingroup table */
-void iupTableSetCurr(Itable *it, void* value, Itable_Types itemType);
+IUP_EXPORTI void iupTableSetCurr(Itable *it, void* value, Itable_Types itemType);
 
 /** Removes the current element and returns the next key.
  * Use this function to remove an element during an iteration.
