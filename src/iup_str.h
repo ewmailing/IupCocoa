@@ -23,7 +23,7 @@ extern "C" {
 /** Returns a non zero value if the two strings are equal.
  * str1 or str2 can be NULL.
  * \ingroup str */
-int iupStrEqual(const char* str1, const char* str2);
+IUP_EXPORTI int iupStrEqual(const char* str1, const char* str2);
 
 /** Returns a non zero value if the two strings are equal but ignores case.
  * str1 or str2 can be NULL.

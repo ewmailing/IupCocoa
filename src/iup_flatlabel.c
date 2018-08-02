@@ -22,6 +22,7 @@
 #include "iup_stdcontrols.h"
 #include "iup_register.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 #include "iup_key.h"
 
 struct _IcontrolData
@@ -44,7 +45,7 @@ static int iFlatLabelRedraw_CB(Ihandle* ih)
   char* title = iupAttribGet(ih, "TITLE");
   int active = IupGetInt(ih, "ACTIVE");  /* native implementation */
   char* fgcolor = iupAttribGetStr(ih, "FGCOLOR");
-  char* bgcolor = NULL;
+  char* bgcolor = NULL; /* always use the parent background color */
   char* bgimage = iupAttribGet(ih, "BACKIMAGE");
   char* fgimage = iupAttribGet(ih, "FRONTIMAGE");
   char* text_align = iupAttribGetStr(ih, "TEXTALIGNMENT");
@@ -138,10 +139,11 @@ static int iFlatLabelSetPaddingAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-static int iFlatLabelRedrawSetAttrib(Ihandle* ih, const char* value)
+static int iFlatLabelSetAttribPostRedraw(Ihandle* ih, const char* value)
 {
   (void)value;
-  iupdrvPostRedraw(ih);
+  if (ih->handle)
+    iupdrvPostRedraw(ih);
   return 1;
 }
 
@@ -268,7 +270,7 @@ Iclass* iupFlatLabelNewClass(void)
   ic->format = "s"; /* one string */
   ic->nativetype = IUP_TYPECANVAS;
   ic->childtype = IUP_CHILDNONE;
-  ic->is_interactive = 1;
+  ic->is_interactive = 0;
 
   /* Class functions */
   ic->New = iupFlatLabelNewClass;
@@ -280,27 +282,27 @@ Iclass* iupFlatLabelNewClass(void)
   iupClassRegisterAttribute(ic, "BGCOLOR", iupBaseNativeParentGetBgColorAttrib, NULL, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);
 
   /* Special */
-  iupClassRegisterAttribute(ic, "TITLE", NULL, iFlatLabelRedrawSetAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", NULL, iFlatLabelSetAttribPostRedraw, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
 
   /* IupFlatLabel */
   iupClassRegisterAttribute(ic, "ALIGNMENT", iFlatLabelGetAlignmentAttrib, iFlatLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "PADDING", iFlatLabelGetPaddingAttrib, iFlatLabelSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "SPACING", iFlatLabelGetSpacingAttrib, iFlatLabelSetSpacingAttrib, IUPAF_SAMEASSYSTEM, "2", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iFlatLabelRedrawSetAttrib, "DLGFGCOLOR", NULL, IUPAF_NOT_MAPPED);  /* force the new default value */
+  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iFlatLabelSetAttribPostRedraw, "DLGFGCOLOR", NULL, IUPAF_NOT_MAPPED);  /* force the new default value */
 
-  iupClassRegisterAttribute(ic, "IMAGE", NULL, iFlatLabelRedrawSetAttrib, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "IMAGE", NULL, iFlatLabelSetAttribPostRedraw, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "IMAGEINACTIVE", NULL, NULL, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   
   iupClassRegisterAttribute(ic, "IMAGEPOSITION", iFlatLabelGetImagePositionAttrib, iFlatLabelSetImagePositionAttrib, IUPAF_SAMEASSYSTEM, "LEFT", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TEXTALIGNMENT", NULL, NULL, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NOT_MAPPED | IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "BACKIMAGE", NULL, iFlatLabelRedrawSetAttrib, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "BACKIMAGE", NULL, iFlatLabelSetAttribPostRedraw, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "BACKIMAGEINACTIVE", NULL, NULL, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   
   iupClassRegisterAttribute(ic, "FITTOBACKIMAGE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "FRONTIMAGE", NULL, iFlatLabelRedrawSetAttrib, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FRONTIMAGE", NULL, iFlatLabelSetAttribPostRedraw, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FRONTIMAGEINACTIVE", NULL, NULL, NULL, NULL, IUPAF_IHANDLENAME | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
 
   return ic;

@@ -286,6 +286,9 @@ static Ihandle* set_callbacks(Ihandle* ih)
   IupSetCallback(ih, "K_ANY", (Icallback)k_any);
 //  IupSetCallback(ih, "HELP_CB", (Icallback)help_cb);
 
+
+  IupSetAttribute(ih,"PROPAGATEFOCUS","YES");
+
   return ih;
 }
 
@@ -393,7 +396,7 @@ static Ihandle* create_matrix(void)
 }
 #endif
 
-static int drawbg_cb(Ihandle* ih)
+static int draw_cb(Ihandle* ih)
 {
   int w, h;
 
@@ -619,6 +622,7 @@ void SampleTest(void)
   IupSetAttribute(_cnv_1,"RASTERSIZE","x100");
   IupSetAttribute(_cnv_1,"TIP","Canvas TIP");
 //  IupSetAttribute(_cnv_1,"CANFOCUS","NO");
+  IupSetCallback(_cnv_1, "ACTION", draw_cb);
   set_callbacks(_cnv_1);
 
   _vbox_1 = IupVbox(
@@ -640,7 +644,7 @@ void SampleTest(void)
   IupSetAttribute(_vbox_1, "GAP", "5");
 
 //  _vbox_1 = IupBackgroundBox(_vbox_1);
-//  IupSetCallback(_vbox_1, "ACTION", drawbg_cb);
+//  IupSetCallback(_vbox_1, "ACTION", draw_cb);
 
 //  IupSetAttribute(_vbox_1, "ACTIVE", "NO");
 
@@ -651,7 +655,7 @@ void SampleTest(void)
 //  IupSetAttribute(dlg,"COMPOSITED","YES");   /* Windows Only */
 //  IupSetAttribute(dlg, "OPACITY", "192");
 //  IupSetAttribute(dlg, "RESIZE", "NO");
-//  IupSetCallback(dlg, "FOCUS_CB", (Icallback)focus_cb);
+  IupSetCallback(dlg, "FOCUS_CB", (Icallback)focus_cb);
   IupSetCallback(dlg, "RESIZE_CB", (Icallback)resize_cb);
 
 #if 0    // NO decorations

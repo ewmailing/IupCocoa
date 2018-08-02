@@ -21,6 +21,7 @@
 #include "iup_layout.h"
 #include "iup_childtree.h"
 #include "iup_drvdraw.h"
+#include "iup_draw.h"
 
 
 enum { IDBOX_VERT, IDBOX_HORIZ };

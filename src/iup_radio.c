@@ -121,7 +121,7 @@ static int iRadioSetValueAttrib(Ihandle* ih, const char* value)
 static char* iRadioGetValueAttrib(Ihandle* ih)
 {
   Ihandle *ih_toggle = (Ihandle*)iRadioGetValueHandleAttrib(ih);
-  return IupGetName(ih_toggle);
+  return IupGetName(ih_toggle);  /* Name is guarantied at Toggle MapMethod */
 }
 
 /******************************************************************************/

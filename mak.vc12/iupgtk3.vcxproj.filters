@@ -117,9 +117,6 @@
     <ClCompile Include="..\src\mot\iupunix_info.c">
       <Filter>unix</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gtk\iupgtk_help.c">
-      <Filter>unix</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_calendar.c">
       <Filter>src_controls</Filter>
     </ClCompile>
@@ -133,6 +130,9 @@
       <Filter>unix</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gtk\iupgtk_info.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gtk\iupgtk_help.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

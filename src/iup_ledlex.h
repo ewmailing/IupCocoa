@@ -1,5 +1,5 @@
 /** \file
- * \brief lexical analysis manager for LED.
+ * \brief lexical analysis manager for LED (not exported API)
  *
  * See Copyright Notice in "iup.h"
  */
