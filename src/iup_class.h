@@ -312,7 +312,7 @@ IUP_EXPORTI void iupClassRegisterAttributeId2(Iclass* ic, const char* name,
 
 /** Returns the attribute handling functions, defaults and flags.
  * \ingroup iclass */
-void iupClassRegisterGetAttribute(Iclass* ic, const char* name, 
+IUP_EXPORTI void iupClassRegisterGetAttribute(Iclass* ic, const char* name, 
                                            IattribGetFunc *get, 
                                            IattribSetFunc *set, 
                                            const char* *default_value, 
