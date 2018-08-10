@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup childtree Child Tree Utilities
  * \par
  * Some native containers have an internal native child that 
@@ -28,7 +30,7 @@ extern "C" {
 
 /** Returns the native parent. It simply excludes containers that are from IUP_TYPEVOID classes.
  * \ingroup childtree */
-Ihandle* iupChildTreeGetNativeParent(Ihandle* ih);
+IUP_EXPORTI Ihandle* iupChildTreeGetNativeParent(Ihandle* ih);
 
 /** Returns the native parent handle. Uses \ref iupChildTreeGetNativeParent and \ref iupClassObjectGetInnerNativeContainerHandle.
  * \ingroup childtree */

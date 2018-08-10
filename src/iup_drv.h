@@ -11,7 +11,8 @@
 extern "C" {
 #endif
 
-  
+#include "iup_export.h" 
+
 /** \defgroup drv Driver Interface 
  * \par
  * Each driver must export the symbols defined here.
@@ -68,7 +69,7 @@ void iupdrvPostRedraw(Ihandle *ih);
 
 /** Force a redraw of a control and children.
  * \ingroup drv */
-void iupdrvRedrawNow(Ihandle *ih);
+IUP_EXPORTI void iupdrvRedrawNow(Ihandle *ih);
 
 /** Reparent the native control.
  * \ingroup drv */
@@ -86,7 +87,7 @@ void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
 
 /** Size of the scrollbar.
  * \ingroup drv */
-int iupdrvGetScrollbarSize(void);
+IUP_EXPORTI int iupdrvGetScrollbarSize(void);
 
 /** Activates a button or toggle.
  * \ingroup drv */

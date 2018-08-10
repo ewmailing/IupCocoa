@@ -126,9 +126,9 @@ int iupBaseSetExpandAttrib(Ihandle* ih, const char* value);
 
 /* visual */
 IUP_EXPORTI char* iupBaseGetVisibleAttrib(Ihandle* ih);
-int iupBaseSetVisibleAttrib(Ihandle* ih, const char* value);
-char* iupBaseGetActiveAttrib(Ihandle *ih);
-int iupBaseSetActiveAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI int iupBaseSetVisibleAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI char* iupBaseGetActiveAttrib(Ihandle *ih);
+IUP_EXPORTI int iupBaseSetActiveAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetTipAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetTipVisibleAttrib(Ihandle* ih, const char* value);
