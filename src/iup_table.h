@@ -51,7 +51,7 @@ typedef struct _Itable Itable;
 /** Creates a hash table with an initial default size.
  * This function is equivalent to iupTableCreateSized(0);
  * \ingroup table */
-Itable *iupTableCreate(Itable_IndexTypes indexType);
+IUP_EXPORTI Itable *iupTableCreate(Itable_IndexTypes indexType);
 
 /** Creates a hash table with the specified initial size.
  * Use this function if you expect the table to become very large.
@@ -78,7 +78,7 @@ int iupTableCount(Itable *it);
 
 /** Store an element in the table.
  * \ingroup table */
-void iupTableSet(Itable *it, const char *key, void *value, Itable_Types itemType);
+IUP_EXPORTI void iupTableSet(Itable *it, const char *key, void *value, Itable_Types itemType);
 
 /** Store a function pointer in the table.
  * Type is set to IUPTABLE_FUNCPOINTER.
@@ -129,7 +129,7 @@ IUP_EXPORTI char *iupTableNext(Itable *it);
  * at a key returned by iupTableNext(),
  * use this function instead of iupTableGet().
  * \ingroup table */
-void *iupTableGetCurr(Itable *it);
+IUP_EXPORTI void *iupTableGetCurr(Itable *it);
 
 /** Returns the type at the current position. \n
  * Same as \ref iupTableGetCurr but returns the type.
