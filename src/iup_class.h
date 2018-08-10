@@ -305,7 +305,7 @@ IUP_EXPORTI void iupClassRegisterAttributeId(Iclass* ic, const char* name,
 
 /** Same as \ref iupClassRegisterAttribute for attributes with two Ids.
  * \ingroup iclass */
-void iupClassRegisterAttributeId2(Iclass* ic, const char* name, 
+IUP_EXPORTI void iupClassRegisterAttributeId2(Iclass* ic, const char* name, 
                                            IattribGetId2Func get, 
                                            IattribSetId2Func set, 
                                            int flags);
@@ -321,7 +321,7 @@ void iupClassRegisterGetAttribute(Iclass* ic, const char* name,
 
 /** Replaces the attribute handling functions of an already registered attribute.
  * \ingroup iclass */
-void iupClassRegisterReplaceAttribFunc(Iclass* ic, const char* name, IattribGetFunc _get, IattribSetFunc _set);
+IUP_EXPORTI void iupClassRegisterReplaceAttribFunc(Iclass* ic, const char* name, IattribGetFunc _get, IattribSetFunc _set);
 
 /** Replaces the attribute handling default of an already registered attribute.
  * \ingroup iclass */
