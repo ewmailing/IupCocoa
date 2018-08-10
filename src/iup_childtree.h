@@ -38,7 +38,7 @@ InativeHandle* iupChildTreeGetNativeParentHandle(Ihandle* ih);
 
 /** Adds the child directly to the parent tree.
  * \ingroup childtree */
-void iupChildTreeAppend(Ihandle* parent, Ihandle* child);
+IUP_EXPORTI void iupChildTreeAppend(Ihandle* parent, Ihandle* child);
 
 /** Checks if the child belongs to the parent tree.
  * \ingroup childtree */
