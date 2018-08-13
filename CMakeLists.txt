@@ -1428,6 +1428,28 @@ function(BUILD_IUPWEB_TEST exe_name source_list)
 	endif()
 endfunction()
 
+function(BUILD_IUPCONTROLS_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		HELPER_CREATE_EXECUTABLE(${exe_name} 
+			"${source_list}"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupcontrols;iupcd;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			"${_should_exclude_from_all}"
+		)
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
+endfunction()
+
 function(BUILD_IUPLUA_TEST exe_name source_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
@@ -1485,6 +1507,7 @@ BUILD_IUP_TEST(7gui_flight_booker "${CMAKE_SOURCE_DIR}/html/en/7gui/flight_booke
 BUILD_IUP_TEST(7gui_temperature_converter "${CMAKE_SOURCE_DIR}/html/en/7gui/temperature_converter.c")
 BUILD_IUP_TEST(7gui_timer "${CMAKE_SOURCE_DIR}/html/en/7gui/timer.c")
 
+BUILD_IUPCONTROLS_TEST(matrix "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix.c")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 
