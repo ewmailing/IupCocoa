@@ -547,7 +547,7 @@ SET(IUPWEB_COMMON_SOURCE_FILES
 )
 SET(IUPCD_COMMON_SOURCE_FILES 
 	${CMAKE_SOURCE_DIR}/srccd/iup_cd.c
-	${CMAKE_SOURCE_DIR}/srccd/iup_cd.h
+	${CMAKE_SOURCE_DIR}/srccd/iup_cdutil.c
 	${CMAKE_SOURCE_DIR}/srccd/iup_cdutil.h
 )
 SET(IUPCONTROLS_COMMON_SOURCE_FILES 
@@ -1336,6 +1336,15 @@ HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_F
 IF(IUP_USE_CD)
 	HELPER_CREATE_LIBRARY(iupcd "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPCD_SOURCE_FILES}" "${IUPCD_PUBLIC_HEADERS}" "" "" "${IUPCD_FOREIGN_SOURCE_FILES}" "${IUPCD_LINK_LIBRARIES}" "${IUPCD_C_FLAGS}" "br.puc-rio.tecgraf.iupcd")
 	HELPER_CREATE_LIBRARY(iupcontrols "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPCONTROLS_SOURCE_FILES}" "${IUPCONTROLS_PUBLIC_HEADERS}" "" "" "${IUPCONTROLS_FOREIGN_SOURCE_FILES}" "${IUPCONTROLS_LINK_LIBRARIES}" "${IUPCONTROLS_C_FLAGS}" "br.puc-rio.tecgraf.iupcontrols")
+	TARGET_INCLUDE_DIRECTORIES(iupcd PRIVATE 
+		"${CMAKE_SOURCE_DIR}/srccd"
+		"${CD_INCLUDE_DIR}"
+	)
+	TARGET_INCLUDE_DIRECTORIES(iupcontrols PRIVATE 
+		"${CMAKE_SOURCE_DIR}/srccontrols"
+		"${CMAKE_SOURCE_DIR}/srccd"
+		"${CD_INCLUDE_DIR}"
+	)
 
 	IF(IUP_USE_LUA)
 	ENDIF()
@@ -1441,6 +1450,28 @@ function(BUILD_IUPWEB_TEST exe_name source_list)
 	endif()
 endfunction()
 
+function(BUILD_IUPCONTROLS_TEST exe_name source_list)
+	if(NOT ANDROID)
+		set(_should_exclude_from_all "")
+		if(NOT IUP_BUILD_TESTS)
+			set(_should_exclude_from_all 1)
+		endif()
+		
+		HELPER_CREATE_EXECUTABLE(${exe_name} 
+			"${source_list}"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupcontrols;iupcd;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			"${_should_exclude_from_all}"
+		)
+
+		# This adds the current test to the aggregate target for tests
+		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+	endif()
+endfunction()
+
 function(BUILD_IUPLUA_TEST exe_name source_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
@@ -1499,6 +1530,7 @@ BUILD_IUP_TEST(7gui_flight_booker "${CMAKE_SOURCE_DIR}/html/en/7gui/flight_booke
 BUILD_IUP_TEST(7gui_temperature_converter "${CMAKE_SOURCE_DIR}/html/en/7gui/temperature_converter.c")
 BUILD_IUP_TEST(7gui_timer "${CMAKE_SOURCE_DIR}/html/en/7gui/timer.c")
 
+BUILD_IUPCONTROLS_TEST(matrix "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix.c")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 
