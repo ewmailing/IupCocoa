@@ -569,6 +569,17 @@ SET(IUPCONTROLS_COMMON_SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/srccontrols/matrix/iupmat_scroll.c
 	${CMAKE_SOURCE_DIR}/srccontrols/matrix/iupmat_scroll.h
 	${CMAKE_SOURCE_DIR}/srccontrols/matrix/iupmatrix.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_busy.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_clipboard.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_copy.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_export.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_find.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_sort.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_undo.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_units.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iupmatex_visible.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iup_matrixex.c
+	${CMAKE_SOURCE_DIR}/srccontrols/matrixex/iup_matrixex.h
 )
 
 SET(IUP_LINK_LIBRARIES "")
