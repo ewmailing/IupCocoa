@@ -21,6 +21,7 @@
    So no need to rebuild IUPCD when cdCanvas is changed. */
 #include <cd_private.h>
 
+#include "iupcd_export.h"
 
 static void (*cdcreatecanvasNATIVE)(cdCanvas* canvas, void* data) = NULL;
 
@@ -74,7 +75,7 @@ static void cdcreatecanvasIUP(cdCanvas* canvas, Ihandle *ih_canvas)
 
 static cdContext cdIupContext;
 
-cdContext* cdContextIup(void)
+IUPCD_EXPORTI cdContext* cdContextIup(void)
 {
   /* call this every time, because of ContextPlus */
   cdContext* ctx = cdContextNativeWindow();
@@ -115,7 +116,7 @@ static void cdcreatecanvasIUP_DBUFFER(cdCanvas* canvas, Ihandle *ih_canvas)
 
 static cdContext cdIupContextDBuffer;
 
-cdContext* cdContextIupDBuffer(void)
+IUPCD_EXPORTI cdContext* cdContextIupDBuffer(void)
 {
   /* call this every time, because of ContextPlus */
   cdContext* ctx = cdContextDBuffer();
@@ -156,7 +157,7 @@ static void cdcreatecanvasIUP_DBUFFERRGB(cdCanvas* canvas, Ihandle *ih_canvas)
 
 static cdContext cdIupContextDBufferRGB;
 
-cdContext* cdContextIupDBufferRGB(void)
+IUPCD_EXPORTI cdContext* cdContextIupDBufferRGB(void)
 {
   /* call this every time, because of ContextPlus */
   cdContext* ctx = cdContextDBufferRGB();
