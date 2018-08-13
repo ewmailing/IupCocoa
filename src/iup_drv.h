@@ -83,7 +83,7 @@ void iupdrvReparent(Ihandle* ih);
  * - cairo_t in GTK3
  * When using CD, use the "GC" CD canvas attribute.
  * \ingroup drv */
-void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
+IUP_EXPORTI void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
 
 /** Size of the scrollbar.
  * \ingroup drv */
