@@ -3,14 +3,18 @@ FIND_PATH(CD_INCLUDE_DIR cd.h
 		cd
 	PATHS
 		$ENV{CD_DIR}
+		$ENV{CD_DIR}/include
 )
 
 FIND_LIBRARY(CD_LIBRARY 
 	NAMES 
 		cd
+	PATH_SUFFIXES 
+		Linux32_64
 	PATHS
 		$ENV{CD_DIR}
 		$ENV{CD_DIR}/lib
+		$ENV{CD_DIR}/lib/Linux32_64
 )
 
 INCLUDE(FindPackageHandleStandardArgs)
