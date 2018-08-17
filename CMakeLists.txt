@@ -56,6 +56,10 @@ ENDIF()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/" ${CMAKE_MODULE_PATH})
 INCLUDE(HelperFunctions)
+IF(APPLE)
+	# FIXME: Expand to support GNUStep
+	INCLUDE(HelperApple)
+ENDIF()
 
 OPTION(IUP_OPTION_LUA "Build Lua if available" ON)
 # I'm keeping this off by default for now, because of a cross-dependency problem of other iuplua* modules depending on symbols in iuplua.
@@ -928,6 +932,19 @@ ELSEIF(IUP_USE_COCOA)
 	LIST(APPEND IUP_SOURCE_FILES
 		${IUP_COCOA_SOURCE_FILES}
 	)
+
+	LIST(APPEND IUP_COCOA_XIB_FILES 
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/CanonicalServiceMenu.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/CanonicalWindowMenu.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/IupCocoaOutlineView.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/IupMainMenu.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/IupTextSpinner.xib	
+	)
+
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_COCOA_XIB_FILES}
+	)
+
 	# Not sure how to handle GNUStep
 	FIND_LIBRARY(APPLE_COCOA_LIBRARY Cocoa)
 	FIND_LIBRARY(APPLE_QUARTZCORE_LIBRARY QuartzCore)
@@ -1319,6 +1336,13 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}/src
 )
 HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUP_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUP_FOREIGN_SOURCE_FILES}" "${IUP_LINK_LIBRARIES}" "${IUP_C_FLAGS}" "br.puc-rio.tecgraf.iup")
+IF(IUP_USE_COCOA)
+	# Reuse the Info.plist from the Xcode project
+	HELPERAPPLE_SET_INFOPLIST_FOR_FRAMEWORK(iup "${CMAKE_SOURCE_DIR}/Xcode/iup/iup/Info.plist" "${WANTS_BUILD_FRAMEWORK}")
+	# set_target_properties doesn't work correctly in CMake because it loses the localization directories
+	# set_target_properties(iup PROPERTIES RESOURCE "${IUP_COCOA_XIB_FILES}") 
+	HELPERIB_COMPILE_XIBS_INTO_FRAMEWORK("${IUP_COCOA_XIB_FILES}" iup "iup" "${WANTS_BUILD_FRAMEWORK}")
+ENDIF()
 
 HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMGLIB_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.puc-rio.tecgraf.iupimglib")
 
@@ -1363,6 +1387,13 @@ if(IUP_SHOULD_BUILD_IUPWEB)
 			"${CMAKE_SOURCE_DIR}/srcweb"
 		)
 	ENDIF()
+
+
+	IF(IUP_USE_COCOA)
+		# Reuse the Info.plist from the Xcode project
+		HELPERAPPLE_SET_INFOPLIST_FOR_FRAMEWORK(iupweb "${CMAKE_SOURCE_DIR}/Xcode/iup/iupweb-Info.plist" "${WANTS_BUILD_FRAMEWORK}")
+	ENDIF()
+
 else()
 	MESSAGE("Not building iupweb")
 endif()
