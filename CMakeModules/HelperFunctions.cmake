@@ -216,16 +216,18 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 endfunction()
 
 # indirect_link_libs is for static libraries, where all dependencies must be explicitly linked 
-function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags exclude_from_all_target)
+function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags exclude_from_all_target resource_file_list)
 	if(NOT ANDROID)
 	
 		if(exclude_from_all_target)
 			ADD_EXECUTABLE(${exe_name} WIN32 MACOSX_BUNDLE EXCLUDE_FROM_ALL
 				${source_file_list}
+				${resource_file_list}
 			)
 		else()
 			ADD_EXECUTABLE(${exe_name} WIN32 MACOSX_BUNDLE
 				${source_file_list}
+				${resource_file_list}				
 			)
 		endif()
 
@@ -242,6 +244,60 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 		)
 
 	endif()
+
+
+	# Copy resources
+	# Warning: This does not handle/preserve resources in subdirectories.
+	SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}")
+	IF(ANDROID)
+		IF(resource_file_list)
+			MESSAGE("Warning: Android copy resources not implemented")
+		ENDIF()
+	# TODO: Support GNUStep
+	ELSEIF(APPLE)
+		IF(IOS)
+			MESSAGE("Warning: iOS copy resources not implemented")
+			SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}.app")
+		ELSE()
+			SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}.app/Contents/Resources")
+		ENDIF()
+	ELSEIF(EMSCRIPTEN)
+		MESSAGE("Warning: Emscripten copy resources not implemented")
+
+	ENDIF()
+
+	FOREACH(resource_file ${resource_file_list})
+		# This will extract the base_file_name including the extension
+		get_filename_component(base_file_name "${resource_file}" NAME)
+
+		ADD_CUSTOM_COMMAND(TARGET ${exe_name} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E make_directory "${target_resource_dir}"
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${resource_file}"
+				"${target_resource_dir}/"
+			DEPENDS "${resource_file}"
+			COMMENT "Copying ${resource_file} to ${target_resource_dir}"
+		)
+
+#		add_custom_command(
+#				OUTPUT "${target_resource_dir}/${base_file_name}"
+#				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#					"${resource_file}"
+#					"${target_resource_dir}/"
+#				DEPENDS "${resource_file}"
+#				COMMENT "Copying ${resource_file} to ${target_resource_dir}"
+#		)
+
+		# files are only copied if a target depends on them
+		# I don't understand why it depends on the target directory file instead of the source directory file
+		# https://cmake.org/pipermail/cmake/2014-June/057989.html	
+#		add_custom_target("${exe_name}_resources" ALL 
+#			DEPENDS "${resource_file}"
+#			DEPENDS "${target_resource_dir}/${base_file_name}"
+#			COMMENT "${exe_name}_resources custom target for ${resource_file}"
+#		)
+#		ADD_DEPENDENCIES(${exe_name} "${exe_name}_resources")
+	ENDFOREACH()
 
 endfunction()
 
