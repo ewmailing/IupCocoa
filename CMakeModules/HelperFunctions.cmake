@@ -262,22 +262,44 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 			SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}.app/Contents/Resources")
 		ENDIF()
 	ELSEIF(EMSCRIPTEN)
-		MESSAGE("Warning: Emscripten copy resources not implemented")
+		# MESSAGE("Warning: Emscripten copy resources not implemented")
+
+
+
 
 	ENDIF()
 
-	FOREACH(resource_file ${resource_file_list})
-		# This will extract the base_file_name including the extension
-		get_filename_component(base_file_name "${resource_file}" NAME)
+	# Emscripten needs a completely different solution than the other platforms
+	IF(EMSCRIPTEN)
+		# https://groups.google.com/forum/#!topic/emscripten-discuss/GZXkjXrq49U
 
-		ADD_CUSTOM_COMMAND(TARGET ${exe_name} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E make_directory "${target_resource_dir}"
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				"${resource_file}"
-				"${target_resource_dir}/"
-			DEPENDS "${resource_file}"
-			COMMENT "Copying ${resource_file} to ${target_resource_dir}"
-		)
+		# Generate the command line that must be passed to emcc linker to produce the given asset list.
+		set(assetBundleCmdLine "--use_preload_cache --no-heap-copy")
+		foreach(resource_file ${resource_file_list})
+			# This will extract the base_file_name including the extension
+			get_filename_component(base_file_name "${resource_file}" NAME)
+
+			set(assetBundleCmdLine "${assetBundleCmdLine} --preload-file \"${resource_file}@/${base_file_name}\"")
+		endforeach()
+
+		# Use a response file to store all the --preload-file directives so that windows max cmdline length limit won't be hit (there can be a lot of them!)
+		file(WRITE "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}_emcc_preload_file.rsp" "${assetBundleCmdLine}")
+		set(linkFlags "${linkFlags} \"@${CMAKE_BINARY_DIR}/${exe_name}_emcc_preload_file.rsp\"")
+		set_target_properties(${exe_name} PROPERTIES LINK_FLAGS "${linkFlags}")
+
+	ELSE()
+		FOREACH(resource_file ${resource_file_list})
+			# This will extract the base_file_name including the extension
+			get_filename_component(base_file_name "${resource_file}" NAME)
+
+			ADD_CUSTOM_COMMAND(TARGET ${exe_name} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E make_directory "${target_resource_dir}"
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${resource_file}"
+					"${target_resource_dir}/"
+				DEPENDS "${resource_file}"
+				COMMENT "Copying ${resource_file} to ${target_resource_dir}"
+			)
 
 #		add_custom_command(
 #				OUTPUT "${target_resource_dir}/${base_file_name}"
@@ -288,16 +310,17 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 #				COMMENT "Copying ${resource_file} to ${target_resource_dir}"
 #		)
 
-		# files are only copied if a target depends on them
-		# I don't understand why it depends on the target directory file instead of the source directory file
-		# https://cmake.org/pipermail/cmake/2014-June/057989.html	
+			# files are only copied if a target depends on them
+			# I don't understand why it depends on the target directory file instead of the source directory file
+			# https://cmake.org/pipermail/cmake/2014-June/057989.html	
 #		add_custom_target("${exe_name}_resources" ALL 
 #			DEPENDS "${resource_file}"
 #			DEPENDS "${target_resource_dir}/${base_file_name}"
 #			COMMENT "${exe_name}_resources custom target for ${resource_file}"
 #		)
 #		ADD_DEPENDENCIES(${exe_name} "${exe_name}_resources")
-	ENDFOREACH()
+		ENDFOREACH()
+	ENDIF()
 
 endfunction()
 
