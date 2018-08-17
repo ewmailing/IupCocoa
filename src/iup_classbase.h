@@ -125,10 +125,10 @@ char* iupBaseGetExpandAttrib(Ihandle* ih);
 int iupBaseSetExpandAttrib(Ihandle* ih, const char* value);
 
 /* visual */
-char* iupBaseGetVisibleAttrib(Ihandle* ih);
-int iupBaseSetVisibleAttrib(Ihandle* ih, const char* value);
-char* iupBaseGetActiveAttrib(Ihandle *ih);
-int iupBaseSetActiveAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI char* iupBaseGetVisibleAttrib(Ihandle* ih);
+IUP_EXPORTI int iupBaseSetVisibleAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI char* iupBaseGetActiveAttrib(Ihandle *ih);
+IUP_EXPORTI int iupBaseSetActiveAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetTipAttrib(Ihandle* ih, const char* value);
 int iupdrvBaseSetTipVisibleAttrib(Ihandle* ih, const char* value);
@@ -161,7 +161,7 @@ int iupBaseNoSaveCheck(Ihandle* ih, const char* name);
 
 #define iupMAX(_a,_b) ((_a)>(_b)?(_a):(_b))
 #define iupROUND(_x) ((int)((_x)>0? (_x)+0.5: (_x)-0.5))
-int     iupRound(double x);
+IUP_EXPORTI int     iupRound(double x);
 
 #define iupCOLOR8TO16(_x) ((unsigned short)(_x*257))  
 #define iupCOLOR16TO8(_x) ((unsigned char)(_x/257))   /* 65535/257 = 255 */
@@ -173,10 +173,10 @@ enum{IUP_ALIGN_ALEFT, IUP_ALIGN_ACENTER, IUP_ALIGN_ARIGHT};
 #define IUP_ALIGN_ATOP IUP_ALIGN_ALEFT
 
 enum{IUP_SB_NONE, IUP_SB_HORIZ, IUP_SB_VERT};
-int iupBaseGetScrollbar(Ihandle* ih);
+IUP_EXPORTI int iupBaseGetScrollbar(Ihandle* ih);
 
 char* iupBaseNativeParentGetBgColor(Ihandle* ih);
-void iupBaseCallValueChangedCb(Ihandle* ih);
+IUP_EXPORTI void iupBaseCallValueChangedCb(Ihandle* ih);
 
 /** @} */
 

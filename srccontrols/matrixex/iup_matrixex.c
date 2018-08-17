@@ -23,6 +23,7 @@
 #include "iup_predialogs.h"
 
 #include "iup_matrixex.h"
+#include "iup_controls.h" /* make sure to get export for iupMatrixExNewClass */
 
 
 void iupMatrixExGetDialogPosition(ImatExData* matex_data, int *x, int *y)
