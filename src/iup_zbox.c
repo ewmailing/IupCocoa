@@ -211,7 +211,7 @@ static char* iZboxGetValueAttrib(Ihandle* ih)
   for (pos=0, child = ih->firstchild; child; child = child->brother, pos++)
   {
     if (child == ih->data->value_handle) /* found child, just checking */
-      return IupGetName(ih->data->value_handle);
+      return IupGetName(ih->data->value_handle);  /* Name is guarantied at AddedMethod */
   }
 
   return NULL;

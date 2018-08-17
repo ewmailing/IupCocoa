@@ -13,6 +13,8 @@ extern "C"
 {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup table Hash Table
  * \par
  * The hash table can be indexed by strings or pointer address, 
@@ -49,7 +51,7 @@ typedef struct _Itable Itable;
 /** Creates a hash table with an initial default size.
  * This function is equivalent to iupTableCreateSized(0);
  * \ingroup table */
-Itable *iupTableCreate(Itable_IndexTypes indexType);
+IUP_EXPORTI Itable *iupTableCreate(Itable_IndexTypes indexType);
 
 /** Creates a hash table with the specified initial size.
  * Use this function if you expect the table to become very large.
@@ -63,7 +65,7 @@ Itable *iupTableCreateSized(Itable_IndexTypes indexType, unsigned int initialSiz
 /** Destroys the Itable.
  * Calls \ref iupTableClear.
  * \ingroup table */
-void iupTableDestroy(Itable *it);
+IUP_EXPORTI void iupTableDestroy(Itable *it);
 
 /** Removes all items in the table.
  * This function does also free the memory of strings contained in the table!!!!
@@ -76,7 +78,7 @@ int iupTableCount(Itable *it);
 
 /** Store an element in the table.
  * \ingroup table */
-void iupTableSet(Itable *it, const char *key, void *value, Itable_Types itemType);
+IUP_EXPORTI void iupTableSet(Itable *it, const char *key, void *value, Itable_Types itemType);
 
 /** Store a function pointer in the table.
  * Type is set to IUPTABLE_FUNCPOINTER.
@@ -113,11 +115,11 @@ void iupTableRemove(Itable *it, const char *key);
  * iupTableGetCurr() to access the value of the key
  * very fast.
  * \ingroup table */
-char *iupTableFirst(Itable *it);
+IUP_EXPORTI char *iupTableFirst(Itable *it);
 
 /** Key iteration function. See \ref iupTableNext.
  * \ingroup table */
-char *iupTableNext(Itable *it);
+IUP_EXPORTI char *iupTableNext(Itable *it);
 
 /** Returns the value at the current position.  \n
  * The current context is an iterator
@@ -127,7 +129,7 @@ char *iupTableNext(Itable *it);
  * at a key returned by iupTableNext(),
  * use this function instead of iupTableGet().
  * \ingroup table */
-void *iupTableGetCurr(Itable *it);
+IUP_EXPORTI void *iupTableGetCurr(Itable *it);
 
 /** Returns the type at the current position. \n
  * Same as \ref iupTableGetCurr but returns the type.
@@ -137,7 +139,7 @@ int iupTableGetCurrType(Itable *it);
 
 /** Replaces the data at the current position.
  * \ingroup table */
-void iupTableSetCurr(Itable *it, void* value, Itable_Types itemType);
+IUP_EXPORTI void iupTableSetCurr(Itable *it, void* value, Itable_Types itemType);
 
 /** Removes the current element and returns the next key.
  * Use this function to remove an element during an iteration.

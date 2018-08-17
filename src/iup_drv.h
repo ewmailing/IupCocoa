@@ -11,7 +11,8 @@
 extern "C" {
 #endif
 
-  
+#include "iup_export.h" 
+
 /** \defgroup drv Driver Interface 
  * \par
  * Each driver must export the symbols defined here.
@@ -47,7 +48,7 @@ int iupdrvIsVisible(Ihandle* ih);
 
 /** Returns true if the element is active.
  * \ingroup drv */
-int iupdrvIsActive(Ihandle* ih);
+IUP_EXPORTI int iupdrvIsActive(Ihandle* ih);
 
 /** Actually changes the focus to the given element.
  * \ingroup drv */
@@ -68,7 +69,7 @@ void iupdrvPostRedraw(Ihandle *ih);
 
 /** Force a redraw of a control and children.
  * \ingroup drv */
-void iupdrvRedrawNow(Ihandle *ih);
+IUP_EXPORTI void iupdrvRedrawNow(Ihandle *ih);
 
 /** Reparent the native control.
  * \ingroup drv */
@@ -82,11 +83,11 @@ void iupdrvReparent(Ihandle* ih);
  * - cairo_t in GTK3
  * When using CD, use the "GC" CD canvas attribute.
  * \ingroup drv */
-void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
+IUP_EXPORTI void iupdrvPaintFocusRect(Ihandle* ih, void* gc, int x, int y, int w, int h);
 
 /** Size of the scrollbar.
  * \ingroup drv */
-int iupdrvGetScrollbarSize(void);
+IUP_EXPORTI int iupdrvGetScrollbarSize(void);
 
 /** Activates a button or toggle.
  * \ingroup drv */
