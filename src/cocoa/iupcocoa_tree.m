@@ -1560,7 +1560,11 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	}
 	else
 	{
-		[outline_view reloadData];
+//		[outline_view reloadData];
+		NSInteger row_index = [outline_view rowForItem:tree_item];
+		NSIndexSet* row_index_set = [NSIndexSet indexSetWithIndex:row_index];
+		NSIndexSet* column_index_set = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [outline_view numberOfColumns])];
+		[outline_view reloadDataForRowIndexes:row_index_set columnIndexes:column_index_set];
 	}
 }
 
@@ -1744,10 +1748,11 @@ void iupdrvTreeUpdateMarkMode(Ihandle *ih)
 }
 
 
-
-void iupdrvTreeDragDropCopyNode(Ihandle* src, Ihandle* dst, InodeHandle *itemSrc, InodeHandle *itemDst)
+// TODO: I think this has something to do with drag-and-drop between two different trees
+void iupdrvTreeDragDropCopyNode(Ihandle* src, Ihandle* dst, InodeHandle* item_src, InodeHandle* item_dst)
 {
-	
+
+
 }
 
 static void cocoaTreeRemoveNodeDataRec(Ihandle* ih, IupCocoaTreeItem* tree_item, IFns cb, int* object_id)
