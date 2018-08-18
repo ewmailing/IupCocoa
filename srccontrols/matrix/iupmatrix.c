@@ -1991,7 +1991,7 @@ int iupMatrixGetScrollbarSize(Ihandle* ih)
 
 static void iMatrixComputeNaturalSizeMethod(Ihandle* ih, int *w, int *h, int *children_expand)
 {
-  int sb, sb_w = 0, sb_h = 0, full_width, full_height, border = 0;
+  int sb, sb_w = 0, sb_h = 0, full_width = 0, full_height = 0, border = 0;
   (void)children_expand; /* unset if not name container */
 
   sb = iupMatrixGetScrollbar(ih);

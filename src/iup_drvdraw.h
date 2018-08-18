@@ -12,6 +12,8 @@ extern "C"
 {
 #endif
 
+#include "iup_export.h"
+
 /** \defgroup drvdraw Driver Draw API
  * \par
  * See \ref iup_drvdraw.h
@@ -26,16 +28,16 @@ enum{ IUP_DRAW_FILL, IUP_DRAW_STROKE, IUP_DRAW_STROKE_DASH, IUP_DRAW_STROKE_DOT 
 
 /** Creates a draw canvas based on an IupCanvas.
  * This will create an image for offscreen drawing.
- * \ingroup drvdraw */
-IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih);
+ * \ingroup draw */
+IUP_EXPORTI IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih);
 
 /** Destroys the IdrawCanvas.
- * \ingroup drvdraw */
-void iupdrvDrawKillCanvas(IdrawCanvas* dc);
+ * \ingroup draw */
+IUP_EXPORTI void iupdrvDrawKillCanvas(IdrawCanvas* dc);
 
 /** Draws the ofscreen image on the screen.
  * \ingroup drvdraw */
-void iupdrvDrawFlush(IdrawCanvas* dc);
+IUP_EXPORTI void iupdrvDrawFlush(IdrawCanvas* dc);
 
 /** Rebuild the offscreen image if the canvas size has changed.
  * Automatically done in iupdrvDrawCreateCanvas.
@@ -43,43 +45,43 @@ void iupdrvDrawFlush(IdrawCanvas* dc);
 void iupdrvDrawUpdateSize(IdrawCanvas* dc);
 
 /** Returns the canvas size available for drawing.
- * \ingroup drvdraw */
-void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h);
+ * \ingroup draw */
+IUP_EXPORTI void iupdrvDrawGetSize(IdrawCanvas* dc, int *w, int *h);
 
 /** Draws a line.
- * \ingroup drvdraw */
-void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width);
+ * \ingroup draw */
+IUP_EXPORTI void iupdrvDrawLine(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width);
 
 /** Draws a filled/hollow rectangle.
  * \ingroup drvdraw */
-void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width);
+IUP_EXPORTI void iupdrvDrawRectangle(IdrawCanvas* dc, int x1, int y1, int x2, int y2, long color, int style, int line_width);
 
 /** Draws a filled/hollow arc.
- * \ingroup drvdraw */
-void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width);
+ * \ingroup draw */
+IUP_EXPORTI void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, double a2, long color, int style, int line_width);
 
 /** Draws a filled/hollow polygon.
  * points are arranged xyxyxy...
  * \ingroup drvdraw */
-void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int style, int line_width);
+IUP_EXPORTI void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int style, int line_width);
 
 /** Draws a text.
  * x,y is at left,top corner of the text.
  * \ingroup drvdraw */
-void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, int w, int h, long color, const char* font, int align);
+IUP_EXPORTI void iupdrvDrawText(IdrawCanvas* dc, const char* text, int len, int x, int y, int w, int h, long color, const char* font, int align);
 
 /** Draws an image.
  * x,y is at left,top corner of the image.
  * \ingroup drvdraw */
-void iupdrvDrawImage(IdrawCanvas* dc, const char* name, int make_inactive, int x, int y);
+IUP_EXPORTI void iupdrvDrawImage(IdrawCanvas* dc, const char* name, int make_inactive, int x, int y);
 
 /** Sets a rectangle clipping area.
- * \ingroup drvdraw */
-void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2);
+ * \ingroup draw */
+IUP_EXPORTI void iupdrvDrawSetClipRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2);
 
 /** Removes clipping.
  * \ingroup drvdraw */
-void iupdrvDrawResetClip(IdrawCanvas* dc);
+IUP_EXPORTI void iupdrvDrawResetClip(IdrawCanvas* dc);
 
 /** Draws a selection rectangle.
  * \ingroup drvdraw */

@@ -1,0 +1,127 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<title>IupFlatSeparator</title>
+
+<link rel="stylesheet" type="text/css" href="../../style.css">
+<style type="text/css">
+.style1 {
+	font-size: large;
+}
+</style>
+</head>
+<body>
+<div id="navigation">
+  <ul>
+    <li><a href="#Creation">Creation</a></li>
+    <li><a href="#Attributes">Attributes</a></li>
+    <li><a href="#Callbacks">Callbacks</a></li>
+    <li><a href="#Notes">Notes</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#SeeAlso">See Also</a></li>
+  </ul>
+</div>
+
+<h2>IupFlatSeparator <span class="style1">(since 3.25)</span></h2>
+<p>
+Creates an interface element that is a Separator, but it does not have native 
+decorations.</p>
+<p>
+It inherits from<span>&nbsp;</span><a href="http://webserver2.tecgraf.puc-rio.br/iup/en/elem/iupcanvas.html">IupCanvas</a>.</p>
+
+<h3><a name="Creation">Creation</a></h3>
+
+<pre>Ihandle* IupFlatSeparator(); [in C]
+iup.flatseparator{} -&gt; (<strong>ih</strong>: ihandle) [in Lua]
+flatseparator() [in LED]</pre>
+  <p>
+  <u>Returns:</u> the identifier of the 
+  created element, or NULL if an error occurs.</p>
+
+<h3><a name="Attributes">Attributes</a></h3>
+
+
+
+<p>Inherits all attributes and callbacks of the <a href="../elem/iupcanvas.html">IupCanvas</a>, 
+but redefines a few attributes.</p>
+
+
+<p><strong>BARSIZE</strong> (<font SIZE="3">non inheritable</font>): controls 
+the size of the separator in the opposite direction of its orientation. Default: 5.</p>
+<p><strong>COLOR</strong> (<font SIZE="3">non inheritable</font>): Changes the color of the
+  separator. The value should be given in &quot;R G B&quot; color style. 
+Default: &quot;192 192 192&quot;.</p>
+<p><strong>ORIENTATION</strong> (<font SIZE="3">non inheritable</font>): Indicates the orientation of 
+the separator. Possible values are &quot;VERTICAL&quot; or &quot;HORIZONTAL&quot;. Default: &quot;VERTICAL&quot;.</p>
+<p><a href="../attrib/iup_expand.html">EXPAND</a> (<font SIZE="3">non inheritable</font>): 
+Its behavior depends on the orientation. It will expand in the direction of the 
+separator, but occupying only the available space.</p>
+<p><strong>STYLE</strong> (<font SIZE="3">non inheritable</font>): The separator 
+appearance. Can be: "LINE", "SUNKENLINE", "DUALLINES", "GRIP" or "FILL". 
+Default: SUNKENLINE.</p>
+
+<blockquote>
+    <hr>
+</blockquote>
+
+  <p>
+<a href="../attrib/iup_font.html">FONT</a>,
+    <a href="../attrib/iup_size.html">SIZE</a>,
+<a href="../attrib/iup_rastersize.html">RASTERSIZE</a>,
+<a href="../attrib/iup_clientsize.html">CLIENTSIZE</a>, 
+	<a href="../attrib/iup_clientoffset.html">CLIENTOFFSET</a>, 
+	<a href="../attrib/iup_position.html">POSITION</a>, 
+<a href="../attrib/iup_minsize.html">
+MINSIZE</a>, <a href="../attrib/iup_maxsize.html">
+MAXSIZE</a>: 
+also accepted.</p>
+
+
+<h3><a name="Callbacks">Callbacks</a></h3>
+
+
+<p>Inherits all callbacks of the <a href="../elem/iupcanvas.html">IupCanvas</a>, 
+but redefines the ACTION callback.</p>
+
+
+<h3><a name="Notes">Notes</a></h3>
+
+
+<p>The <strong>IupFlatSeparator</strong> is used internally in
+<a href="iupsplit.html">IupSplit</a> (since 3.25). 
+</p>
+<h3><a name="Examples">Examples</a></h3>
+
+<p><a href="../../examples/">Browse for Example Files</a></p>
+
+<div align="center">
+  <center>
+  <table border="0" cellpadding="3" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111">
+    <tr>
+      <td height="20" align="right" class="style1">STYLE=LINE</td>
+      <td rowspan="5" align="center" bordercolor="#FFFFFF" class="style1">
+      <img border="0" src="images/iupflatseparator.png"></td>
+    </tr>
+    <tr>
+      <td height="10" align="right" class="style1">STYLE=SUNKENLINE</td>
+    </tr>
+    <tr>
+      <td height="52" align="right" class="style1">STYLE=DUALLINES</td>
+    </tr>
+    <tr>
+      <td height="51" align="right" class="style1">STYLE=GRIP</td>
+    </tr>
+    <tr>
+      <td height="51" align="right" class="style1">STYLE=FILL<br>COLOR="255 0 
+	  128"</td>
+    </tr>
+  </table>
+  </center>
+</div>
+
+<p>&nbsp;</p>
+
+</body>
+
+</html>

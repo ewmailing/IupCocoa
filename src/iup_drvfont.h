@@ -31,17 +31,17 @@ IUP_EXPORTI void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charhei
 
 /** Retrieve the string width for the selected font.
  * \ingroup drvfont */
-int iupdrvFontGetStringWidth(Ihandle* ih, const char* str);
+IUP_EXPORTI int iupdrvFontGetStringWidth(Ihandle* ih, const char* str);
 
 /** Retrieve the multi-lined string size for the selected font. \n
  * Width is the maximum line width. \n
  * Height is charheight*number_of_lines (this will avoid line size variations).
  * \ingroup drvfont */
-void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h);
+IUP_EXPORTI void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h);
 
 /** Same as \ref iupdrvFontGetMultiLineStringSize but not associated with a control. \n
 *\ingroup drvfont */
-void iupdrvFontGetTextSize(const char* font, const char* str, int *w, int *h);
+IUP_EXPORTI void iupdrvFontGetTextSize(const char* font, const char* str, int *w, int *h);
 
 /** Returns the System default font.
  * \ingroup drvfont */
@@ -49,7 +49,7 @@ char* iupdrvGetSystemFont(void);
 
 /** FONT attribute set function.
  * \ingroup drvfont */
-int iupdrvSetFontAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI int iupdrvSetFontAttrib(Ihandle* ih, const char* value);
 
 
 
@@ -60,7 +60,7 @@ char* iupGetFontValue(Ihandle* ih);
 /** Parse the font format description.
  * Returns a non zero value if successful.
  * \ingroup drvfont */
-int iupGetFontInfo(const char* font, char* typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout);
+IUP_EXPORTI int iupGetFontInfo(const char* font, char* typeface, int *size, int *is_bold, int *is_italic, int *is_underline, int *is_strikeout);
 
 /** Parse the Pango font format description.
  * Returns a non zero value if successful.

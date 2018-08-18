@@ -116,10 +116,8 @@ ifdef ALL_STATIC
     USE_IUPCONTROLS = Yes
     ifneq ($(findstring Win, $(TEC_SYSNAME)), )
       LIBS += iuplua_plot$(LUASFX) iup_plot cdgl cdcontextplus
-      LIBS += iupluamatrixex$(LUASFX) iupmatrixex
     else
       SLIB += $(IUP_LIB)/Lua$(LUASFX)/libiuplua_plot$(LUASFX).a $(IUP_LIB)/libiup_plot.a $(CD_LIB)/libcdgl.a $(CD_LIB)/libcdcontextplus.a
-      SLIB += $(IUP_LIB)/Lua$(LUASFX)/libiupluamatrixex$(LUASFX).a $(IUP_LIB)/libiupmatrixex.a
     endif
       
     ifndef IUPLUA_NO_IM

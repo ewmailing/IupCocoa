@@ -59,7 +59,7 @@ static int iFlatToggleRedraw_CB(Ihandle* ih)
   int notdef = iupStrEqualNoCase(iupAttribGet(ih, "VALUE"), "NOTDEF");
   int selected = (notdef) ? -1 : iupAttribGetInt(ih, "VALUE");
   char* fgcolor = iupAttribGetStr(ih, "FGCOLOR");
-  char* bgcolor = iupAttribGetStr(ih, "BGCOLOR");
+  char* bgcolor = iupAttribGet(ih, "BGCOLOR");
   char* bgimage = iupAttribGet(ih, "BACKIMAGE");
   char* fgimage = iupAttribGet(ih, "FRONTIMAGE");
   char* text_align = iupAttribGetStr(ih, "TEXTALIGNMENT");
@@ -502,10 +502,11 @@ static char* iFlatToggleGetCheckSpacingAttrib(Ihandle* ih)
   return iupStrReturnInt(ih->data->check_spacing);
 }
 
-static int iFlatToggleSetBgColorAttrib(Ihandle* ih, const char* value)
+static int iFlatToggleSetAttribPostRedraw(Ihandle* ih, const char* value)
 {
   (void)value;
-  iupdrvPostRedraw(ih);
+  if (ih->handle)
+    iupdrvPostRedraw(ih);
   return 1;
 }
 
@@ -776,7 +777,7 @@ Iclass* iupFlatToggleNewClass(void)
   iupClassRegisterAttribute(ic, "ACTIVE", iupBaseGetActiveAttrib, iFlatToggleSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
   /* Special */
-  iupClassRegisterAttribute(ic, "TITLE", NULL, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "TITLE", NULL, iFlatToggleSetAttribPostRedraw, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
 
   /* IupButton only */
   iupClassRegisterAttribute(ic, "VALUE", NULL, iFlatToggleSetValueAttrib, NULL, NULL, IUPAF_NO_INHERIT);
@@ -795,7 +796,7 @@ Iclass* iupFlatToggleNewClass(void)
   iupClassRegisterAttribute(ic, "BORDERHLCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "BORDERWIDTH", iFlatToggleGetBorderWidthAttrib, iFlatToggleSetBorderWidthAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, NULL, "DLGFGCOLOR", NULL, IUPAF_NOT_MAPPED);  /* force the new default value */
-  iupClassRegisterAttribute(ic, "BGCOLOR", iFlatToggleGetBgColorAttrib, iFlatToggleSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "BGCOLOR", iFlatToggleGetBgColorAttrib, iFlatToggleSetAttribPostRedraw, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_SAVE | IUPAF_DEFAULT);
   iupClassRegisterAttribute(ic, "HLCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
   iupClassRegisterAttribute(ic, "PSCOLOR", NULL, NULL, NULL, NULL, IUPAF_DEFAULT);  /* inheritable */
 
