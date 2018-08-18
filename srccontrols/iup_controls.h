@@ -12,11 +12,12 @@
 extern "C" {
 #endif
 
+#include "iupcontrols_export.h"
 
 Iclass* iupCellsNewClass(void);
 Iclass* iupMatrixNewClass(void);
 Iclass* iupMatrixListNewClass(void);
-Iclass* iupMatrixExNewClass(void);
+IUPCONTROLS_EXPORTI Iclass* iupMatrixExNewClass(void);
 
 char *iupControlBaseGetParentBgColor (Ihandle* ih);
 char *iupControlBaseGetBgColorAttrib(Ihandle* ih);

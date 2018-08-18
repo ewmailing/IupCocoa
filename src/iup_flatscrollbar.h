@@ -11,20 +11,21 @@
 extern "C" {
 #endif
 
+#include "iup_export.h"
 
-int iupFlatScrollBarCreate(Ihandle* ih);
-void iupFlatScrollBarRegister(Iclass* ic);
+IUP_EXPORTI int iupFlatScrollBarCreate(Ihandle* ih);
+IUP_EXPORTI void iupFlatScrollBarRegister(Iclass* ic);
 
-int iupFlatScrollBarGet(Ihandle* ih);
+IUP_EXPORTI int iupFlatScrollBarGet(Ihandle* ih);
                                                
-void iupFlatScrollBarSetChildrenCurrentSize(Ihandle* ih, int shrink);
-void iupFlatScrollBarSetChildrenPosition(Ihandle* ih);
+IUP_EXPORTI void iupFlatScrollBarSetChildrenCurrentSize(Ihandle* ih, int shrink);
+IUP_EXPORTI void iupFlatScrollBarSetChildrenPosition(Ihandle* ih);
 
-void iupFlatScrollBarWheelUpdate(Ihandle* ih, float delta);
-void iupFlatScrollBarMotionUpdate(Ihandle* ih, int x, int y);
+IUP_EXPORTI void iupFlatScrollBarWheelUpdate(Ihandle* ih, float delta);
+IUP_EXPORTI void iupFlatScrollBarMotionUpdate(Ihandle* ih, int x, int y);
 
 /* used only in IupFlatScrollBox */
-void iupFlatScrollBarSetPos(Ihandle *ih, int posx, int posy);
+IUP_EXPORTI void iupFlatScrollBarSetPos(Ihandle *ih, int posx, int posy);
 
 
 #ifdef __cplusplus

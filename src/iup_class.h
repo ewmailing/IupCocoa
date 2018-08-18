@@ -305,14 +305,14 @@ IUP_EXPORTI void iupClassRegisterAttributeId(Iclass* ic, const char* name,
 
 /** Same as \ref iupClassRegisterAttribute for attributes with two Ids.
  * \ingroup iclass */
-void iupClassRegisterAttributeId2(Iclass* ic, const char* name, 
+IUP_EXPORTI void iupClassRegisterAttributeId2(Iclass* ic, const char* name, 
                                            IattribGetId2Func get, 
                                            IattribSetId2Func set, 
                                            int flags);
 
 /** Returns the attribute handling functions, defaults and flags.
  * \ingroup iclass */
-void iupClassRegisterGetAttribute(Iclass* ic, const char* name, 
+IUP_EXPORTI void iupClassRegisterGetAttribute(Iclass* ic, const char* name, 
                                            IattribGetFunc *get, 
                                            IattribSetFunc *set, 
                                            const char* *default_value, 
@@ -321,15 +321,15 @@ void iupClassRegisterGetAttribute(Iclass* ic, const char* name,
 
 /** Replaces the attribute handling functions of an already registered attribute.
  * \ingroup iclass */
-void iupClassRegisterReplaceAttribFunc(Iclass* ic, const char* name, IattribGetFunc _get, IattribSetFunc _set);
+IUP_EXPORTI void iupClassRegisterReplaceAttribFunc(Iclass* ic, const char* name, IattribGetFunc _get, IattribSetFunc _set);
 
 /** Replaces the attribute handling default of an already registered attribute.
  * \ingroup iclass */
-void iupClassRegisterReplaceAttribDef(Iclass* ic, const char* name, const char* _default_value, const char* _system_default);
+IUP_EXPORTI void iupClassRegisterReplaceAttribDef(Iclass* ic, const char* name, const char* _default_value, const char* _system_default);
 
 /** Replaces the attribute handling functions of an already registered attribute.
  * \ingroup iclass */
-void iupClassRegisterReplaceAttribFlags(Iclass* ic, const char* name, int _flags);
+IUP_EXPORTI void iupClassRegisterReplaceAttribFlags(Iclass* ic, const char* name, int _flags);
 
 
 /** Register the parameters of a callback. \n
@@ -406,7 +406,7 @@ void iupClassObjectChildRemoved(Ihandle* ih, Ihandle* child, int pos);
 /** Calls \ref Iclass::LayoutUpdate method. 
  * \ingroup iclassobject
  */
-void iupClassObjectLayoutUpdate(Ihandle* ih);
+IUP_EXPORTI void iupClassObjectLayoutUpdate(Ihandle* ih);
 
 /** Calls \ref Iclass::ComputeNaturalSize method. 
  * \ingroup iclassobject
