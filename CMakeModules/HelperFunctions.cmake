@@ -216,16 +216,44 @@ function(HELPER_CREATE_LIBRARY library_name wants_build_shared_library wants_bui
 endfunction()
 
 # indirect_link_libs is for static libraries, where all dependencies must be explicitly linked 
-function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags exclude_from_all_target)
+function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs direct_link_libs indirect_link_libs c_flags link_flags exclude_from_all_target resource_file_list)
 	if(NOT ANDROID)
 	
 		if(exclude_from_all_target)
 			ADD_EXECUTABLE(${exe_name} WIN32 MACOSX_BUNDLE EXCLUDE_FROM_ALL
 				${source_file_list}
+				${resource_file_list}
 			)
 		else()
 			ADD_EXECUTABLE(${exe_name} WIN32 MACOSX_BUNDLE
 				${source_file_list}
+				${resource_file_list}				
+			)
+		endif()
+
+
+		if(is_using_shared_libs)
+			TARGET_LINK_LIBRARIES(${exe_name} ${direct_link_libs})
+		else()
+			TARGET_LINK_LIBRARIES(${exe_name} ${direct_link_libs} ${indirect_link_libs})
+		endif()
+
+		SET_TARGET_PROPERTIES(${exe_name} PROPERTIES
+			COMPILE_FLAGS "${c_flags}"
+			LINK_FLAGS "${link_flags}"
+		)
+
+	else()
+		# Android must build libraries that get loaded from the main Java app
+		if(exclude_from_all_target)
+			ADD_LIBRARY(${exe_name} SHARED EXCLUDE_FROM_ALL
+				${source_file_list}
+				${resource_file_list}
+			)
+		else()
+			ADD_LIBRARY(${exe_name} SHARED
+				${source_file_list}
+				${resource_file_list}				
 			)
 		endif()
 
@@ -242,6 +270,84 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 		)
 
 	endif()
+
+
+	# Copy resources
+	# Warning: This does not handle/preserve resources in subdirectories.
+	SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}")
+	IF(ANDROID)
+		IF(resource_file_list)
+			# WARNING: This only works if we've made an explicit target in the Gradle project for this.
+			# The Gradle target and directory must be named the same as exe_name
+			
+			# build/tmp/assets is defined in our build.gradle SourceSets
+			SET(target_resource_dir "${CMAKE_SOURCE_DIR}/Android/${exe_name}/build/tmp/assets")
+
+		ENDIF()
+	# TODO: Support GNUStep
+	ELSEIF(APPLE)
+		IF(IOS)
+			MESSAGE("Warning: iOS copy resources not implemented")
+			SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}.app")
+		ELSE()
+			SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}.app/Contents/Resources")
+		ENDIF()
+	ELSEIF(EMSCRIPTEN)
+		# Handled below
+	ENDIF()
+
+	# Emscripten needs a completely different solution than the other platforms
+	IF(EMSCRIPTEN)
+		# https://groups.google.com/forum/#!topic/emscripten-discuss/GZXkjXrq49U
+
+		# Generate the command line that must be passed to emcc linker to produce the given asset list.
+		set(assetBundleCmdLine "--use_preload_cache --no-heap-copy")
+		foreach(resource_file ${resource_file_list})
+			# This will extract the base_file_name including the extension
+			get_filename_component(base_file_name "${resource_file}" NAME)
+
+			set(assetBundleCmdLine "${assetBundleCmdLine} --preload-file \"${resource_file}@/${base_file_name}\"")
+		endforeach()
+
+		# Use a response file to store all the --preload-file directives so that windows max cmdline length limit won't be hit (there can be a lot of them!)
+		file(WRITE "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}_emcc_preload_file.rsp" "${assetBundleCmdLine}")
+		set(linkFlags "${linkFlags} \"@${CMAKE_BINARY_DIR}/${exe_name}_emcc_preload_file.rsp\"")
+		set_target_properties(${exe_name} PROPERTIES LINK_FLAGS "${linkFlags}")
+
+	ELSE()
+		FOREACH(resource_file ${resource_file_list})
+			# This will extract the base_file_name including the extension
+			get_filename_component(base_file_name "${resource_file}" NAME)
+
+			ADD_CUSTOM_COMMAND(TARGET ${exe_name} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E make_directory "${target_resource_dir}"
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${resource_file}"
+					"${target_resource_dir}/"
+				DEPENDS "${resource_file}"
+				COMMENT "Copying ${resource_file} to ${target_resource_dir}"
+			)
+
+#		add_custom_command(
+#				OUTPUT "${target_resource_dir}/${base_file_name}"
+#				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#					"${resource_file}"
+#					"${target_resource_dir}/"
+#				DEPENDS "${resource_file}"
+#				COMMENT "Copying ${resource_file} to ${target_resource_dir}"
+#		)
+
+			# files are only copied if a target depends on them
+			# I don't understand why it depends on the target directory file instead of the source directory file
+			# https://cmake.org/pipermail/cmake/2014-June/057989.html	
+#		add_custom_target("${exe_name}_resources" ALL 
+#			DEPENDS "${resource_file}"
+#			DEPENDS "${target_resource_dir}/${base_file_name}"
+#			COMMENT "${exe_name}_resources custom target for ${resource_file}"
+#		)
+#		ADD_DEPENDENCIES(${exe_name} "${exe_name}_resources")
+		ENDFOREACH()
+	ENDIF()
 
 endfunction()
 

@@ -56,6 +56,10 @@ ENDIF()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/" ${CMAKE_MODULE_PATH})
 INCLUDE(HelperFunctions)
+IF(APPLE)
+	# FIXME: Expand to support GNUStep
+	INCLUDE(HelperApple)
+ENDIF()
 
 OPTION(IUP_OPTION_LUA "Build Lua if available" ON)
 # I'm keeping this off by default for now, because of a cross-dependency problem of other iuplua* modules depending on symbols in iuplua.
@@ -740,6 +744,9 @@ ELSEIF(IUP_USE_ANDROID)
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupActivity.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupCommon.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jni_IupLaunchActivity.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jnicacheglobals.c
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jnicacheglobals.h
+		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_jnimacros.h
 		#${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_key.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_label.c
 		${CMAKE_SOURCE_DIR}/src/android/source/iupandroid_list.c
@@ -940,6 +947,19 @@ ELSEIF(IUP_USE_COCOA)
 	LIST(APPEND IUP_SOURCE_FILES
 		${IUP_COCOA_SOURCE_FILES}
 	)
+
+	LIST(APPEND IUP_COCOA_XIB_FILES 
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/CanonicalServiceMenu.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/CanonicalWindowMenu.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/IupCocoaOutlineView.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/IupMainMenu.xib
+		${CMAKE_SOURCE_DIR}/src/cocoa/xib/Base.lproj/IupTextSpinner.xib	
+	)
+
+	LIST(APPEND IUP_SOURCE_FILES
+		${IUP_COCOA_XIB_FILES}
+	)
+
 	# Not sure how to handle GNUStep
 	FIND_LIBRARY(APPLE_COCOA_LIBRARY Cocoa)
 	FIND_LIBRARY(APPLE_QUARTZCORE_LIBRARY QuartzCore)
@@ -1341,6 +1361,13 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}/src
 )
 HELPER_CREATE_LIBRARY(iup "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUP_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUP_FOREIGN_SOURCE_FILES}" "${IUP_LINK_LIBRARIES}" "${IUP_C_FLAGS}" "br.puc-rio.tecgraf.iup")
+IF(IUP_USE_COCOA)
+	# Reuse the Info.plist from the Xcode project
+	HELPERAPPLE_SET_INFOPLIST_FOR_FRAMEWORK(iup "${CMAKE_SOURCE_DIR}/Xcode/iup/iup/Info.plist" "${WANTS_BUILD_FRAMEWORK}")
+	# set_target_properties doesn't work correctly in CMake because it loses the localization directories
+	# set_target_properties(iup PROPERTIES RESOURCE "${IUP_COCOA_XIB_FILES}") 
+	HELPERIB_COMPILE_XIBS_INTO_FRAMEWORK("${IUP_COCOA_XIB_FILES}" iup "iup" "${WANTS_BUILD_FRAMEWORK}")
+ENDIF()
 
 HELPER_CREATE_LIBRARY(iupimglib "${WANTS_BUILD_SHARED_LIBRARY}" "${WANTS_BUILD_FRAMEWORK}" "${IUPIMGLIB_SOURCE_FILES}" "${IUP_PUBLIC_HEADERS}" "" "" "${IUPIMGLIB_FOREIGN_SOURCE_FILES}" "${IUPIMGLIB_LINK_LIBRARIES}" "${IUPIMGLIB_C_FLAGS}" "br.puc-rio.tecgraf.iupimglib")
 
@@ -1385,6 +1412,13 @@ if(IUP_SHOULD_BUILD_IUPWEB)
 			"${CMAKE_SOURCE_DIR}/srcweb"
 		)
 	ENDIF()
+
+
+	IF(IUP_USE_COCOA)
+		# Reuse the Info.plist from the Xcode project
+		HELPERAPPLE_SET_INFOPLIST_FOR_FRAMEWORK(iupweb "${CMAKE_SOURCE_DIR}/Xcode/iup/iupweb-Info.plist" "${WANTS_BUILD_FRAMEWORK}")
+	ENDIF()
+
 else()
 	MESSAGE("Not building iupweb")
 endif()
@@ -1393,7 +1427,7 @@ endif()
 # Decided to put everything in this CMakeLists.txt to make keeping in sync easier since this isn't official.
 #ADD_SUBDIRECTORY(test)
 
-function(BUILD_IUP_TEST exe_name source_list)
+function(BUILD_IUP_TEST exe_name source_list resource_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
 		if(NOT IUP_BUILD_TESTS)
@@ -1408,6 +1442,7 @@ function(BUILD_IUP_TEST exe_name source_list)
 			"${IUPEXE_C_FLAGS}"
 			"${IUPEXE_LINK_FLAGS}"
 			"${_should_exclude_from_all}"
+			"${resource_list}"
 		)
 
 		# This adds the current test to the aggregate target for tests
@@ -1415,7 +1450,7 @@ function(BUILD_IUP_TEST exe_name source_list)
 	endif()
 endfunction()
 
-function(BUILD_IUPIMGLIB_TEST exe_name source_list)
+function(BUILD_IUPIMGLIB_TEST exe_name source_list resource_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
 		if(NOT IUP_BUILD_TESTS)
@@ -1430,6 +1465,7 @@ function(BUILD_IUPIMGLIB_TEST exe_name source_list)
 			"${IUPEXE_C_FLAGS}"
 			"${IUPEXE_LINK_FLAGS}"
 			"${_should_exclude_from_all}"
+			"${resource_list}"
 		)
 
 		# This adds the current test to the aggregate target for tests
@@ -1437,7 +1473,7 @@ function(BUILD_IUPIMGLIB_TEST exe_name source_list)
 	endif()
 endfunction()
 
-function(BUILD_IUPWEB_TEST exe_name source_list)
+function(BUILD_IUPWEB_TEST exe_name source_list resource_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
 		if(NOT IUP_BUILD_TESTS)
@@ -1453,6 +1489,7 @@ function(BUILD_IUPWEB_TEST exe_name source_list)
 				"${IUPEXE_C_FLAGS}"
 				"${IUPEXE_LINK_FLAGS}"
 				"${_should_exclude_from_all}"
+				"${resource_list}"
 			)
 		endif()
 
@@ -1461,7 +1498,7 @@ function(BUILD_IUPWEB_TEST exe_name source_list)
 	endif()
 endfunction()
 
-function(BUILD_IUPCONTROLS_TEST exe_name source_list)
+function(BUILD_IUPCONTROLS_TEST exe_name source_list resource_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
 		if(NOT IUP_BUILD_TESTS)
@@ -1476,6 +1513,7 @@ function(BUILD_IUPCONTROLS_TEST exe_name source_list)
 			"${IUPEXE_C_FLAGS}"
 			"${IUPEXE_LINK_FLAGS}"
 			"${_should_exclude_from_all}"
+			"${resource_list}"
 		)
 
 		# This adds the current test to the aggregate target for tests
@@ -1483,7 +1521,7 @@ function(BUILD_IUPCONTROLS_TEST exe_name source_list)
 	endif()
 endfunction()
 
-function(BUILD_IUPLUA_TEST exe_name source_list)
+function(BUILD_IUPLUA_TEST exe_name source_list resource_list)
 	if(NOT ANDROID)
 		set(_should_exclude_from_all "")
 		if(NOT IUP_BUILD_TESTS)
@@ -1507,6 +1545,7 @@ function(BUILD_IUPLUA_TEST exe_name source_list)
 				"${IUPEXE_C_FLAGS}"
 				"${IUPEXE_LINK_FLAGS}"
 				"${_should_exclude_from_all}"
+				"${resource_list}"
 			)
 		endif()
 
@@ -1515,32 +1554,39 @@ function(BUILD_IUPLUA_TEST exe_name source_list)
 	endif()
 endfunction()
 
-BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c")
-BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c")
-BUILD_IUP_TEST(menu "${CMAKE_SOURCE_DIR}/html/examples/tests/menu.c")
-BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c")
-BUILD_IUP_TEST(tree "${CMAKE_SOURCE_DIR}/html/examples/tests/tree.c")
+BUILD_IUP_TEST(canvas "${CMAKE_SOURCE_DIR}/html/examples/tests/canvas.c" "")
+BUILD_IUP_TEST(hbox "${CMAKE_SOURCE_DIR}/html/examples/tests/hbox.c" "")
+BUILD_IUP_TEST(menu "${CMAKE_SOURCE_DIR}/html/examples/tests/menu.c" "")
+BUILD_IUP_TEST(timer "${CMAKE_SOURCE_DIR}/html/examples/tests/timer.c" "")
+BUILD_IUP_TEST(tree "${CMAKE_SOURCE_DIR}/html/examples/tests/tree.c" "")
+#BUILD_IUP_TEST(postmessage "${CMAKE_SOURCE_DIR}/html/examples/tests/postmessage.c" "")
 
 # Things with dependencies on iupimglib
-#BUILD_IUPIMGLIB_TEST(bigtest "${CMAKE_SOURCE_DIR}/html/examples/tests/bigtest.c")
-BUILD_IUPIMGLIB_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c")
-BUILD_IUPIMGLIB_TEST(flatbutton "${CMAKE_SOURCE_DIR}/html/examples/tests/flatbutton.c")
-BUILD_IUPIMGLIB_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c")
+#BUILD_IUPIMGLIB_TEST(bigtest "${CMAKE_SOURCE_DIR}/html/examples/tests/bigtest.c" "")
+BUILD_IUPIMGLIB_TEST(button "${CMAKE_SOURCE_DIR}/html/examples/tests/button.c" "")
+BUILD_IUPIMGLIB_TEST(flatbutton "${CMAKE_SOURCE_DIR}/html/examples/tests/flatbutton.c" "")
+
+LIST(APPEND label_resources
+	"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
+	"${CMAKE_SOURCE_DIR}/html/examples/tests/file_large.xbm"
+	"${CMAKE_SOURCE_DIR}/html/examples/tests/loading.gif"
+)
+BUILD_IUPIMGLIB_TEST(label "${CMAKE_SOURCE_DIR}/html/examples/tests/label.c" "${label_resources}")
 # depends on cdlib
 #BUILD_IUPIMGLIB_TEST(matrix_cbs "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix_cbs.c")
 
-BUILD_IUPWEB_TEST(webbrowser "${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c")
+BUILD_IUPWEB_TEST(webbrowser "${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c" "")
 
 # 7GUI: TODO: Need to handle bundling images.
-#BUILD_IUP_TEST(7gui_cells "${CMAKE_SOURCE_DIR}/html/en/7gui/cells.c") # needs IupControlsOpen, IupMatrix
-BUILD_IUP_TEST(7gui_circle_drawer "${CMAKE_SOURCE_DIR}/html/en/7gui/circle_drawer.c")
-BUILD_IUP_TEST(7gui_counter "${CMAKE_SOURCE_DIR}/html/en/7gui/counter.c")
-#BUILD_IUP_TEST(7gui_crud "${CMAKE_SOURCE_DIR}/html/en/7gui/crud.c") # compiler errors
-BUILD_IUP_TEST(7gui_flight_booker "${CMAKE_SOURCE_DIR}/html/en/7gui/flight_booker.c")
-BUILD_IUP_TEST(7gui_temperature_converter "${CMAKE_SOURCE_DIR}/html/en/7gui/temperature_converter.c")
-BUILD_IUP_TEST(7gui_timer "${CMAKE_SOURCE_DIR}/html/en/7gui/timer.c")
+#BUILD_IUP_TEST(7gui_cells "${CMAKE_SOURCE_DIR}/html/en/7gui/cells.c" "") # needs IupControlsOpen, IupMatrix
+BUILD_IUP_TEST(7gui_circle_drawer "${CMAKE_SOURCE_DIR}/html/en/7gui/circle_drawer.c" "")
+BUILD_IUP_TEST(7gui_counter "${CMAKE_SOURCE_DIR}/html/en/7gui/counter.c" "")
+#BUILD_IUP_TEST(7gui_crud "${CMAKE_SOURCE_DIR}/html/en/7gui/crud.c" "") # compiler errors
+BUILD_IUP_TEST(7gui_flight_booker "${CMAKE_SOURCE_DIR}/html/en/7gui/flight_booker.c" "")
+BUILD_IUP_TEST(7gui_temperature_converter "${CMAKE_SOURCE_DIR}/html/en/7gui/temperature_converter.c" "")
+BUILD_IUP_TEST(7gui_timer "${CMAKE_SOURCE_DIR}/html/en/7gui/timer.c" "")
 
-BUILD_IUPCONTROLS_TEST(matrix "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix.c")
+BUILD_IUPCONTROLS_TEST(matrix "${CMAKE_SOURCE_DIR}/html/examples/tests/matrix.c" "")
 
 function(BUILD_DEV_TEST exe_name source_list)
 	HELPER_CREATE_EXECUTABLE(${exe_name} 
@@ -1550,7 +1596,8 @@ function(BUILD_DEV_TEST exe_name source_list)
 		"${IUP_LINK_LIBRARIES}"
 		"${IUPEXE_C_FLAGS}"
 		"${IUPEXE_LINK_FLAGS}"
-		""
+		"" # exclude from all
+		"" # resource list
 	)
 endfunction()
 
@@ -1650,7 +1697,7 @@ IF(IUP_USE_LUA)
 		ENDIF()
 
 		# IupLua depends on IupWeb
-		BUILD_IUPLUA_TEST(lua_c_app "${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c")
+		BUILD_IUPLUA_TEST(lua_c_app "${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c" "")
 
 		IF(IUP_USE_ANDROID)
 			# Android Studio/Gradle lacks a mechanism to copy pre-built libraries to be bundled in the .apk,
@@ -1683,32 +1730,91 @@ elseif(IUP_USE_ANDROID)
 	# But we don't want the libMyIupProgram.so built when just building the AAR, otherwise it goes into the AAR.
 	# So the build.gradle is required to set -DIUP_ANDROID_BUILD_TEST_LIBRARY=1 when building the testapp.
 	IF(IUP_ANDROID_BUILD_TEST_LIBRARY)
-		add_library(MyIupProgram SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
+#		add_library(iuptestapp SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
+#		)
+#		target_link_libraries(iuptestapp iupimglib iup)
+
+		# if we need to bundle resources in the assets directory, list them here.
+		LIST(APPEND iuptestapp_resources
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/file_large.xbm"
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/loading.gif"
 		)
-		target_link_libraries(MyIupProgram iupimglib iup)
+		# This function knows to build libraries for Android. It also is aware of how to bundle our assets.
+		HELPER_CREATE_EXECUTABLE(iuptestapp 
+			"${CMAKE_SOURCE_DIR}/src/android/source/main_c.c"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupimglib;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			1 # "${_should_exclude_from_all}"
+			"${iuptestapp_resources}"
+		)
+
 	ENDIF()
 
 	IF(IUPWEB_ANDROID_BUILD_TEST_LIBRARY)
 
-		add_library(MyIupProgramWebBrowser SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+#		add_library(iuptestappwebbrowser SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+#		)
+#		target_link_libraries(iuptestappwebbrowser iupweb iup)
+
+		# if we need to bundle resources in the assets directory, list them here.
+		LIST(APPEND iuptestappwebbrowser_resources
+#			"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
 		)
-		target_link_libraries(MyIupProgramWebBrowser iupweb iup)
+		# This function knows to build libraries for Android. It also is aware of how to bundle our assets.
+		HELPER_CREATE_EXECUTABLE(iuptestappwebbrowser 
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupweb;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			1 # "${_should_exclude_from_all}"
+			"${iuptestappwebbrowser_resources}"
+		)
 
 	ENDIF()
 
 	# TODO: Need a new main.c launcher app to drive Lua programs. Also need to bundle Lua scripts.
 	IF(IUPLUA_ANDROID_BUILD_TEST_LIBRARY)
 
-		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c
+#		add_library(iuptestapplua SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c
+#		)
+#		IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
+#			target_link_libraries(iuptestapplua iupweb iup)
+#		ELSE()
+#			target_link_libraries(iuptestapplua ${IUPLUAWEB_LIBRARY_NAME} ${IUPLUA_LIBRARY_NAME} iupweb iup)
+#		ENDIF()
+
+
+		# if we need to bundle resources in the assets directory, list them here.
+		LIST(APPEND iuptestapplua_resources
+#			"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
 		)
 		IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
-			target_link_libraries(MyIupProgramLua iupweb iup)
+			SET(iuptestapplua_libs_to_link "${LUA_LIBRARY};iupweb;iup")
 		ELSE()
-			target_link_libraries(MyIupProgramLua ${IUPLUAWEB_LIBRARY_NAME} ${IUPLUA_LIBRARY_NAME} iupweb iup)
+			SET(iuptestapplua_libs_to_link "${LUA_LIBRARY};${IUPLUAWEB_LIBRARY_NAME};${IUPLUA_LIBRARY_NAME};iupweb;iup")
 		ENDIF()
+
+		# This function knows to build libraries for Android. It also is aware of how to bundle our assets.
+		HELPER_CREATE_EXECUTABLE(iuptestapplua 
+			"${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"${iuptestapplua_libs_to_link}"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			1 # "${_should_exclude_from_all}"
+			"${iuptestapplua_resources}"
+		)
+
 
 	ENDIF()
 
