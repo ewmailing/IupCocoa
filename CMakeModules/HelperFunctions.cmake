@@ -243,6 +243,32 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 			LINK_FLAGS "${link_flags}"
 		)
 
+	else()
+		# Android must build libraries that get loaded from the main Java app
+		if(exclude_from_all_target)
+			ADD_LIBRARY(${exe_name} SHARED EXCLUDE_FROM_ALL
+				${source_file_list}
+				${resource_file_list}
+			)
+		else()
+			ADD_LIBRARY(${exe_name} SHARED
+				${source_file_list}
+				${resource_file_list}				
+			)
+		endif()
+
+
+		if(is_using_shared_libs)
+			TARGET_LINK_LIBRARIES(${exe_name} ${direct_link_libs})
+		else()
+			TARGET_LINK_LIBRARIES(${exe_name} ${direct_link_libs} ${indirect_link_libs})
+		endif()
+
+		SET_TARGET_PROPERTIES(${exe_name} PROPERTIES
+			COMPILE_FLAGS "${c_flags}"
+			LINK_FLAGS "${link_flags}"
+		)
+
 	endif()
 
 
@@ -251,7 +277,12 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 	SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}")
 	IF(ANDROID)
 		IF(resource_file_list)
-			MESSAGE("Warning: Android copy resources not implemented")
+			# WARNING: This only works if we've made an explicit target in the Gradle project for this.
+			# The Gradle target and directory must be named the same as exe_name
+			
+			# build/tmp/assets is defined in our build.gradle SourceSets
+			SET(target_resource_dir "${CMAKE_SOURCE_DIR}/Android/${exe_name}/build/tmp/assets")
+
 		ENDIF()
 	# TODO: Support GNUStep
 	ELSEIF(APPLE)
@@ -262,11 +293,7 @@ function(HELPER_CREATE_EXECUTABLE exe_name source_file_list is_using_shared_libs
 			SET(target_resource_dir "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${exe_name}.app/Contents/Resources")
 		ENDIF()
 	ELSEIF(EMSCRIPTEN)
-		# MESSAGE("Warning: Emscripten copy resources not implemented")
-
-
-
-
+		# Handled below
 	ENDIF()
 
 	# Emscripten needs a completely different solution than the other platforms
