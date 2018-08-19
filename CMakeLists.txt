@@ -1708,32 +1708,91 @@ elseif(IUP_USE_ANDROID)
 	# But we don't want the libMyIupProgram.so built when just building the AAR, otherwise it goes into the AAR.
 	# So the build.gradle is required to set -DIUP_ANDROID_BUILD_TEST_LIBRARY=1 when building the testapp.
 	IF(IUP_ANDROID_BUILD_TEST_LIBRARY)
-		add_library(MyIupProgram SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
+#		add_library(iuptestapp SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/src/android/source/main_c.c
+#		)
+#		target_link_libraries(iuptestapp iupimglib iup)
+
+		# if we need to bundle resources in the assets directory, list them here.
+		LIST(APPEND iuptestapp_resources
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/file_large.xbm"
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/loading.gif"
 		)
-		target_link_libraries(MyIupProgram iupimglib iup)
+		# This function knows to build libraries for Android. It also is aware of how to bundle our assets.
+		HELPER_CREATE_EXECUTABLE(iuptestapp 
+			"${CMAKE_SOURCE_DIR}/src/android/source/main_c.c"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupimglib;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			1 # "${_should_exclude_from_all}"
+			"${iuptestapp_resources}"
+		)
+
 	ENDIF()
 
 	IF(IUPWEB_ANDROID_BUILD_TEST_LIBRARY)
 
-		add_library(MyIupProgramWebBrowser SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+#		add_library(iuptestappwebbrowser SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c
+#		)
+#		target_link_libraries(iuptestappwebbrowser iupweb iup)
+
+		# if we need to bundle resources in the assets directory, list them here.
+		LIST(APPEND iuptestappwebbrowser_resources
+#			"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
 		)
-		target_link_libraries(MyIupProgramWebBrowser iupweb iup)
+		# This function knows to build libraries for Android. It also is aware of how to bundle our assets.
+		HELPER_CREATE_EXECUTABLE(iuptestappwebbrowser 
+			"${CMAKE_SOURCE_DIR}/html/examples/tests/webbrowser.c"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"iupweb;iup"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			1 # "${_should_exclude_from_all}"
+			"${iuptestappwebbrowser_resources}"
+		)
 
 	ENDIF()
 
 	# TODO: Need a new main.c launcher app to drive Lua programs. Also need to bundle Lua scripts.
 	IF(IUPLUA_ANDROID_BUILD_TEST_LIBRARY)
 
-		add_library(MyIupProgramLua SHARED EXCLUDE_FROM_ALL
-			${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c
+#		add_library(iuptestapplua SHARED EXCLUDE_FROM_ALL
+#			${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c
+#		)
+#		IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
+#			target_link_libraries(iuptestapplua iupweb iup)
+#		ELSE()
+#			target_link_libraries(iuptestapplua ${IUPLUAWEB_LIBRARY_NAME} ${IUPLUA_LIBRARY_NAME} iupweb iup)
+#		ENDIF()
+
+
+		# if we need to bundle resources in the assets directory, list them here.
+		LIST(APPEND iuptestapplua_resources
+#			"${CMAKE_SOURCE_DIR}/html/examples/tests/tecgraf.bmp"
 		)
 		IF(IUP_OPTION_LUA_BUILD_AS_MODULES)
-			target_link_libraries(MyIupProgramLua iupweb iup)
+			SET(iuptestapplua_libs_to_link "${LUA_LIBRARY};iupweb;iup")
 		ELSE()
-			target_link_libraries(MyIupProgramLua ${IUPLUAWEB_LIBRARY_NAME} ${IUPLUA_LIBRARY_NAME} iupweb iup)
+			SET(iuptestapplua_libs_to_link "${LUA_LIBRARY};${IUPLUAWEB_LIBRARY_NAME};${IUPLUA_LIBRARY_NAME};iupweb;iup")
 		ENDIF()
+
+		# This function knows to build libraries for Android. It also is aware of how to bundle our assets.
+		HELPER_CREATE_EXECUTABLE(iuptestapplua 
+			"${CMAKE_SOURCE_DIR}/html/examples/lua_c_app/lua_app_main.c"
+			"${WANTS_BUILD_SHARED_LIBRARY}"
+			"${iuptestapplua_libs_to_link}"
+			"${IUP_LINK_LIBRARIES}"
+			"${IUPEXE_C_FLAGS}"
+			"${IUPEXE_LINK_FLAGS}"
+			1 # "${_should_exclude_from_all}"
+			"${iuptestapplua_resources}"
+		)
+
 
 	ENDIF()
 
