@@ -29,6 +29,18 @@
 
 #include "iupcocoatouch_drv.h"
 
+static UIView* cocoaTouchLabelGetRootView(Ihandle* ih)
+{
+	UIView* root_container_view = (UIView*)ih->handle;
+	return root_container_view;
+}
+
+static UIImageView* cocoaTouchLabelGetImageView(Ihandle* ih)
+{
+	UIView* root_container_view = cocoaTouchLabelGetRootView(ih);
+	NSCAssert([root_container_view isKindOfClass:[UIImageView class]], @"Expected UIImageView");
+	return (UIImageView*)root_container_view;
+}
 
 void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
 {
@@ -72,6 +84,60 @@ static char* cocoaLabelGetTitleAttrib(Ihandle* ih) {
 		}
 	}
 	return NULL;
+}
+
+
+
+static int cocoaTouchLabelSetImageAttrib(Ihandle* ih, const char* value)
+{
+	
+	if(ih->data->type == IUP_LABEL_IMAGE)
+	{
+		UIImageView* image_view = cocoaTouchLabelGetImageView(ih);
+		if(nil == image_view)
+		{
+			return 0;
+		}
+		
+		char* name;
+		int make_inactive = 0;
+		
+		if (iupdrvIsActive(ih))
+		{
+			make_inactive = 0;
+		}
+		else
+		{
+			name = iupAttribGet(ih, "IMINACTIVE");
+			if (!name)
+			{
+				make_inactive = 1;
+			}
+		}
+		
+		
+		UIImage* the_bitmap;
+		the_bitmap = iupImageGetImage(value, ih, make_inactive);
+		int width;
+		int height;
+		int bpp;
+		
+		iupdrvImageGetInfo(the_bitmap, &width, &height, &bpp);
+		
+		// FIXME: What if the width and height change? Do we change it or leave it alone?
+		CGSize new_size = CGSizeMake(width, height);
+		CGRect the_frame = [image_view frame];
+		the_frame.size = new_size;
+		[image_view setFrame:the_frame];
+
+		[image_view setImage:the_bitmap];
+		
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static int cocoaLabelMapMethod(Ihandle* ih)
@@ -276,7 +342,9 @@ void iupdrvLabelInitClass(Iclass* ic)
 #if 0
   /* IupLabel only */
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkLabelSetAlignmentAttrib, "ALEFT:ACENTER", NULL, IUPAF_NO_INHERIT);  /* force new default value */
-  iupClassRegisterAttribute(ic, "IMAGE", NULL, gtkLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#endif
+  iupClassRegisterAttribute(ic, "IMAGE", NULL, cocoaTouchLabelSetImageAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#if 0
   iupClassRegisterAttribute(ic, "PADDING", iupLabelGetPaddingAttrib, gtkLabelSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
 
   /* IupLabel GTK and Motif only */

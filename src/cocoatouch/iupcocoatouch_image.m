@@ -49,6 +49,11 @@ static int CalculateRowLength(int width, int bytes_per_pixel)
 	return pitch/bytes_per_pixel;
 }
 
+static void cocoaTouchCGDataProviderReleaseMallocPixelDataCallback(void* info, const void* data, size_t size)
+{
+	free((void*)data);
+}
+
 
 // FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
@@ -85,52 +90,170 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 }
 
 // FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
+// NOTE: Returns an UIImage with retain count of 1
 void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
 {
-#if 0
-  int x,y;
-  unsigned char *red,*green,*blue,*alpha;
-  void *theArray[1];
-  unsigned char *pixels = malloc(width*height*bpp);
-  theArray[0] = (void*)pixels;
-  int planesize = width*height;
-  red = imgdata;
-  green = imgdata+planesize;
-  blue = imgdata+2*planesize;
-  alpha = imgdata+3*planesize;
-  for(y=0;y<height;y++){
-    for(x=0;x<width;x++) {
-      *pixels++ = *red++;
-      *pixels++ = *green++;
-      *pixels++ = *blue++;
-      if(bpp==32)
-        *pixels++ = *alpha;
-    }
-  }
-	NSBitmapImageRep* theRep;
-	
-if(bpp==32)
-{
- theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-			pixelsWide:width pixelsHigh:height bitsPerSample:8
-				samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
-				bitsPerPixel:bpp];
-}
-else
-{
-	theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-												   pixelsWide:width pixelsHigh:height bitsPerSample:8
-											  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-											   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
-												 bitsPerPixel:bpp];
-}
-  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  [image addRepresentation:theRep];
-  return (void*)CFBridgingRetain(image);
-#else
-	return NULL;
-#endif
+	UIImage* ui_image = nil;
+
+
+	if(32 == bpp)
+	{
+		int row_length = CalculateRowLength(width, 4);
+		unsigned char* pixels = malloc(row_length*height*(32/8));
+		unsigned char* start_pixels = pixels; // we're going to iterate through pixels, but we also want to keep a pointer to the start
+		if(NULL == pixels)
+		{
+			return NULL;
+		}
+		unsigned char* source_pixel = imgdata;
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				if(bpp==32)
+				{
+					*pixels = *source_pixel;
+					pixels++;
+					source_pixel++;
+				}
+				else
+				{
+					*pixels = 255;
+					pixels++;
+				}
+			}
+		}
+
+
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+		CGBitmapInfo bitmap_info = kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast;//kCGBitmapByteOrderDefault;
+		CGDataProviderRef data_provider = CGDataProviderCreateWithData(NULL, start_pixels, row_length*height*bpp, &cocoaTouchCGDataProviderReleaseMallocPixelDataCallback);
+		CGImageRef cg_image = CGImageCreate(width, height, 8, 32, row_length*(32/8), color_space, bitmap_info, data_provider, NULL, false, kCGRenderingIntentDefault);
+		ui_image = [UIImage imageWithCGImage:cg_image];
+
+		CGColorSpaceRelease(color_space);
+        CGDataProviderRelease(data_provider);
+        CGImageRelease(cg_image);
+	}
+	else if(24 == bpp)
+	{
+		int row_length = CalculateRowLength(width, 3);
+		unsigned char* pixels = malloc(row_length*height*(24/8));
+		unsigned char* start_pixels = pixels; // we're going to iterate through pixels, but we also want to keep a pointer to the start
+		if(NULL == pixels)
+		{
+			return NULL;
+		}
+		unsigned char* source_pixel = imgdata;
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+			}
+		}
+
+
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+		CGBitmapInfo bitmap_info = kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast;//kCGBitmapByteOrderDefault;
+		CGDataProviderRef data_provider = CGDataProviderCreateWithData(NULL, start_pixels, row_length*height*bpp, &cocoaTouchCGDataProviderReleaseMallocPixelDataCallback);
+		CGImageRef cg_image = CGImageCreate(width, height, 8, 24, row_length*(24/8), color_space, bitmap_info, data_provider, NULL, false, kCGRenderingIntentDefault);
+		ui_image = [UIImage imageWithCGImage:cg_image];
+
+		CGColorSpaceRelease(color_space);
+        CGDataProviderRelease(data_provider);
+        CGImageRelease(cg_image);
+
+	}
+	else if(8 == bpp)
+	{
+		// We'll make a full 32-bit image for this case
+		int row_length = CalculateRowLength(width, 4);
+		unsigned char* pixels = malloc(row_length*height*(32/8));
+		unsigned char* start_pixels = pixels; // we're going to iterate through pixels, but we also want to keep a pointer to the start
+		if(NULL == pixels)
+		{
+			return NULL;
+		}	
+		unsigned char* source_pixel = imgdata;
+
+		int colors_count = 0;
+		iupColor colors[256];
+		
+		int has_alpha = false;
+
+		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char index = *source_pixel;
+				iupColor* c = &colors[index];
+
+				*pixels = c->r;
+				pixels++;
+				*pixels = c->g;
+				pixels++;
+				*pixels = c->b;
+				pixels++;
+
+				if(has_alpha)
+				{
+					*pixels = c->a;
+				}
+				else
+				{
+					*pixels = 255;
+				}
+				pixels++;
+				source_pixel++;
+
+			}
+		}
+
+
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+		CGBitmapInfo bitmap_info = kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast;//kCGBitmapByteOrderDefault;
+		CGDataProviderRef data_provider = CGDataProviderCreateWithData(NULL, start_pixels, row_length*height*bpp, &cocoaTouchCGDataProviderReleaseMallocPixelDataCallback);
+		CGImageRef cg_image = CGImageCreate(width, height, 8, 32, row_length*(32/8), color_space, bitmap_info, data_provider, NULL, false, kCGRenderingIntentDefault);
+		ui_image = [UIImage imageWithCGImage:cg_image];
+
+		CGColorSpaceRelease(color_space);
+        CGDataProviderRelease(data_provider);
+        CGImageRelease(cg_image);
+
+	}
+		
+	// The typical pattern is to call image = iupImageGetImage(),
+	// and then call [foo setImage:image];
+	// This might imply that we should return as autoreleased.
+	// But I think IUP is supposed to run iupdrvImageDestroy() if things are written correctly.
+	// That would mean we want to return with a retain count of 1
+	return [ui_image retain];
 }
 
 int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colors, int *colors_count)
@@ -142,193 +265,147 @@ int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colo
 }
 
 
-// NOTE: Returns an autoreleased NSImage.
+
+
+// NOTE: Returns an UIImage with retain count of 1
 void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive)
 {
-#if 0
-  int y, x, bpp, bgcolor_depend = 0,
-      width = ih->currentwidth,
-      height = ih->currentheight;
-  unsigned char *imgdata = (unsigned char*)iupAttribGetStr(ih, "WID");
-  unsigned char bg_r=0, bg_g=0, bg_b=0;
-  bpp = iupAttribGetInt(ih, "BPP");
-  iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
+	UIImage* ui_image = nil;
+	int bpp;
+	int width;
+	int height;
+	unsigned char* imgdata = (unsigned char*)iupAttribGetStr(ih, "WID");
 
-  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  if (!image)
-  {
-    return NULL;
-  }
-	
-	NSBitmapImageRep* bitmap_image = nil;
+	width = ih->currentwidth;
+	height = ih->currentheight;
+	bpp = iupAttribGetInt(ih, "BPP");
 
-	
+	unsigned char bg_r=0, bg_g=0, bg_b=0;
+	iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
+
+
 	if(32 == bpp)
 	{
-		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-														 pixelsWide:width pixelsHigh:height bitsPerSample:8
-													samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-													 colorSpaceName:NSDeviceRGBColorSpace
-															// I thought this should be 0 because I thought I want pre-multipled alpha, but some png's I'm testing render better with this flag.
-															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-														bytesPerRow:CalculateBytesPerRow(width, 4)
-													   bitsPerPixel:32
-						];
-	}
-	else if(24 == bpp)
-	{
-		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-															   pixelsWide:width pixelsHigh:height bitsPerSample:8
-														  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-														   colorSpaceName:NSDeviceRGBColorSpace
-															// untested
-															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-															  bytesPerRow:CalculateBytesPerRow(width, 3)
-													   bitsPerPixel:24
-						];
-	}
-	else if(8 == bpp)
-	{
-		
-		// We'll make a full 32-bit image for this case
-		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-															   pixelsWide:width pixelsHigh:height bitsPerSample:8
-														  samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-														   colorSpaceName:NSDeviceRGBColorSpace
-															// untested
-															bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-															  bytesPerRow:CalculateBytesPerRow(width, 4)
-													   bitsPerPixel:32
-						];
-		
-	}
-	else
-	{
-		[image release];
-		return NULL;
-	}
-	
-	
-	
-	if(32 == bpp)
-	{
-		//  unsigned char *red,*green,*blue,*alpha;
-		unsigned char* source_pixel;
-
-		//  unsigned char *pixels = malloc(width*height*bpp);
-		unsigned char *pixels = [bitmap_image bitmapData];
 		int row_length = CalculateRowLength(width, 4);
+		unsigned char* pixels = malloc(row_length*height*(32/8));
+		unsigned char* start_pixels = pixels; // we're going to iterate through pixels, but we also want to keep a pointer to the start
+		if(NULL == pixels)
+		{
+			return NULL;
+		}
+		unsigned char* source_pixel = imgdata;
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				if(make_inactive)
+				{
+					unsigned char r = *(pixels-3);
+					unsigned char g = *(pixels-2);
+					unsigned char b = *(pixels-1);
+					iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				}
+				if(bpp==32)
+				{
+					*pixels = *source_pixel;
+					pixels++;
+					source_pixel++;
+				}
+				else
+				{
+					*pixels = 255;
+					pixels++;
+				}
+			}
+		}
 
 
-		
-		source_pixel = imgdata;
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+		CGBitmapInfo bitmap_info = kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast;//kCGBitmapByteOrderDefault;
+		CGDataProviderRef data_provider = CGDataProviderCreateWithData(NULL, start_pixels, row_length*height*bpp, &cocoaTouchCGDataProviderReleaseMallocPixelDataCallback);
+		CGImageRef cg_image = CGImageCreate(width, height, 8, 32, row_length*(32/8), color_space, bitmap_info, data_provider, NULL, false, kCGRenderingIntentDefault);
+		ui_image = [UIImage imageWithCGImage:cg_image];
 
-		
-		  for(y=0;y<height;y++){
-			  for(x=0;x<row_length;x++) {
-				  /*
-				   *pixels++ = *red++;
-				   *pixels++ = *green++;
-				   *pixels++ = *blue++;
-				   */
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
-				  if(bpp==32)
-				  {
-			 //   *pixels++ = *alpha++;
-					  
-					  *pixels = *source_pixel;
-					  pixels++;
-					  source_pixel++;
-				  }
-				  else
-				  {
-					  //      *pixels++ = 255;
-					  
-					  *pixels = 255;
-					  pixels++;
-				  }
-			  }
-		  }
-
-		
-		
-		
-		
+		CGColorSpaceRelease(color_space);
+        CGDataProviderRelease(data_provider);
+        CGImageRelease(cg_image);
 	}
 	else if(24 == bpp)
 	{
-		//  unsigned char *red,*green,*blue,*alpha;
-		unsigned char* source_pixel;
-		
-		//  unsigned char *pixels = malloc(width*height*bpp);
-		unsigned char *pixels = [bitmap_image bitmapData];
-		
 		int row_length = CalculateRowLength(width, 3);
-		
-		source_pixel = imgdata;
-		
-		
-  for(y=0;y<height;y++){
-	  for(x=0;x<row_length;x++) {
-		  /*
-		   *pixels++ = *red++;
-		   *pixels++ = *green++;
-		   *pixels++ = *blue++;
-		   */
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  
-		  if(make_inactive) {
-			  unsigned char r = *(pixels-3),
-			  g = *(pixels-2),
-			  b = *(pixels-1);
-			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-		  }
+		unsigned char* pixels = malloc(row_length*height*(24/8));
+		unsigned char* start_pixels = pixels; // we're going to iterate through pixels, but we also want to keep a pointer to the start
+		if(NULL == pixels)
+		{
+			return NULL;
+		}
+		unsigned char* source_pixel = imgdata;
 
-		  
-	  }
-  }
-		
-		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+				*pixels = *source_pixel;
+				pixels++;
+				source_pixel++;
+
+
+				if(make_inactive)
+				{
+					unsigned char r = *(pixels-3);
+					unsigned char g = *(pixels-2);
+					unsigned char b = *(pixels-1);
+					iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				}
+
+
+			}
+		}
+
+
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+		CGBitmapInfo bitmap_info = kCGBitmapByteOrder32Big ;//kCGBitmapByteOrderDefault;
+		CGDataProviderRef data_provider = CGDataProviderCreateWithData(NULL, start_pixels, row_length*height*bpp, &cocoaTouchCGDataProviderReleaseMallocPixelDataCallback);
+		CGImageRef cg_image = CGImageCreate(width, height, 8, 24, row_length*(24/8), color_space, bitmap_info, data_provider, NULL, false, kCGRenderingIntentDefault);
+		ui_image = [UIImage imageWithCGImage:cg_image];
+
+		CGColorSpaceRelease(color_space);
+        CGDataProviderRelease(data_provider);
+        CGImageRelease(cg_image);
 
 	}
 	else if(8 == bpp)
 	{
-#if 1
-		//  unsigned char *red,*green,*blue,*alpha;
-		unsigned char* source_pixel;
-		
-		//  unsigned char *pixels = malloc(width*height*bpp);
-		unsigned char *pixels = [bitmap_image bitmapData];
-		
+		// We'll make a full 32-bit image for this case
 		int row_length = CalculateRowLength(width, 4);
+		unsigned char* pixels = malloc(row_length*height*(32/8));
+		unsigned char* start_pixels = pixels; // we're going to iterate through pixels, but we also want to keep a pointer to the start
+		if(NULL == pixels)
+		{
+			return NULL;
+		}	
+		unsigned char* source_pixel = imgdata;
 
 		int colors_count = 0;
 		iupColor colors[256];
@@ -336,86 +413,67 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		int has_alpha = iupImageInitColorTable(ih, colors, &colors_count);
 
 		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char index = *source_pixel;
+				iupColor* c = &colors[index];
 
-		
-		
-		
-		source_pixel = imgdata;
-		
-		
-		  for(y=0;y<height;y++){
-			  for(x=0;x<row_length;x++) {
+				*pixels = c->r;
+				pixels++;
+				*pixels = c->g;
+				pixels++;
+				*pixels = c->b;
+				pixels++;
 
-				  unsigned char index = *source_pixel;
-				  iupColor* c = &colors[index];
+				if(has_alpha)
+				{
+					*pixels = c->a;
+				}
+				else
+				{
+					*pixels = 255;
+				}
+				pixels++;
+				source_pixel++;
 
-				  *pixels = c->r;
-				  pixels++;
-				  *pixels = c->g;
-				  pixels++;
-				  *pixels = c->b;
-				  pixels++;
-				  
-				  if (has_alpha)
-				  {
-					  *pixels = c->a;
-				  }
-				  else
-				  {
-					  *pixels = 255;
-				  }
-				  pixels++;
-				  source_pixel++;
 
-				  
-				  
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
+				if(make_inactive)
+				{
+					unsigned char r = *(pixels-3);
+					unsigned char g = *(pixels-2);
+					unsigned char b = *(pixels-1);
+					iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
+				}				 
+			}
+		}
 
-				  
-				  
-				  /*
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
-				   */
-			  }
-		  }
-		
 
-		
-#endif
-		
+		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+		CGBitmapInfo bitmap_info = kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast;//kCGBitmapByteOrderDefault;
+		CGDataProviderRef data_provider = CGDataProviderCreateWithData(NULL, start_pixels, row_length*height*bpp, &cocoaTouchCGDataProviderReleaseMallocPixelDataCallback);
+		CGImageRef cg_image = CGImageCreate(width, height, 8, 32, row_length*(32/8), color_space, bitmap_info, data_provider, NULL, false, kCGRenderingIntentDefault);
+		ui_image = [UIImage imageWithCGImage:cg_image];
+
+		CGColorSpaceRelease(color_space);
+        CGDataProviderRelease(data_provider);
+        CGImageRelease(cg_image);
+
 	}
-	else
+		
+	int bgcolor_depend = 0;
+	if(bgcolor_depend || make_inactive)
 	{
-
-		
+		iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
 	}
-	
 
-	
-	
-  [image addRepresentation:bitmap_image];
-  if (bgcolor_depend || make_inactive)
-    iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
-
-//  return (void*)CFBridgingRetain(image);
-
-	// Doing an autorelease because the typical pattern is to call image = iupImageGetImage(),
+	// The typical pattern is to call image = iupImageGetImage(),
 	// and then call [foo setImage:image];
-	// It is easy to forget to release the image for Cocoa because the API doesn't use new/create/alloc in the name.
-	return [image autorelease];
-#else
-	return NULL;
-#endif
+	// This might imply that we should return as autoreleased.
+	// But I think IUP is supposed to run iupdrvImageDestroy() if things are written correctly.
+	// That would mean we want to return with a retain count of 1
+	return [ui_image retain];
 }
 
 void* iupdrvImageCreateIcon(Ihandle *ih)
@@ -547,7 +605,33 @@ void* iupdrvImageLoad(const char* name, int type)
   
   return (void*)CFBridgingRetain(image);
 #else
-	return NULL;
+    UIImage* ui_image;
+
+	NSString* bundle_path = [[NSBundle mainBundle] bundlePath];
+
+	NSString* ns_name = [NSString stringWithUTF8String:name];
+	
+	// Problem: The path either must be absolute, or it must be in the application bundle.
+	// TODO: We could also try to look elsewhere if we choose to, but beware of Sandboxing.
+	// Do we need to worry about images embedded in the IUP frameworks? (I think not because they are compiled into code.)
+	
+	// First, just try what was given. This could be an absolute path or current working directory.
+    ui_image = [[UIImage alloc] initWithContentsOfFile:ns_name];
+	if(nil == ui_image)
+	{
+		// Next, let's try the app bundle
+		NSString* resource_path = [[NSBundle mainBundle] resourcePath];
+		NSString* the_path = [resource_path stringByAppendingPathComponent:ns_name];
+   		ui_image = [[UIImage alloc] initWithContentsOfFile:the_path];
+	}
+	
+	// giving up
+	if(nil == ui_image)
+	{
+		return NULL;
+	}
+
+	return ui_image;
 #endif
 }
 
@@ -562,7 +646,27 @@ int iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp)
   if(h) *h = [bitmap pixelsHigh];
   if(bpp) *bpp = [bitmap bitsPerPixel];
 #endif
-  return 1;
+ 	UIImage* ui_image = (UIImage*)handle;
+	if(nil == ui_image)
+	{
+		return 0;
+	}
+	// Careful: Do we want points or pixels?
+	// [ui_image size] gives us points.
+	// Multiply the [ui_image scale] to convert to pixels.
+	// Or more directly, use CGImage to get pixels.
+	/*
+	CGSize image_size = [ui_image size];
+	CGPoint image_scale = [ui_image scale];
+	if(w) *w = image_size.width * image_scale;
+	if(h) *h = image_size.height * image_scale;
+	*/
+	CGImageRef cg_image = [ui_image CGImage];
+	if(w) *w = (int)CGImageGetWidth(cg_image);
+	if(h) *h = (int)CGImageGetHeight(cg_image);
+	if(bpp) *bpp = (int)CGImageGetBitsPerComponent(cg_image);
+
+	return 1;
 }
 
 // [[UIApplication sharedApplication] setApplicationIconImage: [NSImage imageNamed: @"Icon_name.icns"]]
@@ -587,7 +691,15 @@ void iupdrvImageDestroy(void* handle, int type)
     break;
   }
 #endif
+ 
+#else
+
+ 	UIImage* ui_image = (UIImage*)handle;
+	[ui_image release];
+	
 #endif
+
+
 }
 
 void iupdrvImageGetData(void* handle, unsigned char* imgdata)
