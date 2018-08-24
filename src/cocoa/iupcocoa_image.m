@@ -125,6 +125,11 @@ else
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
   [image addRepresentation:theRep];
 
+	// The typical pattern is to call image = iupImageGetImage(),
+	// and then call [foo setImage:image];
+	// This might imply that we should return as autoreleased.
+	// But I think IUP is supposed to run iupdrvImageDestroy() if things are written correctly.
+	// That would mean we want to return with a retain count of 1
 	return (void*)image;
 }
 
@@ -404,6 +409,12 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 
 	// I originally thought I needed to return an autoreleased image, but IUP is putting this into a handle with a destroy hook.
 	// And I was crashing in NSAutoreleasePool drain when autoreleasing this.
+	// Update:
+	// The typical pattern is to call image = iupImageGetImage(),
+	// and then call [foo setImage:image];
+	// This might imply that we should return as autoreleased.
+	// But I think IUP is supposed to run iupdrvImageDestroy() if things are written correctly.
+	// That would mean we want to return with a retain count of 1
 	return ns_image;
 }
 
