@@ -300,8 +300,8 @@ IF(IUP_USE_EMSCRIPTEN)
 	SET(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 	# IUP executables will always need this switch because IUP is event driven and doesn't quit when Emscripten tries to run/quit main().
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1")
-
+	# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1")
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/etc/iupemscripten_shell.html -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['cwrap']\" -s NO_EXIT_RUNTIME=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\",\"xpm\"]'")
 
 
 ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
