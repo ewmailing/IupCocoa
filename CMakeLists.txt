@@ -300,8 +300,8 @@ IF(IUP_USE_EMSCRIPTEN)
 	SET(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 	# IUP executables will always need this switch because IUP is event driven and doesn't quit when Emscripten tries to run/quit main().
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1")
-
+	# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1")
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/etc/iupemscripten_shell.html -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['cwrap']\" -s NO_EXIT_RUNTIME=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\",\"xpm\"]'")
 
 
 ELSEIF(WANTS_BUILD_SHARED_LIBRARY)
@@ -757,8 +757,10 @@ ELSEIF(IUP_USE_ANDROID)
 	)
 
 	FIND_LIBRARY(ANDROID_LOG_LIBRARY log)
+	FIND_LIBRARY(ANDROID_JNIGRAPHICS_LIBRARY jnigraphics)
 
 	LIST(APPEND IUP_LINK_LIBRARIES 
+			${ANDROID_JNIGRAPHICS_LIBRARY}
 			${ANDROID_LOG_LIBRARY}
 	)
 
@@ -1469,10 +1471,11 @@ function(BUILD_IUPWEB_TEST exe_name source_list resource_list)
 				"${_should_exclude_from_all}"
 				"${resource_list}"
 			)
-		endif()
 
-		# This adds the current test to the aggregate target for tests
-		ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+			# This adds the current test to the aggregate target for tests
+			ADD_DEPENDENCIES(${IUP_TESTS_CUSTOM_TARGET_NAME} ${exe_name})
+		endif()
+		
 	endif()
 endfunction()
 
