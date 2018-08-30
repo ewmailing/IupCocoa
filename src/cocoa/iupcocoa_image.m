@@ -222,48 +222,34 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		source_pixel = imgdata;
 
 		
-		  for(y=0;y<height;y++){
-			  for(x=0;x<row_length;x++) {
-				  /*
-				   *pixels++ = *red++;
-				   *pixels++ = *green++;
-				   *pixels++ = *blue++;
-				   */
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
-				  if(bpp==32)
-				  {
-			 //   *pixels++ = *alpha++;
-					  
-					  *pixels = *source_pixel;
-					  pixels++;
-					  source_pixel++;
-				  }
-				  else
-				  {
-					  //      *pixels++ = 255;
-					  
-					  *pixels = 255;
-					  pixels++;
-				  }
-			  }
-		  }
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+				unsigned char s_a = *source_pixel;
+				source_pixel++;
+
+				if(make_inactive)
+				{
+					iupImageColorMakeInactive(&s_r, &s_g, &s_b, bg_r, bg_g, bg_b);
+				}
+
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+			}
+		}
 
 		
 		
@@ -283,36 +269,32 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		source_pixel = imgdata;
 		
 		
-  for(y=0;y<height;y++){
-	  for(x=0;x<row_length;x++) {
-		  /*
-		   *pixels++ = *red++;
-		   *pixels++ = *green++;
-		   *pixels++ = *blue++;
-		   */
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  
-		  if(make_inactive) {
-			  unsigned char r = *(pixels-3),
-			  g = *(pixels-2),
-			  b = *(pixels-1);
-			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-		  }
 
-		  
-	  }
-  }
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+
+				if(make_inactive)
+				{
+					iupImageColorMakeInactive(&s_r, &s_g, &s_b, bg_r, bg_g, bg_b);
+				}
+
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+			}
+		}
+
 		
 		
 
@@ -341,51 +323,44 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		source_pixel = imgdata;
 		
 		
-		  for(y=0;y<height;y++){
-			  for(x=0;x<row_length;x++) {
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char index = *source_pixel;
+				iupColor* c = &colors[index];
 
-				  unsigned char index = *source_pixel;
-				  iupColor* c = &colors[index];
+				unsigned char s_r = c->r;
+				unsigned char s_g = c->g;
+				unsigned char s_b = c->b;
+				unsigned char s_a;
 
-				  *pixels = c->r;
-				  pixels++;
-				  *pixels = c->g;
-				  pixels++;
-				  *pixels = c->b;
-				  pixels++;
-				  
-				  if (has_alpha)
-				  {
-					  *pixels = c->a;
-				  }
-				  else
-				  {
-					  *pixels = 255;
-				  }
-				  pixels++;
-				  source_pixel++;
+				if(has_alpha)
+				{
+					s_a = c->a;
+				}
+				else
+				{
+					s_a = 255;
+				}
 
-				  
-				  
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
+				if(make_inactive)
+				{
+					iupImageColorMakeInactive(&s_r, &s_g, &s_b, bg_r, bg_g, bg_b);
+				}
 
-				  
-				  
-				  /*
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
-				   */
-			  }
-		  }
+
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;		 
+			}
+		}
+
 		
 
 		
