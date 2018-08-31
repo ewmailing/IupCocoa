@@ -357,7 +357,9 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 				*pixels = s_b;
 				pixels++;
 				*pixels = s_a;
-				pixels++;		 
+				pixels++;
+				
+				source_pixel++;
 			}
 		}
 

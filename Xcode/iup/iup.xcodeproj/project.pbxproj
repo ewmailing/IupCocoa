@@ -61,6 +61,7 @@
 		00BE4F941F4C9721002B7C86 /* iupweb.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00BE4F961F4CAB9A002B7C86 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */; };
 		00BE4F981F4CABE8002B7C86 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */; };
+		00C69C462138C1AD00E7F8B4 /* tecgraf.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 00C69C452138C1AC00E7F8B4 /* tecgraf.bmp */; };
 		00DECF472063834000FEF83B /* iup_flatlabel.c in Sources */ = {isa = PBXBuildFile; fileRef = 00DECF462063833F00FEF83B /* iup_flatlabel.c */; };
 		00E3A5F91B60578300BEC175 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		00E3A6001B60578300BEC175 /* iupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A5FF1B60578300BEC175 /* iupTests.m */; };
@@ -343,6 +344,7 @@
 		00BE4F8C1F4C96BD002B7C86 /* webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = webbrowser.c; path = ../../../html/examples/tests/webbrowser.c; sourceTree = "<group>"; };
 		00BE4F951F4CAB9A002B7C86 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		00BE4F971F4CABE8002B7C86 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		00C69C452138C1AC00E7F8B4 /* tecgraf.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; name = tecgraf.bmp; path = ../../../html/examples/tests/tecgraf.bmp; sourceTree = "<group>"; };
 		00DECF462063833F00FEF83B /* iup_flatlabel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatlabel.c; sourceTree = "<group>"; };
 		00E3A5ED1B60578300BEC175 /* iup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E3A5F11B60578300BEC175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -991,6 +993,7 @@
 		00E3A8F41B609B8700BEC175 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				00C69C452138C1AC00E7F8B4 /* tecgraf.bmp */,
 				00E3A8F51B609B8700BEC175 /* Info.plist */,
 				00E3A8F91B609B8700BEC175 /* main.c */,
 				6310AB301ED21DFF0075B168 /* TestImage.c */,
@@ -1338,6 +1341,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00C69C462138C1AD00E7F8B4 /* tecgraf.bmp in Resources */,
 				00E3A8FC1B609B8700BEC175 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
