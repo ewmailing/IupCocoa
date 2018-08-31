@@ -1578,7 +1578,7 @@ function(BUILD_DEV_TEST exe_name source_list)
 		"${IUPEXE_C_FLAGS}"
 		"${IUPEXE_LINK_FLAGS}"
 		"" # exclude from all
-		"" # resource list
+		"${label_resources}" # resource list
 	)
 endfunction()
 
