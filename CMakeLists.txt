@@ -837,6 +837,10 @@ ELSEIF(IUP_USE_COCOATOUCH)
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupcocoatouch_val.m
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.h
 		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupLaunchViewController.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupNavigationController.h
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupNavigationController.m
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupViewController.h
+		${CMAKE_SOURCE_DIR}/src/cocoatouch/IupViewController.m
 #		${CMAKE_SOURCE_DIR}/src/cocoatouch/iupmac_info.m
 	)
 
