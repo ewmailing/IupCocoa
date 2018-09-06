@@ -36,6 +36,8 @@
 
 #include "iupcocoatouch_drv.h"
 #include "IupAppDelegateProtocol.h"
+#include "IupViewController.h"
+#include "IupNavigationController.h"
 #include "IupLaunchViewController.h"
 
 /*
@@ -203,6 +205,10 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
+	// TODO: these are placeholder values
+	if(border) *border = 0;
+	if(caption) *caption = 0;
+	if(menu) *menu = 0;
 }
 
 int iupdrvDialogSetPlacement(Ihandle* ih)
@@ -335,39 +341,58 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 	// If we still have our placeholder class, time to replace it.
 	if([root_view_controller isKindOfClass:[IupLaunchViewController class]])
 	{
-		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		IupViewController* new_view_controller = [[[IupViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
 		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
 //		[root_view setBackgroundColor:[UIColor redColor]];
 		[root_view setBackgroundColor:[UIColor whiteColor]];
 		[new_view_controller setView:root_view];
+		[new_view_controller setIhandle:ih];
+		
+		
+		IupNavigationController* navigation_controller = [[[IupNavigationController alloc] initWithRootViewController:new_view_controller] autorelease];
+		[navigation_controller setIhandle:ih];
 
-		
-		
-		UINavigationController* navigation_controller = [[[UINavigationController alloc] initWithRootViewController:new_view_controller] autorelease];
-		
 		[the_window setRootViewController:navigation_controller];
 		
 		ih->handle = [new_view_controller retain];
+
+		ih->currentwidth = window_bounds.size.width;
+		ih->currentheight = window_bounds.size.height;
+		ih->naturalwidth = window_bounds.size.width;
+		ih->naturalheight = window_bounds.size.height;
+		
+		// It appears that our layout happenned before things are ready, so in our initial swap, the nav bar is missing which messes up the layout calculation.
+		// (EdgeInsets are 0).
+		// Try to force a recompute.
+		dispatch_async(dispatch_get_main_queue(),
+			^{
+				IupRefresh(ih);
+			}
+		);
 		
 	}
 	// This is the expected common case where we have replaced the root view controller with a navigation view controller
 	else if([root_view_controller isKindOfClass:[UINavigationController class]])
 	{
-		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		IupViewController* new_view_controller = [[[IupViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
 		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
 //		[root_view setBackgroundColor:[UIColor greenColor]];
 //		[root_view setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
 		[root_view setBackgroundColor:[UIColor whiteColor]];
+		[new_view_controller setIhandle:ih];
 
 		
 		[new_view_controller setView:root_view];
 	
-		[root_view_controller pushViewController:new_view_controller animated:YES];
+		[(UINavigationController*)root_view_controller pushViewController:new_view_controller animated:YES];
 
 		ih->handle = [new_view_controller retain];
-
+		ih->currentwidth = window_bounds.size.width;
+		ih->currentheight = window_bounds.size.height;
+		ih->naturalwidth = window_bounds.size.width;
+		ih->naturalheight = window_bounds.size.height;
 	}
 	// I'm not sure what to do here. But my thinking is it would be nice to support using Iup in existing iOS apps.
 	// So we need a convention where IUP code can be used within somebody else's application structure.
@@ -378,22 +403,27 @@ static int cocoaTouchDialogMapMethod(Ihandle* ih)
 	else
 	{
 		// swapping in a navigation controller for now
-		UIViewController* new_view_controller = [[[UIViewController alloc] init] autorelease];
+		IupViewController* new_view_controller = [[[IupViewController alloc] init] autorelease];
 		CGRect window_bounds = [[UIScreen mainScreen] bounds];
 		UIView* root_view = [[[UIView alloc] initWithFrame:window_bounds] autorelease];
 		[root_view setBackgroundColor:[UIColor whiteColor]];
 		[new_view_controller setView:root_view];
+		[new_view_controller setIhandle:ih];
+
 		
 		
-		
-		UINavigationController* navigation_controller = [[[UINavigationController alloc] initWithRootViewController:root_view_controller] autorelease];
+		IupNavigationController* navigation_controller = [[[IupNavigationController alloc] initWithRootViewController:(UINavigationController*)root_view_controller] autorelease];
 		
 		[the_window setRootViewController:navigation_controller];
-		
+		[navigation_controller setIhandle:ih];
+
 		ih->handle = [new_view_controller retain];
 
-		[root_view_controller pushViewController:new_view_controller animated:YES];
-
+		[(UINavigationController*)root_view_controller pushViewController:new_view_controller animated:YES];
+		ih->currentwidth = window_bounds.size.width;
+		ih->currentheight = window_bounds.size.height;
+		ih->naturalwidth = window_bounds.size.width;
+		ih->naturalheight = window_bounds.size.height;
 	}
 	
 #if 0

@@ -213,6 +213,46 @@ int iupCocoaTouchSetActiveAttrib(Ihandle* ih, int enabled)
 }
 
 
+// WARNING: It is impossible to refuse a resize on iOS. This must be documented for IUP.
+void iupCocoaTouchDoResize(Ihandle* ih, CGSize to_size, UIViewController* view_controller)
+{
+//	NSLog(@"resize current_ih:<%d,%d>, target:<%f,%f>", ih->currentwidth, ih->currentheight, frame_size.width, frame_size.height);
+//	NSLog(@"resize current_win:<%f,%f>", [the_sender frame].size.width, [the_sender frame].size.height);
+
+//	iupdrvDialogGetSize(ih, NULL, &(ih->currentwidth), &(ih->currentheight));
+
+	
+	
+//	ih->currentwidth = frame_size.width;
+//	ih->currentheight = frame_size.height;
+	
+	
+	IFnii cb;
+	cb = (IFnii)IupGetCallback(ih, "RESIZE_CB");
+	// FIXME: Are the parameters supposed to be the contentView or the entire window. The Windows code comments make me think contentView, but the actual code makes me think entire window. The latter is way easier to do.
+	if(!cb || cb(ih, to_size.width, to_size.height)!=IUP_IGNORE)
+	{
+		ih->currentwidth = iupROUND(to_size.width);
+		ih->currentheight = iupROUND(to_size.height);
+		
+//		ih->data->ignore_resize = 1;
+		IupRefresh(ih);
+//		ih->data->ignore_resize = 0;
+	}
+	else
+	{
+		// WARNING: It is impossible to refuse a resize on iOS.
+		NSLog(@"IUP_IGNORE not supported on iOS for RESIZE_CB");
+		ih->currentwidth = iupROUND(to_size.width);
+		ih->currentheight = iupROUND(to_size.height);
+		
+//		ih->data->ignore_resize = 1;
+		IupRefresh(ih);
+//		ih->data->ignore_resize = 0;
+	}
+	
+}
+
 
 #if 0
 int iupCocoaComputeCartesiaUIcreenHeightFromIup(int iup_height)
@@ -306,33 +346,60 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 */
 	
 	CGRect parent_rect = [parent_view frame];
+	CGRect the_rect;
+	CGFloat target_x;
+	CGFloat target_y;
+	CGFloat target_width;
+	CGFloat target_height;
 
-	CGFloat status_bar_height = [[UIApplication sharedApplication] statusBarFrame].size.height;
-
-	UINavigationController* navigation_controller = cocoaTouchFindCurrentRootNavigationViewController();
-	UINavigationBar* navigation_bar = [navigation_controller navigationBar];
-	CGFloat navigation_bar_height = 0.0;
-	if(![navigation_bar isHidden])
+	if([parent_view respondsToSelector:@selector(safeAreaInsets)])
 	{
-		navigation_bar_height = [navigation_bar frame].size.height;
+		// We need to handle iPhone X and the "safeArea".
+		// I think the navigation bar is included in the safeArea calcluation.
+		UIEdgeInsets safe_area = [parent_view safeAreaInsets];
+
+		// NOTE: I am not sure if the safe area computation should be done here or if the safe-value should be baked into the view controller's RESIZE_CB and pretend the safe area is the actual size.
+		// The advantage of the latter is our currentwidth/height calculations would be correct. I'm worried that other IUP mechanisms may make assumptions and read the currentwidth/height values directly which may result in bad layouts.
+		// But the advantage of the former (doing it here), is that if Apple puts safeArea info in any of the views (not just the viewcontroller), then we get this automatically handled.
+		// Additionally, we should be able to add an IUP Attribute that allows users to mark specific widgets to not worry about the safe area so they can utilize all the screen space.
+		// If we lie about the size of the view controller to only the safe-area, then this attribute feature will be more difficult to pull off.
+
+		the_rect = CGRectMake(
+			ih->x + safe_area.left,
+			ih->y + safe_area.top,
+			ih->currentwidth - safe_area.right - safe_area.left,
+			ih->currentheight - safe_area.bottom - safe_area.top
+		);
+	}
+	else
+	{
+		CGFloat status_bar_height = [[UIApplication sharedApplication] statusBarFrame].size.height;
+
+		UINavigationController* navigation_controller = cocoaTouchFindCurrentRootNavigationViewController();
+		UINavigationBar* navigation_bar = [navigation_controller navigationBar];
+		CGFloat navigation_bar_height = 0.0;
+		if(![navigation_bar isHidden])
+		{
+			navigation_bar_height = [navigation_bar frame].size.height;
+		}
+		
+		CGFloat total_height = status_bar_height + navigation_bar_height;
+
+		the_rect = CGRectMake(
+			ih->x,
+			ih->y + total_height,
+			ih->currentwidth,
+			ih->currentheight
+		);
 	}
 	
+
+
+
 	
-	CGFloat total_height = status_bar_height + navigation_bar_height;
 	
-//	total_height += 20.0;
 	
-#if 1
-	CGRect the_rect = CGRectMake(
-		ih->x,
-		ih->y + total_height,
-		ih->currentwidth,
-		ih->currentheight
-	);
-#else
-	CGRect the_rect = CGRectMake(0, 50, 70, 70);
-#endif
-	
+
 	[the_view setFrame:the_rect];
 //	[the_view setBounds:the_rect];
 	

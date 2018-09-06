@@ -13,8 +13,8 @@ but IUP's API isn't supposed to create anything until after the programmer says 
 */
 
 #import <UIKit/UIKit.h>
-#import "IupViewController.h"
 #include "iup.h"
 
-@interface IupLaunchViewController : IupViewController
+@interface IupNavigationController : UINavigationController
+@property(nonatomic, assign) Ihandle* ihandle;
 @end

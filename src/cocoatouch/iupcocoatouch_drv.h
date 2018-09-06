@@ -33,6 +33,8 @@ char* iupCocoaTouchGetBGColorAttrib(Ihandle* ih);
 
 int iupCocoaTouchSetActiveAttrib(Ihandle* ih, int enabled);
 
+void iupCocoaTouchDoResize(Ihandle* ih, CGSize to_size, UIViewController* view_controller);
+
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
 extern int iupmac_utf8autoconvert;         

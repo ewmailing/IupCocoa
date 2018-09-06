@@ -150,6 +150,8 @@
 		00BE503B1F4E1459002B7C86 /* webbrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 00BE50391F4E1436002B7C86 /* webbrowser.c */; };
 		00BE503C1F4E1462002B7C86 /* libiupweb.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BE50141F4E11CE002B7C86 /* libiupweb.a */; };
 		00BE503F1F4E1649002B7C86 /* iupcocoatouch_webbrowser.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BE503D1F4E1640002B7C86 /* iupcocoatouch_webbrowser.m */; };
+		00C69C492140777800E7F8B4 /* IupNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C69C482140777400E7F8B4 /* IupNavigationController.m */; };
+		00C69C4C214080FD00E7F8B4 /* IupViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C69C4A214080ED00E7F8B4 /* IupViewController.m */; };
 		6320A6F51E123DC600273302 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7A1E02913A009A8631 /* main.c */; };
 		6320A6F81E1247FD00273302 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB801E02913A009A8631 /* ViewController.m */; };
 		6320A6FA1E1247FD00273302 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070FB7D1E02913A009A8631 /* AppDelegate.m */; };
@@ -459,6 +461,10 @@
 		00BE50371F4E13BB002B7C86 /* webbrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "webbrowser-Info.plist"; path = "/Users/ewing/Source/GIT/IupMac/iupCocoaTouch/XcodeiOS/iup/webbrowser-Info.plist"; sourceTree = "<absolute>"; };
 		00BE50391F4E1436002B7C86 /* webbrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = webbrowser.c; path = ../../html/examples/tests/webbrowser.c; sourceTree = "<group>"; };
 		00BE503D1F4E1640002B7C86 /* iupcocoatouch_webbrowser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iupcocoatouch_webbrowser.m; sourceTree = "<group>"; };
+		00C69C472140777100E7F8B4 /* IupNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupNavigationController.h; sourceTree = "<group>"; };
+		00C69C482140777400E7F8B4 /* IupNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupNavigationController.m; sourceTree = "<group>"; };
+		00C69C4A214080ED00E7F8B4 /* IupViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupViewController.m; sourceTree = "<group>"; };
+		00C69C4B214080F000E7F8B4 /* IupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupViewController.h; sourceTree = "<group>"; };
 		6320A6F11E12114800273302 /* hbox.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hbox.c; sourceTree = "<group>"; };
 		6320A7061E1247FD00273302 /* HBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6320A70A1E12487C00273302 /* button.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = button.c; sourceTree = "<group>"; };
@@ -838,6 +844,10 @@
 				0070FB701E027A1F009A8631 /* IupAppDelegate.h */,
 				0070FB971E0BF4B6009A8631 /* IupAppDelegateProtocol.h */,
 				0070FB711E027A1F009A8631 /* IupAppDelegate.m */,
+				00C69C4B214080F000E7F8B4 /* IupViewController.h */,
+				00C69C4A214080ED00E7F8B4 /* IupViewController.m */,
+				00C69C472140777100E7F8B4 /* IupNavigationController.h */,
+				00C69C482140777400E7F8B4 /* IupNavigationController.m */,
 				0070FB941E0BEDCB009A8631 /* IupLaunchViewController.h */,
 				0070FB951E0BEDCB009A8631 /* IupLaunchViewController.m */,
 			);
@@ -1196,6 +1206,7 @@
 				0070FA8A1E025CEE009A8631 /* iupcocoatouch_open.m in Sources */,
 				0070FB1F1E025CEE009A8631 /* iup_timer.c in Sources */,
 				0070FAF11E025CEE009A8631 /* iup_flatbutton.c in Sources */,
+				00C69C4C214080FD00E7F8B4 /* IupViewController.m in Sources */,
 				0070FAF71E025CEE009A8631 /* iup_getparam.c in Sources */,
 				0070FADB1E025CEE009A8631 /* iup.c in Sources */,
 				0015BEB620733505004D70D5 /* iup_flattoggle.c in Sources */,
@@ -1205,6 +1216,7 @@
 				0070FAF91E025CEE009A8631 /* iup_gridbox.c in Sources */,
 				0070FA801E025CEE009A8631 /* iupcocoatouch_font.m in Sources */,
 				0070FAE01E025CEE009A8631 /* iup_box.c in Sources */,
+				00C69C492140777800E7F8B4 /* IupNavigationController.m in Sources */,
 				0070FB0D1E025CEE009A8631 /* iup_open.c in Sources */,
 				002CC4E41EA2D1740007C8E7 /* iup_flattabs.c in Sources */,
 				0070FA881E025CEE009A8631 /* iupcocoatouch_menu.m in Sources */,
