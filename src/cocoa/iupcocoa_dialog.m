@@ -1077,6 +1077,221 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 }
 
 
+/////////// NSStatusItem/Tray stuff
+// WARNING: NSStatusItem is not exactly a "tray" item, so maybe this should be moved to something else.
+// Issues:
+// - The IUP API ties this to a Dialog, but this should be a separate thing.
+// - NSStatusBar does allow for multiple NSStatusItems to be created.
+// However, this is extremely rare in practice and to prevent bad habits from forming because we get a separate instance for every dialog, we will only support 1.
+// - The NSStatusItem is expected to bring up a menu.
+// This is unlike what IUP is designed for and we will need to introduce a new attribute for that.
+// - Icons must be black and white, not color, for guidelines.
+// But Apple does allow color icons here.
+// (I heard the colored flags are required by law in some countries as it is illegal to change their representation.)
+// This is a constant porting problem where Windows centric devs don't bother to special case for Mac
+// and Mac users are stuck with an annoying color icon in their status bar.
+// So we will attempt to force to grayscale.
+// - Particularly for Yosemite 10.10, light/dark theme toggling must be black/white so Apple can attempt to auto-invert.
+// The old APIs for alternate image are deprecated. It doesn't seem like we should add another attribute to IUP for this legacy thing.
+
+// This global variable was declared in iupcocoa_open.m
+extern NSStatusItem* g_applicationStatusItem;
+static int cocoaDialogSetTrayAttrib(Ihandle* ih, const char* value)
+{
+	NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+	bool should_enable = (bool)iupStrBoolean(value);
+	if(should_enable)
+	{
+		if(nil == g_applicationStatusItem)
+		{
+			g_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
+			[g_applicationStatusItem retain];
+		}
+		[g_applicationStatusItem setVisible:YES];
+	}
+	else
+	{
+		[g_applicationStatusItem setVisible:NO];
+		// NOTE: We do not release our g_applicationStatusItem instance here.
+		// The reason is that if the user wants to re-enable it, we don't want to make them re-apply the menu and image.
+		// This also means we need to release the item on IupClose() before the autorelease pool is closed.
+//		[status_bar removeStatusItem:g_applicationStatusItem];
+	}
+
+	return 1;
+}
+
+static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
+{
+	NSImage* user_image = (NSImage*)iupImageGetIcon(value);
+	[user_image autorelease];
+	NSImageRep* user_image_rep = nil;
+
+	if(nil == g_applicationStatusItem)
+	{
+		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+		g_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
+		[g_applicationStatusItem retain];
+	}
+	
+	NSArray* array_of_representations = [user_image representations];
+
+	if([array_of_representations count] > 0)
+	{
+		user_image_rep = [array_of_representations objectAtIndex:0];
+	}
+
+	// We must scale the image to fix the statusbar.
+	NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+	CGFloat status_bar_height = [status_bar thickness];
+	// From this, it sounds like we should shrink by 4 pixels (thickess is 22, but real height is 21 so subtract 1. Then subtract 3 more for margins.)
+	NSSize target_image_size = NSMakeSize(status_bar_height-4, status_bar_height-4);
+	
+	
+	// I originally tried to convert the image to grayscale in hopes setTemplate:YES would work better with it.
+	// But in practice, it doesn't help and my template yields unusable results.
+	//
+#if 0
+	// A common problem I am anticipating from seeing other cross-platform kits, is that the Windows devs use a color icon and never test or realize that Mac is only supposed to have black & white icons.
+	// And the lazy factor never fixes this leading to a poor user experience for Mac users.
+	// So like it or not, I'm going to convert the image to grayscale.
+	if([user_image_rep respondsToSelector:@selector(bitmapImageRepByConvertingToColorSpace:renderingIntent:)])
+	{
+		// Assuming it is a NSBitmapImageRep
+		NSBitmapImageRep* image_rep = [(NSBitmapImageRep*)user_image_rep bitmapImageRepByConvertingToColorSpace:[NSColorSpace genericGrayColorSpace] renderingIntent:NSColorRenderingIntentDefault];
+
+	//	NSImage* icon_image = [[NSImage alloc] initWithSize:[image_rep size]];
+	
+
+		//  I think there is supposed to be 3 pixel margins.
+		NSImage* icon_image = [[NSImage alloc] initWithSize:target_image_size];
+		[icon_image autorelease];
+		[icon_image addRepresentation:image_rep];
+		
+		// 10.10 Yosemite introduces light/dark themes so we must make the icon handle both.
+		[icon_image setTemplate:YES];
+		// 10.10+ API
+		if([g_applicationStatusItem respondsToSelector:@selector(button)])
+		{
+			[[g_applicationStatusItem button] setImage:icon_image];
+		}
+		else
+		{
+			// pre 10.10 legacy path
+			[g_applicationStatusItem setImage:icon_image];
+			[g_applicationStatusItem setHighlightMode:YES];
+
+		}
+		
+	}
+	else
+	{
+		NSLog(@"Not sure what kind of image this is: %@", user_image);
+		// 10.10 Yosemite introduces light/dark themes so we must make the icon handle both.
+		[user_image setSize:target_image_size];
+		[user_image setTemplate:YES];
+		// 10.10+ API
+		if([g_applicationStatusItem respondsToSelector:@selector(button)])
+		{
+			[[g_applicationStatusItem button] setImage:user_image];
+		}
+		else
+		{
+			// pre 10.10 legacy path
+			[g_applicationStatusItem setImage:user_image];
+			[g_applicationStatusItem setHighlightMode:YES];
+
+		}
+	
+	}
+#else
+	
+	// So here we always take the image and use setTemplate:YES.
+	// Users are expected to provide only black & white images.
+	// If it is not, they will probably get a screwed up icon (maybe all black or all white).
+	// This is kind of a good thing. This will serve as a reminder that they need to provide a different image.
+	// This also may serve as a reminder that they need to set the menu too.
+
+	// 10.10 Yosemite introduces light/dark themes so we must make the icon handle both.
+	[user_image setSize:target_image_size];
+	[user_image setTemplate:YES];
+	
+	// 10.10+ API
+	if([g_applicationStatusItem respondsToSelector:@selector(button)])
+	{
+		[[g_applicationStatusItem button] setImage:user_image];
+	}
+	else
+	{
+		// pre 10.10 legacy path
+		[g_applicationStatusItem setImage:user_image];
+		[g_applicationStatusItem setHighlightMode:YES];
+
+	}
+#endif
+
+
+	return 1;
+}
+
+static Ihandle* s_applicationStatusItemMenuIh = NULL;
+
+// This returns the Ihandle* set via cocoaDialogSetTrayMenuAttrib
+static char* cocoaDialogGetTrayMenuAttrib(Ihandle* ih)
+{
+	return (char*)s_applicationStatusItemMenuIh;
+}
+
+static int cocoaDialogSetTrayMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+
+	if(nil == g_applicationStatusItem)
+	{
+		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+		g_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
+		[g_applicationStatusItem retain];
+	}
+	
+	// Unset the existing menu
+	if(NULL == menu_ih)
+	{
+		[g_applicationStatusItem setMenu:nil];
+		s_applicationStatusItemMenuIh = NULL;
+		return 1;
+	}
+
+	// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
+	// I think calling IupMap() is the correct thing to do and fixes the problem.
+	// But this should be reviewed.
+	if(NULL == menu_ih->handle)
+	{
+		IupMap(menu_ih);
+	}
+	
+	// Make sure we have an IupMenu
+	if(menu_ih->iclass->nativetype != IUP_TYPEMENU)
+	{
+		// call IUPASSERT?
+		return 0;
+	}
+	// Make sure we have a NSMenu
+	if(![(id)menu_ih->handle isKindOfClass:[NSMenu class]])
+	{
+		// call IUPASSERT?
+		return 0;
+	}
+
+
+	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
+	[g_applicationStatusItem setMenu:the_menu];
+	s_applicationStatusItemMenuIh = menu_ih;
+
+	return 1;
+}
+
+
+
 void iupdrvDialogInitClass(Iclass* ic)
 {
 	/* Driver Dependent Class methods */
@@ -1137,17 +1352,21 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "ACTIVEWINDOW", gtkDialogGetActiveWindowAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "TOPMOST", NULL, gtkDialogSetTopMostAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "DIALOGHINT", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-#if GTK_CHECK_VERSION(2, 12, 0)
 	iupClassRegisterAttribute(ic, "OPACITY", NULL, gtkDialogSetOpacityAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "OPACITYIMAGE", NULL, gtkDialogSetOpacityImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
-#if GTK_CHECK_VERSION(2, 10, 0)
-	iupClassRegisterAttribute(ic, "TRAY", NULL, gtkDialogSetTrayAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "TRAYIMAGE", NULL, gtkDialogSetTrayImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+
+	// TODO: Consider using different names because these are not going to work perfectly out of the box porting from other platforms.
+	// TRAYIMAGE specifically most likely needs to be a different image that is only black & white. (e.g. TRAYIMAGE_BW)
+	iupClassRegisterAttribute(ic, "TRAY", NULL, cocoaDialogSetTrayAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "TRAYIMAGE", NULL, cocoaDialogSetTrayImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "TRAYMENU", cocoaDialogGetTrayMenuAttrib, cocoaDialogSetTrayMenuAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+
+#if 0
 	iupClassRegisterAttribute(ic, "TRAYTIP", NULL, gtkDialogSetTrayTipAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "TRAYTIPMARKUP", NULL, NULL, IUPAF_SAMEASSYSTEM, NULL, IUPAF_NOT_MAPPED);
-#endif
-	
+
+
 	/* Not Supported */
 	iupClassRegisterAttribute(ic, "BRINGFRONT", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "COMPOSITED", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NOT_MAPPED);

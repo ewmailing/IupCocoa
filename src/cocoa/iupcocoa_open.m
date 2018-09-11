@@ -25,6 +25,9 @@
 static NSAutoreleasePool* s_autoreleasePool = nil;
 static IupAppDelegate* s_appDelegate = nil;
 
+// This is global so we can use it in iupcocoa_dialog.m
+NSStatusItem* g_applicationStatusItem = nil;
+
 #if 0
 char* iupmacGetNativeWindowHandle(Ihandle* ih)
 {
@@ -129,6 +132,12 @@ void iupdrvClose(void)
 	// My current understanding is that IUP will not clean up our application menu Ihandles. So we need to do it ourselves.
 	// By this point, IUP has already cleanup up all its pointers and our code is finally running.
 	iupCocoaMenuCleanupApplicationMenu();
+	
+	// We may have created a single global NSStatusItem in iupcocoa_dialog.m. We need to release it here so we can drain the autorelease pool.
+	NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+	[status_bar removeStatusItem:g_applicationStatusItem];
+	[g_applicationStatusItem release];
+	g_applicationStatusItem = nil;
 	
 	[s_appDelegate release];
 	s_appDelegate = nil;
