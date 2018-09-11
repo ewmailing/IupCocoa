@@ -20,7 +20,7 @@ int iupdrvBaseSetTipAttrib(Ihandle* ih, const char* value)
 {
 	id widget_handle = ih->handle;
 	NSView* the_view = nil;
-	if([widget_handle isKindOfClass:[NSView class]])
+	if([widget_handle respondsToSelector:@selector(setToolTip:)])
 	{
 		the_view = (NSView*)widget_handle;
 		
