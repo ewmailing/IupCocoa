@@ -249,6 +249,7 @@
 		00E8D72B1ED4E68200773764 /* IupTextSpinner.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00E8D7291ED4E68200773764 /* IupTextSpinner.xib */; };
 		00E8D72E1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */; };
 		00E8D72F1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */; };
+		00E93A672148754800BC6F5B /* TecgrafLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E93A662148754800BC6F5B /* TecgrafLogo.png */; };
 		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
@@ -550,6 +551,7 @@
 		00E8D72A1ED4E68200773764 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/IupTextSpinner.xib; sourceTree = "<group>"; };
 		00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUPTextSpinnerFilesOwner.h; sourceTree = "<group>"; };
 		00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IUPTextSpinnerFilesOwner.m; sourceTree = "<group>"; };
+		00E93A662148754800BC6F5B /* TecgrafLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = TecgrafLogo.png; path = ../../../html/examples/tutorial/TecgrafLogo.png; sourceTree = "<group>"; };
 		6310AB2D1ED21CE70075B168 /* ImageApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310AB301ED21DFF0075B168 /* TestImage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TestImage.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -993,6 +995,7 @@
 		00E3A8F41B609B8700BEC175 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				00E93A662148754800BC6F5B /* TecgrafLogo.png */,
 				00C69C452138C1AC00E7F8B4 /* tecgraf.bmp */,
 				00E3A8F51B609B8700BEC175 /* Info.plist */,
 				00E3A8F91B609B8700BEC175 /* main.c */,
@@ -1342,6 +1345,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00C69C462138C1AD00E7F8B4 /* tecgraf.bmp in Resources */,
+				00E93A672148754800BC6F5B /* TecgrafLogo.png in Resources */,
 				00E3A8FC1B609B8700BEC175 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
