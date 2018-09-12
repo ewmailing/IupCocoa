@@ -153,6 +153,17 @@ static char* cocoaCanvasGetDrawSizeAttrib(Ihandle *ih)
 	return iupStrReturnIntInt(w, h, 'x');
 }
 
+
+
+static int cocoaCanvasSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+ 	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
+	iupCocoaCommonBaseSetContextMenuForWidget(ih, canvas_view, menu_ih);
+
+	return 1;
+}
+
 static int cocoaCanvasMapMethod(Ihandle* ih)
 {
 	NSView* root_view = nil;
@@ -245,4 +256,7 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "BACKINGSTORE", NULL, NULL, "YES", NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "TOUCH", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
+
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaCanvasSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 }

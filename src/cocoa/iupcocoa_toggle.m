@@ -421,4 +421,7 @@ void iupdrvToggleInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "RIGHTToggle", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_DEFAULT);
 #endif
 	
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, iupCocoaCommonBaseSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 }

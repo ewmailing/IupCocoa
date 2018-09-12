@@ -592,6 +592,8 @@ static int cocoaLabelSetImageAttrib(Ihandle* ih, const char* value)
 	}
 }
 
+
+
 static int cocoaLabelMapMethod(Ihandle* ih)
 {
 	char* value;
@@ -847,6 +849,8 @@ void iupdrvLabelInitClass(Iclass* ic)
 #endif
 	
 
-	
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, iupCocoaCommonBaseSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 
 }

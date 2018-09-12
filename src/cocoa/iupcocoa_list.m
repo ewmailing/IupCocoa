@@ -1704,4 +1704,9 @@ void iupdrvListInitClass(Iclass* ic)
   /* Not Supported */
   iupClassRegisterAttribute(ic, "AUTOREDRAW", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
+
+	/* New API for view specific contextual menus (Mac only) */
+	// FIXME: NSTableView is going to require some work.
+//	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaListSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 }

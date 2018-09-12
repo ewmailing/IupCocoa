@@ -576,3 +576,90 @@ void iupdrvWarpPointer(int x, int y)
 {
 	
 }
+
+// Because we often have container views wrapping our core objects (e.g. scrollview wraps canvas, stackview wraps NSTextField)
+// this helper function lets us split out the ih from the widget, so we don't have to assume the widget is ih->handle.
+// So provide the ih, and provide the real core widget that provides [NSResponder setMenu:] that we should set.
+// The menu should be in menu_ih.
+void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_attach_menu_to, Ihandle* menu_ih)
+{
+	// Save the menu Ihandle in this widget's Ihandle so we can GetContextMenuAttrib
+	iupAttribSet(ih, "_COCOA_CONTEXT_MENU_IH", (const char*)menu_ih);
+
+
+	// Unset the existing menu
+	if(NULL == menu_ih)
+	{
+		if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
+		{
+			[ih_widget_to_attach_menu_to setMenu:nil];
+		}
+		return;
+	}
+
+	// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
+	// I think calling IupMap() is the correct thing to do and fixes the problem.
+	// But this should be reviewed.
+	if(NULL == menu_ih->handle)
+	{
+		IupMap(menu_ih);
+	}
+	
+	// Make sure we have an IupMenu
+	if(menu_ih->iclass->nativetype != IUP_TYPEMENU)
+	{
+		// call IUPASSERT?
+		return;
+	}
+	// Make sure we have a NSMenu
+	if(![(id)menu_ih->handle isKindOfClass:[NSMenu class]])
+	{
+		// call IUPASSERT?
+		return;
+	}
+
+
+	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
+	if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
+	{
+		// If the class provides a defaultMenu, we should merge those items with our menu
+		if([[ih_widget_to_attach_menu_to class] respondsToSelector:@selector(defaultMenu)])
+		{
+			NSMenu* default_menu = [[ih_widget_to_attach_menu_to class] defaultMenu];
+			if((default_menu != nil) && ([default_menu numberOfItems] > 0))
+			{
+				// Add a separator to separate the user's items from the default items
+				[the_menu addItem:[NSMenuItem separatorItem]];
+				
+				NSArray<NSMenuItem*>* item_array = [default_menu itemArray];
+				for(NSMenuItem* a_default_item in item_array)
+				{
+					// We have to copy the item otherwise Cocoa will complain that the same menu item is used in multiple places.
+					NSMenuItem* item_copy = [a_default_item copy];
+					[the_menu addItem:item_copy];
+					[item_copy release];
+				}
+			}
+		}
+	
+		[ih_widget_to_attach_menu_to setMenu:the_menu];
+	}
+
+}
+
+
+int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+	id ih_widget_to_attach_menu_to = ih->handle;
+	iupCocoaCommonBaseSetContextMenuForWidget(ih, ih_widget_to_attach_menu_to, menu_ih);
+	
+	return 1;
+}
+
+char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih)
+{
+	return (char*)iupAttribGet(ih, "_COCOA_CONTEXT_MENU_IH");
+}
+
+

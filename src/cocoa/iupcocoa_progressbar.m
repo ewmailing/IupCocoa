@@ -177,6 +177,14 @@ static int cocoaProgressBarSetMarqueeAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+static int cocoaProgressBarSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+	NSProgressIndicator* progress_bar = cocoaProgressBarGetProgressIndicator(ih);
+	iupCocoaCommonBaseSetContextMenuForWidget(ih, progress_bar, menu_ih);
+
+	return 1;
+}
 
 
 static int cocoaProgressBarMapMethod(Ihandle* ih)
@@ -375,4 +383,7 @@ void iupdrvProgressBarInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "DASHED",      NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
 	
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaProgressBarSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 }

@@ -1117,6 +1117,51 @@ static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
 	
 }
 
+/*
+static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+			
+			iupCocoaCommonBaseSetContextMenuForWidget(ih, text_view, menu_ih);
+
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSTextFieldCell* text_field_cell = [text_field cell];
+			iupCocoaCommonBaseSetContextMenuForWidget(ih, text_field_cell, menu_ih);
+
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	
+	
+	
+	return 1;
+}
+*/
+
 static int cocoaTextMapMethod(Ihandle* ih)
 {
 	NSView* the_view = nil;
@@ -1622,5 +1667,15 @@ void iupdrvTextInitClass(Iclass* ic)
   /* Not Supported */
   iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
-	
+
+	/* New API for view specific contextual menus (Mac only) */
+	/* I cannot figure out how to get this to work with TextField/TextView. I think this requires modifying the field editor.
+	I tried doing something like this in a couple of places, but it had no effect.
+	NSTextView* field_editor = [[self window] fieldEditor:NO forObject:nil];
+ 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(self, IHANDLE_ASSOCIATED_OBJ_KEY);
+	Ihandle* menu_ih = (Ihandle*)iupAttribGet(ih, "_COCOA_CONTEXT_MENU_IH");
+	[field_editor setMenu:menu_ih->handle];
+	*/
+//	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaTextSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 }
