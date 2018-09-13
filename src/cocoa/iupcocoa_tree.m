@@ -2369,8 +2369,9 @@ static int cocoaTreeSetExpandAllAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
-/*
-// FIXME: I don't think this is going to work.
+
+// TODO: Individual cells and maybe columns may be able to get their own context menus.
+// For now, we do the simple thing of applying a singular menu for the entire OutlineView.
 // Several ideas (unconfirmed):
 // - https://stackoverflow.com/questions/1309602/how-do-you-add-context-senstive-menu-to-nsoutlineview-ie-right-click-menu
 // - attach a menu to each cell view or row view
@@ -2381,10 +2382,9 @@ static int cocoaTreeSetContextMenuAttrib(Ihandle* ih, const char* value)
 	Ihandle* menu_ih = (Ihandle*)value;
 	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
 	iupCocoaCommonBaseSetContextMenuForWidget(ih, outline_view, menu_ih);
-
 	return 1;
 }
-*/
+
 
 static int cocoaTreeMapMethod(Ihandle* ih)
 {
@@ -2589,8 +2589,7 @@ void iupdrvTreeInitClass(Iclass* ic)
 #endif
 
 	/* New API for view specific contextual menus (Mac only) */
-	// FIXME: OutlineView is going to require some work.
-//	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaCanvasSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaTreeSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
 
 	helperLoadReplacementDefaultImages();
