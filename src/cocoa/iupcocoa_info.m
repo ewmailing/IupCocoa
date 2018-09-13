@@ -203,9 +203,10 @@ char *iupdrvGetSystemName(void)
 	 NSLog (@"productVersion =========== %@", productVersion);
 	 */
 	// Just give up and return "OS X", or should it be "OSX"?
-	
-	return "OS X";
-	
+
+// return "Msc OS X";
+//	return "OS X";
+	return "macOS";
 	
 #if 0
 	SInt32 systemVersion;
