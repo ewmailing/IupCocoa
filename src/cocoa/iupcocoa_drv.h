@@ -60,6 +60,8 @@ void iupCocoaMenuCleanupApplicationMenu(void);
 
 
 // This is for NSResponder context menus. (I expect new modules will want to call these.)
+IUP_EXPORTI void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu);
+IUP_EXPORTI void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget);
 IUP_EXPORTI void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_attach_menu_to, Ihandle* menu_ih);
 IUP_EXPORTI int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value);
 IUP_EXPORTI char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih);

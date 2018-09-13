@@ -577,6 +577,36 @@ void iupdrvWarpPointer(int x, int y)
 	
 }
 
+// This will copy all the menu items provided by src_menu and append them into dst_menu with a separator.
+void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu)
+{
+	if((src_menu != nil) && ([src_menu numberOfItems] > 0))
+	{
+		// Add a separator to separate the user's items from the default items
+		[dst_menu addItem:[NSMenuItem separatorItem]];
+		
+		NSArray<NSMenuItem*>* item_array = [src_menu itemArray];
+		for(NSMenuItem* a_default_item in item_array)
+		{
+			// We have to copy the item otherwise Cocoa will complain that the same menu item is used in multiple places.
+			NSMenuItem* item_copy = [a_default_item copy];
+			[dst_menu addItem:item_copy];
+			[item_copy release];
+		}
+	}
+}
+
+// This will copy all the menu items provided by the class's defaultMenu and append them into dst_menu with a separator.
+void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget)
+{
+	// If the class provides a defaultMenu, we should merge those items with our menu
+	if([class_of_widget respondsToSelector:@selector(defaultMenu)])
+	{
+		NSMenu* default_menu = [class_of_widget defaultMenu];
+		iupCocoaCommonBaseAppendMenuItems(dst_menu, default_menu);
+	}
+}
+
 // Because we often have container views wrapping our core objects (e.g. scrollview wraps canvas, stackview wraps NSTextField)
 // this helper function lets us split out the ih from the widget, so we don't have to assume the widget is ih->handle.
 // So provide the ih, and provide the real core widget that provides [NSResponder setMenu:] that we should set.
@@ -622,26 +652,7 @@ void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_atta
 	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
 	if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
 	{
-		// If the class provides a defaultMenu, we should merge those items with our menu
-		if([[ih_widget_to_attach_menu_to class] respondsToSelector:@selector(defaultMenu)])
-		{
-			NSMenu* default_menu = [[ih_widget_to_attach_menu_to class] defaultMenu];
-			if((default_menu != nil) && ([default_menu numberOfItems] > 0))
-			{
-				// Add a separator to separate the user's items from the default items
-				[the_menu addItem:[NSMenuItem separatorItem]];
-				
-				NSArray<NSMenuItem*>* item_array = [default_menu itemArray];
-				for(NSMenuItem* a_default_item in item_array)
-				{
-					// We have to copy the item otherwise Cocoa will complain that the same menu item is used in multiple places.
-					NSMenuItem* item_copy = [a_default_item copy];
-					[the_menu addItem:item_copy];
-					[item_copy release];
-				}
-			}
-		}
-	
+		iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(the_menu, [ih_widget_to_attach_menu_to class]);
 		[ih_widget_to_attach_menu_to setMenu:the_menu];
 	}
 
