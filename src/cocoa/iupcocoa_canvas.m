@@ -26,6 +26,8 @@
 #include "iup_drvfont.h"
 #include "iup_canvas.h"
 #include "iup_key.h"
+#include "iup_class.h" // needed for iup_classbase.h
+#include "iup_classbase.h" // iupROUND
 
 #include "iupcocoa_drv.h"
 
@@ -82,6 +84,73 @@
 	}
 	CGContextRestoreGState(cg_context);
 }
+
+
+- (void) mouseDown:(NSEvent*)the_event
+{
+	[super mouseDown:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+}
+
+- (void) mouseDragged:(NSEvent*)the_event
+{
+	[super mouseDragged:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+}
+
+- (void) mouseUp:(NSEvent*)the_event
+{
+	[super mouseUp:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+}
+
+// I learned that if I don't call super, the context menu doesn't activate.
+- (void) rightMouseDown:(NSEvent*)the_event
+{
+	[super rightMouseDown:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+}
+
+- (void) rightMouseDragged:(NSEvent*)the_event
+{
+	[super rightMouseDragged:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+}
+
+- (void) rightMouseUp:(NSEvent*)the_event
+{
+	[super rightMouseUp:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+}
+
+- (void) otherMouseDown:(NSEvent*)the_event
+{
+	[super otherMouseDown:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+}
+
+- (void) otherMouseDragged:(NSEvent*)the_event
+{
+	[super otherMouseDragged:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+}
+
+- (void) otherMouseUp:(NSEvent*)the_event
+{
+	[super otherMouseUp:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+}
+
+
 @end
 
 

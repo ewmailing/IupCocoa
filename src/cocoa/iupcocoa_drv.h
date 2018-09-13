@@ -59,6 +59,11 @@ Ihandle* iupCocoaMenuGetApplicationMenu(void);
 void iupCocoaMenuCleanupApplicationMenu(void);
 
 
+// Helper functions for implementing the mouseDown/mouseUp, mouseDragged family of functions.
+IUP_EXPORTI int iupCocoaCommonBaseIupButtonForCocoaButton(NSInteger which_cocoa_button);
+IUP_EXPORTI void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed);
+IUP_EXPORTI void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
+
 // This is for NSResponder context menus. (I expect new modules will want to call these.)
 IUP_EXPORTI void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu);
 IUP_EXPORTI void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget);

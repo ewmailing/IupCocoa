@@ -659,6 +659,108 @@ void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_atta
 }
 
 
+int iupCocoaCommonBaseIupButtonForCocoaButton(NSInteger which_cocoa_button)
+{
+	if(0 == which_cocoa_button)
+	{
+		return IUP_BUTTON1;
+	}
+	else if(1 == which_cocoa_button) // right
+	{
+		return IUP_BUTTON3;
+	}
+	else if(2 == which_cocoa_button) // middle
+	{
+		return IUP_BUTTON2;
+	}
+	else
+	{
+		// NOTE: IUP_BUTTON are ASCII values.
+		return (int)(which_cocoa_button + 0x30);
+	}
+}
+
+void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed)
+{
+	IFniiiis callback_function;
+
+
+	callback_function = (IFniiiis)IupGetCallback(ih, "BUTTON_CB");
+	if(callback_function)
+	{
+	    // We must convert the mouse event locations from the window coordinate system to the
+		// local view coordinate system.
+		NSPoint the_point = [the_event locationInWindow];
+		NSPoint converted_point = [represented_view convertPoint:the_point fromView:nil];
+
+		// We must flip the y to go from Cartesian to IUP
+		NSRect view_frame = [represented_view frame];
+		CGFloat inverted_y = view_frame.size.height - converted_point.y;
+
+		// Button 0 is left
+		// Button 1 is right
+		// Button 2 is middle
+		// Button 3 keeps going
+		NSInteger which_cocoa_button = [the_event buttonNumber];
+		char mod_status = 0; // FIXME: Implement this!
+
+		if([the_event modifierFlags] & NSControlKeyMask)
+		{
+			// Should Ctrl-Left-click be a right click?
+			if(0 == which_cocoa_button)
+			{
+				which_cocoa_button = 1; // make right button
+			}
+		}
+		else if([the_event modifierFlags] & NSAlternateKeyMask)
+		{
+
+		}
+		else if([the_event modifierFlags] & NSCommandKeyMask)
+		{
+		}
+		else
+		{
+		}
+		
+		int which_iup_button = iupCocoaCommonBaseIupButtonForCocoaButton(which_cocoa_button);
+	
+		NSLog(@"Iup mouse button callback: <x,y>=<%f, %f, %f>, is_pressed=%d, button_num:%d", converted_point.x, converted_point.y, inverted_y, is_pressed, which_iup_button);
+
+	
+		int callback_result = callback_function(ih, which_iup_button, is_pressed, iupROUND(converted_point.x), iupROUND(inverted_y), &mod_status);
+		if(IUP_CLOSE == callback_result)
+		{
+			IupExitLoop();
+		}
+	}
+}
+void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view)
+{
+	IFniis callback_function;
+	callback_function = (IFniis)IupGetCallback(ih, "MOTION_CB");
+	if(callback_function)
+	{
+	    // We must convert the mouse event locations from the window coordinate system to the
+		// local view coordinate system.
+		NSPoint the_point = [the_event locationInWindow];
+		NSPoint converted_point = [represented_view convertPoint:the_point fromView:nil];
+		
+		// We must flip the y to go from Cartesian to IUP
+		NSRect view_frame = [represented_view frame];
+		CGFloat inverted_y = view_frame.size.height - converted_point.y;
+		char mod_status = 0; // FIXME: Implement this!
+
+	
+		int callback_result = callback_function(ih,  iupROUND(converted_point.x), iupROUND(inverted_y), &mod_status);
+		if(IUP_CLOSE == callback_result)
+		{
+			IupExitLoop();
+		}
+	}
+}
+
+
 int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value)
 {
 	Ihandle* menu_ih = (Ihandle*)value;
