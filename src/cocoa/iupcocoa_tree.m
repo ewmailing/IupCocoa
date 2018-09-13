@@ -232,13 +232,59 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	[collapsedImage release];
 	[super dealloc];
 }
+//find which keys are being pressed from the_event object. You will then map these to the Iup keycodes.
+//You invoke the user callback (3), following the usual Iup invoke callback conventions. This too should eventually be factored in a way we can call this for all widgets.
 
+//Then check the return value (4).
 // TODO: k_any
 - (void) keyDown:(NSEvent*)the_event
 {
+    // calls keyDown method from parent class
+    [super keyDown:the_event];
+    // gets ihandle
+    Ihandle* ih = [self ih];
 	NSLog(@"keyDown: %@", the_event);
-	[super keyDown:the_event];
-	
+    
+    // turn event info into NSString
+    NSString* character_string = [the_event characters];
+    NSLog(@"keydown string: %@", character_string);
+    
+    // forces NSString to convert to ASCII-equivalent, if possible (lossy conversion)
+    NSData* convert_to_data = [character_string dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    // get ascii string as NSString to use NSString methods on it
+    NSString* ascii_string = [[[NSString alloc] initWithData: convert_to_data encoding:NSASCIIStringEncoding] autorelease];
+    NSLog(@"ascii string: %@", ascii_string);
+    char ascii_char = 0;
+    unichar fallback_char = 0;
+    // store result of key callback
+    int cb_result = 0;
+    
+    if([ascii_string length] > 0)
+    {
+        unichar first_char = [ascii_string characterAtIndex:0];
+        ascii_char = (char)first_char;
+        int cb_val = 0xFF80 | ascii_char;
+        cb_result = iupKeyCallKeyCb(ih, cb_val);
+    }
+    else if([character_string length] > 0)
+    {
+        // FIXME: figure out what we should do here
+        // are we going to change the spec?
+        // or formalize and figure out what an official solution should be?
+        fallback_char = [character_string characterAtIndex:0];
+        cb_result = iupKeyCallKeyCb(ih, fallback_char);
+    }
+    NSLog(@"ascii_char: %c", ascii_char);
+
+    if (cb_result == IUP_CLOSE)
+    {
+        IupExitLoop();
+        return;
+    }
+    if (cb_result == IUP_IGNORE)
+    {
+        return;
+    }
 }
 
 @end
