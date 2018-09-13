@@ -162,6 +162,36 @@ static NSView* cocoaListGetBaseWidget(Ihandle* ih)
 
 }
 
+// The sole reason was subclass NSComboBox is so we can suppor the contextual menu
+@interface IupCocoaComboBox : NSComboBox
+- (NSMenu *)textView:(NSTextView *)text_view menu:(NSMenu *)the_menu forEvent:(NSEvent *)the_event atIndex:(NSUInteger)char_index;
+@end
+
+@implementation IupCocoaComboBox
+// WARNING: This was the only way I could figure out how to correctly override the contextual menu for NSTextField.
+// I tried setting the menu (on demand) of the field editor, but I ended up getting lots of missing items.
+// I tried creating my own field editor and setting a custom delegate for this method on it, but it never got invoked. I think Cocoa may ignore my delegate when used as a field editor.
+// I found a mention on the internet that vaguely suggested subclassing NSTextField and implementing this method.
+// I have not found documentation about this method in NSTextField, only as a delegate protocol for NSTextView.
+// This might mean this is private API so this may have to be disabled.
+- (NSMenu *)textView:(NSTextView *)text_view menu:(NSMenu *)the_menu forEvent:(NSEvent *)the_event atIndex:(NSUInteger)char_index
+{
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(self, IHANDLE_ASSOCIATED_OBJ_KEY);
+	Ihandle* menu_ih = (Ihandle*)iupAttribGet(ih, "_COCOA_CONTEXT_MENU_IH");
+	if(NULL != menu_ih)
+	{
+		NSMenu* user_menu = (NSMenu*)menu_ih->handle;
+		iupCocoaCommonBaseAppendMenuItems(the_menu, user_menu);
+		// It appears that Cocoa may append "Services" after our entries if something is selected, so we want another separator.
+		NSRange selected_range = [text_view selectedRange];
+		if(selected_range.length > 0)
+		{
+			[the_menu addItem:[NSMenuItem separatorItem]];
+		}
+	}
+	return the_menu;
+}
+@end
 
 
 @interface IupCocoaListPopupButtonReceiver : NSObject
@@ -1251,6 +1281,82 @@ int start, end;
   return NULL;
 }
 
+static int cocoaListSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+	
+	
+	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOALISTSUBTYPE_DROPDOWN:
+		{
+			// We can't support this. This doesn't work. It replaces the contents of the dropdown menu with the contextual menu.
+			// Official documentation on @property menu:
+			// "Overrides behavior of NSView.  This is the menu for the popup, not a context menu.  PopUpButtons do not have context menus."
+//			NSPopUpButton* popup_button = (NSPopUpButton*)cocoaListGetBaseWidget(ih);
+//			iupCocoaCommonBaseSetContextMenuForWidget(ih, popup_button, menu_ih);
+			NSLog(@"WARNING: CONTEXTMENU not available for DROPDOWN (NSPopUpButton)");
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
+		{
+			// I don't know how to support this. This gets into the field editor problem.
+			// I only was able to solve the NSTextField by overriding a special method callback directly in a subclass instead of using the field editor's NSTextView delegate (which didn't work for field editors).
+			// I might be able to subclass the NSComboBox because it is a NSTextField, but I'm worried it may intefere with the dropdown part like with NSPopUpButton.
+			NSComboBox* combo_box = (NSComboBox*)cocoaListGetBaseWidget(ih);
+			// We can't use iupCocoaCommonBaseSetContextMenuForWidget() because field editors are shared.
+			// We will override textView:menu:forEvent:atIndex: and inject the menu options there.
+			if(NULL != menu_ih)
+			{
+				// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
+				// I think calling IupMap() is the correct thing to do and fixes the problem.
+				// But this should be reviewed.
+				if(NULL == menu_ih->handle)
+				{
+					IupMap(menu_ih);
+				}
+			}
+			
+			// We use the same trick as we do with NSTextField in IupText.
+			// Save the menu_ih so we can access it in the callback
+			iupAttribSet(ih, "_COCOA_CONTEXT_MENU_IH", (const char*)menu_ih);
+			
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_MULTIPLELIST:
+		{
+			
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			iupCocoaCommonBaseSetContextMenuForWidget(ih, table_view, menu_ih);
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_SINGLELIST:
+		{
+			NSTableView* table_view = (NSTableView*)cocoaListGetBaseWidget(ih);
+			iupCocoaCommonBaseSetContextMenuForWidget(ih, table_view, menu_ih);
+
+			
+			
+			break;
+		}
+		case IUPCOCOALISTSUBTYPE_EDITBOX:
+		{
+			NSLog(@"WARNING: CONTEXTMENU not available for EDITBOX");
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return 1;
+}
+
 
 /*
 // I might be able to avoid using this.
@@ -1414,7 +1520,7 @@ static int cocoaListMapMethod(Ihandle* ih)
 		case IUPCOCOALISTSUBTYPE_EDITBOXDROPDOWN:
 		{
 			// NSComboBox height is very specific. This number (30) plus the stuff going on in iupdrvListAddBorders affects the final height.
-			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSComboBox, kIupCocoaDefaultHeightNSComboBox)];
+			NSComboBox* combo_box = [[IupCocoaComboBox alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSComboBox, kIupCocoaDefaultHeightNSComboBox)];
 //			NSComboBox* combo_box = [[NSComboBox alloc] initWithFrame:NSZeroRect];
 			// WEIRD: I am getting a smaller font size (12 instead of 13) when creating programmatically instead of Interface Builder.
 			// Explicitly setting to 13.0 here fixes that. 0.0 is slightly off and causes the vertical alignment to be too low and if you select-drag, the text will scroll by 1 pixel.
@@ -1704,4 +1810,9 @@ void iupdrvListInitClass(Iclass* ic)
   /* Not Supported */
   iupClassRegisterAttribute(ic, "AUTOREDRAW", NULL, NULL, IUPAF_SAMEASSYSTEM, "Yes", IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
+
+	/* New API for view specific contextual menus (Mac only) */
+	// FIXME: NSTableView is going to require some work.
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaListSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 }

@@ -26,6 +26,8 @@
 #include "iup_drvfont.h"
 #include "iup_canvas.h"
 #include "iup_key.h"
+#include "iup_class.h" // needed for iup_classbase.h
+#include "iup_classbase.h" // iupROUND
 
 #include "iupcocoa_drv.h"
 
@@ -82,6 +84,73 @@
 	}
 	CGContextRestoreGState(cg_context);
 }
+
+
+- (void) mouseDown:(NSEvent*)the_event
+{
+	[super mouseDown:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+}
+
+- (void) mouseDragged:(NSEvent*)the_event
+{
+	[super mouseDragged:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+}
+
+- (void) mouseUp:(NSEvent*)the_event
+{
+	[super mouseUp:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+}
+
+// I learned that if I don't call super, the context menu doesn't activate.
+- (void) rightMouseDown:(NSEvent*)the_event
+{
+	[super rightMouseDown:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+}
+
+- (void) rightMouseDragged:(NSEvent*)the_event
+{
+	[super rightMouseDragged:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+}
+
+- (void) rightMouseUp:(NSEvent*)the_event
+{
+	[super rightMouseUp:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+}
+
+- (void) otherMouseDown:(NSEvent*)the_event
+{
+	[super otherMouseDown:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+}
+
+- (void) otherMouseDragged:(NSEvent*)the_event
+{
+	[super otherMouseDragged:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+}
+
+- (void) otherMouseUp:(NSEvent*)the_event
+{
+	[super otherMouseUp:the_event];
+	Ihandle* ih = _ih;
+	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+}
+
+
 @end
 
 
@@ -151,6 +220,17 @@ static char* cocoaCanvasGetDrawSizeAttrib(Ihandle *ih)
 	h = iupROUND(the_frame.size.height);
 	
 	return iupStrReturnIntInt(w, h, 'x');
+}
+
+
+
+static int cocoaCanvasSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+ 	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
+	iupCocoaCommonBaseSetContextMenuForWidget(ih, canvas_view, menu_ih);
+
+	return 1;
 }
 
 static int cocoaCanvasMapMethod(Ihandle* ih)
@@ -245,4 +325,7 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "BACKINGSTORE", NULL, NULL, "YES", NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "TOUCH", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
+
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaCanvasSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 }

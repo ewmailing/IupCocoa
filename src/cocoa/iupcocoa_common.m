@@ -576,3 +576,203 @@ void iupdrvWarpPointer(int x, int y)
 {
 	
 }
+
+// This will copy all the menu items provided by src_menu and append them into dst_menu with a separator.
+void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu)
+{
+	if((src_menu != nil) && ([src_menu numberOfItems] > 0))
+	{
+		// Add a separator to separate the user's items from the default items
+		[dst_menu addItem:[NSMenuItem separatorItem]];
+		
+		NSArray<NSMenuItem*>* item_array = [src_menu itemArray];
+		for(NSMenuItem* a_default_item in item_array)
+		{
+			// We have to copy the item otherwise Cocoa will complain that the same menu item is used in multiple places.
+			NSMenuItem* item_copy = [a_default_item copy];
+			[dst_menu addItem:item_copy];
+			[item_copy release];
+		}
+	}
+}
+
+// This will copy all the menu items provided by the class's defaultMenu and append them into dst_menu with a separator.
+void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget)
+{
+	// If the class provides a defaultMenu, we should merge those items with our menu
+	if([class_of_widget respondsToSelector:@selector(defaultMenu)])
+	{
+		NSMenu* default_menu = [class_of_widget defaultMenu];
+		iupCocoaCommonBaseAppendMenuItems(dst_menu, default_menu);
+	}
+}
+
+// Because we often have container views wrapping our core objects (e.g. scrollview wraps canvas, stackview wraps NSTextField)
+// this helper function lets us split out the ih from the widget, so we don't have to assume the widget is ih->handle.
+// So provide the ih, and provide the real core widget that provides [NSResponder setMenu:] that we should set.
+// The menu should be in menu_ih.
+void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_attach_menu_to, Ihandle* menu_ih)
+{
+	// Save the menu Ihandle in this widget's Ihandle so we can GetContextMenuAttrib
+	iupAttribSet(ih, "_COCOA_CONTEXT_MENU_IH", (const char*)menu_ih);
+
+
+	// Unset the existing menu
+	if(NULL == menu_ih)
+	{
+		if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
+		{
+			[ih_widget_to_attach_menu_to setMenu:nil];
+		}
+		return;
+	}
+
+	// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
+	// I think calling IupMap() is the correct thing to do and fixes the problem.
+	// But this should be reviewed.
+	if(NULL == menu_ih->handle)
+	{
+		IupMap(menu_ih);
+	}
+	
+	// Make sure we have an IupMenu
+	if(menu_ih->iclass->nativetype != IUP_TYPEMENU)
+	{
+		// call IUPASSERT?
+		return;
+	}
+	// Make sure we have a NSMenu
+	if(![(id)menu_ih->handle isKindOfClass:[NSMenu class]])
+	{
+		// call IUPASSERT?
+		return;
+	}
+
+
+	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
+	if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
+	{
+		iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(the_menu, [ih_widget_to_attach_menu_to class]);
+		[ih_widget_to_attach_menu_to setMenu:the_menu];
+	}
+
+}
+
+
+int iupCocoaCommonBaseIupButtonForCocoaButton(NSInteger which_cocoa_button)
+{
+	if(0 == which_cocoa_button)
+	{
+		return IUP_BUTTON1;
+	}
+	else if(1 == which_cocoa_button) // right
+	{
+		return IUP_BUTTON3;
+	}
+	else if(2 == which_cocoa_button) // middle
+	{
+		return IUP_BUTTON2;
+	}
+	else
+	{
+		// NOTE: IUP_BUTTON are ASCII values.
+		return (int)(which_cocoa_button + 0x30);
+	}
+}
+
+void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed)
+{
+	IFniiiis callback_function;
+
+
+	callback_function = (IFniiiis)IupGetCallback(ih, "BUTTON_CB");
+	if(callback_function)
+	{
+	    // We must convert the mouse event locations from the window coordinate system to the
+		// local view coordinate system.
+		NSPoint the_point = [the_event locationInWindow];
+		NSPoint converted_point = [represented_view convertPoint:the_point fromView:nil];
+
+		// We must flip the y to go from Cartesian to IUP
+		NSRect view_frame = [represented_view frame];
+		CGFloat inverted_y = view_frame.size.height - converted_point.y;
+
+		// Button 0 is left
+		// Button 1 is right
+		// Button 2 is middle
+		// Button 3 keeps going
+		NSInteger which_cocoa_button = [the_event buttonNumber];
+		char mod_status = 0; // FIXME: Implement this!
+
+		if([the_event modifierFlags] & NSControlKeyMask)
+		{
+			// Should Ctrl-Left-click be a right click?
+			if(0 == which_cocoa_button)
+			{
+				which_cocoa_button = 1; // make right button
+			}
+		}
+		else if([the_event modifierFlags] & NSAlternateKeyMask)
+		{
+
+		}
+		else if([the_event modifierFlags] & NSCommandKeyMask)
+		{
+		}
+		else
+		{
+		}
+		
+		int which_iup_button = iupCocoaCommonBaseIupButtonForCocoaButton(which_cocoa_button);
+	
+		NSLog(@"Iup mouse button callback: <x,y>=<%f, %f, %f>, is_pressed=%d, button_num:%d", converted_point.x, converted_point.y, inverted_y, is_pressed, which_iup_button);
+
+	
+		int callback_result = callback_function(ih, which_iup_button, is_pressed, iupROUND(converted_point.x), iupROUND(inverted_y), &mod_status);
+		if(IUP_CLOSE == callback_result)
+		{
+			IupExitLoop();
+		}
+	}
+}
+void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view)
+{
+	IFniis callback_function;
+	callback_function = (IFniis)IupGetCallback(ih, "MOTION_CB");
+	if(callback_function)
+	{
+	    // We must convert the mouse event locations from the window coordinate system to the
+		// local view coordinate system.
+		NSPoint the_point = [the_event locationInWindow];
+		NSPoint converted_point = [represented_view convertPoint:the_point fromView:nil];
+		
+		// We must flip the y to go from Cartesian to IUP
+		NSRect view_frame = [represented_view frame];
+		CGFloat inverted_y = view_frame.size.height - converted_point.y;
+		char mod_status = 0; // FIXME: Implement this!
+
+	
+		int callback_result = callback_function(ih,  iupROUND(converted_point.x), iupROUND(inverted_y), &mod_status);
+		if(IUP_CLOSE == callback_result)
+		{
+			IupExitLoop();
+		}
+	}
+}
+
+
+int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+	id ih_widget_to_attach_menu_to = ih->handle;
+	iupCocoaCommonBaseSetContextMenuForWidget(ih, ih_widget_to_attach_menu_to, menu_ih);
+	
+	return 1;
+}
+
+char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih)
+{
+	return (char*)iupAttribGet(ih, "_COCOA_CONTEXT_MENU_IH");
+}
+
+

@@ -407,7 +407,34 @@ static void cocoaCreateDefaultApplicationMenu()
 
 int iupdrvMenuPopup(Ihandle* ih, int x, int y)
 {
- 
+	NSWindow* key_window = [[NSApplication sharedApplication] keyWindow];
+	NSInteger window_number = [key_window windowNumber];
+	NSView* content_view = [key_window contentView];
+
+	// The y passed in is inverted (IUP coordinate system). We need to flip back to cartesian.
+	NSRect screen_rect = [[NSScreen mainScreen] frame];
+	CGFloat cartesian_y = screen_rect.size.height - y;
+	
+	NSRect absolute_menu_rect = { x, cartesian_y, 0, 0 };
+	NSRect converted_window_rect = [key_window convertRectFromScreen:absolute_menu_rect];
+
+
+	NSPoint converted_point = converted_window_rect.origin;
+	
+//		NSPoint converted_point = [self convertPoint:the_point fromView:nil];
+	
+    NSEvent* the_event = [NSEvent otherEventWithType:NSEventTypeApplicationDefined
+		location:converted_point
+		modifierFlags:(NSEventModifierFlags)0
+		timestamp:(NSTimeInterval)0
+		windowNumber:window_number
+		context:[NSGraphicsContext currentContext]
+		subtype:0
+		data1:0
+		data2:0
+	];
+
+    [NSMenu popUpContextMenu:ih->handle withEvent:the_event forView:content_view];
 	return IUP_NOERROR;
 }
 

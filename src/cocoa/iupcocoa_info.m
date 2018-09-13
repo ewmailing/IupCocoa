@@ -32,6 +32,8 @@
 #include "iup_str.h"
 #include "iup_drv.h"
 #include "iup_drvinfo.h"
+#include "iup_class.h" // needed for iup_classbase.h
+#include "iup_classbase.h" // iupROUND
 
 #define IUP_MAC_ERROR -1
 
@@ -149,19 +151,14 @@ double iupdrvGetScreenDpi(void)
 
 void iupdrvGetCursorPos(int *x, int *y)
 {
-#if 0
-	CGPoint point;
-#ifdef OLD_MAC_INFO
-	Point pnt;
-	GetMouse(&pnt);
-	point = CGPointMake(pnt.h, pnt.v);
-#else
-	HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &point);
-#endif
-	
-	*x = (int)point.x;
-	*y = (int)point.y;
-#endif
+	NSPoint mouse_point;
+	mouse_point = [NSEvent mouseLocation];
+	// We need to invert the y-axis
+	NSRect screen_rect = [[NSScreen mainScreen] frame];
+	CGFloat inverted_y = screen_rect.size.height - mouse_point.y;
+
+	if (x) *x = iupROUND(mouse_point.x);
+	if (y) *y = iupROUND(inverted_y);
 }
 
 void iupdrvGetKeyState(char* key)
@@ -203,9 +200,10 @@ char *iupdrvGetSystemName(void)
 	 NSLog (@"productVersion =========== %@", productVersion);
 	 */
 	// Just give up and return "OS X", or should it be "OSX"?
-	
-	return "OS X";
-	
+
+// return "Msc OS X";
+//	return "OS X";
+	return "macOS";
 	
 #if 0
 	SInt32 systemVersion;

@@ -230,6 +230,24 @@ static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_ra
 	return YES;
 }
 
+
+// Helper function for NSTextField and NSSecureTextField overrides of textView:menu:forEvent:atIndex: to inject user menu items into the context menu.
+static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* text_view, NSMenu* the_menu)
+{
+	Ihandle* menu_ih = (Ihandle*)iupAttribGet(ih, "_COCOA_CONTEXT_MENU_IH");
+	if(NULL != menu_ih)
+	{
+		NSMenu* user_menu = (NSMenu*)menu_ih->handle;
+		iupCocoaCommonBaseAppendMenuItems(the_menu, user_menu);
+		// It appears that Cocoa may append "Services" after our entries if something is selected, so we want another separator.
+		NSRange selected_range = [text_view selectedRange];
+		if(selected_range.length > 0)
+		{
+			[the_menu addItem:[NSMenuItem separatorItem]];
+		}
+	}
+}
+
 @interface IupCocoaTextField : NSTextField
 @end
 
@@ -279,6 +297,19 @@ static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_ra
 	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
 }
 
+// WARNING: This was the only way I could figure out how to correctly override the contextual menu for NSTextField.
+// I tried setting the menu (on demand) of the field editor, but I ended up getting lots of missing items.
+// I tried creating my own field editor and setting a custom delegate for this method on it, but it never got invoked. I think Cocoa may ignore my delegate when used as a field editor.
+// I found a mention on the internet that vaguely suggested subclassing NSTextField and implementing this method.
+// I have not found documentation about this method in NSTextField, only as a delegate protocol for NSTextView.
+// This might mean this is private API so this may have to be disabled.
+// This seems to work though.
+- (NSMenu *)textView:(NSTextView *)text_view menu:(NSMenu *)the_menu forEvent:(NSEvent *)the_event atIndex:(NSUInteger)char_index
+{
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(self, IHANDLE_ASSOCIATED_OBJ_KEY);
+	cocoaTextFieldOverrideContextMenuHelper(ih, text_view, the_menu);
+	return the_menu;
+}
 @end
 
 
@@ -329,6 +360,20 @@ static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_ra
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
 	
 	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+}
+
+// WARNING: This was the only way I could figure out how to correctly override the contextual menu for NSTextField.
+// I tried setting the menu (on demand) of the field editor, but I ended up getting lots of missing items.
+// I tried creating my own field editor and setting a custom delegate for this method on it, but it never got invoked. I think Cocoa may ignore my delegate when used as a field editor.
+// I found a mention on the internet that vaguely suggested subclassing NSTextField and implementing this method.
+// I have not found documentation about this method in NSTextField, only as a delegate protocol for NSTextView.
+// This might mean this is private API so this may have to be disabled.
+// This seems to work though.
+- (NSMenu *)textView:(NSTextView *)text_view menu:(NSMenu *)the_menu forEvent:(NSEvent *)the_event atIndex:(NSUInteger)char_index
+{
+	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(self, IHANDLE_ASSOCIATED_OBJ_KEY);
+	cocoaTextFieldOverrideContextMenuHelper(ih, text_view, the_menu);
+	return the_menu;
 }
 
 @end
@@ -414,8 +459,8 @@ static BOOL IupCocoaTextFieldActionCallbackHelper(Ihandle* ih, NSRange change_ra
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_view, IHANDLE_ASSOCIATED_OBJ_KEY);
 	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
 }
-
 @end
+
 
 void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 {
@@ -434,28 +479,108 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 	
 	// if(ih->data->is_multiline)
 
-	
-	
-//	*y = *y+10;
-//	*x = *x+4;
-	// NSTextField is all guess work about how to scale for any font size.
-	// Throw away ih->currentheight because it will EXPAND it.
-	// But for the standard font, we get fontheight=16 and we want the height to be 22
+
+
+	// WARNING: This is still a hack. SCROLLBAR_PADDING ws randomly guessed to get by for now.
+	// BEWARE: The Cocoa widget may not exist yet when this is called. We will get an ih, but ih->handle is not established. This will make things harder.
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+//			NSTextView* text_view = cocoaTextGetTextView(ih);
 
 	
-//	int font_height = 16;
-	int font_height = *y;
-	
-//	iupdrvFontGetCharSize(ih, NULL, &font_height);
-	const CGFloat HEIGHT_PADDING = 6.0;
-	
-	*y = font_height + HEIGHT_PADDING;
-//	*y = 16;
+			//	*y = *y+10;
+			//	*x = *x+4;
+				// NSTextField is all guess work about how to scale for any font size.
+				// Throw away ih->currentheight because it will EXPAND it.
+				// But for the standard font, we get fontheight=16 and we want the height to be 22
 
-	const CGFloat WIDTH_PADDING = 12.0;
+			
+			//	int font_height = 16;
+				int font_height = *y;
+			
+			//	iupdrvFontGetCharSize(ih, NULL, &font_height);
+				const CGFloat HEIGHT_PADDING = 6.0;
+				const CGFloat SCROLLBAR_PADDING = 8.0;
+
+				*y = font_height + HEIGHT_PADDING + SCROLLBAR_PADDING;
+			//	*y = 16;
+
+				const CGFloat WIDTH_PADDING = 12.0;
+			
+			
+				*x = *x - WIDTH_PADDING;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+//			NSTextField* text_field = cocoaTextGetTextField(ih);
+
+
+			
+			//	*y = *y+10;
+			//	*x = *x+4;
+				// NSTextField is all guess work about how to scale for any font size.
+				// Throw away ih->currentheight because it will EXPAND it.
+				// But for the standard font, we get fontheight=16 and we want the height to be 22
+
+			
+			//	int font_height = 16;
+				int font_height = *y;
+			
+			//	iupdrvFontGetCharSize(ih, NULL, &font_height);
+				const CGFloat HEIGHT_PADDING = 6.0;
+			
+				*y = font_height + HEIGHT_PADDING;
+			//	*y = 16;
+
+				const CGFloat WIDTH_PADDING = 12.0;
+			
+			
+				*x = *x - WIDTH_PADDING;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+		
+		
+	
+			//	*y = *y+10;
+			//	*x = *x+4;
+				// NSTextField is all guess work about how to scale for any font size.
+				// Throw away ih->currentheight because it will EXPAND it.
+				// But for the standard font, we get fontheight=16 and we want the height to be 22
+
+			
+			//	int font_height = 16;
+				int font_height = *y;
+			
+			//	iupdrvFontGetCharSize(ih, NULL, &font_height);
+				const CGFloat HEIGHT_PADDING = 6.0;
+			
+				*y = font_height + HEIGHT_PADDING;
+			//	*y = 16;
+
+				const CGFloat WIDTH_PADDING = 12.0;
+			
+			
+				*x = *x - WIDTH_PADDING;
+	
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 	
 	
-	*x = *x - WIDTH_PADDING;
+	
 
 }
 
@@ -1117,6 +1242,63 @@ static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
 	
 }
 
+
+static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
+{
+	Ihandle* menu_ih = (Ihandle*)value;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
+			
+			iupCocoaCommonBaseSetContextMenuForWidget(ih, text_view, menu_ih);
+
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+
+			// We can't use iupCocoaCommonBaseSetContextMenuForWidget() because field editors are shared.
+			// We will override textView:menu:forEvent:atIndex: and inject the menu options there.
+			if(NULL != menu_ih)
+			{
+				// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
+				// I think calling IupMap() is the correct thing to do and fixes the problem.
+				// But this should be reviewed.
+				if(NULL == menu_ih->handle)
+				{
+					IupMap(menu_ih);
+				}
+			}
+			// Save the menu_ih so we can access it in the callback
+			iupAttribSet(ih, "_COCOA_CONTEXT_MENU_IH", (const char*)menu_ih);
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	
+	
+	
+	return 1;
+}
+
+
 static int cocoaTextMapMethod(Ihandle* ih)
 {
 	NSView* the_view = nil;
@@ -1622,5 +1804,8 @@ void iupdrvTextInitClass(Iclass* ic)
   /* Not Supported */
   iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
-	
+
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaTextSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
 }

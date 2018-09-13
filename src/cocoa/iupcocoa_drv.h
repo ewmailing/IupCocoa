@@ -59,7 +59,18 @@ Ihandle* iupCocoaMenuGetApplicationMenu(void);
 void iupCocoaMenuCleanupApplicationMenu(void);
 
 
-	
+// Helper functions for implementing the mouseDown/mouseUp, mouseDragged family of functions.
+IUP_EXPORTI int iupCocoaCommonBaseIupButtonForCocoaButton(NSInteger which_cocoa_button);
+IUP_EXPORTI void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed);
+IUP_EXPORTI void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
+
+// This is for NSResponder context menus. (I expect new modules will want to call these.)
+IUP_EXPORTI void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu);
+IUP_EXPORTI void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget);
+IUP_EXPORTI void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_attach_menu_to, Ihandle* menu_ih);
+IUP_EXPORTI int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih);
+
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
