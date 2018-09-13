@@ -479,28 +479,108 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 	
 	// if(ih->data->is_multiline)
 
-	
-	
-//	*y = *y+10;
-//	*x = *x+4;
-	// NSTextField is all guess work about how to scale for any font size.
-	// Throw away ih->currentheight because it will EXPAND it.
-	// But for the standard font, we get fontheight=16 and we want the height to be 22
+
+
+	// WARNING: This is still a hack. SCROLLBAR_PADDING ws randomly guessed to get by for now.
+	// BEWARE: The Cocoa widget may not exist yet when this is called. We will get an ih, but ih->handle is not established. This will make things harder.
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+//			NSTextView* text_view = cocoaTextGetTextView(ih);
 
 	
-//	int font_height = 16;
-	int font_height = *y;
-	
-//	iupdrvFontGetCharSize(ih, NULL, &font_height);
-	const CGFloat HEIGHT_PADDING = 6.0;
-	
-	*y = font_height + HEIGHT_PADDING;
-//	*y = 16;
+			//	*y = *y+10;
+			//	*x = *x+4;
+				// NSTextField is all guess work about how to scale for any font size.
+				// Throw away ih->currentheight because it will EXPAND it.
+				// But for the standard font, we get fontheight=16 and we want the height to be 22
 
-	const CGFloat WIDTH_PADDING = 12.0;
+			
+			//	int font_height = 16;
+				int font_height = *y;
+			
+			//	iupdrvFontGetCharSize(ih, NULL, &font_height);
+				const CGFloat HEIGHT_PADDING = 6.0;
+				const CGFloat SCROLLBAR_PADDING = 8.0;
+
+				*y = font_height + HEIGHT_PADDING + SCROLLBAR_PADDING;
+			//	*y = 16;
+
+				const CGFloat WIDTH_PADDING = 12.0;
+			
+			
+				*x = *x - WIDTH_PADDING;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+//			NSTextField* text_field = cocoaTextGetTextField(ih);
+
+
+			
+			//	*y = *y+10;
+			//	*x = *x+4;
+				// NSTextField is all guess work about how to scale for any font size.
+				// Throw away ih->currentheight because it will EXPAND it.
+				// But for the standard font, we get fontheight=16 and we want the height to be 22
+
+			
+			//	int font_height = 16;
+				int font_height = *y;
+			
+			//	iupdrvFontGetCharSize(ih, NULL, &font_height);
+				const CGFloat HEIGHT_PADDING = 6.0;
+			
+				*y = font_height + HEIGHT_PADDING;
+			//	*y = 16;
+
+				const CGFloat WIDTH_PADDING = 12.0;
+			
+			
+				*x = *x - WIDTH_PADDING;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+		
+		
+	
+			//	*y = *y+10;
+			//	*x = *x+4;
+				// NSTextField is all guess work about how to scale for any font size.
+				// Throw away ih->currentheight because it will EXPAND it.
+				// But for the standard font, we get fontheight=16 and we want the height to be 22
+
+			
+			//	int font_height = 16;
+				int font_height = *y;
+			
+			//	iupdrvFontGetCharSize(ih, NULL, &font_height);
+				const CGFloat HEIGHT_PADDING = 6.0;
+			
+				*y = font_height + HEIGHT_PADDING;
+			//	*y = 16;
+
+				const CGFloat WIDTH_PADDING = 12.0;
+			
+			
+				*x = *x - WIDTH_PADDING;
+	
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 	
 	
-	*x = *x - WIDTH_PADDING;
+	
 
 }
 
