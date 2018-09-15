@@ -680,10 +680,10 @@ int iupCocoaCommonBaseIupButtonForCocoaButton(NSInteger which_cocoa_button)
 	}
 }
 
-void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed)
+bool iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed)
 {
 	IFniiiis callback_function;
-
+	bool caller_should_propagate = true;
 
 	callback_function = (IFniiiis)IupGetCallback(ih, "BUTTON_CB");
 	if(callback_function)
@@ -732,11 +732,31 @@ void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event
 		if(IUP_CLOSE == callback_result)
 		{
 			IupExitLoop();
+			caller_should_propagate = false;
+		}
+		else if(IUP_IGNORE == callback_result)
+		{
+			caller_should_propagate = false;
+		}
+		else if(IUP_CONTINUE == callback_result)
+		{
+			caller_should_propagate = true;
+		}
+		else
+		{
+			caller_should_propagate = false;
 		}
 	}
+	else
+	{
+		caller_should_propagate = true;
+	}
+	return !caller_should_propagate;
 }
-void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view)
+
+bool iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view)
 {
+	bool caller_should_propagate = true;
 	IFniis callback_function;
 	callback_function = (IFniis)IupGetCallback(ih, "MOTION_CB");
 	if(callback_function)
@@ -756,8 +776,26 @@ void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event
 		if(IUP_CLOSE == callback_result)
 		{
 			IupExitLoop();
+			caller_should_propagate = false;
+		}
+		else if(IUP_IGNORE == callback_result)
+		{
+			caller_should_propagate = false;
+		}
+		else if(IUP_CONTINUE == callback_result)
+		{
+			caller_should_propagate = true;
+		}
+		else
+		{
+			caller_should_propagate = false;
 		}
 	}
+	else
+	{
+		caller_should_propagate = true;
+	}
+	return !caller_should_propagate;
 }
 
 

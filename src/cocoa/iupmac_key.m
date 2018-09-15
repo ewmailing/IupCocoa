@@ -491,11 +491,13 @@ bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_
   if (result == IUP_CLOSE)
   {
     IupExitLoop();
-    return true;
+	caller_should_propagate = false;
+	return !caller_should_propagate;
   }
   else if (result == IUP_IGNORE)
   {
-    return true;
+	caller_should_propagate = false;
+	return !caller_should_propagate;
   }
   else if (result == IUP_CONTINUE)
   {
@@ -520,11 +522,13 @@ bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_
       if (result == IUP_CLOSE)
       {
         IupExitLoop();
-        return false;
+		caller_should_propagate = false;
+		return !caller_should_propagate;
       }
 	  else if (result == IUP_IGNORE)
       {
-        return false;
+		caller_should_propagate = false;
+		return !caller_should_propagate;
       }
 	  else if (result == IUP_CONTINUE)
 	  {
@@ -562,12 +566,14 @@ bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_
 		  if (result == IUP_CLOSE)
 		  {
 			  IupExitLoop();
-			  return false;
+              caller_should_propagate = false;
+              return !caller_should_propagate;
 		  }
 		  else if (result == IUP_IGNORE)
           {
-  //          return false;
-          }
+              caller_should_propagate = false;
+              return !caller_should_propagate;
+		  }
 		  else if (result == IUP_CONTINUE)
 		  {
 			// BUG: This is a bug if the k_any callback did not use IUP_CONTINUE

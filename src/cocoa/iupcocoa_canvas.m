@@ -86,68 +86,154 @@
 }
 
 
+//////// Keyboard stuff
+
+- (BOOL) acceptsFirstResponder
+{
+	return YES;
+}
+
+- (void) flagsChanged:(NSEvent*)the_event
+{
+//	NSLog(@"flagsChanged: %@", the_event);
+//	NSLog(@"modifierFlags: 0x%X", [the_event modifierFlags]);
+/*
+    NSEventModifierFlagCapsLock           = 1 << 16, // Set if Caps Lock key is pressed.
+    NSEventModifierFlagShift              = 1 << 17, // Set if Shift key is pressed.
+    NSEventModifierFlagControl            = 1 << 18, // Set if Control key is pressed.
+    NSEventModifierFlagOption             = 1 << 19, // Set if Option or Alternate key is pressed.
+    NSEventModifierFlagCommand            = 1 << 20, // Set if Command key is pressed.
+    NSEventModifierFlagNumericPad         = 1 << 21, // Set if any key in the numeric keypad is pressed.
+    NSEventModifierFlagHelp               = 1 << 22, // Set if the Help key is pressed.
+    NSEventModifierFlagFunction           = 1 << 23, // Set if any function key is pressed.
+*/
+	Ihandle* ih = [self ih];
+    unsigned short mac_key_code = [the_event keyCode];
+//    NSLog(@"mac_key_code : %d", mac_key_code);
+	bool should_not_propagate = iupCocoaModifierEvent(ih, the_event, (int)mac_key_code);
+	if(!should_not_propagate)
+	{
+		[super flagsChanged:the_event];
+	}
+}
+
+- (void) keyDown:(NSEvent*)the_event
+{
+    // gets ihandle
+    Ihandle* ih = [self ih];
+//	NSLog(@"keyDown: %@", the_event);
+    unsigned short mac_key_code = [the_event keyCode];
+//    NSLog(@"keydown string: %d", mac_key_code);
+
+	bool should_not_propagate = iupCocoaKeyEvent(ih, the_event, (int)mac_key_code, true);
+	if(!should_not_propagate)
+	{
+		[super keyDown:the_event];
+	}
+}
+
+- (void) keyUp:(NSEvent*)the_event
+{
+	Ihandle* ih = [self ih];
+    unsigned short mac_key_code = [the_event keyCode];
+	bool should_not_propagate = iupCocoaKeyEvent(ih, the_event, (int)mac_key_code, false);
+	if(!should_not_propagate)
+	{
+		[super keyUp:the_event];
+	}
+}
+
+//////// Mouse stuff
+
 - (void) mouseDown:(NSEvent*)the_event
 {
-	[super mouseDown:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+	if(!should_not_propagate)
+	{
+		[super mouseDown:the_event];
+	}
 }
 
 - (void) mouseDragged:(NSEvent*)the_event
 {
-	[super mouseDragged:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+	if(!should_not_propagate)
+	{
+		[super mouseDragged:the_event];
+	}
 }
 
 - (void) mouseUp:(NSEvent*)the_event
 {
-	[super mouseUp:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+	if(!should_not_propagate)
+	{
+		[super mouseUp:the_event];
+	}
 }
 
 // I learned that if I don't call super, the context menu doesn't activate.
 - (void) rightMouseDown:(NSEvent*)the_event
 {
-	[super rightMouseDown:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+	if(!should_not_propagate)
+	{
+		[super rightMouseDown:the_event];
+	}
 }
 
 - (void) rightMouseDragged:(NSEvent*)the_event
 {
-	[super rightMouseDragged:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+	if(!should_not_propagate)
+	{
+		[super rightMouseDragged:the_event];
+	}
 }
 
 - (void) rightMouseUp:(NSEvent*)the_event
 {
-	[super rightMouseUp:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+	if(!should_not_propagate)
+	{
+		[super rightMouseUp:the_event];
+	}
 }
 
 - (void) otherMouseDown:(NSEvent*)the_event
 {
-	[super otherMouseDown:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
+	if(!should_not_propagate)
+	{
+		[super otherMouseDown:the_event];
+	}
 }
 
 - (void) otherMouseDragged:(NSEvent*)the_event
 {
-	[super otherMouseDragged:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
+	if(!should_not_propagate)
+	{
+		[super otherMouseDragged:the_event];
+	}
 }
 
 - (void) otherMouseUp:(NSEvent*)the_event
 {
-	[super otherMouseUp:the_event];
 	Ihandle* ih = _ih;
-	iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
+	if(!should_not_propagate)
+	{
+		[super otherMouseUp:the_event];
+	}
 }
 
 

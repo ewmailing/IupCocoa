@@ -61,8 +61,12 @@ void iupCocoaMenuCleanupApplicationMenu(void);
 
 // Helper functions for implementing the mouseDown/mouseUp, mouseDragged family of functions.
 IUP_EXPORTI int iupCocoaCommonBaseIupButtonForCocoaButton(NSInteger which_cocoa_button);
-IUP_EXPORTI void iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed);
-IUP_EXPORTI void iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
+// mouseDown: and mouseUp: overrides can call this
+// Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
+IUP_EXPORTI bool iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view, bool is_pressed);
+// mouseDragged: overrides can call this
+// Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
+IUP_EXPORTI bool iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
 
 // This is for NSResponder context menus. (I expect new modules will want to call these.)
 IUP_EXPORTI void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu);
@@ -72,8 +76,10 @@ IUP_EXPORTI int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* 
 IUP_EXPORTI char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih);
 
 // All keyDown: and keyUp: overrides can call this method to handle K_ANY, the Canvas Keypress, and HELP_CB.
+// Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
 IUP_EXPORTI bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_pressed);
 // All flagsChanged: overrides can call this function, which in turn calls iupCocoaKeyEvent() internally.
+// Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
 IUP_EXPORTI bool iupCocoaModifierEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code);
 
 #if 0
