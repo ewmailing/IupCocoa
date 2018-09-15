@@ -250,6 +250,7 @@
 		00E8D72E1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */; };
 		00E8D72F1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */; };
 		00E93A672148754800BC6F5B /* TecgrafLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E93A662148754800BC6F5B /* TecgrafLogo.png */; };
+		00E93A68214CE09800BC6F5B /* iupmac_key.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A31B605A7500BEC175 /* iupmac_key.m */; };
 		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
@@ -1422,6 +1423,7 @@
 				00E3A7C91B60583600BEC175 /* iup_sbox.c in Sources */,
 				00E3A7CA1B60583600BEC175 /* iup_scanf.c in Sources */,
 				00006F121ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m in Sources */,
+				00E93A68214CE09800BC6F5B /* iupmac_key.m in Sources */,
 				00E3A7CB1B60583600BEC175 /* iup_scrollbox.c in Sources */,
 				00E3A79E1B60583600BEC175 /* iup_hbox.c in Sources */,
 				00E3A7B91B60583600BEC175 /* iup_names.c in Sources */,

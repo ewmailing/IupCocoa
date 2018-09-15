@@ -157,6 +157,15 @@
 #define K_F10      0xFFC7
 #define K_F11      0xFFC8
 #define K_F12      0xFFC9
+#define K_F13      0xFFCA
+#define K_F14      0xFFCB
+#define K_F15      0xFFCC
+#define K_F16      0xFFCD
+#define K_F17      0xFFCE
+#define K_F18      0xFFCF
+#define K_F19      0xFFD0
+#define K_F20      0xFFD1
+
 
 /* no Shift/Ctrl/Alt */
 #define K_LSHIFT   0xFFE1
@@ -169,6 +178,11 @@
 #define K_NUM      0xFF7F
 #define K_SCROLL   0xFF14
 #define K_CAPS     0xFFE5
+
+/* Mac clear button. Value randomly picked trying to avoid clashing with an existing value. */
+#define K_CLEAR    0xFFD2
+/* Help button if anybody has it. Value randomly picked trying to avoid clashing with an existing value. */
+#define K_HELP     0xFFD3
 
 /* Also, these are the same as the Latin-1 definition */
 
@@ -215,6 +229,7 @@
 #define K_sBS      iup_XkeyShift(K_BS     )
 #define K_sPAUSE   iup_XkeyShift(K_PAUSE  )
 #define K_sESC     iup_XkeyShift(K_ESC    )
+#define K_sCLEAR   iup_XkeyShift(K_CLEAR  )
 #define K_sF1      iup_XkeyShift(K_F1     )
 #define K_sF2      iup_XkeyShift(K_F2     )
 #define K_sF3      iup_XkeyShift(K_F3     )
@@ -227,6 +242,14 @@
 #define K_sF10     iup_XkeyShift(K_F10    )
 #define K_sF11     iup_XkeyShift(K_F11    )
 #define K_sF12     iup_XkeyShift(K_F12    )
+#define K_sF13     iup_XkeyShift(K_F13    )
+#define K_sF14     iup_XkeyShift(K_F14    )
+#define K_sF15     iup_XkeyShift(K_F15    )
+#define K_sF16     iup_XkeyShift(K_F16    )
+#define K_sF17     iup_XkeyShift(K_F17    )
+#define K_sF18     iup_XkeyShift(K_F18    )
+#define K_sF19     iup_XkeyShift(K_F19    )
+#define K_sF20     iup_XkeyShift(K_F20    )
 #define K_sPrint   iup_XkeyShift(K_Print  )
 #define K_sMenu    iup_XkeyShift(K_Menu   )
 
@@ -247,6 +270,7 @@
 #define K_cBS       iup_XkeyCtrl(K_BS      )
 #define K_cPAUSE    iup_XkeyCtrl(K_PAUSE   )
 #define K_cESC      iup_XkeyCtrl(K_ESC     )
+#define K_cCLEAR    iup_XkeyCtrl(K_CLEAR   )
 #define K_cCcedilla iup_XkeyCtrl(K_Ccedilla)
 #define K_cF1       iup_XkeyCtrl(K_F1      )
 #define K_cF2       iup_XkeyCtrl(K_F2      )
@@ -260,6 +284,14 @@
 #define K_cF10      iup_XkeyCtrl(K_F10     )
 #define K_cF11      iup_XkeyCtrl(K_F11     )
 #define K_cF12      iup_XkeyCtrl(K_F12     )
+#define K_cF13      iup_XkeyCtrl(K_F13     )
+#define K_cF14      iup_XkeyCtrl(K_F14     )
+#define K_cF15      iup_XkeyCtrl(K_F15     )
+#define K_cF16      iup_XkeyCtrl(K_F16     )
+#define K_cF17      iup_XkeyCtrl(K_F17     )
+#define K_cF18      iup_XkeyCtrl(K_F18     )
+#define K_cF19      iup_XkeyCtrl(K_F19     )
+#define K_cF20      iup_XkeyCtrl(K_F20     )
 #define K_cPrint    iup_XkeyCtrl(K_Print   )
 #define K_cMenu     iup_XkeyCtrl(K_Menu    )
 
@@ -280,6 +312,7 @@
 #define K_mBS       iup_XkeyAlt(K_BS      )
 #define K_mPAUSE    iup_XkeyAlt(K_PAUSE   )
 #define K_mESC      iup_XkeyAlt(K_ESC     )
+#define K_mCLEAR    iup_XkeyAlt(K_CLEAR   )
 #define K_mCcedilla iup_XkeyAlt(K_Ccedilla)
 #define K_mF1       iup_XkeyAlt(K_F1      )
 #define K_mF2       iup_XkeyAlt(K_F2      )
@@ -293,6 +326,14 @@
 #define K_mF10      iup_XkeyAlt(K_F10     )
 #define K_mF11      iup_XkeyAlt(K_F11     )
 #define K_mF12      iup_XkeyAlt(K_F12     )
+#define K_mF13      iup_XkeyAlt(K_F13     )
+#define K_mF14      iup_XkeyAlt(K_F14     )
+#define K_mF15      iup_XkeyAlt(K_F15     )
+#define K_mF16      iup_XkeyAlt(K_F16     )
+#define K_mF17      iup_XkeyAlt(K_F17     )
+#define K_mF18      iup_XkeyAlt(K_F18     )
+#define K_mF19      iup_XkeyAlt(K_F19     )
+#define K_mF20      iup_XkeyAlt(K_F20     )
 #define K_mPrint    iup_XkeyAlt(K_Print   )
 #define K_mMenu     iup_XkeyAlt(K_Menu    )
 
@@ -313,6 +354,7 @@
 #define K_yBS       iup_XkeySys(K_BS      )
 #define K_yPAUSE    iup_XkeySys(K_PAUSE   )
 #define K_yESC      iup_XkeySys(K_ESC     )
+#define K_yCLEAR    iup_XkeySys(K_CLEAR   )
 #define K_yCcedilla iup_XkeySys(K_Ccedilla)
 #define K_yF1       iup_XkeySys(K_F1      )
 #define K_yF2       iup_XkeySys(K_F2      )
@@ -326,6 +368,14 @@
 #define K_yF10      iup_XkeySys(K_F10     )
 #define K_yF11      iup_XkeySys(K_F11     )
 #define K_yF12      iup_XkeySys(K_F12     )
+#define K_yF13      iup_XkeySys(K_F13     )
+#define K_yF14      iup_XkeySys(K_F14     )
+#define K_yF15      iup_XkeySys(K_F15     )
+#define K_yF16      iup_XkeySys(K_F16     )
+#define K_yF17      iup_XkeySys(K_F17     )
+#define K_yF18      iup_XkeySys(K_F18     )
+#define K_yF19      iup_XkeySys(K_F19     )
+#define K_yF20      iup_XkeySys(K_F20     )
 #define K_yPrint    iup_XkeySys(K_Print   )
 #define K_yMenu     iup_XkeySys(K_Menu    )
 

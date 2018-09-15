@@ -71,6 +71,10 @@ IUP_EXPORTI void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_wi
 IUP_EXPORTI int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value);
 IUP_EXPORTI char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih);
 
+// All keyDown: and keyUp: overrides can call this method to handle K_ANY, the Canvas Keypress, and HELP_CB.
+IUP_EXPORTI bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_pressed);
+// All flagsChanged: overrides can call this function, which in turn calls iupCocoaKeyEvent() internally.
+IUP_EXPORTI bool iupCocoaModifierEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code);
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */

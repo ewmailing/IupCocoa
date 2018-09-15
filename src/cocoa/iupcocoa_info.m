@@ -49,6 +49,7 @@ static void iupMacStrToUniChar(const char* buffer, UniChar* outBuf, long length,
 }
 #endif
 
+#if 0
 static int iMacIsFolder(const char* name)
 {
 	FSRef refName;
@@ -59,6 +60,7 @@ static int iMacIsFolder(const char* name)
 	
 	return isFolder;
 }
+#endif
 
 int iupdrvGetWindowDecor(void* wnd, int *border, int *caption)
 {
@@ -163,27 +165,42 @@ void iupdrvGetCursorPos(int *x, int *y)
 
 void iupdrvGetKeyState(char* key)
 {
-#if 0
-	if (GetCurrentEventKeyModifiers() & shiftKey)
+	NSEvent* the_event = [[NSApplication sharedApplication] currentEvent];
+	if([the_event modifierFlags] & NSEventModifierFlagShift)
+	{
 		key[0] = 'S';
+	}
 	else
+	{
 		key[0] = ' ';
-	if (GetCurrentEventKeyModifiers() & controlKey)
+	}
+	if([the_event modifierFlags] & NSEventModifierFlagControl)
+	{
 		key[1] = 'C';
+	}
 	else
+	{
 		key[1] = ' ';
-	if (GetCurrentEventKeyModifiers() & optionKey)
+	}
+	if([the_event modifierFlags] & NSEventModifierFlagOption)
+	{
 		key[2] = 'A';
+	}
 	else
+	{
 		key[2] = ' ';
-	if (GetCurrentEventKeyModifiers() & cmdKey)
+	}
+	if([the_event modifierFlags] & NSEventModifierFlagCommand)
+	{
 		key[3] = 'Y';
+	}
 	else
+	{
 		key[3] = ' ';
-	
+	}
+
 	key[4] = 0;
-#endif
-	
+
 }
 
 char *iupdrvGetSystemName(void)
@@ -201,7 +218,7 @@ char *iupdrvGetSystemName(void)
 	 */
 	// Just give up and return "OS X", or should it be "OSX"?
 
-// return "Msc OS X";
+// return "Mac OS X";
 //	return "OS X";
 	return "macOS";
 	
