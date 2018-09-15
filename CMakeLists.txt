@@ -927,8 +927,8 @@ ELSEIF(IUP_USE_COCOA)
 		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_help.m
 		# This file was replaced with iupcocoa_info.m
 #		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_info.m
-		# File does not compile
-#		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_key.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_key.m
+		${CMAKE_SOURCE_DIR}/src/cocoa/iupmac_keycodes.h
 
 		# Stop gap
 #		${CMAKE_SOURCE_DIR}/src/gtk/iupmac_help.c
