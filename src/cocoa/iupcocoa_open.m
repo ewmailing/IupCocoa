@@ -25,8 +25,44 @@
 static NSAutoreleasePool* s_autoreleasePool = nil;
 static IupAppDelegate* s_appDelegate = nil;
 
-// This is global so we can use it in iupcocoa_dialog.m
-NSStatusItem* g_applicationStatusItem = nil;
+
+static NSStatusItem* s_applicationStatusItem = nil;
+static Ihandle* s_applicationStatusItemMenuIh = nil;
+
+// Singleton helper to get the shared/global
+// This is used primarily in iupcocoa_dialog.m
+NSStatusItem* iupCocoaGetGlobalApplicationStatusItem(void)
+{
+	if(nil == s_applicationStatusItem)
+	{
+		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+		s_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
+		[s_applicationStatusItem retain];
+	}
+	return s_applicationStatusItem;
+}
+
+Ihandle* iupCocoaGetGlobalApplicationStatusItemMenuIh(void)
+{
+	return s_applicationStatusItemMenuIh;
+}
+
+void iupCocoaSetGlobalApplicationStatusItemMenuIh(Ihandle* menu_ih)
+{
+	// If they are the same, don't do anything and return
+	if(s_applicationStatusItemMenuIh == menu_ih)
+	{
+		return;
+	}
+	// Destroy the old menu
+	if(s_applicationStatusItemMenuIh != NULL)
+	{
+		IupDestroy(s_applicationStatusItemMenuIh);
+	}
+
+	s_applicationStatusItemMenuIh = menu_ih;
+}
+
 
 #if 0
 char* iupmacGetNativeWindowHandle(Ihandle* ih)
@@ -133,12 +169,20 @@ void iupdrvClose(void)
 	// By this point, IUP has already cleanup up all its pointers and our code is finally running.
 	iupCocoaMenuCleanupApplicationMenu();
 	
-	// We may have created a single global NSStatusItem in iupcocoa_dialog.m. We need to release it here so we can drain the autorelease pool.
-	NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
-	[status_bar removeStatusItem:g_applicationStatusItem];
-	[g_applicationStatusItem release];
-	g_applicationStatusItem = nil;
+
+	//// We may have created a single global NSStatusItem in iupcocoa_dialog.m. We need to release it here so we can drain the autorelease pool.
 	
+	// Delete the underlying menu ih tied to the NSStatusItem and set the global pointer to NULL.
+	iupCocoaSetGlobalApplicationStatusItemMenuIh(NULL);
+
+	// Remove the item from the status bar
+	NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+	[status_bar removeStatusItem:s_applicationStatusItem];
+	[s_applicationStatusItem release];
+	s_applicationStatusItem = nil;
+
+
+
 	[s_appDelegate release];
 	s_appDelegate = nil;
 	

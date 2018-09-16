@@ -1078,7 +1078,7 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 
 
 /////////// NSStatusItem/Tray stuff
-// WARNING: NSStatusItem is not exactly a "tray" item, so maybe this should be moved to something else.
+// WARNING: NSStatusItem is not exactly a "tray" item, so maybe this should be moved to something else, not in IupDialog.
 // Issues:
 // - The IUP API ties this to a Dialog, but this should be a separate thing.
 // - NSStatusBar does allow for multiple NSStatusItems to be created.
@@ -1094,28 +1094,22 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 // - Particularly for Yosemite 10.10, light/dark theme toggling must be black/white so Apple can attempt to auto-invert.
 // The old APIs for alternate image are deprecated. It doesn't seem like we should add another attribute to IUP for this legacy thing.
 
-// This global variable was declared in iupcocoa_open.m
-extern NSStatusItem* g_applicationStatusItem;
 static int cocoaDialogSetTrayAttrib(Ihandle* ih, const char* value)
 {
-	NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();
 	bool should_enable = (bool)iupStrBoolean(value);
 	if(should_enable)
 	{
-		if(nil == g_applicationStatusItem)
-		{
-			g_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
-			[g_applicationStatusItem retain];
-		}
-		[g_applicationStatusItem setVisible:YES];
+		[status_item setVisible:YES];
 	}
 	else
 	{
-		[g_applicationStatusItem setVisible:NO];
-		// NOTE: We do not release our g_applicationStatusItem instance here.
+		[status_item setVisible:NO];
+		// NOTE: We do not release our NSStatusItem instance here.
 		// The reason is that if the user wants to re-enable it, we don't want to make them re-apply the menu and image.
 		// This also means we need to release the item on IupClose() before the autorelease pool is closed.
-//		[status_bar removeStatusItem:g_applicationStatusItem];
+//		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+//		[status_bar removeStatusItem:status_item];
 	}
 
 	return 1;
@@ -1127,12 +1121,7 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 	[user_image autorelease];
 	NSImageRep* user_image_rep = nil;
 
-	if(nil == g_applicationStatusItem)
-	{
-		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
-		g_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
-		[g_applicationStatusItem retain];
-	}
+	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();
 	
 	NSArray* array_of_representations = [user_image representations];
 
@@ -1171,15 +1160,15 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 		// 10.10 Yosemite introduces light/dark themes so we must make the icon handle both.
 		[icon_image setTemplate:YES];
 		// 10.10+ API
-		if([g_applicationStatusItem respondsToSelector:@selector(button)])
+		if([status_item respondsToSelector:@selector(button)])
 		{
-			[[g_applicationStatusItem button] setImage:icon_image];
+			[[status_item button] setImage:icon_image];
 		}
 		else
 		{
 			// pre 10.10 legacy path
-			[g_applicationStatusItem setImage:icon_image];
-			[g_applicationStatusItem setHighlightMode:YES];
+			[status_item setImage:icon_image];
+			[status_item setHighlightMode:YES];
 
 		}
 		
@@ -1191,15 +1180,15 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 		[user_image setSize:target_image_size];
 		[user_image setTemplate:YES];
 		// 10.10+ API
-		if([g_applicationStatusItem respondsToSelector:@selector(button)])
+		if([status_item respondsToSelector:@selector(button)])
 		{
-			[[g_applicationStatusItem button] setImage:user_image];
+			[[status_item button] setImage:user_image];
 		}
 		else
 		{
 			// pre 10.10 legacy path
-			[g_applicationStatusItem setImage:user_image];
-			[g_applicationStatusItem setHighlightMode:YES];
+			[status_item setImage:user_image];
+			[status_item setHighlightMode:YES];
 
 		}
 	
@@ -1217,15 +1206,15 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 	[user_image setTemplate:YES];
 	
 	// 10.10+ API
-	if([g_applicationStatusItem respondsToSelector:@selector(button)])
+	if([status_item respondsToSelector:@selector(button)])
 	{
-		[[g_applicationStatusItem button] setImage:user_image];
+		[[status_item button] setImage:user_image];
 	}
 	else
 	{
 		// pre 10.10 legacy path
-		[g_applicationStatusItem setImage:user_image];
-		[g_applicationStatusItem setHighlightMode:YES];
+		[status_item setImage:user_image];
+		[status_item setHighlightMode:YES];
 
 	}
 #endif
@@ -1234,30 +1223,28 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
-static Ihandle* s_applicationStatusItemMenuIh = NULL;
 
 // This returns the Ihandle* set via cocoaDialogSetTrayMenuAttrib
 static char* cocoaDialogGetTrayMenuAttrib(Ihandle* ih)
 {
-	return (char*)s_applicationStatusItemMenuIh;
+	return (char*)iupCocoaGetGlobalApplicationStatusItemMenuIh();
 }
 
+// IMPORTANT: We are taking ownership of the menu. User should never call IupDestroy on the menu item.
+// We will do that.
+// My understanding is this is how window menus are done on other platforms (GTK), i.e. the dialog destroy calls destroy on the attached menu.
+// So this is modeled after that.
 static int cocoaDialogSetTrayMenuAttrib(Ihandle* ih, const char* value)
 {
 	Ihandle* menu_ih = (Ihandle*)value;
 
-	if(nil == g_applicationStatusItem)
-	{
-		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
-		g_applicationStatusItem = [status_bar statusItemWithLength:NSSquareStatusItemLength];
-		[g_applicationStatusItem retain];
-	}
+	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();
 	
+
 	// Unset the existing menu
 	if(NULL == menu_ih)
 	{
-		[g_applicationStatusItem setMenu:nil];
-		s_applicationStatusItemMenuIh = NULL;
+		iupCocoaSetGlobalApplicationStatusItemMenuIh(NULL);
 		return 1;
 	}
 
@@ -1284,8 +1271,10 @@ static int cocoaDialogSetTrayMenuAttrib(Ihandle* ih, const char* value)
 
 
 	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
-	[g_applicationStatusItem setMenu:the_menu];
-	s_applicationStatusItemMenuIh = menu_ih;
+	[status_item setMenu:the_menu];
+	// Save the menu_ih and destroy the old one.
+	iupCocoaSetGlobalApplicationStatusItemMenuIh(menu_ih);
+
 
 	return 1;
 }

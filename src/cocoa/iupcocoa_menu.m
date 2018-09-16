@@ -434,6 +434,12 @@ int iupdrvMenuPopup(Ihandle* ih, int x, int y)
 		data2:0
 	];
 
+	// IMPORTANT: popUpContentMenu blocks until the menu is dismissed.
+	// This actually works to our advantage because IUP's API design seems to implicitly assume this and the example in menu.c
+	// immediately calls IupDestroy(menu) right after
+	// IupPopup(menu, IUP_MOUSEPOS, IUP_MOUSEPOS);
+	// Destroying the menu before we are done would be very bad news
+	// because we need a valid ih to look up the user's callback functions for the menu items they created.
     [NSMenu popUpContextMenu:ih->handle withEvent:the_event forView:content_view];
 	return IUP_NOERROR;
 }

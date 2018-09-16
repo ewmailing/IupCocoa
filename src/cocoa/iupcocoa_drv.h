@@ -82,6 +82,11 @@ IUP_EXPORTI bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_co
 // Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
 IUP_EXPORTI bool iupCocoaModifierEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code);
 
+
+NSStatusItem* iupCocoaGetGlobalApplicationStatusItem(void);
+Ihandle* iupCocoaGetGlobalApplicationStatusItemMenuIh(void);
+void iupCocoaSetGlobalApplicationStatusItemMenuIh(Ihandle* menu_ih);
+
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
 extern int iupmac_utf8autoconvert;         
