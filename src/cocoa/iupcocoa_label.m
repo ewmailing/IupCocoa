@@ -800,6 +800,16 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 static void cocoaLabelUnMapMethod(Ihandle* ih)
 {
 	id the_label = ih->handle;
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
+
 	iupCocoaRemoveFromParent(ih);
 	[the_label release];
 	ih->handle = nil;

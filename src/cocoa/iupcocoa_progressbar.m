@@ -352,6 +352,17 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 static void cocoaProgressBarUnMapMethod(Ihandle* ih)
 {
 	id progress_bar = ih->handle;
+
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
+
 	iupCocoaRemoveFromParent(ih);
 	[progress_bar release];
 	ih->handle = NULL;

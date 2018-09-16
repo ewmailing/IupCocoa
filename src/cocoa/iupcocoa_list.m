@@ -1688,6 +1688,16 @@ static void cocoaListUnMapMethod(Ihandle* ih)
 	NSView* base_view = cocoaListGetBaseWidget(ih);
 	id list_receiver = nil;
 
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
+	
 	
 	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
 	switch(sub_type)

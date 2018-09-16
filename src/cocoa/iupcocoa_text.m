@@ -1648,6 +1648,16 @@ static void cocoaTextUnMapMethod(Ihandle* ih)
 	[text_receiver release];
 	*/
 	
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
+	
 	// Because we used retain for the delegates, they should automatically release
 	
 	iupCocoaRemoveFromParent(ih);

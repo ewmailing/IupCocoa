@@ -375,9 +375,20 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 
 void iupdrvBaseUnMapMethod(Ihandle* ih)
 {
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
+	
 	// Why do I need this when everything else has its own UnMap method?
 	NSLog(@"iupdrvBaseUnMapMethod not implemented. Might be leaking");
 	id the_handle = ih->handle;
+	iupCocoaRemoveFromParent(ih);
 	[the_handle release];
 }
 

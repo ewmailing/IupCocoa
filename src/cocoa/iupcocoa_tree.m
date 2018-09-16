@@ -2554,6 +2554,15 @@ static void cocoaTreeUnMapMethod(Ihandle* ih)
 {
 	id root_view = ih->handle;
 	
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
 	
 	iupCocoaRemoveFromParent(ih);
 	[root_view release];
