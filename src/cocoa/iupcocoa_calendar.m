@@ -206,6 +206,10 @@ Iclass* iupCalendarNewClass(void)
 //  iupClassRegisterAttribute(ic, "WEEKNUMBERS", NULL, gtkCalendarSetWeekNumbersAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TODAY", cocoaCalendarGetTodayAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_DEFAULTVALUE | IUPAF_NO_INHERIT);
 
+	/* New API for view specific contextual menus (Mac only) */
+	// Hmmmm. Context menus don't seem to work on NSDatePicker.
+//	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, iupCocoaCommonBaseSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
   return ic;
 }
 
