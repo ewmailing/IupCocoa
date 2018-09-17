@@ -1118,7 +1118,7 @@ static int cocoaDialogSetTrayAttrib(Ihandle* ih, const char* value)
 static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 {
 	NSImage* user_image = (NSImage*)iupImageGetIcon(value);
-	[user_image autorelease];
+//	[user_image autorelease]; // I think IUP is caching. releasing here could mean a double-autorelease the next time it gets called since it does not retain when it fetches from the cache.
 	NSImageRep* user_image_rep = nil;
 
 	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();

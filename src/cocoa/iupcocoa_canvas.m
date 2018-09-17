@@ -29,19 +29,24 @@
 #include "iup_class.h" // needed for iup_classbase.h
 #include "iup_classbase.h" // iupROUND
 
+#include "iupcocoa_draw.h" // struct _IdrawCanvas
+
 #include "iupcocoa_drv.h"
 
 
-
-@interface IupCocoaCanvasView : NSView
+// Try subclassing NSControl instead of NSView because IUP is trying to make new controls out of Canvases, and wants to do stuff like ACTIVE=NO
+@interface IupCocoaCanvasView : NSControl
 {
 	Ihandle* _ih;
+	struct _IdrawCanvas* _dc;
 }
 @property(nonatomic, assign) Ihandle* ih;
+@property(nonatomic, assign) struct _IdrawCanvas* dc;
 @end
 
 @implementation IupCocoaCanvasView
 @synthesize ih = _ih;
+@synthesize dc = _dc;
 
 - (instancetype) initWithFrame:(NSRect)frame_rect ih:(Ihandle*)ih
 {
@@ -49,14 +54,39 @@
 	if(self)
 	{
 		_ih = ih;
+
+//		iupAttribSetDouble(ih, "_IUPAPPLE_CGWIDTH", frame_rect.size.width);
+//		iupAttribSetDouble(ih, "_IUPAPPLE_CGHEIGHT", frame_rect.size.height);
+
+#if 1
+		[self setPostsBoundsChangedNotifications:YES];
+
+		// Surprisingly, NSView doesn't have a built in method for resize events, but instead we muse use NSNotificationCenter
+		NSNotificationCenter* notification_center = [NSNotificationCenter defaultCenter];
+		[notification_center addObserver:self
+			selector:@selector(frameDidChangeNotification:)
+			name:NSViewFrameDidChangeNotification
+			object:self
+		];
+#endif
+		
 	}
 	return self;
 }
 
-- (void)drawRect:(NSRect)the_rect
+- (void) dealloc
+{
+	NSNotificationCenter* notification_center = [NSNotificationCenter defaultCenter];
+	[notification_center removeObserver:self];
+	[super dealloc];
+}
+
+- (void) drawRect:(NSRect)the_rect
 {
 	Ihandle* ih = _ih;
-	
+
+	[self lockFocus];
+
 	// Obtain the Quartz context from the current NSGraphicsContext at the time the view's
 	// drawRect method is called. This context is only appropriate for drawing in this invocation
 	// of the drawRect method.
@@ -64,6 +94,20 @@
 	// CGContextRef cg_context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
 	// Use [[NSGraphicsContext currentContext] CGContext] in 10.10+
 	CGContextRef cg_context = [[NSGraphicsContext currentContext] CGContext];
+	
+	
+	struct _IdrawCanvas* dc = [self dc];
+
+	if(dc != NULL)
+	{
+//		CGContextRelease(dc->cgContext);
+		// I'm concerned about the context changing out from under us,
+		// (e.g. plug in new monitor, switch resolution, change multi-monitor-spanning, switch GPUs)
+		// so always reset the cgContext. Inside the Draw implementation, the CGContext should always reference this pointer and be up-to-date.
+		dc->cgContext = cg_context;
+//		CGContextRetain(dc->cgContext);
+	}
+	
 	
 	CGContextSaveGState(cg_context);
 
@@ -83,18 +127,84 @@
 		call_back(ih, ih->data->posx, ih->data->posy);
 	}
 	CGContextRestoreGState(cg_context);
+
+	[self unlockFocus];
 }
 
+// Note: This also triggers when the view is moved, not just resize.
+- (void) frameDidChangeNotification:(NSNotification*)the_notification
+{
+// This Notification does not provide a userInfo dictionary according to the docs
+	NSRect view_frame = [self frame];
+	Ihandle* ih = _ih;
+
+	struct _IdrawCanvas* dc = [self dc];
+	CGFloat old_width = 0.0;
+	CGFloat old_height = 0.0;
+	if(dc != NULL)
+	{
+		old_width = dc->w;
+		old_height = dc->h;
+	}
+
+//	CGFloat old_width = iupAttribGetDouble(ih, "_IUPAPPLE_CGWIDTH");
+//	CGFloat old_height = iupAttribGetDouble(ih, "_IUPAPPLE_CGHEIGHT");
+
+	if((old_width == view_frame.size.width) && (old_height == view_frame.size.height))
+	{
+		// Means we were moved, but not resized.
+		return;
+	}
+
+//	iupAttribSetDouble(ih, "_IUPAPPLE_CGWIDTH", view_frame.size.width);
+//	iupAttribSetDouble(ih, "_IUPAPPLE_CGHEIGHT", view_frame.size.height);
+	if(dc != NULL)
+	{
+		dc->w = view_frame.size.width;
+		dc->h = view_frame.size.height;
+
+		// Just in case they try to draw in the resize callback, let's make sure the CGContext is still valid.
+		CGContextRef cg_context = [[NSGraphicsContext currentContext] CGContext];
+
+		if(dc != NULL)
+		{
+			// I'm concerned about the context changing out from under us,
+			// (e.g. plug in new monitor, switch resolution, change multi-monitor-spanning, switch GPUs)
+			// so always reset the cgContext. Inside the Draw implementation, the CGContext should always reference this pointer and be up-to-date.
+			dc->cgContext = cg_context;
+		}
+		
+	}
+	
+	IFnii call_back = (IFnii)IupGetCallback(ih, "RESIZE_CB");
+	if(call_back)
+	{
+		call_back(ih, view_frame.size.width, view_frame.size.height);
+	}
+}
 
 //////// Keyboard stuff
 
 - (BOOL) acceptsFirstResponder
 {
-	return YES;
+	if([self isEnabled])
+	{
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
 }
 
 - (void) flagsChanged:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+
 //	NSLog(@"flagsChanged: %@", the_event);
 //	NSLog(@"modifierFlags: 0x%X", [the_event modifierFlags]);
 /*
@@ -119,7 +229,12 @@
 
 - (void) keyDown:(NSEvent*)the_event
 {
-    // gets ihandle
+ 	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	   // gets ihandle
     Ihandle* ih = [self ih];
 //	NSLog(@"keyDown: %@", the_event);
     unsigned short mac_key_code = [the_event keyCode];
@@ -134,6 +249,12 @@
 
 - (void) keyUp:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = [self ih];
     unsigned short mac_key_code = [the_event keyCode];
 	bool should_not_propagate = iupCocoaKeyEvent(ih, the_event, (int)mac_key_code, false);
@@ -147,6 +268,12 @@
 
 - (void) mouseDown:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
 	if(!should_not_propagate)
@@ -157,6 +284,12 @@
 
 - (void) mouseDragged:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
 	if(!should_not_propagate)
@@ -167,6 +300,12 @@
 
 - (void) mouseUp:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
 	if(!should_not_propagate)
@@ -178,6 +317,12 @@
 // I learned that if I don't call super, the context menu doesn't activate.
 - (void) rightMouseDown:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
 	if(!should_not_propagate)
@@ -188,6 +333,12 @@
 
 - (void) rightMouseDragged:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
 	if(!should_not_propagate)
@@ -198,6 +349,12 @@
 
 - (void) rightMouseUp:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
 	if(!should_not_propagate)
@@ -208,6 +365,12 @@
 
 - (void) otherMouseDown:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, true);
 	if(!should_not_propagate)
@@ -218,6 +381,12 @@
 
 - (void) otherMouseDragged:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseMotionCallback(ih, the_event, self);
 	if(!should_not_propagate)
@@ -228,6 +397,12 @@
 
 - (void) otherMouseUp:(NSEvent*)the_event
 {
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
 	Ihandle* ih = _ih;
 	bool should_not_propagate = iupCocoaCommonBaseHandleMouseButtonCallback(ih, the_event, self, false);
 	if(!should_not_propagate)
@@ -277,10 +452,7 @@ static IupCocoaCanvasView* cocoaCanvasGetCanvasView(Ihandle* ih)
 	}
 }
 
-
-
-
-static char* cocoaCanvasGetDrawableAttrib(Ihandle* ih)
+static char* cocoaCanvasGetCGContextAttrib(Ihandle* ih)
 {
 	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
 	CGContextRef cg_context = NULL;
@@ -292,6 +464,26 @@ static char* cocoaCanvasGetDrawableAttrib(Ihandle* ih)
 	[canvas_view unlockFocus];
 	
 	return (char*)cg_context;
+}
+
+int cocoaCanvasSetIDrawCanvasAttrib(Ihandle* ih, const char* value)
+{
+	if(ih->handle != NULL)
+	{
+		IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
+		struct _IdrawCanvas* dc = (struct _IdrawCanvas*)value;
+		if(dc != NULL)
+		{
+			[canvas_view setDc:dc];
+		}
+	}
+	return 1;
+}
+
+
+static char* cocoaCanvasGetDrawableAttrib(Ihandle* ih)
+{
+	return (char*)cocoaCanvasGetCGContextAttrib(ih);
 }
 
 static char* cocoaCanvasGetDrawSizeAttrib(Ihandle *ih)
@@ -405,7 +597,15 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "POSY", iupCanvasGetPosYAttrib, gtkCanvasSetPosYAttrib, "0", NULL, IUPAF_NO_INHERIT);  /* force new default value */
 #endif
 	
+	// TODO: Returns the CGContext. Is this the right thing, or should it be the NSGraphicsContext? Or should it be the NSView?
 	iupClassRegisterAttribute(ic, "DRAWABLE", cocoaCanvasGetDrawableAttrib, NULL, NULL, NULL, IUPAF_NO_STRING);
+
+	// Private helper, used by iupdrvDrawCreateCanvas and currently cocoaCanvasGetDrawableAttrib calls this.
+	// Do not start with an underscore, because I need this to trigger the function
+	iupClassRegisterAttribute(ic, "CGCONTEXT", cocoaCanvasGetCGContextAttrib, NULL, NULL, NULL, IUPAF_NO_STRING);
+	// Private helper: Used to send the dc instance to the IupCanvasView. Kind of a hack, but keeping the two coordinated is tricky.
+	// Do not start with an underscore, because I need this to trigger the function
+	iupClassRegisterAttribute(ic, "IUPAPPLE_IDRAWCANVAS", NULL, cocoaCanvasSetIDrawCanvasAttrib, NULL, NULL, IUPAF_NO_STRING);
 
 #if 0
 	/* IupCanvas Windows or X only */
@@ -420,8 +620,10 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	
 	/* Not Supported */
 	iupClassRegisterAttribute(ic, "BACKINGSTORE", NULL, NULL, "YES", NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "TOUCH", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
+
+//	TODO:
+//	iupClassRegisterAttribute(ic, "TOUCH", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 
 	/* New API for view specific contextual menus (Mac only) */
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaCanvasSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);

@@ -251,6 +251,38 @@
 		00E8D72F1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */; };
 		00E93A672148754800BC6F5B /* TecgrafLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E93A662148754800BC6F5B /* TecgrafLogo.png */; };
 		00E93A68214CE09800BC6F5B /* iupmac_key.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8A31B605A7500BEC175 /* iupmac_key.m */; };
+		00E93ADB214E83B200BC6F5B /* config.mak in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ABB214E83AE00BC6F5B /* config.mak */; };
+		00E93ADC214E83B200BC6F5B /* iup_image_library.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ABC214E83AE00BC6F5B /* iup_image_library.c */; };
+		00E93ADD214E83B200BC6F5B /* iup_imglib.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93ABD214E83AE00BC6F5B /* iup_imglib.h */; };
+		00E93ADE214E83B200BC6F5B /* iup_imglib_basegtk16x16.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93ABE214E83AE00BC6F5B /* iup_imglib_basegtk16x16.h */; };
+		00E93ADF214E83B200BC6F5B /* iup_imglib_basegtk24x24.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ABF214E83AE00BC6F5B /* iup_imglib_basegtk24x24.c */; };
+		00E93AE0214E83B200BC6F5B /* iup_imglib_basegtk324x24.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AC0214E83AE00BC6F5B /* iup_imglib_basegtk324x24.c */; };
+		00E93AE1214E83B200BC6F5B /* iup_imglib_basegtk324x24.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AC1214E83AE00BC6F5B /* iup_imglib_basegtk324x24.h */; };
+		00E93AE2214E83B200BC6F5B /* iup_imglib_basemot16x16_8bpp.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AC2214E83AE00BC6F5B /* iup_imglib_basemot16x16_8bpp.c */; };
+		00E93AE3214E83B200BC6F5B /* iup_imglib_basemot16x16_8bpp.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AC3214E83AE00BC6F5B /* iup_imglib_basemot16x16_8bpp.h */; };
+		00E93AE4214E83B200BC6F5B /* iup_imglib_basewin16x16.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AC4214E83AE00BC6F5B /* iup_imglib_basewin16x16.c */; };
+		00E93AE5214E83B200BC6F5B /* iup_imglib_basewin16x16.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AC5214E83AE00BC6F5B /* iup_imglib_basewin16x16.h */; };
+		00E93AE6214E83B200BC6F5B /* iup_imglib_basewin32x32.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AC6214E83AE00BC6F5B /* iup_imglib_basewin32x32.c */; };
+		00E93AE7214E83B200BC6F5B /* iup_imglib_basewin32x32.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AC7214E83AE00BC6F5B /* iup_imglib_basewin32x32.h */; };
+		00E93AE8214E83B200BC6F5B /* iup_imglib_circleprogress.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AC8214E83AE00BC6F5B /* iup_imglib_circleprogress.c */; };
+		00E93AE9214E83B200BC6F5B /* iup_imglib_circleprogress.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AC9214E83AE00BC6F5B /* iup_imglib_circleprogress.h */; };
+		00E93AEA214E83B200BC6F5B /* iup_imglib_iconsgtk348x48.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ACA214E83AE00BC6F5B /* iup_imglib_iconsgtk348x48.c */; };
+		00E93AEB214E83B200BC6F5B /* iup_imglib_iconsgtk348x48.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93ACB214E83AE00BC6F5B /* iup_imglib_iconsgtk348x48.h */; };
+		00E93AEC214E83B200BC6F5B /* iup_imglib_iconsgtk48x48.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ACC214E83AE00BC6F5B /* iup_imglib_iconsgtk48x48.c */; };
+		00E93AED214E83B200BC6F5B /* iup_imglib_iconswin48x48.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ACD214E83AE00BC6F5B /* iup_imglib_iconswin48x48.c */; };
+		00E93AEE214E83B200BC6F5B /* iup_imglib_iconswin48x48.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93ACE214E83AE00BC6F5B /* iup_imglib_iconswin48x48.h */; };
+		00E93AEF214E83B200BC6F5B /* iup_imglib_logos32x32.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ACF214E83AE00BC6F5B /* iup_imglib_logos32x32.c */; };
+		00E93AF0214E83B200BC6F5B /* iup_imglib_logos32x32.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AD0214E83AE00BC6F5B /* iup_imglib_logos32x32.h */; };
+		00E93AF1214E83B200BC6F5B /* iup_imglib_logos32x32_8bpp.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AD1214E83AE00BC6F5B /* iup_imglib_logos32x32_8bpp.c */; };
+		00E93AF2214E83B200BC6F5B /* iup_imglib_logos32x32_8bpp.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AD2214E83AE00BC6F5B /* iup_imglib_logos32x32_8bpp.h */; };
+		00E93AF3214E83B200BC6F5B /* iup_imglib_logos48x48.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AD3214E83AE00BC6F5B /* iup_imglib_logos48x48.c */; };
+		00E93AF4214E83B200BC6F5B /* iup_imglib_logos48x48.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AD4214E83AE00BC6F5B /* iup_imglib_logos48x48.h */; };
+		00E93AF5214E83B200BC6F5B /* iup_imglib_logos48x48_8bpp.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E93AD5214E83AE00BC6F5B /* iup_imglib_logos48x48_8bpp.c */; };
+		00E93AF6214E83B200BC6F5B /* iup_imglib_logos48x48_8bpp.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AD6214E83AE00BC6F5B /* iup_imglib_logos48x48_8bpp.h */; };
+		00E93AF7214E83B200BC6F5B /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 00E93ADA214E83AE00BC6F5B /* Makefile */; };
+		00E93B01214E846200BC6F5B /* iupim.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AFF214E846200BC6F5B /* iupim.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00E93B05214E846200BC6F5B /* iupim.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E93AFD214E846100BC6F5B /* iupim.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		00E93B0A214E84B500BC6F5B /* libiupimglib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E93A6D214E826C00BC6F5B /* libiupimglib.a */; };
 		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
@@ -271,6 +303,13 @@
 			remoteGlobalIDString = 00E3A8F11B609B8700BEC175;
 			remoteInfo = TestApp;
 		};
+		00E93B02214E846200BC6F5B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00E3A5E41B60578300BEC175 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00E93AFC214E846100BC6F5B;
+			remoteInfo = iupim;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -281,6 +320,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */,
+				00E93B05214E846200BC6F5B /* iupim.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -553,6 +593,48 @@
 		00E8D72C1ED4F15900773764 /* IUPTextSpinnerFilesOwner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IUPTextSpinnerFilesOwner.h; sourceTree = "<group>"; };
 		00E8D72D1ED4F15900773764 /* IUPTextSpinnerFilesOwner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IUPTextSpinnerFilesOwner.m; sourceTree = "<group>"; };
 		00E93A662148754800BC6F5B /* TecgrafLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = TecgrafLogo.png; path = ../../../html/examples/tutorial/TecgrafLogo.png; sourceTree = "<group>"; };
+		00E93A6D214E826C00BC6F5B /* libiupimglib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libiupimglib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E93AB1214E838100BC6F5B /* config.mak */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = config.mak; sourceTree = "<group>"; };
+		00E93AB2214E838100BC6F5B /* iup_im.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_im.c; sourceTree = "<group>"; };
+		00E93AB3214E838100BC6F5B /* iupim.def */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iupim.def; sourceTree = "<group>"; };
+		00E93AB4214E838100BC6F5B /* make_uname */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = make_uname; sourceTree = "<group>"; };
+		00E93AB5214E838100BC6F5B /* make_uname.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = make_uname.bat; sourceTree = "<group>"; };
+		00E93AB6214E838100BC6F5B /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		00E93ABB214E83AE00BC6F5B /* config.mak */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = config.mak; sourceTree = "<group>"; };
+		00E93ABC214E83AE00BC6F5B /* iup_image_library.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_image_library.c; sourceTree = "<group>"; };
+		00E93ABD214E83AE00BC6F5B /* iup_imglib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib.h; sourceTree = "<group>"; };
+		00E93ABE214E83AE00BC6F5B /* iup_imglib_basegtk16x16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_basegtk16x16.h; sourceTree = "<group>"; };
+		00E93ABF214E83AE00BC6F5B /* iup_imglib_basegtk24x24.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_basegtk24x24.c; sourceTree = "<group>"; };
+		00E93AC0214E83AE00BC6F5B /* iup_imglib_basegtk324x24.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_basegtk324x24.c; sourceTree = "<group>"; };
+		00E93AC1214E83AE00BC6F5B /* iup_imglib_basegtk324x24.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_basegtk324x24.h; sourceTree = "<group>"; };
+		00E93AC2214E83AE00BC6F5B /* iup_imglib_basemot16x16_8bpp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_basemot16x16_8bpp.c; sourceTree = "<group>"; };
+		00E93AC3214E83AE00BC6F5B /* iup_imglib_basemot16x16_8bpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_basemot16x16_8bpp.h; sourceTree = "<group>"; };
+		00E93AC4214E83AE00BC6F5B /* iup_imglib_basewin16x16.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_basewin16x16.c; sourceTree = "<group>"; };
+		00E93AC5214E83AE00BC6F5B /* iup_imglib_basewin16x16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_basewin16x16.h; sourceTree = "<group>"; };
+		00E93AC6214E83AE00BC6F5B /* iup_imglib_basewin32x32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_basewin32x32.c; sourceTree = "<group>"; };
+		00E93AC7214E83AE00BC6F5B /* iup_imglib_basewin32x32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_basewin32x32.h; sourceTree = "<group>"; };
+		00E93AC8214E83AE00BC6F5B /* iup_imglib_circleprogress.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_circleprogress.c; sourceTree = "<group>"; };
+		00E93AC9214E83AE00BC6F5B /* iup_imglib_circleprogress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_circleprogress.h; sourceTree = "<group>"; };
+		00E93ACA214E83AE00BC6F5B /* iup_imglib_iconsgtk348x48.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_iconsgtk348x48.c; sourceTree = "<group>"; };
+		00E93ACB214E83AE00BC6F5B /* iup_imglib_iconsgtk348x48.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_iconsgtk348x48.h; sourceTree = "<group>"; };
+		00E93ACC214E83AE00BC6F5B /* iup_imglib_iconsgtk48x48.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_iconsgtk48x48.c; sourceTree = "<group>"; };
+		00E93ACD214E83AE00BC6F5B /* iup_imglib_iconswin48x48.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_iconswin48x48.c; sourceTree = "<group>"; };
+		00E93ACE214E83AE00BC6F5B /* iup_imglib_iconswin48x48.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_iconswin48x48.h; sourceTree = "<group>"; };
+		00E93ACF214E83AE00BC6F5B /* iup_imglib_logos32x32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_logos32x32.c; sourceTree = "<group>"; };
+		00E93AD0214E83AE00BC6F5B /* iup_imglib_logos32x32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_logos32x32.h; sourceTree = "<group>"; };
+		00E93AD1214E83AE00BC6F5B /* iup_imglib_logos32x32_8bpp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_logos32x32_8bpp.c; sourceTree = "<group>"; };
+		00E93AD2214E83AE00BC6F5B /* iup_imglib_logos32x32_8bpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_logos32x32_8bpp.h; sourceTree = "<group>"; };
+		00E93AD3214E83AE00BC6F5B /* iup_imglib_logos48x48.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_logos48x48.c; sourceTree = "<group>"; };
+		00E93AD4214E83AE00BC6F5B /* iup_imglib_logos48x48.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_logos48x48.h; sourceTree = "<group>"; };
+		00E93AD5214E83AE00BC6F5B /* iup_imglib_logos48x48_8bpp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_imglib_logos48x48_8bpp.c; sourceTree = "<group>"; };
+		00E93AD6214E83AE00BC6F5B /* iup_imglib_logos48x48_8bpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_imglib_logos48x48_8bpp.h; sourceTree = "<group>"; };
+		00E93AD7214E83AE00BC6F5B /* iupimglib.def */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iupimglib.def; sourceTree = "<group>"; };
+		00E93AD8214E83AE00BC6F5B /* make_uname */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = make_uname; sourceTree = "<group>"; };
+		00E93AD9214E83AE00BC6F5B /* make_uname.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = make_uname.bat; sourceTree = "<group>"; };
+		00E93ADA214E83AE00BC6F5B /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		00E93AFD214E846100BC6F5B /* iupim.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iupim.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E93AFF214E846200BC6F5B /* iupim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iupim.h; sourceTree = "<group>"; };
+		00E93B00214E846200BC6F5B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6310AB2D1ED21CE70075B168 /* ImageApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310AB301ED21DFF0075B168 /* TestImage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TestImage.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -599,11 +681,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00E93B0A214E84B500BC6F5B /* libiupimglib.a in Frameworks */,
 				00E3A9121B609BA600BEC175 /* iup.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		00E3A9011B609B8700BEC175 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00E93A6A214E826C00BC6F5B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00E93AF9214E846100BC6F5B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -672,6 +769,7 @@
 				00E3A8F31B609B8700BEC175 /* TestApp */,
 				00E3A9071B609B8800BEC175 /* TestAppTests */,
 				00BE4F791F4C967F002B7C86 /* webbrowser */,
+				00E93AFE214E846200BC6F5B /* iupim */,
 				00E3A5EE1B60578300BEC175 /* Products */,
 				00BE4F4C1F4BF35D002B7C86 /* iupweb-Info.plist */,
 				00BE4F691F4C7CCB002B7C86 /* Frameworks */,
@@ -688,6 +786,8 @@
 				6310AB2D1ED21CE70075B168 /* ImageApp.app */,
 				00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */,
 				00BE4F781F4C967F002B7C86 /* webbrowser.app */,
+				00E93A6D214E826C00BC6F5B /* libiupimglib.a */,
+				00E93AFD214E846100BC6F5B /* iupim.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -695,6 +795,8 @@
 		00E3A5EF1B60578300BEC175 /* iup */ = {
 			isa = PBXGroup;
 			children = (
+				00E93ABA214E83AD00BC6F5B /* srcimglib */,
+				00E93AB0214E838100BC6F5B /* srcim */,
 				00BE4F4D1F4BF40F002B7C86 /* srcweb */,
 				00E3A83A1B60595300BEC175 /* include */,
 				00E3A60B1B60583500BEC175 /* src */,
@@ -1023,6 +1125,69 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		00E93AB0214E838100BC6F5B /* srcim */ = {
+			isa = PBXGroup;
+			children = (
+				00E93AB1214E838100BC6F5B /* config.mak */,
+				00E93AB2214E838100BC6F5B /* iup_im.c */,
+				00E93AB3214E838100BC6F5B /* iupim.def */,
+				00E93AB4214E838100BC6F5B /* make_uname */,
+				00E93AB5214E838100BC6F5B /* make_uname.bat */,
+				00E93AB6214E838100BC6F5B /* Makefile */,
+			);
+			name = srcim;
+			path = ../../../srcim;
+			sourceTree = "<group>";
+		};
+		00E93ABA214E83AD00BC6F5B /* srcimglib */ = {
+			isa = PBXGroup;
+			children = (
+				00E93ABB214E83AE00BC6F5B /* config.mak */,
+				00E93ABC214E83AE00BC6F5B /* iup_image_library.c */,
+				00E93ABD214E83AE00BC6F5B /* iup_imglib.h */,
+				00E93ABE214E83AE00BC6F5B /* iup_imglib_basegtk16x16.h */,
+				00E93ABF214E83AE00BC6F5B /* iup_imglib_basegtk24x24.c */,
+				00E93AC0214E83AE00BC6F5B /* iup_imglib_basegtk324x24.c */,
+				00E93AC1214E83AE00BC6F5B /* iup_imglib_basegtk324x24.h */,
+				00E93AC2214E83AE00BC6F5B /* iup_imglib_basemot16x16_8bpp.c */,
+				00E93AC3214E83AE00BC6F5B /* iup_imglib_basemot16x16_8bpp.h */,
+				00E93AC4214E83AE00BC6F5B /* iup_imglib_basewin16x16.c */,
+				00E93AC5214E83AE00BC6F5B /* iup_imglib_basewin16x16.h */,
+				00E93AC6214E83AE00BC6F5B /* iup_imglib_basewin32x32.c */,
+				00E93AC7214E83AE00BC6F5B /* iup_imglib_basewin32x32.h */,
+				00E93AC8214E83AE00BC6F5B /* iup_imglib_circleprogress.c */,
+				00E93AC9214E83AE00BC6F5B /* iup_imglib_circleprogress.h */,
+				00E93ACA214E83AE00BC6F5B /* iup_imglib_iconsgtk348x48.c */,
+				00E93ACB214E83AE00BC6F5B /* iup_imglib_iconsgtk348x48.h */,
+				00E93ACC214E83AE00BC6F5B /* iup_imglib_iconsgtk48x48.c */,
+				00E93ACD214E83AE00BC6F5B /* iup_imglib_iconswin48x48.c */,
+				00E93ACE214E83AE00BC6F5B /* iup_imglib_iconswin48x48.h */,
+				00E93ACF214E83AE00BC6F5B /* iup_imglib_logos32x32.c */,
+				00E93AD0214E83AE00BC6F5B /* iup_imglib_logos32x32.h */,
+				00E93AD1214E83AE00BC6F5B /* iup_imglib_logos32x32_8bpp.c */,
+				00E93AD2214E83AE00BC6F5B /* iup_imglib_logos32x32_8bpp.h */,
+				00E93AD3214E83AE00BC6F5B /* iup_imglib_logos48x48.c */,
+				00E93AD4214E83AE00BC6F5B /* iup_imglib_logos48x48.h */,
+				00E93AD5214E83AE00BC6F5B /* iup_imglib_logos48x48_8bpp.c */,
+				00E93AD6214E83AE00BC6F5B /* iup_imglib_logos48x48_8bpp.h */,
+				00E93AD7214E83AE00BC6F5B /* iupimglib.def */,
+				00E93AD8214E83AE00BC6F5B /* make_uname */,
+				00E93AD9214E83AE00BC6F5B /* make_uname.bat */,
+				00E93ADA214E83AE00BC6F5B /* Makefile */,
+			);
+			name = srcimglib;
+			path = ../../../srcimglib;
+			sourceTree = "<group>";
+		};
+		00E93AFE214E846200BC6F5B /* iupim */ = {
+			isa = PBXGroup;
+			children = (
+				00E93AFF214E846200BC6F5B /* iupim.h */,
+				00E93B00214E846200BC6F5B /* Info.plist */,
+			);
+			path = iupim;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1127,6 +1292,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00E93A6B214E826C00BC6F5B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00E93AE9214E83B200BC6F5B /* iup_imglib_circleprogress.h in Headers */,
+				00E93AE7214E83B200BC6F5B /* iup_imglib_basewin32x32.h in Headers */,
+				00E93AE5214E83B200BC6F5B /* iup_imglib_basewin16x16.h in Headers */,
+				00E93ADE214E83B200BC6F5B /* iup_imglib_basegtk16x16.h in Headers */,
+				00E93AEE214E83B200BC6F5B /* iup_imglib_iconswin48x48.h in Headers */,
+				00E93AE1214E83B200BC6F5B /* iup_imglib_basegtk324x24.h in Headers */,
+				00E93AE3214E83B200BC6F5B /* iup_imglib_basemot16x16_8bpp.h in Headers */,
+				00E93AF6214E83B200BC6F5B /* iup_imglib_logos48x48_8bpp.h in Headers */,
+				00E93AF0214E83B200BC6F5B /* iup_imglib_logos32x32.h in Headers */,
+				00E93AF2214E83B200BC6F5B /* iup_imglib_logos32x32_8bpp.h in Headers */,
+				00E93AF4214E83B200BC6F5B /* iup_imglib_logos48x48.h in Headers */,
+				00E93AEB214E83B200BC6F5B /* iup_imglib_iconsgtk348x48.h in Headers */,
+				00E93ADD214E83B200BC6F5B /* iup_imglib.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00E93AFA214E846100BC6F5B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00E93B01214E846200BC6F5B /* iupim.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -1214,6 +1407,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				00E93B03214E846200BC6F5B /* PBXTargetDependency */,
 			);
 			name = TestApp;
 			productName = TestApp;
@@ -1237,6 +1431,41 @@
 			productName = TestAppTests;
 			productReference = 00E3A9041B609B8700BEC175 /* TestAppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		00E93A6C214E826C00BC6F5B /* iupimglib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00E93A70214E826C00BC6F5B /* Build configuration list for PBXNativeTarget "iupimglib" */;
+			buildPhases = (
+				00E93A69214E826C00BC6F5B /* Sources */,
+				00E93A6A214E826C00BC6F5B /* Frameworks */,
+				00E93A6B214E826C00BC6F5B /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iupimglib;
+			productName = iupimglib;
+			productReference = 00E93A6D214E826C00BC6F5B /* libiupimglib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		00E93AFC214E846100BC6F5B /* iupim */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00E93B06214E846200BC6F5B /* Build configuration list for PBXNativeTarget "iupim" */;
+			buildPhases = (
+				00E93AF8214E846100BC6F5B /* Sources */,
+				00E93AF9214E846100BC6F5B /* Frameworks */,
+				00E93AFA214E846100BC6F5B /* Headers */,
+				00E93AFB214E846100BC6F5B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iupim;
+			productName = iupim;
+			productReference = 00E93AFD214E846100BC6F5B /* iupim.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 		6310AB231ED21CE70075B168 /* ImageApp */ = {
 			isa = PBXNativeTarget;
@@ -1281,6 +1510,12 @@
 						CreatedOnToolsVersion = 6.4;
 						TestTargetID = 00E3A8F11B609B8700BEC175;
 					};
+					00E93A6C214E826C00BC6F5B = {
+						CreatedOnToolsVersion = 9.4.1;
+					};
+					00E93AFC214E846100BC6F5B = {
+						CreatedOnToolsVersion = 9.4.1;
+					};
 				};
 			};
 			buildConfigurationList = 00E3A5E71B60578300BEC175 /* Build configuration list for PBXProject "iup" */;
@@ -1303,6 +1538,8 @@
 				6310AB231ED21CE70075B168 /* ImageApp */,
 				00BE4E761F4BF35C002B7C86 /* iupweb */,
 				00BE4F771F4C967F002B7C86 /* webbrowser */,
+				00E93A6C214E826C00BC6F5B /* iupimglib */,
+				00E93AFC214E846100BC6F5B /* iupim */,
 			);
 		};
 /* End PBXProject section */
@@ -1352,6 +1589,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		00E3A9021B609B8700BEC175 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00E93AFB214E846100BC6F5B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1547,6 +1791,36 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		00E93A69214E826C00BC6F5B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00E93ADF214E83B200BC6F5B /* iup_imglib_basegtk24x24.c in Sources */,
+				00E93AEC214E83B200BC6F5B /* iup_imglib_iconsgtk48x48.c in Sources */,
+				00E93AEF214E83B200BC6F5B /* iup_imglib_logos32x32.c in Sources */,
+				00E93AED214E83B200BC6F5B /* iup_imglib_iconswin48x48.c in Sources */,
+				00E93AF5214E83B200BC6F5B /* iup_imglib_logos48x48_8bpp.c in Sources */,
+				00E93AE4214E83B200BC6F5B /* iup_imglib_basewin16x16.c in Sources */,
+				00E93AF7214E83B200BC6F5B /* Makefile in Sources */,
+				00E93AEA214E83B200BC6F5B /* iup_imglib_iconsgtk348x48.c in Sources */,
+				00E93AE2214E83B200BC6F5B /* iup_imglib_basemot16x16_8bpp.c in Sources */,
+				00E93AE8214E83B200BC6F5B /* iup_imglib_circleprogress.c in Sources */,
+				00E93AE6214E83B200BC6F5B /* iup_imglib_basewin32x32.c in Sources */,
+				00E93ADC214E83B200BC6F5B /* iup_image_library.c in Sources */,
+				00E93AF1214E83B200BC6F5B /* iup_imglib_logos32x32_8bpp.c in Sources */,
+				00E93ADB214E83B200BC6F5B /* config.mak in Sources */,
+				00E93AF3214E83B200BC6F5B /* iup_imglib_logos48x48.c in Sources */,
+				00E93AE0214E83B200BC6F5B /* iup_imglib_basegtk324x24.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00E93AF8214E846100BC6F5B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6310AB241ED21CE70075B168 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1567,6 +1841,11 @@
 			isa = PBXTargetDependency;
 			target = 00E3A8F11B609B8700BEC175 /* TestApp */;
 			targetProxy = 00E3A9051B609B8700BEC175 /* PBXContainerItemProxy */;
+		};
+		00E93B03214E846200BC6F5B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00E93AFC214E846100BC6F5B /* iupim */;
+			targetProxy = 00E93B02214E846200BC6F5B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1930,6 +2209,142 @@
 			};
 			name = Release;
 		};
+		00E93A6E214E826C00BC6F5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				ENABLE_TESTABILITY = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		00E93A6F214E826C00BC6F5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		00E93B07214E846200BC6F5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_VERSION = A;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					IUPIM_BUILD_LIBRARY,
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = iupim/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.puc-rio.tecgraf.iupim";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		00E93B08214E846200BC6F5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_PREPROCESSOR_DEFINITIONS = IUPIM_BUILD_LIBRARY;
+				INFOPLIST_FILE = iupim/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.puc-rio.tecgraf.iupim";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		6310AB2B1ED21CE70075B168 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2020,6 +2435,24 @@
 			buildConfigurations = (
 				00E3A9101B609B8800BEC175 /* Debug */,
 				00E3A9111B609B8800BEC175 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00E93A70214E826C00BC6F5B /* Build configuration list for PBXNativeTarget "iupimglib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00E93A6E214E826C00BC6F5B /* Debug */,
+				00E93A6F214E826C00BC6F5B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00E93B06214E846200BC6F5B /* Build configuration list for PBXNativeTarget "iupim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00E93B07214E846200BC6F5B /* Debug */,
+				00E93B08214E846200BC6F5B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
