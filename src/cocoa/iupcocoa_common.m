@@ -67,6 +67,8 @@ void iupCocoaAddToParent(Ihandle* ih)
 			NSWindow* parent_window = (NSWindow*)parent_native_handle;
 			NSView* window_view = [parent_window contentView];
 			[window_view addSubview:the_view];
+//			[parent_window recalculateKeyViewLoop];
+
 		}
 		/*
 		else if([parent_native_handle isKindOfClass:[NSBox class]])
@@ -81,12 +83,17 @@ void iupCocoaAddToParent(Ihandle* ih)
 			NSView* parent_view = (NSView*)parent_native_handle;
 			
 			[parent_view addSubview:the_view];
+			
+//			[[parent_view window] recalculateKeyViewLoop];
 		}
 		else
 		{
 			NSCAssert(1, @"Unexpected type for parent widget");
 			@throw @"Unexpected type for parent widget";
 		}
+	
+		[[the_view window] recalculateKeyViewLoop];
+
 	}
 	else if([child_handle isKindOfClass:[CALayer class]])
 	{
@@ -108,7 +115,9 @@ void iupCocoaRemoveFromParent(Ihandle* ih)
 	if([child_handle isKindOfClass:[NSView class]])
 	{
 		NSView* the_view = (NSView*)child_handle;
+		NSWindow* parent_window = [the_view window];
 		[the_view removeFromSuperview];
+		[parent_window recalculateKeyViewLoop];
 	}
 	else if([child_handle isKindOfClass:[CALayer class]])
 	{

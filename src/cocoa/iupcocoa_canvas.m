@@ -28,6 +28,7 @@
 #include "iup_key.h"
 #include "iup_class.h" // needed for iup_classbase.h
 #include "iup_classbase.h" // iupROUND
+#include "iup_focus.h"
 
 #include "iupcocoa_draw.h" // struct _IdrawCanvas
 
@@ -39,14 +40,22 @@
 {
 	Ihandle* _ih;
 	struct _IdrawCanvas* _dc;
+	bool _isCurrentKeyWindow;
+	bool _isCurrentFirstResponder;
 }
 @property(nonatomic, assign) Ihandle* ih;
 @property(nonatomic, assign) struct _IdrawCanvas* dc;
+@property(nonatomic, assign, getter=isCurrentKeyWindow, setter=setCurrentKeyWindow:) bool currentKeyWindow;
+@property(nonatomic, assign, getter=isCurrentFirstResponder, setter=setCurrentFirstResponder:) bool currentFirstResponder;
+- (void) updateFocus;
+
 @end
 
 @implementation IupCocoaCanvasView
 @synthesize ih = _ih;
 @synthesize dc = _dc;
+@synthesize currentKeyWindow = _isCurrentKeyWindow;
+@synthesize currentFirstResponder = _isCurrentFirstResponder;
 
 - (instancetype) initWithFrame:(NSRect)frame_rect ih:(Ihandle*)ih
 {
@@ -67,6 +76,16 @@
 			selector:@selector(frameDidChangeNotification:)
 			name:NSViewFrameDidChangeNotification
 			object:self
+		];
+		[notification_center addObserver:self
+			selector:@selector(windowDidBecomeKeyNotification:)
+			name:NSWindowDidBecomeKeyNotification
+			object:[self window]
+		];
+		[notification_center addObserver:self
+			selector:@selector(windowDidResignKeyNotification:)
+			name:NSWindowDidResignKeyNotification
+			object:[self window]
 		];
 #endif
 		
@@ -131,6 +150,8 @@
 	[self unlockFocus];
 }
 
+
+
 // Note: This also triggers when the view is moved, not just resize.
 - (void) frameDidChangeNotification:(NSNotification*)the_notification
 {
@@ -183,18 +204,124 @@
 	}
 }
 
+
+- (void) windowDidBecomeKeyNotification:(NSNotification*)the_notification
+{
+//	NSLog(@"window became key");
+	[self setCurrentKeyWindow:true];
+	[self updateFocus];
+
+}
+- (void) windowDidResignKeyNotification:(NSNotification*)the_notification
+{
+//	NSLog(@"window resigned");
+	[self setCurrentKeyWindow:false];
+	[self updateFocus];
+}
+
 //////// Keyboard stuff
 
 - (BOOL) acceptsFirstResponder
 {
+//	BOOL ret_flag = [super acceptsFirstResponder];
+#if 1
 	if([self isEnabled])
 	{
+//NSLog(@"acceptsFirstResponder:YES");
 		return YES;
 	}
 	else
 	{
+//NSLog(@"acceptsFirstResponder:NO");
 		return NO;
 	}
+#else
+	return YES;
+#endif
+}
+
+/*
+Apple doc:
+The default value of this property is NO.
+Subclasses can override this property and use their implementation to determine if the view requires its panel
+to become the key window so that it can handle keyboard input and navigation.
+Such a subclass should also override acceptsFirstResponder to return YES.
+This property is also used in keyboard navigation.
+It determines if a mouse click should give focus to a view—that is, make it the first responder).
+Some views (for example, text fields) want to receive the keyboard focus when you click in them.
+Other views (for example, buttons) receive focus only when you tab to them.
+You wouldn't want focus to shift from a textfield that has editing in progress simply because you clicked on a check box.
+
+Sooo... since IUP uses this mostly for buttons and not text entry, it seems like we should return NO.
+But this means that the widgets will never get the focus ring.
+*/
+- (BOOL) needsPanelToBecomeKey
+{
+//	BOOL ret_flag = [super needsPanelToBecomeKey];
+	return YES;
+}
+
+- (BOOL) canBecomeKeyView
+{
+//	BOOL ret_flag = [super canBecomeKeyView];
+#if 1
+	if([self isEnabled])
+	{
+//NSLog(@"canBecomeKeyView:YES");
+		return YES;
+	}
+	else
+	{
+//NSLog(@"canBecomeKeyView:NO");
+		return NO;
+	}
+#else
+	return YES;
+#endif
+}
+
+- (BOOL) becomeFirstResponder
+{
+	BOOL ret_val = [super becomeFirstResponder];
+	[self setCurrentFirstResponder:ret_val];
+	[self updateFocus];
+
+//NSLog(@"becomeFirstResponder");
+
+	return ret_val;
+}
+
+- (BOOL) resignFirstResponder
+{
+	BOOL ret_val = [super resignFirstResponder];
+	[self setCurrentFirstResponder:!ret_val];
+	[self updateFocus];
+
+//NSLog(@"resignFirstResponder");
+
+
+
+	return ret_val;
+}
+
+- (void) updateFocus
+{
+	Ihandle* ih = _ih;
+	if([self isCurrentKeyWindow] && [self isCurrentFirstResponder])
+	{
+		iupCallGetFocusCb(ih);
+
+	}
+	else
+	{
+		iupCallKillFocusCb(ih);
+
+	}
+}
+
+- (BOOL) acceptsFirstMouse:(NSEvent *)theEvent
+{
+	return YES;
 }
 
 - (void) flagsChanged:(NSEvent*)the_event

@@ -37,7 +37,7 @@ void iupdrvSetFocus(Ihandle *ih)
 	
 }
 
-void iupmacFocusInOutEvent(Ihandle *ih)
+void iupcocoaFocusInOutEvent(Ihandle *ih)
 {
 /*
   if (evt->in)

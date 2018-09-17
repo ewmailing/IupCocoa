@@ -939,6 +939,11 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	// We are manually managing the memory, so don't let the window release itself
 	[the_window setReleasedWhenClosed:NO];
 
+	// I want to get nextKeyView working without needing to manually set it.
+	[the_window setAutorecalculatesKeyViewLoop:YES];
+//	[the_window setInitialFirstResponder:nil];
+
+
 	static _Bool s_isFirstWindow = true;
 
 	static NSPoint last_cascade_point = {0, 0};
@@ -1016,7 +1021,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
 	objc_setAssociatedObject(the_window, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 
-	
+
 	
 	[the_window makeKeyAndOrderFront:nil];
 
