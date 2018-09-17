@@ -283,6 +283,7 @@
 		00E93B01214E846200BC6F5B /* iupim.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93AFF214E846200BC6F5B /* iupim.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00E93B05214E846200BC6F5B /* iupim.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E93AFD214E846100BC6F5B /* iupim.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00E93B0A214E84B500BC6F5B /* libiupimglib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E93A6D214E826C00BC6F5B /* libiupimglib.a */; };
+		00E93B0C214FCE2000BC6F5B /* iupcocoa_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93B0B214FCE1D00BC6F5B /* iupcocoa_draw.h */; };
 		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
@@ -635,6 +636,7 @@
 		00E93AFD214E846100BC6F5B /* iupim.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iupim.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E93AFF214E846200BC6F5B /* iupim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iupim.h; sourceTree = "<group>"; };
 		00E93B00214E846200BC6F5B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00E93B0B214FCE1D00BC6F5B /* iupcocoa_draw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcocoa_draw.h; sourceTree = "<group>"; };
 		6310AB2D1ED21CE70075B168 /* ImageApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310AB301ED21DFF0075B168 /* TestImage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TestImage.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1058,6 +1060,7 @@
 				00E3A8CF1B6086F700BEC175 /* iupcocoa_canvas.m */,
 				00E3A8CD1B60866500BEC175 /* iupcocoa_button.m */,
 				00E3A8CB1B60851400BEC175 /* iupcocoa_tree.m */,
+				00E93B0B214FCE1D00BC6F5B /* iupcocoa_draw.h */,
 				00E3A8C71B60744200BEC175 /* iupcocoa_draw.m */,
 				00E3A8C21B606FDD00BEC175 /* iupcocoa_dialog.m */,
 				00E3A8981B605A7500BEC175 /* iupcocoa_colordlg.m */,
@@ -1287,6 +1290,7 @@
 				00E3A87B1B60595300BEC175 /* iupgl.h in Headers */,
 				00E3A7BE1B60583600BEC175 /* iup_object.h in Headers */,
 				00E3A7AC1B60583600BEC175 /* iup_linefile.h in Headers */,
+				00E93B0C214FCE2000BC6F5B /* iupcocoa_draw.h in Headers */,
 				00E3A7E21B60583600BEC175 /* iup_val.h in Headers */,
 				00E3A8831B60595300BEC175 /* iuplua_scintilla.h in Headers */,
 			);
