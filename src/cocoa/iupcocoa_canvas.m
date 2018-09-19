@@ -265,7 +265,39 @@ But this means that the widgets will never get the focus ring.
 {
 	// Should we also test [[NSApplication sharedApplication] isFullKeyboardAccessEnabled]?
 //	BOOL ret_flag = [super needsPanelToBecomeKey];
-	return YES;
+//	return YES;
+
+	// TODO: We should create a new ATTRIBUTE to distinguish different behavior modes, e.g.
+	// FOCUSMODE=
+	// BUTTON - returns no here so if the user is typing in another field and clicks this "button", the focus won't change
+	// TEXTFIELD - text entry things are handled, but things like TAB to switch focus are passed up the responder chain
+	// ALL - all entry is handled by the user
+
+	Ihandle* ih = _ih;
+
+	// FOR NOW: Hardcode/hack until I sort this out
+	if(IupClassMatch(ih, "flatbutton")
+		|| IupClassMatch(ih, "flatseparator")
+		|| IupClassMatch(ih, "dropbutton")
+		|| IupClassMatch(ih, "flattoggle")
+		|| IupClassMatch(ih, "flatlabel")
+		|| IupClassMatch(ih, "colorbar")
+		|| IupClassMatch(ih, "colorbrowser")
+		|| IupClassMatch(ih, "dial")
+		|| IupClassMatch(ih, "flatseparator")
+		|| IupClassMatch(ih, "flatscrollbox")
+		|| IupClassMatch(ih, "gauge")
+		|| IupClassMatch(ih, "flatseparator")
+		|| IupClassMatch(ih, "flatframe")
+		|| IupClassMatch(ih, "flattabs")
+	)
+	{
+		return NO;
+	}
+	else
+	{
+		return YES;
+	}
 }
 
 - (BOOL) canBecomeKeyView
