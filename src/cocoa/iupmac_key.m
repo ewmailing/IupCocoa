@@ -556,9 +556,13 @@ bool iupCocoaKeyDownEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code)
 	// Arrows: Currently when I test on IupOutlineView, I think this returns false and we get to do the correct thing with the responder chain assuming the user didn't eat the event. However
 	// Function Keys: Hard coding F12 or any other function key is a bad idea.
 	// For now this is enabled, but I may need to remove this.
+	// UPDATE: This is incorrectly setting focus to widgets that shouldn't have focus (all the accept responder rules) under the "text boxes and lists only" preference in System Preferences.
+	// Also, it seems to keep native widgets out of the chain???
+	// I'm diabling for now.
+#if 0
     if (iupKeyProcessNavigation(ih, iup_key_code, [ns_event modifierFlags] & NSEventModifierFlagShift))
       return true;
-
+#endif
 	// Mac uses the Help menu for help, not keyboard shortcuts. F1 should not be used.
 	// Function keys are typically remapped by users nowadays to do custom system shortcuts since they are never used as standard keys. We don't want to break users.
 	// Apple used to have a dedicated Help button on the keyboard, but we don't have an IUP keycode for that.

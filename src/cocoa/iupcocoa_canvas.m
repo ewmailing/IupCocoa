@@ -34,42 +34,12 @@
 #import "iupcocoa_canvas.h"
 #include "iupcocoa_drv.h"
 
-#if 0
-// I'm undecided if we should subclass NSView or NSControl.
-// IUP wants to use Canvas for fake controls and the enabled property is useful.
-// However the other properties (so far) don't seem that useful.
-// I have been worried about subtle behaviors like key loops and input that I may not be aware of that NSControl may handle,
-// but so far tracking down key loop problems, I've found that NSControl did nothing to help.
-// So far NSView seems to be sufficient, as long as I implement the enabled property and make sure none of the other code checks for [NSControl class].
-// (I had to replace some instances of that with respondsToSelector() on isEnabled/setEnabled: in Common.)
-@interface IupCocoaCanvasView : NSView
-{
-	Ihandle* _ih;
-	struct _IdrawCanvas* _dc;
-	bool _isCurrentKeyWindow;
-	bool _isCurrentFirstResponder;
-	bool _isCurrentMainWindowStatus;
-}
-@property(nonatomic, assign) Ihandle* ih;
-@property(nonatomic, assign) struct _IdrawCanvas* dc;
-@property(nonatomic, assign, getter=isCurrentKeyWindow, setter=setCurrentKeyWindow:) bool currentKeyWindow;
-@property(nonatomic, assign, getter=isCurrentMainWindowStatus, setter=setCurrentMainWindowStatus:) bool currentMainWindowStatus;
-@property(nonatomic, assign, getter=isCurrentFirstResponder, setter=setCurrentFirstResponder:) bool currentFirstResponder;
-@property(nonatomic, assign, getter=isEnabled, setter=setEnabled:) BOOL enabled; // provided by NSControl, must define if we are NSView
-@property(nonatomic, assign) bool useNativeFocusRing;
-@property(nonatomic, assign) struct CGSize previousSize;
-- (void) updateFocus;
-- (NSGraphicsContext*) graphicsContext;
-- (CGContextRef) CGContext;
-@end
-#endif
 
 @implementation IupCocoaCanvasView
 @synthesize ih = _ih;
 @synthesize dc = _dc;
 @synthesize currentKeyWindow = _isCurrentKeyWindow;
 @synthesize currentFirstResponder = _isCurrentFirstResponder;
-@synthesize currentMainWindowStatus = _isCurrentMainWindowStatus;
 
 - (instancetype) initWithFrame:(NSRect)frame_rect ih:(Ihandle*)ih
 {
@@ -104,18 +74,7 @@
 			name:NSWindowDidResignKeyNotification
 			object:[self window]
 		];
-/*
-		[notification_center addObserver:self
-			selector:@selector(windowDidBecomeMainNotification:)
-			name:NSWindowDidBecomeMainNotification
-			object:[self window]
-		];
-		[notification_center addObserver:self
-			selector:@selector(windowDidResignMainNotification:)
-			name:NSWindowDidResignMainNotification
-			object:[self window]
-		];
-*/
+
 		[self setEnabled:YES];
 #endif
 		
@@ -130,21 +89,6 @@
 	[super dealloc];
 }
 
-/*
-- (struct _IdrawCanvas*) dc
-{
-	if(_dc)
-	{
-		return _dc;
-	}
-	else
-	{
-		Ihandle* ih = _ih;
-		_dc = (struct _IdrawCanvas*)iupAttribGet(ih, "_IUPAPPLE_IDRAWCANVAS");
-		return _dc;
-	}
-}
-*/
 - (NSGraphicsContext*) graphicsContext
 {
 	return [NSGraphicsContext currentContext];
@@ -169,19 +113,6 @@
 	// Use [[NSGraphicsContext currentContext] CGContext] in 10.10+
 	CGContextRef cg_context = [[NSGraphicsContext currentContext] CGContext];
 	
-/*
-	struct _IdrawCanvas* dc = [self dc];
-
-	if(dc != NULL)
-	{
-//		CGContextRelease(dc->cgContext);
-		// I'm concerned about the context changing out from under us,
-		// (e.g. plug in new monitor, switch resolution, change multi-monitor-spanning, switch GPUs)
-		// so always reset the cgContext. Inside the Draw implementation, the CGContext should always reference this pointer and be up-to-date.
-		dc->cgContext = cg_context;
-//		CGContextRetain(dc->cgContext);
-	}
-*/
 	
 	CGContextSaveGState(cg_context);
 
@@ -219,15 +150,6 @@
 	
 	CGFloat old_width = previous_size.width;
 	CGFloat old_height = previous_size.height;
-/*
-	if(dc != NULL)
-	{
-		old_width = dc->w;
-		old_height = dc->h;
-	}
-*/
-//	CGFloat old_width = iupAttribGetDouble(ih, "_IUPAPPLE_CGWIDTH");
-//	CGFloat old_height = iupAttribGetDouble(ih, "_IUPAPPLE_CGHEIGHT");
 
 	if((old_width == view_frame.size.width) && (old_height == view_frame.size.height))
 	{
@@ -236,22 +158,6 @@
 	}
 
 	[self setPreviousSize:view_frame.size];
-
-//	iupAttribSetDouble(ih, "_IUPAPPLE_CGWIDTH", view_frame.size.width);
-//	iupAttribSetDouble(ih, "_IUPAPPLE_CGHEIGHT", view_frame.size.height);
-//	if(dc != NULL)
-	{
-//		dc->w = view_frame.size.width;
-	//	dc->h = view_frame.size.height;
-
-		// Just in case they try to draw in the resize callback, let's make sure the CGContext is still valid.
-//		CGContextRef cg_context = [[NSGraphicsContext currentContext] CGContext];
-
-		// I'm concerned about the context changing out from under us,
-		// (e.g. plug in new monitor, switch resolution, change multi-monitor-spanning, switch GPUs)
-		// so always reset the cgContext. Inside the Draw implementation, the CGContext should always reference this pointer and be up-to-date.
-//		dc->cgContext = cg_context;
-	}
 	
 	IFnii call_back = (IFnii)IupGetCallback(ih, "RESIZE_CB");
 	if(call_back)
@@ -276,22 +182,6 @@
 //		NSLog(@"Window resign key: %@", [[self window] title]);
 //	NSLog(@"window resigned");
 	[self setCurrentKeyWindow:false];
-	[self updateFocus];
-}
-
-- (void) windowDidBecomeMainNotification:(NSNotification*)the_notification
-{
-//		NSLog(@"Window became main: %@", [[self window] title]);
-//	NSLog(@"window became key");
-	[self setCurrentMainWindowStatus:true];
-	[self updateFocus];
-
-}
-- (void) windowDidResignMainNotification:(NSNotification*)the_notification
-{
-//		NSLog(@"Window resign main: %@", [[self window] title]);
-//	NSLog(@"window resigned");
-	[self setCurrentMainWindowStatus:false];
 	[self updateFocus];
 }
 
@@ -374,9 +264,10 @@ But this means that the widgets will never get the focus ring.
 - (BOOL) canBecomeKeyView
 {
 //	BOOL ret_flag = [super canBecomeKeyView];
-#if 0
+#if 1
 	// Should we also test [[NSApplication sharedApplication] isFullKeyboardAccessEnabled]?
-	if([self isEnabled])
+	//
+	if([self isEnabled] && [[NSApplication sharedApplication] isFullKeyboardAccessEnabled])
 	{
 //NSLog(@"canBecomeKeyView:YES");
 		return YES;
@@ -394,15 +285,26 @@ But this means that the widgets will never get the focus ring.
 - (BOOL) becomeFirstResponder
 {
 //NSLog(@"becomeFirstResponder");
-#if 1
+#if 0
+
 	BOOL ret_val = [super becomeFirstResponder];
 	[self setCurrentFirstResponder:ret_val];
 	[self updateFocus];
 	return ret_val;
 #else
-	[self setCurrentFirstResponder:true];
-	[self updateFocus];
-	return YES;
+	if([self isEnabled] && [[NSApplication sharedApplication] isFullKeyboardAccessEnabled])
+	{
+//NSLog(@"canBecomeKeyView:YES");
+		[self setCurrentFirstResponder:true];
+		[self updateFocus];
+		return YES;
+	}
+	else
+	{
+		[self setCurrentFirstResponder:false];
+		[self updateFocus];
+		return NO;
+	}
 #endif
 }
 
@@ -760,23 +662,6 @@ static char* cocoaCanvasGetCGContextAttrib(Ihandle* ih)
 	
 	return (char*)cg_context;
 }
-/*
-int cocoaCanvasSetIDrawCanvasAttrib(Ihandle* ih, const char* value)
-{
-	if(ih->handle != NULL)
-	{
-		IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
-		struct _IdrawCanvas* dc = (struct _IdrawCanvas*)value;
-		if(dc != NULL)
-		{
-			[canvas_view setDc:dc];
-			// If the dc was created late, we may need to resync all properties
-			dc->useNativeFocusRing = [canvas_view useNativeFocusRing];
-		}
-	}
-	return 1;
-}
-*/
 
 static char* cocoaCanvasGetDrawableAttrib(Ihandle* ih)
 {
@@ -871,7 +756,8 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	
 	
 	
-	
+//  IupSetAttribute(ih, "NATIVEFOCUSRING", "YES");
+
 	
 	return IUP_NOERROR;
 }
@@ -928,9 +814,6 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	// Private helper, used by iupdrvDrawCreateCanvas and currently cocoaCanvasGetDrawableAttrib calls this.
 	// Do not start with an underscore, because I need this to trigger the function
 	iupClassRegisterAttribute(ic, "CGCONTEXT", cocoaCanvasGetCGContextAttrib, NULL, NULL, NULL, IUPAF_NO_STRING);
-	// Private helper: Used to send the dc instance to the IupCanvasView. Kind of a hack, but keeping the two coordinated is tricky.
-	// Do not start with an underscore, because I need this to trigger the function
-//	iupClassRegisterAttribute(ic, "IUPAPPLE_IDRAWCANVAS", NULL, cocoaCanvasSetIDrawCanvasAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_STRING|IUPAF_NO_DEFAULTVALUE|IUPAF_NOT_MAPPED);
 
 #if 0
 	/* IupCanvas Windows or X only */
@@ -954,5 +837,8 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaCanvasSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
 	iupClassRegisterAttribute(ic, "NATIVEFOCUSRING", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL, "NO", IUPAF_DEFAULT);
+
+	// TODO: We need a layer backed API for everything. But especially for here to workaround the native focus ring rendering corruption.
+	//iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL, "NO", IUPAF_DEFAULT);
 
 }

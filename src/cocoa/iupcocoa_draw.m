@@ -25,22 +25,6 @@
 
 
 
-/*
-struct _IdrawCanvas
-{
-	Ihandle* ih;
-	
-	CGContextRef cgContext;
-
-	
-	CGFloat w, h;
-
-};
-@interface IupCocoaCanvasView : NSView
-@property(nonatomic, assign) bool useNativeFocusRing;
-@end
-
-*/
 
 static CGColorRef coregraphicsCreateAutoreleasedColor(unsigned char r, unsigned char g, unsigned char b, unsigned a)
 {
@@ -116,17 +100,9 @@ IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih)
 //	dc->cgContext = (CGContextRef)IupGetAttribute(ih, "DRAWABLE");
 
 
-//	dc->w = iupAttribGetDouble(ih, "_IUPAPPLE_CGWIDTH");
-//	dc->h = iupAttribGetDouble(ih, "_IUPAPPLE_CGHEIGHT");
 
 	NSCAssert(dc->cgContext != NULL, @"CGContextRef should not be NULL");
-	// should I retain it?
-	// Answer: No. We now defensively reapply the CGContext at the beginning of drawRect: and resize events, just in case the context changes out from under us.
-//	CGContextRetain(dc->cgContext);
-	
-//	gdk_drawable_get_size(dc->wnd, &dc->w, &dc->h);
-	
-//	dc->pixmap = gdk_pixmap_new(dc->wnd, dc->w, dc->h, gdk_drawable_get_depth(dc->wnd));
+
 	
 	return dc;
 }
@@ -387,7 +363,7 @@ void iupdrvDrawSelectRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 	CGRect the_rect = CGRectMake(x1, y1, x2-x1, y2-y1);
 	// Do I need an inset?
 //	the_rect = CGRectInset(the_rect, 4, 4);
-	NSLog(@"draw rect: %@", NSStringFromRect(the_rect));
+//	NSLog(@"draw rect: %@", NSStringFromRect(the_rect));
 
 	NSColor* the_color = [NSColor selectedControlColor];
 //	NSColor* the_color = [NSColor greenColor];
