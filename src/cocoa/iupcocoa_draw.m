@@ -21,6 +21,8 @@
 #include "iup_drvdraw.h"
 #include "iup_draw.h"
 #include "iupcocoa_draw.h"
+#include "iupcocoa_canvas.h"
+
 
 
 /*
@@ -34,6 +36,10 @@ struct _IdrawCanvas
 	CGFloat w, h;
 
 };
+@interface IupCocoaCanvasView : NSView
+@property(nonatomic, assign) bool useNativeFocusRing;
+@end
+
 */
 
 static CGColorRef coregraphicsCreateAutoreleasedColor(unsigned char r, unsigned char g, unsigned char b, unsigned a)
@@ -71,34 +77,44 @@ static void coregraphicsSetLineStyle(IdrawCanvas* dc, int style)
 	}
 }
 
+/*
+I had a bunch of misunderstandings about the relationship between the IupCanvasView and the IdrawCanvas.
+The two are intertwined to some degree.
+The DC needs the CGContext, the width & height, and info about which focus ring to use.
+But the View can get all sorts of notifications like view size changes, user configuration changes, or there could even possibly be OS level events which change the context.
+So I've tried several different ways to keep the objects in-sync with each other.
+I knew that the DC was created later than the View, which caused some syncing issues.
+However, I just discovered that the DC actually gets created and destroyed on every user callback.
+So this means I need to change my approach. The view should never keep a reference to the DC, and everything in the DC should pull on demand from the View.
+Minor optimizations might allow for caching the variables in the DC if it does indeed just go through one frame without any possibility of system interruption (e.g. a singular call inside drawRect:)
+If this is not true, then we will need to always pull from the NSView.
+*/
 IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih)
 {
 	IdrawCanvas* dc = calloc(1, sizeof(IdrawCanvas));
-	
-	// WARNING: Do I need to worry about the NSView destroying and recreating the CGContext?
-	// If so, I need to change my code to not hold a reference to the CGContext directly but instead query it everytime from the [NSGraphics currentContext]
-
-
-	// We're making the IdrawCanvas pointer available back to the host view.
-	// We don't have an easy way to update the IdrawCanvas on host event view changes, so instead we will update the dc from the host view.
-	// e.g. resize events, and theoretically if we have to update the cgContext pointer.
-	iupAttribSet(ih, "_IUPAPPLE_IDRAWCANVAS", (const char*)dc);
-
-//	IupSetAttribute(ih, "IUPAPPLE_INITIDRAWCANVAS", (const char*)dc);
 
 
 	dc->ih = ih;
 
 	// We'll set the dc directly from here this time, but all other places will set the dc in the IupCanvasView
-	NSView* canvas_view =(NSView*)ih->handle;
+	IupCocoaCanvasView* canvas_view =(IupCocoaCanvasView*)ih->handle;
 	CGRect frame_rect = [canvas_view frame];
+
+	// Should we retain? It is implied these will outlive our dc, so we shouldn't need to.
+	dc->canvasView = canvas_view;
+	dc->graphicsContext = [canvas_view graphicsContext];
+	dc->cgContext = [canvas_view CGContext];
+
+	// [dc->canvasView retain];
+	// [dc->graphicsContext retain];
+	//	CGContextRetain(dc->cgContext);
 	
-	// We'll set it directly
 	dc->w = frame_rect.size.width;
 	dc->h = frame_rect.size.height;
 
-	dc->cgContext = (CGContextRef)IupGetAttribute(ih, "CGCONTEXT");
+//	dc->cgContext = (CGContextRef)IupGetAttribute(ih, "CGCONTEXT");
 //	dc->cgContext = (CGContextRef)IupGetAttribute(ih, "DRAWABLE");
+
 
 //	dc->w = iupAttribGetDouble(ih, "_IUPAPPLE_CGWIDTH");
 //	dc->h = iupAttribGetDouble(ih, "_IUPAPPLE_CGHEIGHT");
@@ -118,8 +134,18 @@ IdrawCanvas* iupdrvDrawCreateCanvas(Ihandle* ih)
 void iupdrvDrawKillCanvas(IdrawCanvas* dc)
 {
 	// We are no longer retaining the context
-//	CGContextRelease(dc->cgContext);
+	//	CGContextRelease(dc->cgContext);
+	// [dc->graphicsContext release];
+	// [dc->canvasView release];
+
+	// Set to NULL defensively in case something breaks my assumptions. I hope to generate an obvious crash.
+	dc->canvasView = NULL;
+	dc->graphicsContext = NULL;
+	dc->cgContext = NULL;
+	dc->w = 0;
+	dc->h = 0;
 	free(dc);
+	dc = NULL;
 }
 
 
@@ -226,13 +252,20 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int 
 
 
 
-
 void iupdrvDrawFocusRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
-#if 0
+
+//	IupCocoaCanvasView* canvas_view =(IupCocoaCanvasView*)dc->ih->handle;
+	IupCocoaCanvasView* canvas_view = dc->canvasView;
+	if([canvas_view useNativeFocusRing])
+	{
+		return;
+	}
+#if 1
 
 
 //	NSLog(@"iupdrvDrawFocusRect");
+//		NSLog(@"DrawFocus ih:0x%p for View: %@", dc->ih, dc->canvasView);
 
 	CGContextRef cg_context = dc->cgContext;
 

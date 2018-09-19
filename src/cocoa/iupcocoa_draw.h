@@ -1,14 +1,20 @@
 #ifndef __IUPCOCOA_DRAWCANVAS_H 
 #define __IUPCOCOA_DRAWCANVAS_H
 
+#include <stdbool.h>
+
+@class IupCocoaCanvasView;
+@class NSGraphicsContext;
+
 struct _IdrawCanvas
 {
+	CGContextRef cgContext;
+	IupCocoaCanvasView* canvasView;
+	NSGraphicsContext* graphicsContext;
 	Ihandle* ih;
 	
-	CGContextRef cgContext;
-
-	
 	CGFloat w, h;
+	bool useNativeFocusRing;
 /*
 	int draw_focus;
 	int focus_x1;
