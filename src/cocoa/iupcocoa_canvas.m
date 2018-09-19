@@ -653,12 +653,12 @@ static char* cocoaCanvasGetCGContextAttrib(Ihandle* ih)
 {
 	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
 	CGContextRef cg_context = NULL;
-	[canvas_view lockFocus];
+//	[canvas_view lockFocus];
 	// Interesting: graphicsPort is deprecated in 10.10
 	// cg_context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
 	// Use [[NSGraphicsContext currentContext] CGContext] in 10.10+
 	cg_context = [[NSGraphicsContext currentContext] CGContext];
-	[canvas_view unlockFocus];
+//	[canvas_view unlockFocus];
 	
 	return (char*)cg_context;
 }
