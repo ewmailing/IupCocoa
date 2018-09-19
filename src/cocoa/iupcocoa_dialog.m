@@ -924,6 +924,7 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	// I made the mistake of making the initial window too big and didn't understand why I could never get a window that perfectly fit the contents.
 	// I think the other implementations start with 100x100.
 	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 100, 100)
+//	NSWindow* the_window = [[NSWindow alloc] initWithContentRect:NSZeroRect
 													styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask|NSMiniaturizableWindowMask backing:NSBackingStoreBuffered defer:NO];
 
 /*
@@ -939,8 +940,9 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	// We are manually managing the memory, so don't let the window release itself
 	[the_window setReleasedWhenClosed:NO];
 
-	// I want to get nextKeyView working without needing to manually set it.
+	// It seems that IUP wants to take control of the Previous/Next focus. But we haven't fully integrated things yet.
 	[the_window setAutorecalculatesKeyViewLoop:YES];
+//	[the_window setAutorecalculatesKeyViewLoop:NO];
 //	[the_window setInitialFirstResponder:nil];
 
 
@@ -1022,8 +1024,8 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_window, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 
 
-	
-	[the_window makeKeyAndOrderFront:nil];
+	// IUP will call the activate function later
+//	[the_window makeKeyAndOrderFront:nil];
 
 //	ih->currentwidth = 200;
 //	ih->currentheight = 200;

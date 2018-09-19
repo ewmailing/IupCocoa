@@ -467,7 +467,7 @@ static int cocoaKeyDecode(NSEvent* ns_event, int mac_key_code)
 // So Returns true if Iup handled the key event. False if there was no callback or it return IUP_CONTINUE.
 // The caller should usually invoke super if this returns false to make sure the event is passed up the responder chain.
 // IUP_IGNORE means do not handle and do not pass up the responder chain, thus returns true.
-bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_pressed)
+bool iupCocoaKeyDownEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code)
 {
   int result;
   int iup_key_code;
@@ -518,7 +518,7 @@ bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_
     /* this is called only for canvas */
     if (ih->iclass->nativetype == IUP_TYPECANVAS) 
     {
-      result = iupCocoaKeyCallKeyPressCb(ih, iup_key_code, is_pressed);
+      result = iupCocoaKeyCallKeyPressCb(ih, iup_key_code, true);
       if (result == IUP_CLOSE)
       {
         IupExitLoop();
@@ -546,6 +546,16 @@ bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_
 
     }
 
+	// NOTE: I'm finding this function problematic and worry we may need to rethink this part of the design.
+	// It tries to manage things like arrow keys and tab keys, ESC, Return, and function keys.
+	// But their are assumptions that rub up against normal Mac behaviors.
+	// For example:
+	// TAB: is supposed to trigger the next/previous key loop/focus widget. While this is the correct key mapping, IUP doesn't invoke the native next/prev mechanism.
+	// Additionally, this only works if we have some how gotten the event through Responder chain to come here. This works for our custom subclasses, but is less clear how to get the native unsubclassed widgets to come here.
+	// And generally speaking, the better Cocoa thing to do is not handle these at all, and pass the event up the responder chain to let the OS deal with them correct.
+	// Arrows: Currently when I test on IupOutlineView, I think this returns false and we get to do the correct thing with the responder chain assuming the user didn't eat the event. However
+	// Function Keys: Hard coding F12 or any other function key is a bad idea.
+	// For now this is enabled, but I may need to remove this.
     if (iupKeyProcessNavigation(ih, iup_key_code, [ns_event modifierFlags] & NSEventModifierFlagShift))
       return true;
 
@@ -594,6 +604,75 @@ bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_
   return !caller_should_propagate;
 }
 
+// I'm trying to match the iupgtk semantics:
+// GTK doc's: "Returning TRUE indicates that the event has been handled, and that it should not propagate further."
+// IUP seemas to follow this.
+// So Returns true if Iup handled the key event. False if there was no callback or it return IUP_CONTINUE.
+// The caller should usually invoke super if this returns false to make sure the event is passed up the responder chain.
+// IUP_IGNORE means do not handle and do not pass up the responder chain, thus returns true.
+bool iupCocoaKeyUpEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code)
+{
+  int result;
+  int iup_key_code;
+//  bool caller_should_not_propagate = false;
+  bool caller_should_propagate = true;
+
+
+  // This was here before, but I did not see this in th GTK implementation. Not sure about this.
+  if (!ih->iclass->is_interactive)
+  {
+	  return false;
+  }
+
+  iup_key_code = cocoaKeyDecode(ns_event, mac_key_code);
+  if(0 == iup_key_code)
+  {
+    return false;
+  }
+
+  result = iupCocoaKeyCallKeyPressCb(ih, iup_key_code, false);
+  if (result == IUP_CLOSE)
+  {
+    IupExitLoop();
+	caller_should_propagate = false;
+	return !caller_should_propagate;
+  }
+  else if (result == IUP_IGNORE)
+  {
+	caller_should_propagate = false;
+	return !caller_should_propagate;
+  }
+  else if (result == IUP_CONTINUE)
+  {
+    caller_should_propagate = true;
+  }
+  else if (result == IUPCOCOA_NO_CALLBACK)
+  {
+    caller_should_propagate = true;
+  }
+  else
+  {
+    caller_should_propagate = false;
+  }
+	
+  return !caller_should_propagate;
+}
+
+
+// I learned the hard way that the IUP code for up and down is not symmetrical.
+// For example, the NextKeyView triggers twice accidentally (once for key down, again for key up) if we use the same routine for both.
+// So this function splits the events appropriately.
+bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code, bool is_pressed)
+{
+	if(is_pressed)
+	{
+		return iupCocoaKeyDownEvent(ih, ns_event, mac_key_code);
+	}
+	else
+	{
+		return iupCocoaKeyUpEvent(ih, ns_event, mac_key_code);
+	}
+}
 
 // IUP triggers key callbacks for *most* modifiers. Cocoa does not do generally do this.
 // But we can implement it with flagsChanged:

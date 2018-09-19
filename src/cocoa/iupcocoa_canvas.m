@@ -35,8 +35,14 @@
 #include "iupcocoa_drv.h"
 
 
-// Try subclassing NSControl instead of NSView because IUP is trying to make new controls out of Canvases, and wants to do stuff like ACTIVE=NO
-@interface IupCocoaCanvasView : NSControl
+// I'm undecided if we should subclass NSView or NSControl.
+// IUP wants to use Canvas for fake controls and the enabled property is useful.
+// However the other properties (so far) don't seem that useful.
+// I have been worried about subtle behaviors like key loops and input that I may not be aware of that NSControl may handle,
+// but so far tracking down key loop problems, I've found that NSControl did nothing to help.
+// So far NSView seems to be sufficient, as long as I implement the enabled property and make sure none of the other code checks for [NSControl class].
+// (I had to replace some instances of that with respondsToSelector() on isEnabled/setEnabled: in Common.)
+@interface IupCocoaCanvasView : NSView
 {
 	Ihandle* _ih;
 	struct _IdrawCanvas* _dc;
@@ -47,6 +53,7 @@
 @property(nonatomic, assign) struct _IdrawCanvas* dc;
 @property(nonatomic, assign, getter=isCurrentKeyWindow, setter=setCurrentKeyWindow:) bool currentKeyWindow;
 @property(nonatomic, assign, getter=isCurrentFirstResponder, setter=setCurrentFirstResponder:) bool currentFirstResponder;
+@property(nonatomic, assign, getter=isEnabled, setter=setEnabled:) BOOL enabled; // provided by NSControl, must define if we are NSView
 - (void) updateFocus;
 
 @end
@@ -66,7 +73,9 @@
 
 //		iupAttribSetDouble(ih, "_IUPAPPLE_CGWIDTH", frame_rect.size.width);
 //		iupAttribSetDouble(ih, "_IUPAPPLE_CGHEIGHT", frame_rect.size.height);
-
+		// Enabling layer backed views works around drawing corruption caused by native focus rings, but has all the consequences of using layer-backed views.
+		// Apple Bug ID: 44545497
+//		[self setWantsLayer:YES];
 #if 1
 		[self setPostsBoundsChangedNotifications:YES];
 
@@ -87,6 +96,7 @@
 			name:NSWindowDidResignKeyNotification
 			object:[self window]
 		];
+		[self setEnabled:YES];
 #endif
 		
 	}
@@ -187,14 +197,10 @@
 		// Just in case they try to draw in the resize callback, let's make sure the CGContext is still valid.
 		CGContextRef cg_context = [[NSGraphicsContext currentContext] CGContext];
 
-		if(dc != NULL)
-		{
-			// I'm concerned about the context changing out from under us,
-			// (e.g. plug in new monitor, switch resolution, change multi-monitor-spanning, switch GPUs)
-			// so always reset the cgContext. Inside the Draw implementation, the CGContext should always reference this pointer and be up-to-date.
-			dc->cgContext = cg_context;
-		}
-		
+		// I'm concerned about the context changing out from under us,
+		// (e.g. plug in new monitor, switch resolution, change multi-monitor-spanning, switch GPUs)
+		// so always reset the cgContext. Inside the Draw implementation, the CGContext should always reference this pointer and be up-to-date.
+		dc->cgContext = cg_context;
 	}
 	
 	IFnii call_back = (IFnii)IupGetCallback(ih, "RESIZE_CB");
@@ -257,6 +263,7 @@ But this means that the widgets will never get the focus ring.
 */
 - (BOOL) needsPanelToBecomeKey
 {
+	// Should we also test [[NSApplication sharedApplication] isFullKeyboardAccessEnabled]?
 //	BOOL ret_flag = [super needsPanelToBecomeKey];
 	return YES;
 }
@@ -264,7 +271,8 @@ But this means that the widgets will never get the focus ring.
 - (BOOL) canBecomeKeyView
 {
 //	BOOL ret_flag = [super canBecomeKeyView];
-#if 1
+#if 0
+	// Should we also test [[NSApplication sharedApplication] isFullKeyboardAccessEnabled]?
 	if([self isEnabled])
 	{
 //NSLog(@"canBecomeKeyView:YES");
@@ -282,28 +290,61 @@ But this means that the widgets will never get the focus ring.
 
 - (BOOL) becomeFirstResponder
 {
+//NSLog(@"becomeFirstResponder");
+#if 1
 	BOOL ret_val = [super becomeFirstResponder];
 	[self setCurrentFirstResponder:ret_val];
 	[self updateFocus];
 
-//NSLog(@"becomeFirstResponder");
+
 
 	return ret_val;
+#else
+	[self setCurrentFirstResponder:true];
+	[self updateFocus];
+	return YES;
+#endif
 }
 
 - (BOOL) resignFirstResponder
 {
+//NSLog(@"resignFirstResponder");
+#if 1
 	BOOL ret_val = [super resignFirstResponder];
 	[self setCurrentFirstResponder:!ret_val];
+
 	[self updateFocus];
-
-//NSLog(@"resignFirstResponder");
-
-
-
 	return ret_val;
+
+#else
+	[self setCurrentFirstResponder:false];
+
+	[self updateFocus];
+	return YES;
+#endif
+
+
+
 }
 
+// !0.7 API for native focus ring
+- (void)drawFocusRingMask
+{
+//	[self lockFocus];
+//	[NSGraphicsContext currentContext];
+	
+    NSRectFill([self bounds]);
+//	[self unlockFocus];
+//	[[self window] setViewsNeedDisplay:YES];
+}
+
+// !0.7 API for native focus ring
+- (NSRect)focusRingMaskBounds
+{
+    return [self bounds];
+}
+
+// helper API to notify IUP of focus state change
 - (void) updateFocus
 {
 	Ihandle* ih = _ih;
@@ -323,7 +364,7 @@ But this means that the widgets will never get the focus ring.
 {
 	return YES;
 }
-
+#if 1
 - (void) flagsChanged:(NSEvent*)the_event
 {
 	// Don't respond if the control is inactive
@@ -390,6 +431,7 @@ But this means that the widgets will never get the focus ring.
 		[super keyUp:the_event];
 	}
 }
+#endif
 
 //////// Mouse stuff
 
@@ -537,7 +579,6 @@ But this means that the widgets will never get the focus ring.
 		[super otherMouseUp:the_event];
 	}
 }
-
 
 @end
 

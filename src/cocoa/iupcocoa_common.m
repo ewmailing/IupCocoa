@@ -92,7 +92,7 @@ void iupCocoaAddToParent(Ihandle* ih)
 			@throw @"Unexpected type for parent widget";
 		}
 	
-		[[the_view window] recalculateKeyViewLoop];
+//		[[the_view window] recalculateKeyViewLoop];
 
 	}
 	else if([child_handle isKindOfClass:[CALayer class]])
@@ -117,7 +117,7 @@ void iupCocoaRemoveFromParent(Ihandle* ih)
 		NSView* the_view = (NSView*)child_handle;
 		NSWindow* parent_window = [the_view window];
 		[the_view removeFromSuperview];
-		[parent_window recalculateKeyViewLoop];
+//		[parent_window recalculateKeyViewLoop];
 	}
 	else if([child_handle isKindOfClass:[CALayer class]])
 	{
@@ -450,7 +450,7 @@ void iupdrvSetVisible(Ihandle* ih, int visible)
 	if([the_object isKindOfClass:[NSWindow class]])
 	{
 		// NOT IMPLEMENTED
-
+		NSLog(@"iupdrvSetVisible for NSWindow is not implemented");
 	}
 	else if([the_object isKindOfClass:[NSView class]])
 	{
@@ -468,13 +468,12 @@ int iupdrvIsVisible(Ihandle* ih)
 	if([the_object isKindOfClass:[NSWindow class]])
 	{
 		NSWindow* the_window = (NSWindow*)ih->handle;
-		int ret_val = (int)[the_window isVisible];
-		return ret_val;
+		return [the_window isVisible];
 	}
 	else if([the_object isKindOfClass:[NSView class]])
 	{
 		NSView* the_view = (NSView*)the_object;
-		return [the_view isHidden];
+		return [the_view isHidden] ? NO : YES;
 	}
 	else
 	{
@@ -485,22 +484,46 @@ int iupdrvIsVisible(Ihandle* ih)
 int iupdrvIsActive(Ihandle *ih)
 {
 	id the_object = ih->handle;
+#if 0
 	if([the_object isKindOfClass:[NSControl class]])
 	{
 		NSControl* the_control = (NSControl*)the_object;
 		return [the_control isEnabled];
 	}
+#else
+	// Our custom CanvasView is going back and forth between subclassing NSView and NSControl.
+	// Make sure to not implement any other NSViews that do something wonky with the enabled property.
+	if([the_object respondsToSelector:@selector(isEnabled)])
+	{
+		// I forgot if there are rules about primitive types when there is no header definition.
+		// So I'm going to pretend it is a NSControl even though it may not be
+		NSControl* the_control = (NSControl*)the_object;
+		return [the_control isEnabled];
+	}
+#endif
 	return 1;
 }
 
 void iupdrvSetActive(Ihandle* ih, int enable)
 {
 	id the_object = ih->handle;
+#if 0
 	if([the_object isKindOfClass:[NSControl class]])
 	{
 		NSControl* the_control = (NSControl*)the_object;
 		[the_control setEnabled:enable];
 	}
+#else
+	// Our custom CanvasView is going back and forth between subclassing NSView and NSControl.
+	// Make sure to not implement any other NSViews that do something wonky with the enabled property.
+	if([the_object respondsToSelector:@selector(setEnabled:)])
+	{
+		// I forgot if there are rules about primitive types when there is no header definition.
+		// So I'm going to pretend it is a NSControl even though it may not be
+		NSControl* the_control = (NSControl*)the_object;
+		[the_control setEnabled:enable];
+	}
+#endif
 }
 
 char* iupdrvBaseGetXAttrib(Ihandle *ih)

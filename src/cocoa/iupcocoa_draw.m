@@ -230,12 +230,7 @@ void iupdrvDrawPolygon(IdrawCanvas* dc, int* points, int count, long color, int 
 void iupdrvDrawFocusRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 {
 #if 0
-	dc->draw_focus = 1;  /* draw focus on the next flush */
-	dc->focus_x1 = x1;
-	dc->focus_y1 = y1;
-	dc->focus_x2 = x2;
-	dc->focus_y2 = y2;
-#endif
+
 
 //	NSLog(@"iupdrvDrawFocusRect");
 
@@ -259,7 +254,8 @@ void iupdrvDrawFocusRect(IdrawCanvas* dc, int x1, int y1, int x2, int y2)
 	CGContextStrokePath(cg_context);
 
 	CGPathRelease(path_ref);
-	
+#endif
+
 	
 }
 
