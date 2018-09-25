@@ -745,7 +745,8 @@ bool iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event
 		// Button 2 is middle
 		// Button 3 keeps going
 		NSInteger which_cocoa_button = [the_event buttonNumber];
-		char mod_status = 0; // FIXME: Implement this!
+		char mod_status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+		iupcocoaButtonKeySetStatus(the_event, mod_status);
 
 		if([the_event modifierFlags] & NSControlKeyMask)
 		{
@@ -771,7 +772,7 @@ bool iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEvent* the_event
 		NSLog(@"Iup mouse button callback: <x,y>=<%f, %f, %f>, is_pressed=%d, button_num:%d", converted_point.x, converted_point.y, inverted_y, is_pressed, which_iup_button);
 
 	
-		int callback_result = callback_function(ih, which_iup_button, is_pressed, iupROUND(converted_point.x), iupROUND(inverted_y), &mod_status);
+		int callback_result = callback_function(ih, which_iup_button, is_pressed, iupROUND(converted_point.x), iupROUND(inverted_y), mod_status);
 		if(IUP_CLOSE == callback_result)
 		{
 			IupExitLoop();
@@ -812,10 +813,62 @@ bool iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event
 		// We must flip the y to go from Cartesian to IUP
 		NSRect view_frame = [represented_view frame];
 		CGFloat inverted_y = view_frame.size.height - converted_point.y;
-		char mod_status = 0; // FIXME: Implement this!
+		char mod_status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+		iupcocoaButtonKeySetStatus(the_event, mod_status);
 
 	
-		int callback_result = callback_function(ih,  iupROUND(converted_point.x), iupROUND(inverted_y), &mod_status);
+		int callback_result = callback_function(ih,  iupROUND(converted_point.x), iupROUND(inverted_y), mod_status);
+		if(IUP_CLOSE == callback_result)
+		{
+			IupExitLoop();
+			caller_should_propagate = false;
+		}
+		else if(IUP_IGNORE == callback_result)
+		{
+			caller_should_propagate = false;
+		}
+		else if(IUP_CONTINUE == callback_result)
+		{
+			caller_should_propagate = true;
+		}
+		else
+		{
+			caller_should_propagate = false;
+		}
+	}
+	else
+	{
+		caller_should_propagate = true;
+	}
+	return !caller_should_propagate;
+}
+
+
+// TODO: IUP doesn't support y-axis scroll events. We need to add a new API.
+bool iupCocoaCommonBaseScrollWheelCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view)
+{
+	IFnfiis callback_function;
+	bool caller_should_propagate = true;
+
+	callback_function = (IFnfiis)IupGetCallback(ih, "WHEEL_CB");
+	if(callback_function)
+	{
+	    // We must convert the mouse event locations from the window coordinate system to the
+		// local view coordinate system.
+		NSPoint the_point = [the_event locationInWindow];
+		NSPoint converted_point = [represented_view convertPoint:the_point fromView:nil];
+
+		CGFloat delta_x = -[the_event deltaX];
+		CGFloat delta_y = [the_event deltaY];
+
+		// We must flip the y to go from Cartesian to IUP
+		NSRect view_frame = [represented_view frame];
+		CGFloat inverted_y = view_frame.size.height - converted_point.y;
+
+		char mod_status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+		iupcocoaButtonKeySetStatus(the_event, mod_status);
+
+		int callback_result = callback_function(ih, delta_x, iupROUND(converted_point.x), iupROUND(inverted_y), mod_status);
 		if(IUP_CLOSE == callback_result)
 		{
 			IupExitLoop();

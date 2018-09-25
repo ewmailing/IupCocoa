@@ -813,7 +813,7 @@ bool iupCocoaModifierEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code)
 }
 
 
-// I don't know what this is for, but CGEventSourceFlagsState worries me about App Sandbox because it sounds like this might be able to read events that don't belong to our app.
+// CGEventSourceFlagsState worries me about App Sandbox because it sounds like this might be able to read events that don't belong to our app.
 #if 0
 void iupmacButtonKeySetStatus(int keys, int but, char* status, int doubleclick)
 {
@@ -842,4 +842,71 @@ void iupmacButtonKeySetStatus(int keys, int but, char* status, int doubleclick)
 	if (CGEventSourceKeyState(kCGEventSourceStateCombinedSessionState,kVK_Command))
 		iupKEY_SETSYS(status);
 }
+
+#else
+
+void iupcocoaButtonKeySetStatus(NSEvent* ns_event, char* out_status)
+{
+	if([ns_event modifierFlags] & NSEventModifierFlagShift)
+	{
+		iupKEY_SETSHIFT(out_status);
+	}
+	if([ns_event modifierFlags] & NSEventModifierFlagControl)
+	{
+		iupKEY_SETCONTROL(out_status);
+	}
+	if([ns_event modifierFlags] & NSEventModifierFlagOption)
+	{
+		iupKEY_SETALT(out_status);
+	}
+	if([ns_event modifierFlags] & NSEventModifierFlagCommand)
+	{
+		iupKEY_SETSYS(out_status);
+	}
+	
+	// TODO: Triple-click is also useful to know on Mac. How can we extend the API to support this?
+	if([ns_event clickCount] == 2)
+	{
+		iupKEY_SETDOUBLE(out_status);
+	}
+	
+	
+	// Button 0 is left
+	// Button 1 is right
+	// Button 2 is middle
+	// Button 3 keeps going
+	switch([ns_event buttonNumber])
+	{
+		case 0:
+		{
+		    iupKEY_SETBUTTON1(out_status);
+			break;
+		}
+		case 1:
+		{
+		    iupKEY_SETBUTTON3(out_status);
+			break;
+		}
+		case 2:
+		{
+		    iupKEY_SETBUTTON2(out_status);
+			break;
+		}
+		case 3:
+		{
+		    iupKEY_SETBUTTON4(out_status);
+			break;
+		}
+		case 4:
+		{
+		    iupKEY_SETBUTTON5(out_status);
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
 #endif

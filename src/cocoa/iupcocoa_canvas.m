@@ -424,6 +424,10 @@ But this means that the widgets will never get the focus ring.
 	}
 }
 
+
+//  Should we call this,
+// [self setNeedsDisplay:YES];
+// or force the user to call something if they need it?
 - (void) keyDown:(NSEvent*)the_event
 {
  	// Don't respond if the control is inactive
@@ -606,6 +610,23 @@ But this means that the widgets will never get the focus ring.
 	if(!should_not_propagate)
 	{
 		[super otherMouseUp:the_event];
+	}
+}
+
+// WARNING: IUP WHEEL_CB does not support delta y-axis
+- (void) scrollWheel:(NSEvent*)the_event
+{
+	// Don't respond if the control is inactive
+	if(![self isEnabled])
+	{
+		return;
+	}
+	
+	Ihandle* ih = _ih;
+	bool should_not_propagate = iupCocoaCommonBaseScrollWheelCallback(ih, the_event, self);
+	if(!should_not_propagate)
+	{
+		[super scrollWheel:the_event];
 	}
 }
 

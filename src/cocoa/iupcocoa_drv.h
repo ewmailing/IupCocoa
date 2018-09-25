@@ -68,6 +68,10 @@ IUP_EXPORTI bool iupCocoaCommonBaseHandleMouseButtonCallback(Ihandle* ih, NSEven
 // Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
 IUP_EXPORTI bool iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
 
+// WHEEL_CB: WARNING: IUP does not support delta-y axis.
+IUP_EXPORTI bool iupCocoaCommonBaseScrollWheelCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
+
+
 // This is for NSResponder context menus. (I expect new modules will want to call these.)
 IUP_EXPORTI void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu);
 IUP_EXPORTI void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget);
@@ -81,6 +85,8 @@ IUP_EXPORTI bool iupCocoaKeyEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_co
 // All flagsChanged: overrides can call this function, which in turn calls iupCocoaKeyEvent() internally.
 // Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
 IUP_EXPORTI bool iupCocoaModifierEvent(Ihandle *ih, NSEvent* ns_event, int mac_key_code);
+
+IUP_EXPORTI void iupcocoaButtonKeySetStatus(NSEvent* ns_event, char* out_status);
 
 
 NSStatusItem* iupCocoaGetGlobalApplicationStatusItem(void);
