@@ -37,9 +37,11 @@ void iupdrvSetFocus(Ihandle *ih)
 	
 }
 
+// GTK uses this for the Canvas focus callbacks. 
+/*
 void iupcocoaFocusInOutEvent(Ihandle *ih)
 {
-/*
+
   if (evt->in)
   {
     iupCallGetFocusCb(ih);
@@ -48,5 +50,5 @@ void iupcocoaFocusInOutEvent(Ihandle *ih)
     iupCallKillFocusCb(ih);
 
   return FALSE; 
-*/
 }
+*/
