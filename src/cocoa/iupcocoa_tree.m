@@ -1286,6 +1286,13 @@ static int helperCallDragDropCb(Ihandle* ih, IupCocoaTreeItem* tree_item_drag, I
 		// If the sender is ourselves, then we accept it as a move or copy, depending on the modifier key
         if([drag_info draggingSource] == outline_view)
         {
+        	// Since this is callback shared with DRAGDROPTREE, do an extra check to make sure this feature is on.
+			if(!ih->data->show_dragdrop)
+			{
+				return NSDragOperationNone;
+			}
+			
+			
             if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
             {
 				BOOL can_drag = child_index >= 0 && target_item;
@@ -1587,6 +1594,7 @@ static void cocoaTreeRemoveNodeData(Ihandle* ih, IupCocoaTreeItem* tree_item, in
 	if([drag_info draggingSource] == outline_view)
 	{
 		[self setItemBeingDragged:nil];
+		
 		NSPasteboard* paste_board = [drag_info draggingPasteboard];
 		NSData* data_value = [paste_board dataForType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
 		if(nil == data_value)
@@ -1639,12 +1647,6 @@ static void cocoaTreeRemoveNodeData(Ihandle* ih, IupCocoaTreeItem* tree_item, in
 	// For dragging between two different NSOutlineViews
 	else
 	{
-	
-	
-//		IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
-//IupCocoaTreeDragDropDelegate
-		
-		
 		NSPasteboard* paste_board = [drag_info draggingPasteboard];
 		NSData* data_value = [paste_board dataForType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
 		if(nil == data_value)
@@ -2600,7 +2602,7 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	IupCocoaTreeDelegate* tree_delegate = nil;
 	// This line is not working. (Why not?) Use ih->data->show_dragdrop instead.
 //	if(iupAttribGetInt(ih, "SHOWDRAGDROP")==1)
-	if(ih->data->show_dragdrop)
+	if(ih->data->show_dragdrop || IupGetInt(ih, "DRAGDROPTREE"))
 	{
 		tree_delegate = [[IupCocoaTreeDragDropDelegate alloc] init];
 	}
