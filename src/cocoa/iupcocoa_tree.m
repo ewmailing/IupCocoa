@@ -1276,6 +1276,8 @@ static int helperCallDragDropCb(Ihandle* ih, IupCocoaTreeItem* tree_item_drag, I
 
 - (NSDragOperation)outlineView:(NSOutlineView *)outline_view validateDrop:(id < NSDraggingInfo >)drag_info proposedItem:(id)target_item proposedChildIndex:(NSInteger)child_index
 {
+//NSLog(@"%@", NSStringFromSelector(_cmd));
+
 	NSArray<NSPasteboardType>* drag_types = [[drag_info draggingPasteboard] types];
 	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
 
@@ -1348,6 +1350,46 @@ static int helperCallDragDropCb(Ihandle* ih, IupCocoaTreeItem* tree_item_drag, I
 				}
 			}
 		}
+		// Dragging an item from one NSOutlineView to another NSOutlineView
+		else
+		{
+			if(0 == IupGetInt(ih, "DRAGDROPTREE"))
+			{
+				return NSDragOperationNone;
+			}
+		
+		
+			if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
+            {
+				BOOL can_drag = child_index >= 0 && target_item;
+				if(can_drag)
+				{
+                	return NSDragOperationCopy;
+				}
+				else
+				{
+					// This seems to prevent copying under a leaf which would force us to convert branches to leaves, which I don't think IUP allows.
+					return NSDragOperationNone;
+				}
+            }
+            else
+            {
+            	BOOL can_drag = child_index >= 0 && target_item;
+
+				if(can_drag)
+				{
+
+					return NSDragOperationMove;
+				}
+				else
+				{
+					return NSDragOperationNone;
+				}
+
+			}
+		}
+		
+		
 	}
 	return NSDragOperationNone;
 }
@@ -1536,58 +1578,142 @@ static IupCocoaTreeItem* helperIsPointerValid(intptr_t look_for_pointer, IupCoco
 	return NULL;
 }
 
+// need forward declaration
+static void cocoaTreeRemoveNodeData(Ihandle* ih, IupCocoaTreeItem* tree_item, int call_cb);
 - (BOOL) outlineView:(NSOutlineView*)outline_view acceptDrop:(id <NSDraggingInfo>)drag_info item:(id)parent_target_tree_item childIndex:(NSInteger)target_child_index
 {
-	[self setItemBeingDragged:nil];
-    NSPasteboard* paste_board = [drag_info draggingPasteboard];
-	NSData* data_value = [paste_board dataForType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
-	if(nil == data_value)
+//NSLog(@"%@", NSStringFromSelector(_cmd));
+
+	if([drag_info draggingSource] == outline_view)
 	{
-		return NO;
-	}
+		[self setItemBeingDragged:nil];
+		NSPasteboard* paste_board = [drag_info draggingPasteboard];
+		NSData* data_value = [paste_board dataForType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
+		if(nil == data_value)
+		{
+			return NO;
+		}
+		
+	//	NSValue* pointer_value = [NSKeyedUnarchiver unarchiveObjectWithData:data_value];
+	//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[pointer_value pointerValue];
+
+		intptr_t decoded_integer;
+		[data_value getBytes:&decoded_integer length:sizeof(intptr_t)];
+
+		// Could be a wild pointer at this point?
+		// We can iterate through all the nodes to find it if we need to be extra safe.
+	//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)decoded_integer;
+		IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+		IupCocoaTreeItem* tree_item = helperIsPointerValid(decoded_integer, data_source_delegate);
+		if(nil == tree_item)
+		{
+			return NO;
+		}
+
+
+		// NOTE: Apple has this in their example. I still don't understand what this does.
+		// If it was a drop "on", then we add it at the start
+		if(target_child_index == NSOutlineViewDropOnItemIndex)
+		{
+			target_child_index = 0;
+		}
+		[outline_view beginUpdates];
+
+
+		// Are we copying the data or moving something?
+		if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
+		{
+			// Yes, this is an insert from the pasteboard (even if it is a copy of itemBeingDragged)
+			helperCopyAndInsertNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index, NSTableViewAnimationEffectGap);
+		}
+		else
+		{
+			helperMoveNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index);
+		}
+
+		[outline_view endUpdates];
+
+		return YES;
 	
-//	NSValue* pointer_value = [NSKeyedUnarchiver unarchiveObjectWithData:data_value];
-//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[pointer_value pointerValue];
-
-	intptr_t decoded_integer;
-	[data_value getBytes:&decoded_integer length:sizeof(intptr_t)];
-
-	// Could be a wild pointer at this point?
-	// We can iterate through all the nodes to find it if we need to be extra safe.
-//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)decoded_integer;
-	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
-	IupCocoaTreeItem* tree_item = helperIsPointerValid(decoded_integer, data_source_delegate);
-	if(nil == tree_item)
-	{
-		return NO;
 	}
+	// For dragging between two different NSOutlineViews
+	else
+	{
+	
+	
+//		IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+//IupCocoaTreeDragDropDelegate
+		
+		
+		NSPasteboard* paste_board = [drag_info draggingPasteboard];
+		NSData* data_value = [paste_board dataForType:IUPCOCOA_OUTLINEVIEW_DRAGANDDROP_TYPE];
+		if(nil == data_value)
+		{
+			return NO;
+		}
+	
+	//	NSValue* pointer_value = [NSKeyedUnarchiver unarchiveObjectWithData:data_value];
+	//	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)[pointer_value pointerValue];
+
+		intptr_t decoded_integer;
+		[data_value getBytes:&decoded_integer length:sizeof(intptr_t)];
 
 
-	// NOTE: Apple has this in their example. I still don't understand what this does.
-    // If it was a drop "on", then we add it at the start
-    if(target_child_index == NSOutlineViewDropOnItemIndex)
-    {
-        target_child_index = 0;
-    }
-    [outline_view beginUpdates];
+		// FIXME: Because I'm using raw pointers, this won't work for dragging between two different NSOutlineViews from two different IUP-based programs.
+		// To fix this, I need to properly implement serialization/deserialization of IupCocoaTreeItem.
+		IupCocoaTreeDragDropDelegate* source_data_source_delegate = (IupCocoaTreeDragDropDelegate*)[[drag_info draggingSource] dataSource];
+
+		[self setItemBeingDragged:nil];
+		[source_data_source_delegate setItemBeingDragged:nil];
+
+		IupCocoaTreeItem* tree_item = helperIsPointerValid(decoded_integer, source_data_source_delegate);
+		if(nil == tree_item)
+		{
+			return NO;
+		}
+
+		// NOTE: Apple has this in their example. I still don't understand what this does.
+		// If it was a drop "on", then we add it at the start
+		if(target_child_index == NSOutlineViewDropOnItemIndex)
+		{
+			target_child_index = 0;
+		}
 
 
-    // Are we copying the data or moving something?
-    if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
-    {
-        // Yes, this is an insert from the pasteboard (even if it is a copy of itemBeingDragged)
-		helperCopyAndInsertNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index, NSTableViewAnimationEffectGap);
-    }
-    else
-    {
-    	helperMoveNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index);
-    }
+		// Are we copying the data or moving something?
+		if([drag_info draggingSourceOperationMask] == NSDragOperationCopy)
+		{
+			// Yes, this is an insert from the pasteboard (even if it is a copy of itemBeingDragged)
+			[outline_view beginUpdates];
+			helperCopyAndInsertNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index, NSTableViewAnimationEffectGap);
+			[outline_view endUpdates];
+		}
+		else
+		{
+			[outline_view beginUpdates];
+			helperCopyAndInsertNode((IupCocoaOutlineView*)outline_view, tree_item, parent_target_tree_item, target_child_index, NSTableViewAnimationEffectGap);
+			[outline_view endUpdates];
 
-	[outline_view endUpdates];
+			// remove node from source outlineview
+			NSOutlineView* source_outline_view = [drag_info draggingSource];
+			IupCocoaOutlineView* iup_outline_view = (IupCocoaOutlineView*)source_outline_view;
+			Ihandle* source_ih = [iup_outline_view ih];
 
-    return YES;
+			[iup_outline_view beginUpdates];
+	
+			cocoaTreeRemoveNodeData(source_ih, tree_item, 0);
+			[source_data_source_delegate removeItem:tree_item];
+			// removeItem: doesn't seem to update. Need to call reloadData.
+			[iup_outline_view reloadData];
+
+			[iup_outline_view endUpdates];
+		}
+
+
+		return YES;
+	
+	}
 }
-
 
 @end // IupCocoaTreeDragDropDelegate
 
@@ -1795,10 +1921,12 @@ void iupdrvTreeUpdateMarkMode(Ihandle *ih)
 }
 
 
-// TODO: I think this has something to do with drag-and-drop between two different trees
+// FIXME: This has something to do with drag-and-drop between two different trees.
+// However, this interface doesn't match up well with the native Cocoa implementation for this, which is implemented.
+// I don't know how this will be triggered, if at all since the drag-and-drop is handled elsewhere.
+// For now, this is a no-op.
 void iupdrvTreeDragDropCopyNode(Ihandle* src, Ihandle* dst, InodeHandle* item_src, InodeHandle* item_dst)
 {
-
 
 }
 
@@ -2630,6 +2758,9 @@ void iupdrvTreeInitClass(Iclass* ic)
 	
 	iupClassRegisterAttribute  (ic, "VALUE", cocoaTreeGetValueAttrib, cocoaTreeSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	
+	// The default implementation does a bunch of things that I don't think do anything useful for Cocoa. So I'm overriding/disabling the default implementation.
+	iupClassRegisterAttribute  (ic, "DRAGDROPTREE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+
 	/* IupTree Attributes - ACTION */
 #endif
 	iupClassRegisterAttributeId(ic, "DELNODE", NULL, cocoaTreeSetDelNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
