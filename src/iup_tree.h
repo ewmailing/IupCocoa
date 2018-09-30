@@ -58,6 +58,7 @@ int iupdrvTreeTotalChildCount(Ihandle* ih, InodeHandle* node_handle);
 void iupTreeSelectLastCollapsedBranch(Ihandle* ih, int *last_id);
 
 void iupTreeDelFromCache(Ihandle* ih, int id, int count);
+void iTreeIncCacheMem(Ihandle* ih); /* needed for IupCocoa */
 void iupTreeAddToCache(Ihandle* ih, int add, int kindPrev, InodeHandle* prevNode, InodeHandle* node_handle);
 void iupTreeCopyMoveCache(Ihandle* ih, int id_src, int id_dst, int count, int is_copy);
 void iupTreeDragDropCopyCache(Ihandle* ih, int id_src, int id_dst, int count);

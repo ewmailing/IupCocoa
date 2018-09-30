@@ -315,7 +315,8 @@ static void iTreeAddToCache(Ihandle* ih, int id, InodeHandle* node_handle)
   ih->data->node_cache[id].userdata = NULL;
 }
 
-static void iTreeIncCacheMem(Ihandle* ih)
+/* no longer static because needed by Cocoa implemenetation */
+void iTreeIncCacheMem(Ihandle* ih)
 {
   /* node_count here already contains the final count */
 
