@@ -345,6 +345,60 @@ static NSUInteger Helper_CountAllItems(IupCocoaTreeDelegate* tree_delegate)
 	return counter;
 }
 
+
+static NSInteger Helper_RecursivelyFindFlatIndexofTreeItemInOutlineView(IupCocoaTreeItem* the_item, IupCocoaTreeItem* target_item,NSInteger* out_flat_index)
+{
+	bool is_found = false;
+//	NSInteger flat_index = 0;
+	for(IupCocoaTreeItem* a_item in [the_item childrenArray])
+	{
+		NSLog(@"Helper_RecursivelyFindFlatIndexofTreeItemInOutlineView a_item=%@, flat_index=%d", [a_item title], *out_flat_index);
+		if([a_item isEqual:target_item])
+		{
+			is_found = true;
+			break;
+		}
+		else
+		{
+			*out_flat_index = *out_flat_index+1;
+			is_found = Helper_RecursivelyFindFlatIndexofTreeItemInOutlineView(a_item, target_item, out_flat_index);
+		}
+		if(is_found)
+		{
+			break;
+		}
+	}
+	return is_found;
+}
+
+// This is a helper function that traverses through a NSOutlineView data source delegate looking for a certain item, and returns the array index this would be in for the ordering of the Iup node_cache
+static NSInteger Helper_FindFlatIndexofTreeItemInOutlineView(IupCocoaTreeDelegate* tree_delegate, IupCocoaTreeItem* tree_item, NSInteger* out_flat_index)
+{
+	bool is_found = false;
+//	NSInteger flat_index = 0;
+	for(IupCocoaTreeItem* a_item in [tree_delegate treeRootTopLevelObjects])
+	{
+		NSLog(@"Helper_FindFlatIndexofTreeItemInOutlineView a_item=%@, flat_index=%d", [a_item title], *out_flat_index);
+		if([a_item isEqual:tree_item])
+		{
+			is_found = true;
+			break;
+		}
+		else
+		{
+			*out_flat_index = *out_flat_index+1;
+			is_found = Helper_RecursivelyFindFlatIndexofTreeItemInOutlineView(a_item, tree_item, out_flat_index);
+		}
+		if(is_found)
+		{
+			break;
+		}
+	}
+//	*out_flat_index = flat_index;
+	return is_found;
+}
+
+
 @implementation IupCocoaTreeDelegate
 @synthesize treeRootTopLevelObjects = treeRootTopLevelObjects;
 
@@ -1423,6 +1477,93 @@ static void cocoaTreeRebuildNodeCache(Ihandle* ih, int object_id, IupCocoaTreeIt
   cocoaTreeChildRebuildCacheRec(ih, tree_item, &object_id);
 }
 
+#define IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE 1
+#if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
+
+static void testValidateCocoaTreeRecursivelyCreateFlatItemArray(IupCocoaTreeItem* the_item, NSMutableArray<IupCocoaTreeItem*>* flattened_array_of_items)
+{
+	for(IupCocoaTreeItem* a_item in [the_item childrenArray])
+	{
+		[flattened_array_of_items addObject:a_item];
+		testValidateCocoaTreeRecursivelyCreateFlatItemArray(a_item, flattened_array_of_items);
+	}
+}
+
+// This is a helper function that traverses through a NSOutlineView data source delegate looking for a certain item, and returns the array index this would be in for the ordering of the Iup node_cache
+static NSArray<IupCocoaTreeItem*>* testValidateCocoaTreeCreateFlatItemArray(IupCocoaTreeDelegate* tree_delegate)
+{
+	NSMutableArray* flattened_array_of_items = [[[NSMutableArray alloc] init] autorelease];
+	
+	for(IupCocoaTreeItem* a_item in [tree_delegate treeRootTopLevelObjects])
+	{
+		[flattened_array_of_items addObject:a_item];
+		testValidateCocoaTreeRecursivelyCreateFlatItemArray(a_item, flattened_array_of_items);
+	}
+	return flattened_array_of_items;
+}
+
+// Returns true if passes test
+static bool testValidateCocoaTreeNodeCache(Ihandle* ih, IupCocoaTreeDelegate* tree_delegate)
+{
+	NSArray<IupCocoaTreeItem*>* flattened_array_of_items = testValidateCocoaTreeCreateFlatItemArray(tree_delegate);
+	bool found_error = false;
+
+	if(ih->data->node_count != [flattened_array_of_items count])
+	{
+		found_error = true;
+		NSLog(@"INTERNAL ERROR in testValidateCocoaTreeNodeCache: Number of elements in data source does not equal the number in the node_cache.");
+	}
+
+	int i = 0;
+	for(IupCocoaTreeItem* a_item in flattened_array_of_items)
+	{
+		IupCocoaTreeItem* node_cache_item = (IupCocoaTreeItem*)ih->data->node_cache[i].node_handle;
+		if(![a_item isEqual:node_cache_item])
+		{
+			found_error = true;
+		}
+		i++;
+	}
+
+	if(found_error)
+	{
+		i = 0;
+		NSLog(@"INTERNAL ERROR in testValidateCocoaTreeNodeCache: Arrays do not match");
+		NSLog(@"DataSource:");
+		for(IupCocoaTreeItem* a_item in flattened_array_of_items)
+		{
+			NSLog(@"DataSource: [%d] = %@", i, [a_item title]);
+			i++;
+		}
+		NSLog(@"node_cache:");
+		for(i=0; i<ih->data->node_count;i++)
+		{
+			IupCocoaTreeItem* node_cache_item = (IupCocoaTreeItem*)ih->data->node_cache[i].node_handle;
+			NSLog(@"node_cache: [%d] = %@", i, [node_cache_item title]);
+		}
+		
+		NSLog(@"Interleaved:");
+		i = 0;
+		for(IupCocoaTreeItem* a_item in flattened_array_of_items)
+		{
+			NSLog(@"DataSource: [%d] = %@", i, [a_item title]);
+			IupCocoaTreeItem* node_cache_item = (IupCocoaTreeItem*)ih->data->node_cache[i].node_handle;
+			NSLog(@"node_cache: [%d] = %@", i, [node_cache_item title]);
+			i++;
+		}
+
+		NSCAssert(0, @"INTERNAL ERROR in testValidateCocoaTreeNodeCache: Arrays do not match");
+	}
+	else
+	{
+		NSLog(@"testValidateCocoaTreeNodeCache passed.");
+	}
+	
+
+	return !found_error;
+}
+
+#endif
 
 static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, IupCocoaTreeItem* parent_target_tree_item, NSInteger target_child_index)
 {
@@ -1439,7 +1580,7 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 	int count_of_all_nodes = (int)Helper_CountAllItems(data_source_delegate);
 		int count_of_new_nodes = (int)Helper_RecursivelyCountItems(tree_item);
 	IupCocoaTreeItem* parent_tree_item  = [tree_item parentItem];
-  int old_count = ih->data->node_count;
+  int original_node_count = ih->data->node_count;
 
 	NSUInteger object_index;
 	if(parent_tree_item)
@@ -1461,7 +1602,9 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 //	int target_kind = [target_tree_item kind];
 	
 	NSInteger adjusted_index = target_child_index;
+int id_adjust = 0;
 
+NSLog(@"parent_tree: %@, parent_target: %@", [parent_tree_item title], [parent_target_tree_item title]);
 	// If the node is being moved under the same immediate parent,
 	// we need to subtract 1 if
 	// the current placement of the node is earlier than the target.
@@ -1479,22 +1622,263 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 	{
 		adjusted_index = 0;
 	}
+NSLog(@"adjusted_index: %d, target_child_index: %d, object_index: %d", adjusted_index, target_child_index, object_index);
+NSLog(@"tree_item: %@", [tree_item title]);
+NSLog(@"parent_target_tree_item: %@", [parent_target_tree_item title]);
+NSLog(@"parent_tree_item: %@", [parent_tree_item title]);
+
+	// Quick exit if the user didn't actually change the location
+	if( (object_index == adjusted_index)
+		&& [parent_target_tree_item isEqual:parent_tree_item]
+	)
+	{
+		return;
+	}
+
+
+	NSInteger flat_index_before = 0;
+	bool is_found = Helper_FindFlatIndexofTreeItemInOutlineView(data_source_delegate, tree_item, &flat_index_before);
+NSLog(@"flat_index_before: %d, is_found: %d", flat_index_before, is_found);
+	NSCAssert(is_found, @"Internal error: Could not find moved node in outline view");
+{
+	NSArray* testarray = testValidateCocoaTreeCreateFlatItemArray(data_source_delegate);
+	int k=0;
+	for(IupCocoaTreeItem* a_item in testarray)
+	{
+		NSLog(@"bef DataSource: [%d] = %@", k, [a_item title]);
+		k++;
+	}
+}
 
 	// update the data source
 	[data_source_delegate moveItem:tree_item targetParent:parent_target_tree_item targetChildIndex:adjusted_index];
 	[outline_view moveItemAtIndex:object_index inParent:parent_tree_item toIndex:adjusted_index inParent:parent_target_tree_item];
-	
+
+{
+	NSArray* testarray = testValidateCocoaTreeCreateFlatItemArray(data_source_delegate);
+	int k=0;
+	for(IupCocoaTreeItem* a_item in testarray)
+	{
+		NSLog(@"aft DataSource: [%d] = %@", k, [a_item title]);
+		k++;
+	}
+}
+
+
+	NSInteger flat_index_after = 0;
+	is_found = Helper_FindFlatIndexofTreeItemInOutlineView(data_source_delegate, tree_item, &flat_index_after);
+NSLog(@"flat_index_after: %d, is_found: %d", flat_index_after, is_found);
+	NSCAssert(is_found, @"Internal error: Could not find moved node in outline view");
 
 	// This is a mess. iup's internal API assumes I copied the nodes, and then will delete.
 	// But I directly moved. So I have to fake copying.
 	
 //	iupTreeCopyMoveCache(ih, id_src, id_new, 0, false);
-	iupTreeCopyMoveCache(ih, id_src, id_new, count_of_new_nodes, false);
+//	iupTreeCopyMoveCache(ih, id_src, id_new, count_of_new_nodes, false);
 	
+	NSLog(@"node_count %d", ih->data->node_count);
+	for(size_t j=0; j<ih->data->node_count; j++)
+	{
+		NSLog(@"bef: node_cache[%zu]=0x%p, %@", j, &ih->data->node_cache[j], [(IupCocoaTreeItem*)(ih->data->node_cache[j].node_handle) title]);
+
+	}
+	
+//	  memmove(ih->data->node_cache+id_new, ih->data->node_cache+id_src, count_of_new_nodes*sizeof(InodeData));
+
+	// I need to rearrange the internal IUP node_cache array.
+	// Just in case the table is huge and we are moving a huge number of elements, I don't want to blow the stack.
+	// TODO: The node_cache does seem to have a notion of extra elements beyond the ones in use, which we might be able to use, but I don't know the internal use of it well enough to be sure I won't break other assumptions by growing it and using it.
+	bool is_malloc = false;
+	InodeData* tmp_array = NULL;
+	if(count_of_new_nodes > 128) // 128 is a number I pulled out of the air
+	{
+		is_malloc = false;
+		tmp_array = (InodeData*)alloca(count_of_new_nodes*sizeof(InodeData));
+	}
+	else
+	{
+		is_malloc = true;
+		tmp_array = (InodeData*)malloc(count_of_new_nodes*sizeof(InodeData));
+	}
+
+	/*
+		Exmaple 1a: Let's move 7,8,9 to go after 4 (move higher address to lower)
+		node_cache: [0 1 2 3 4 5 6 7 8 9]
+	 
+	 	1) We need to copy 7,8,9 to the tmp_array to save the original values
+	 	tmp_array: [7 8 9]
+	 
+	 	2) memmove items after 4 and before 7,8,9 to the right by the number of items to move (3). (*Edge Case: Do we need a bounds check?)
+	 	node_cache: [0 1 2 3 4 5 6 7 5 6]
+	 
+	 	3) copy 7 8 9 after 4
+	 	node_cache: [0 1 2 3 4 7 8 9 5 6]
+	 
+	 
+		Exmaple 1b: Let's move 5,6,7 to go after 0 (move higher address to lower)
+		node_cache: [0 1 2 3 4 5 6 7 8 9]
+	 
+	 	1) We need to copy 5,6,7 to the tmp_array to save the original values
+	 	tmp_array: [5 6 7]
+	 
+	 	2) memmove items after 0 and before 5,6,7 to the right by the number of items to move (3)
+	 	node_cache: [0 1 2 3 1 2 3 4 8 9]
+	 
+	 	3) copy 5,6,7 after the 0
+	 	node_cache: [0 5 6 7 1 2 3 4 8 9]
+	 
+	 
+		Exmaple 2a: Let's move 0,1,2 to go after 9 (move lower address to higher)
+		node_cache: [0 1 2 3 4 5 6 7 8 9]
+	 
+	 	1) We need to copy 0,1,2 to the tmp_array to save the original values
+	 	tmp_array: [0 1 2]
+	 
+	 	2) memmove everything left the number of elements being moved (3)
+	 	node_cache: [3 4 5 6 7 8 9 7 8 9]
+	 
+	 	3) copy 0,1,2 after the 7 8 9
+	 	node_cache: [3 4 5 6 7 8 9 0 1 2]
+	 
+	 
+		Exmaple 2b: Let's move 1,2,3 to go after 5 (move lower address to higher)
+		node_cache: [0 1 2 3 4 5 6 7 8 9]
+	 
+	 	1) We need to copy 1,2,3 to the tmp_array to save the original values
+	 	tmp_array: [1 2 3]
+	 
+	 	2) memmove everything before the 6 and after the 1,2,3 to the left, the number of elements being moved (3)
+	 	node_cache: [0 4 5 3 4 5 6 7 8 9]
+	 
+	 	3) copy 1,2,3 after the 5
+	 	node_cache: [0 4 5 1 2 3 6 7 8 9]
+
+
+		Exmaple 2c: Let's move 1,2,3,4 to go after 7 (move lower address to higher)
+		node_cache: [0 1 2 3 4 5 6 7 8 9]
+	 
+	 	1) We need to copy 1,2,3,4 to the tmp_array to save the original values
+	 	tmp_array: [1 2 3 4]
+	 
+	 	2) memmove everything after the 1,2,3,4 and before the 8 to the left, the number of elements being moved (3)
+	 	node_cache: [0 X X X X 5 6 7 Y Y]
+	 	node_cache: [0 5 6 7 4 5 6 7 8 9]
+
+	 	3) copy 1,2,3,4 after the newly moved 7 (i.e. end of the just moved ranged)
+	 	node_cache: [0 5 6 7 1 2 3 4 8 9]
+	 
+	 	Algorithm:
+	 	- If we are moving from a higher address to a lower address,
+	 		- Copy the elements we want to move to tmp_array
+	 		- move all elements that are right of target point but before our moving elements to the right, the number of positions being moved
+		 	- Copy back the elements from the tmp_array to the target position
+	 	- Else if we are moving from a lower address to a higher address,
+	 		- Copy the elements we want to move to tmp_array
+	 		- move all elements that are right of our start elements but before the target point to the left, the number of positions being moved
+	 		- Copy back the elements from the tmp_array to the specified target position
+	*/
+	
+	NSLog(@"id_adjust %d", id_adjust);
+	if([parent_tree_item isEqual:parent_target_tree_item])
+	{
+
+	}
+	else
+	{
+		id_adjust = -1;
+	}
+
+#if 0
+	// This doesn't work. I think the main problem is NSOutlineView allows the user to insert into positions that IUP does not support.
+	// There are ambiguities about whether something is added as a sibling or child.
+	// IUP overspecifies the UI interaction rules which don't apply to NSOutlineView.
+	// And NSOutlineView provides UI that does distinguish between sibling or child and the user has fine control over where it is dropped.
+	// So I think the problem is that we cannot express this in terms
+	// (The bigger problem I think is we shouldn't have a node_cache.
+	// "The two biggest problems in computer science are naming things and cache invalidation."
+	// Because Cocoa already has two representations (the NSOutlineView and the data source delegate),
+	// with a different internal layout than the third IUP node_cache, it is really hard to keep these in sync.
+	// But for now, we are stuck with the node_cache.
+	// So I need to create my own variants of iupTreeCopyMoveCache to properly update the node_cache so it stays in sync with
+	// how Cocoa allows the user to manipulate the NSOutlineView.)
+	iupTreeCopyMoveCache(ih, flat_index_before, flat_index_after, count_of_new_nodes, false);
+
+#else
+
+	if(flat_index_before > flat_index_after) // moving from a higher address to a lower
+	{
+			NSLog(@"moving from a higher address to a lower");
+	/*
+		memcpy(tmp_array, ih->data->node_cache+id_new, count_of_new_nodes*sizeof(InodeData));
+		memmove(ih->data->node_cache+flat_index_after, ih->data->node_cache+id_src, count_of_new_nodes*sizeof(InodeData));
+		int number_of_nodes_to_copy_back = count_of_new_nodes;
+		int restore_position = flat_index_after+count_of_new_nodes;
+		if((restore_position+count_of_new_nodes) > original_node_count)
+		{
+			number_of_nodes_to_copy_back = original_node_count - restore_position;
+		}
+		memcpy(ih->data->node_cache+(restore_position), tmp_array, number_of_nodes_to_copy_back*sizeof(InodeData));
+		*/
+
+		memcpy(tmp_array, ih->data->node_cache+flat_index_before, count_of_new_nodes*sizeof(InodeData));
+
+	//	int number_of_nodes_to_move_over = (id_src) - (id_new);
+		int number_of_nodes_to_move_over = flat_index_before - flat_index_after;
+		NSLog(@"number_of_nodes_to_move_over:%d", number_of_nodes_to_move_over);
+		memmove(ih->data->node_cache+flat_index_after+count_of_new_nodes, ih->data->node_cache+flat_index_after, number_of_nodes_to_move_over*sizeof(InodeData));
+		memcpy(ih->data->node_cache+(flat_index_after), tmp_array, count_of_new_nodes*sizeof(InodeData));
+
+
+
+	}
+	else // moving from a lower address to a higher
+	{
+			NSLog(@"moving from a lower address to a higher");
+
+		memcpy(tmp_array, ih->data->node_cache+flat_index_before, count_of_new_nodes*sizeof(InodeData));
+
+//		int number_of_nodes_to_move_over = original_node_count - (id_src+count_of_new_nodes);
+//		int number_of_nodes_to_move_over = count_of_new_nodes;
+//		int number_of_nodes_to_move_over = (id_new) - id_src;
+		int number_of_nodes_to_move_over = (flat_index_after) - flat_index_before;
+		NSLog(@"number_of_nodes_to_move_over:%d", number_of_nodes_to_move_over);
+			NSLog(@"id_src:%d, id_src+count_of_new_nodes:%d, id_new:%d", id_src , id_src+count_of_new_nodes, id_new);
+	NSLog(@"dst:%@, src:%@",  [(IupCocoaTreeItem*)(ih->data->node_cache[id_src].node_handle) title], [(IupCocoaTreeItem*)(ih->data->node_cache[id_src+count_of_new_nodes].node_handle) title]);
+
+//		memmove(ih->data->node_cache+id_src, ih->data->node_cache+id_src+count_of_new_nodes, number_of_nodes_to_move_over*sizeof(InodeData));
+		memmove(ih->data->node_cache+flat_index_before, ih->data->node_cache+flat_index_before+count_of_new_nodes, number_of_nodes_to_move_over*sizeof(InodeData));
+//		memcpy(ih->data->node_cache+(id_new), tmp_array, count_of_new_nodes*sizeof(InodeData));
+//		memcpy(ih->data->node_cache+(id_src+count_of_new_nodes + id_adjust), tmp_array, count_of_new_nodes*sizeof(InodeData));
+//		memcpy(ih->data->node_cache+(id_dst), tmp_array, count_of_new_nodes*sizeof(InodeData));
+		memcpy(ih->data->node_cache+(flat_index_before+number_of_nodes_to_move_over), tmp_array, count_of_new_nodes*sizeof(InodeData));
+
+	}
+
+
+	if(is_malloc)
+	{
+		free(tmp_array);
+	}
+	tmp_array = NULL;
+
+	for(size_t j=0; j<ih->data->node_count; j++)
+	{
+		NSLog(@"aft: node_cache[%zu]=0x%p, %@", j, &ih->data->node_cache[j], [(IupCocoaTreeItem*)(ih->data->node_cache[j].node_handle) title]);
+
+	}
+
+  iupAttribSet(ih, "LASTADDNODE", NULL);
+#endif
+
+
+#if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
+	testValidateCocoaTreeNodeCache(ih, data_source_delegate);
+#endif
+
 	    /* restore count, because we remove src */
  //   ih->data->node_count = old_count;
  //   ih->data->node_count = count_of_all_nodes;
-
+#if 0
     /* compensate position for a move */
     if (id_new > id_src)
     {
@@ -1502,7 +1886,74 @@ static void helperMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* 
 	}
 	
 	cocoaTreeRebuildNodeCache(ih, id_new, tree_item);
+#endif
 }
+
+#if 0
+// tree_item should be a copy
+static void helperCopyMoveNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, IupCocoaTreeItem* parent_target_tree_item, NSInteger target_child_index)
+{
+	if(!tree_item)
+	{
+		return;
+	}
+	IupCocoaOutlineView* iup_outline_view = (IupCocoaOutlineView*)outline_view;
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+	Ihandle* ih = [iup_outline_view ih];
+	int id_src = iupTreeFindNodeId(ih, (InodeHandle*)parent_target_tree_item) + (int)target_child_index;
+	int id_dst = iupTreeFindNodeId(ih, (InodeHandle*)tree_item);
+	int id_new = id_dst+1; /* contains the position for a copy operation */
+//	int count_of_all_nodes = (int)Helper_CountAllItems(data_source_delegate);
+	
+	  if (id_new == id_dst)
+  {
+    return;
+  }
+	//IupCocoaTreeItem* new_copy_tree_item = [[IupCocoaTreeItem alloc] init];
+	IupCocoaTreeItem* new_copy_tree_item = [tree_item cloneWithNewParentItem:parent_target_tree_item];
+		// If the destination node is a branch and it is expanded,
+	// then the specified node is inserted as the first child of the destination node.
+	// If the branch is not expanded or the destination node is a leaf,
+	// then it is inserted as the next brother of the leaf.
+	
+//	BOOL is_target_expanded = NO;
+//	int target_kind = [target_tree_item kind];
+	
+	// Unlike move, we don't seem to need to subtract 1.
+//	NSInteger adjusted_index = target_child_index - 1;
+	NSInteger adjusted_index = target_child_index;
+	if(adjusted_index < 0)
+	{
+		adjusted_index = 0;
+	}
+					[iup_outline_view beginUpdates];
+
+	// update the data source
+	[data_source_delegate insertChild:new_copy_tree_item withParent:parent_target_tree_item targetChildIndex:adjusted_index];
+
+	// directly update the outlineview so we don't have to reloadData
+	NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:adjusted_index];
+	[outline_view insertItemsAtIndexes:index_set inParent:parent_target_tree_item withAnimation:NSTableViewAnimationEffectGap];
+	
+	int count_of_new_nodes = (int)Helper_RecursivelyCountItems(new_copy_tree_item);
+	
+	int old_count = ih->data->node_count;
+	ih->data->node_count += count_of_new_nodes;
+	iupTreeCopyMoveCache(ih, id_src, id_new, count_of_new_nodes, true);
+	
+			cocoaTreeRemoveNodeData(ih, tree_item, 0);
+			[data_source_delegate removeItem:tree_item];
+			// removeItem: doesn't seem to update. Need to call reloadData.
+			[iup_outline_view reloadData];
+
+			[iup_outline_view endUpdates];
+	ih->data->node_count = old_count;
+
+//	cocoaTreeRebuildNodeCache(ih, id_new, tree_item);
+	
+
+}
+#endif
 
 // tree_item should be a copy
 static void helperCopyAndInsertNode(IupCocoaOutlineView* outline_view, IupCocoaTreeItem* tree_item, IupCocoaTreeItem* parent_target_tree_item, NSInteger target_child_index, NSTableViewAnimationOptions copy_insert_animation)
@@ -1551,6 +2002,10 @@ static void helperCopyAndInsertNode(IupCocoaOutlineView* outline_view, IupCocoaT
 	
 	cocoaTreeRebuildNodeCache(ih, id_new, tree_item);
 	
+#if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
+	testValidateCocoaTreeNodeCache(ih, data_source_delegate);
+#endif
+
 
 }
 
@@ -1704,11 +2159,21 @@ static void cocoaTreeRemoveNodeData(Ihandle* ih, IupCocoaTreeItem* tree_item, in
 			[iup_outline_view beginUpdates];
 	
 			cocoaTreeRemoveNodeData(source_ih, tree_item, 0);
-			[source_data_source_delegate removeItem:tree_item];
+			NSUInteger target_index = [source_data_source_delegate removeItem:tree_item];
+			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+			// I don't think the animations are working for remove
+			[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectNone];
+//			[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectFade];
+
 			// removeItem: doesn't seem to update. Need to call reloadData.
-			[iup_outline_view reloadData];
+//			[iup_outline_view reloadData];
 
 			[iup_outline_view endUpdates];
+			
+
+#if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
+	testValidateCocoaTreeNodeCache(source_ih, source_data_source_delegate);
+#endif
 		}
 
 
@@ -1876,6 +2341,11 @@ void iupdrvTreeAddNode(Ihandle* ih, int prev_id, int kind, const char* title, in
 	
 	// make sure to release since it should now be retained by the data_source_delegate
 	[tree_item_new release];
+	
+	
+#if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
+	testValidateCocoaTreeNodeCache(ih, data_source_delegate);
+#endif
 }
 
 
@@ -2042,7 +2512,9 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 		if(NSNotFound != target_index)
 		{
 			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
+			// I don't think the animations are working for remove
 			[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectNone];
+//			[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectFade];
 		}
 
 		// Scuri says not required to handle for delete.
@@ -2065,7 +2537,8 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
     cocoaTreeRemoveNodeData(ih, tree_item, 1);
 
 		NSIndexSet* index_set = [data_source_delegate removeAllChildrenForItem:tree_item];
-		[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectNone];
+//		[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectNone];
+		[outline_view removeItemsAtIndexes:index_set inParent:tree_item withAnimation:NSTableViewAnimationEffectFade];
 
 		//[outline_view reloadData];
 
@@ -2095,7 +2568,7 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 			NSUInteger target_index = [data_source_delegate removeItem:selected_item];
 			
 			NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:target_index];
-			[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectNone];
+			[outline_view removeItemsAtIndexes:index_set inParent:parent_tree_item withAnimation:NSTableViewAnimationEffectFade];
 #else
 			[data_source_delegate removeItem:selected_item];
 #endif
@@ -2112,6 +2585,11 @@ static int cocoaTreeSetDelNodeAttrib(Ihandle* ih, int node_id, const char* value
 		[outline_view endUpdates];
 
 	}
+	
+#if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
+	testValidateCocoaTreeNodeCache(ih, data_source_delegate);
+#endif
+
 
 	return 0;
 }
