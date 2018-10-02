@@ -3458,6 +3458,30 @@ static int cocoaTreeSetExpandAllAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
+static int cocoaTreeSetRenameAttrib(Ihandle* ih, const char* value)
+{
+	bool show_rename = iupStrBoolean(value);
+	ih->data->show_rename = show_rename;
+	
+	// Because this is needed for Map, we might not have a handle yet
+	if(ih->handle && ih->data->show_rename)
+	{
+		NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+		
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i != NSNotFound)
+		{
+			id selected_item = [outline_view itemAtRow:selected_i];
+			NSTableCellView* table_cell_view = [selected_item tableCellView];
+			NSTextField* text_field = [table_cell_view textField];
+			[text_field becomeFirstResponder];
+		}
+	}
+	(void)value;
+	return 0;
+}
+
 static int cocoaTreeSetShowRenameAttrib(Ihandle* ih, const char* value)
 {
 	bool show_rename = iupStrBoolean(value);
@@ -3695,9 +3719,7 @@ void iupdrvTreeInitClass(Iclass* ic)
 	/* IupTree Attributes - ACTION */
 #endif
 	iupClassRegisterAttributeId(ic, "DELNODE", NULL, cocoaTreeSetDelNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-#if 0
 	iupClassRegisterAttribute(ic, "RENAME", NULL, cocoaTreeSetRenameAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-#endif
 	iupClassRegisterAttributeId(ic, "MOVENODE", NULL, cocoaTreeSetMoveNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
 	iupClassRegisterAttributeId(ic, "COPYNODE", NULL, cocoaTreeSetCopyNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
