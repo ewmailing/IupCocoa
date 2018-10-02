@@ -831,6 +831,10 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	image_view = [table_cell_view imageView];
 	[text_field setStringValue:string_item];
 
+	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
+	BOOL show_rename = (BOOL)ih->data->show_rename;
+	[text_field setEditable:show_rename];
+
 
 	CGFloat image_width = 0.0;
 	CGFloat image_height = 0.0;
@@ -3454,6 +3458,22 @@ static int cocoaTreeSetExpandAllAttrib(Ihandle* ih, const char* value)
   return 0;
 }
 
+static int cocoaTreeSetShowRenameAttrib(Ihandle* ih, const char* value)
+{
+	bool show_rename = iupStrBoolean(value);
+	ih->data->show_rename = show_rename;
+	
+	// Because this is needed for Map, we might not have a handle yet
+	if(ih->handle)
+	{
+		NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+		// I don't know how to traverse through all active cells.
+		// Apple may only loads cells that are currently visible.
+		// It appears that reloadData triggers all the cells to be recreated so we can call setEditable there.
+		[outline_view reloadData];
+	}
+	return 0;
+}
 
 // TODO: Individual cells and maybe columns may be able to get their own context menus.
 // For now, we do the simple thing of applying a singular menu for the entire OutlineView.
@@ -3650,10 +3670,10 @@ void iupdrvTreeInitClass(Iclass* ic)
 #if 0
 	iupClassRegisterAttributeId(ic, "TOGGLEVALUE", cocoaTreeGetToggleValueAttrib, cocoaTreeSetToggleValueAttrib, IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "TOGGLEVISIBLE", cocoaTreeGetToggleVisibleAttrib, cocoaTreeSetToggleVisibleAttrib, IUPAF_NO_INHERIT);
-	
-	/* Change the set method for GTK */
+#endif
+	/* Change the set method for Cocoa */
 	iupClassRegisterReplaceAttribFunc(ic, "SHOWRENAME", NULL, cocoaTreeSetShowRenameAttrib);
-	
+#if 0
 	iupClassRegisterAttributeId(ic, "CHILDCOUNT", cocoaTreeGetChildCountAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "TITLEFONT",  cocoaTreeGetTitleFontAttrib,  cocoaTreeSetTitleFontAttrib, IUPAF_NO_INHERIT);
 	
@@ -3669,7 +3689,8 @@ void iupdrvTreeInitClass(Iclass* ic)
 	iupClassRegisterAttribute  (ic, "VALUE", cocoaTreeGetValueAttrib, cocoaTreeSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	
 	// The default implementation does a bunch of things that I don't think do anything useful for Cocoa. So I'm overriding/disabling the default implementation.
-	iupClassRegisterAttribute  (ic, "DRAGDROPTREE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+//	iupClassRegisterAttribute(ic, "DRAGDROPTREE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+	iupClassRegisterReplaceAttribFunc(ic, "DRAGDROPTREE", NULL, NULL);
 
 	/* IupTree Attributes - ACTION */
 #endif
