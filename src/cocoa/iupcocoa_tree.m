@@ -89,7 +89,7 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 @property(nonatomic, retain) NSImage* collapsedImage;
 @property(nonatomic, weak) NSTableCellView* tableCellView; // this is kind of a hack to force layout in heightOf. I'm not sure if I want to keep a strong reference because I don't know if there is a possible circular reference here.
 
-- (instancetype) clone;
+- (instancetype) cloneWithNewParentItem:(IupCocoaTreeItem*)new_parent_item;
 
 - (IupCocoaTreeItem*) childAtIndex:(NSUInteger)the_index;
 
@@ -3136,6 +3136,90 @@ static int cocoaTreeSetMoveNodeAttrib(Ihandle* ih, int node_id, const char* valu
   return 0;
 }
 
+static int cocoaTreeSetCopyNodeAttrib(Ihandle* ih, int node_id, const char* value)
+{
+
+
+	if(!ih->handle)  /* do not do the action before map */
+	{
+		return 0;
+	}
+
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeDelegate* data_source_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)iupTreeGetNode(ih, node_id);
+
+	if(!tree_item)
+	{
+		return 0;
+	}
+	IupCocoaTreeItem* parent_tree_item  = [tree_item parentItem];
+
+	IupCocoaTreeItem* target_tree_item = (IupCocoaTreeItem*)iupTreeGetNodeFromString(ih, value);
+	IupCocoaTreeItem* parent_target_tree_item = [target_tree_item parentItem];
+
+
+
+	NSUInteger object_index;
+	if(parent_tree_item)
+	{
+		object_index = [[parent_tree_item childrenArray] indexOfObject:tree_item];
+
+	}
+	else
+	{
+		object_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:tree_item];
+	}
+
+	// If the destination node is a branch and it is expanded,
+	// then the specified node is inserted as the first child of the destination node.
+	// If the branch is not expanded or the destination node is a leaf,
+	// then it is inserted as the next brother of the leaf.
+	
+	BOOL is_target_expanded = NO;
+	int target_kind = [target_tree_item kind];
+	if(ITREE_BRANCH == target_kind)
+	{
+		is_target_expanded = [outline_view isItemExpanded:target_tree_item];
+
+
+		if(is_target_expanded)
+		{
+			// update the data source
+			helperCopyAndInsertNode(outline_view, tree_item, parent_target_tree_item, 0, NSTableViewAnimationEffectGap);
+		}
+		else
+		{
+			NSUInteger target_index;
+			if(parent_target_tree_item)
+			{
+				target_index = [[parent_target_tree_item childrenArray] indexOfObject:target_tree_item];
+			}
+			else
+			{
+				target_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:target_tree_item];
+			}
+			// update the data source
+			helperCopyAndInsertNode(outline_view, tree_item, parent_target_tree_item, target_index, NSTableViewAnimationEffectGap);
+		}
+	}
+	else
+	{
+		NSUInteger target_index;
+		if(parent_target_tree_item)
+		{
+			target_index = [[parent_target_tree_item childrenArray] indexOfObject:target_tree_item];
+		}
+		else
+		{
+			target_index = [[data_source_delegate treeRootTopLevelObjects] indexOfObject:target_tree_item];
+		}
+		// update the data source
+		helperCopyAndInsertNode(outline_view, tree_item, parent_target_tree_item, target_index, NSTableViewAnimationEffectGap);
+	}
+	return 0;
+}
 /*****************************************************************************/
 /* MANIPULATING IMAGES                                                       */
 /*****************************************************************************/
@@ -3514,6 +3598,23 @@ static int cocoaTreeSetContextMenuAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+static char* cocoaTreeGetLayerBackedAttrib(Ihandle* ih)
+{
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	BOOL layer_state = [outline_view wantsLayer];
+	return iupStrReturnInt(layer_state);
+}
+
+static int cocoaTreeSetLayerBackedAttrib(Ihandle* ih, const char* value)
+{
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	bool layer_state = iupStrBoolean(value);
+	[outline_view setWantsLayer:layer_state];
+	[cocoaTreeGetRootView(ih) setWantsLayer:layer_state];
+	[cocoaTreeGetOutlineView(ih) setWantsLayer:layer_state];
+
+	return 1;
+}
 
 static int cocoaTreeMapMethod(Ihandle* ih)
 {
@@ -3721,15 +3822,17 @@ void iupdrvTreeInitClass(Iclass* ic)
 	iupClassRegisterAttributeId(ic, "DELNODE", NULL, cocoaTreeSetDelNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "RENAME", NULL, cocoaTreeSetRenameAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "MOVENODE", NULL, cocoaTreeSetMoveNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-#if 0
 	iupClassRegisterAttributeId(ic, "COPYNODE", NULL, cocoaTreeSetCopyNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	
+#if 0
 	/* IupTree Attributes - GTK Only */
 	iupClassRegisterAttribute  (ic, "RUBBERBAND", NULL, NULL, IUPAF_SAMEASSYSTEM, "YES", IUPAF_NO_INHERIT);
 #endif
 
 	/* New API for view specific contextual menus (Mac only) */
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaTreeSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+//	iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaTreeGetLayerBackedAttrib, cocoaTreeSetLayerBackedAttrib, "NO", "NO", IUPAF_DEFAULT);
+	iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaTreeGetLayerBackedAttrib, cocoaTreeSetLayerBackedAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
 
 	helperLoadReplacementDefaultImages();
