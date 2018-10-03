@@ -345,6 +345,46 @@ static NSUInteger Helper_CountAllItems(IupCocoaTreeDelegate* tree_delegate)
 	return counter;
 }
 
+static bool Helper_RecursivelyCountDepth(IupCocoaTreeItem* current_item, IupCocoaTreeItem* find_item, NSUInteger* depth_counter)
+{
+	*depth_counter += 1;
+	for(IupCocoaTreeItem* a_item in [current_item childrenArray])
+	{
+		if([a_item isEqual:find_item])
+		{
+			return true;
+		}
+		NSUInteger new_depth_counter = *depth_counter;
+		bool did_find = Helper_RecursivelyCountDepth(a_item, find_item, &new_depth_counter);
+		if(did_find)
+		{
+			*depth_counter = new_depth_counter;
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool Helper_CountDepth(IupCocoaTreeDelegate* tree_delegate, IupCocoaTreeItem* find_item, NSUInteger* out_depth_counter)
+{
+	for(IupCocoaTreeItem* a_item in [tree_delegate treeRootTopLevelObjects])
+	{
+		if([a_item isEqual:find_item])
+		{
+			*out_depth_counter = 0;
+			return true;
+		}
+		NSUInteger depth_counter = 0;
+		bool did_find = Helper_RecursivelyCountDepth(a_item, find_item, &depth_counter);
+		if(did_find)
+		{
+			*out_depth_counter = depth_counter;
+			return true;
+		}
+	}
+	*out_depth_counter = 0;
+	return false;
+}
 
 static NSInteger Helper_RecursivelyFindFlatIndexofTreeItemInOutlineView(IupCocoaTreeItem* the_item, IupCocoaTreeItem* target_item,NSInteger* out_flat_index)
 {
@@ -1480,6 +1520,10 @@ static int helperCallDragDropCb(Ihandle* ih, IupCocoaTreeItem* tree_item_drag, I
 	return NSDragOperationNone;
 }
 
+
+/*****************************************************************************/
+/* AUXILIAR FUNCTIONS                                                        */
+/*****************************************************************************/
 
 
 static void cocoaTreeChildRebuildCacheRec(Ihandle* ih, IupCocoaTreeItem* tree_item, int* object_id)
@@ -3475,10 +3519,121 @@ static int cocoaTreeSetImageLeafAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+/*****************************************************************************/
+/* GET AND SET ATTRIBUTES                                                    */
+/*****************************************************************************/
 
-/*****************************************************************************/
-/* AUXILIAR FUNCTIONS                                                        */
-/*****************************************************************************/
+
+static char* cocoaTreeGetStateAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	if([outline_view isExpandable:tree_item])
+	{
+		// BUG: Apple seems to return NO if a parent is collapsed, even if the actual item is expanded.
+		// But when Apple expands the parent, it remembers and restores the child state.
+		// This is a problem for us because we are trying to copy the state to apply to new copies of the node.
+		// I don't know how to workaround this.
+		// Tested 10.13.6
+		BOOL is_expanded = [outline_view isItemExpanded:tree_item];
+		if(is_expanded)
+		{
+			return "EXPANDED";
+		}
+		else
+		{
+			return "COLLAPSED";
+		}
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+static int cocoaTreeSetStateAttrib(Ihandle* ih, int item_id, const char* value)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return 0;
+	}
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	if([outline_view isExpandable:tree_item])
+	{
+		if(iupStrEqualNoCase(value, "EXPANDED"))
+		{
+			[outline_view expandItem:tree_item];
+		}
+		else
+		{
+			[outline_view collapseItem:tree_item];
+		}
+	}
+	return 0;
+}
+
+
+static char* cocoaTreeGetDepthAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	IupCocoaTreeDelegate* tree_delegate = (IupCocoaTreeDelegate*)[outline_view dataSource];
+	NSUInteger out_depth_counter = 0;
+	bool did_find = Helper_CountDepth(tree_delegate, tree_item, &out_depth_counter);
+	if(did_find)
+	{
+		return iupStrReturnInt((int)out_depth_counter);
+	}
+	else
+	{
+	    return NULL;
+	}
+}
+
+static char* cocoaTreeGetKindAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	
+	if([tree_item kind] == ITREE_LEAF)
+	{
+		return "LEAF";
+	}
+	else
+	{
+		return "BRANCH";
+	}
+}
+
+static char* cocoaTreeGetParentAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	IupCocoaTreeItem* parent_item = [tree_item parentItem];
+	int parent_id = iupTreeFindNodeId(ih, (InodeHandle*)parent_item);
+	return iupStrReturnInt(parent_id);
+}
 
 static char* cocoaTreeGetTitleAttrib(Ihandle* ih, int item_id)
 {
@@ -3781,12 +3936,13 @@ void iupdrvTreeInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "IMAGEBRANCHCOLLAPSED", NULL, cocoaTreeSetImageBranchCollapsedAttrib, IUPAF_SAMEASSYSTEM, "IMGCOLLAPSED", IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "IMAGEBRANCHEXPANDED",  NULL, cocoaTreeSetImageBranchExpandedAttrib, IUPAF_SAMEASSYSTEM, "IMGEXPANDED", IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
 
-#if 0
+
 	/* IupTree Attributes - NODES */
 	iupClassRegisterAttributeId(ic, "STATE",  cocoaTreeGetStateAttrib,  cocoaTreeSetStateAttrib, IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "DEPTH",  cocoaTreeGetDepthAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "KIND",   cocoaTreeGetKindAttrib,   NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "PARENT", cocoaTreeGetParentAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttributeId(ic, "COLOR",  cocoaTreeGetColorAttrib,  cocoaTreeSetColorAttrib, IUPAF_NO_INHERIT);
 #endif
 	
