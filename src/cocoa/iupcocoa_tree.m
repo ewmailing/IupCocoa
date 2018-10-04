@@ -217,6 +217,9 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 @property(nonatomic, retain) NSImage* leafImage;
 @property(nonatomic, retain) NSImage* expandedImage;
 @property(nonatomic, retain) NSImage* collapsedImage;
+
+// My preference would be to use a zeroing weak reference, but I think that requires ARC
+@property(nonatomic, retain) IupCocoaTreeItem* markStartNode;
 @end
 
 @implementation IupCocoaOutlineView
@@ -363,6 +366,23 @@ static bool Helper_RecursivelyCountDepth(IupCocoaTreeItem* current_item, IupCoco
 		}
 	}
 	return false;
+}
+
+static NSUInteger Helper_RecursivelyCountLeafs(IupCocoaTreeItem* the_item)
+{
+	// If this is a lead, then there are no children to descend into and count
+	if(ITREE_LEAF == [the_item kind])
+	{
+		return 1;
+	}
+
+	// else we are a branch
+	NSUInteger counter = 0;
+	for(IupCocoaTreeItem* a_item in [the_item childrenArray])
+	{
+		counter += Helper_RecursivelyCountLeafs(a_item);
+	}
+	return counter;
 }
 
 static bool Helper_CountDepth(IupCocoaTreeDelegate* tree_delegate, IupCocoaTreeItem* find_item, NSUInteger* out_depth_counter)
@@ -2833,8 +2853,7 @@ InodeHandle* iupdrvTreeGetFocusNode(Ihandle* ih)
 void iupdrvTreeUpdateMarkMode(Ihandle *ih)
 {
 	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
-	const char* mark_mode = iupAttribGet(ih, "MARKMODE");
-	if(iupStrEqualNoCase(mark_mode, "MULTIPLE"))
+	if(ih->data->mark_mode==ITREE_MARK_MULTIPLE)
 	{
 		[outline_view setAllowsMultipleSelection:YES];
 	}
@@ -3678,6 +3697,447 @@ static int cocoaTreeSetTitleAttrib(Ihandle* ih, int item_id, const char* value)
 	return 0;
 }
 
+
+static char* cocoaTreeGetChildCountAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	int leaf_count = (int)Helper_RecursivelyCountLeafs(tree_item);
+
+	return iupStrReturnInt(leaf_count);
+}
+
+
+static char* cocoaTreeGetMarkedAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	// If id is empty or invalid, then the focus node is used as reference node.
+	if(NULL == inode_handle)
+	{
+		IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i != NSNotFound)
+		{
+			return iupStrReturnBoolean(true);
+		}
+		else
+		{
+			return iupStrReturnBoolean(false);
+		}
+	}
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	
+	NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+	NSUInteger selected_i = [selected_index firstIndex];
+	while(selected_i != NSNotFound)
+	{
+		IupCocoaTreeItem* selected_item = [outline_view itemAtRow:selected_i];
+		if([selected_item isEqual:tree_item])
+		{
+			return iupStrReturnBoolean(true);
+		}
+		// get the next index in the set
+		selected_i = [selected_index indexGreaterThanIndex:selected_i];
+	}
+	return iupStrReturnBoolean(false);
+}
+
+// TODO: We might need to disable selection callbacks while doing this.
+static int cocoaTreeSetMarkedAttrib(Ihandle* ih, int item_id, const char* value)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	bool should_select = iupStrBoolean(value);
+	
+	// If id is empty or invalid, then the focus node is used as reference node.
+	if(NULL == inode_handle)
+	{
+		// On Mac, our focus node is the selected node.
+		// If should_select, then it is already selected, so there is nothing to do.
+		if(should_select)
+		{
+			return 0;
+		}
+		// Otherwise, I guess we deselect it?
+		// not sure what to do with multiple selection
+		IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+		[outline_view deselectAll:nil];
+	}
+	
+	
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	NSInteger item_row = [outline_view rowForItem:tree_item];
+
+	if(should_select)
+	{
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:item_row];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else
+	{
+		[outline_view deselectRow:item_row];
+	}
+	return 0;
+}
+
+// TODO: We might need to disable selection callbacks while doing this.
+static int cocoaTreeSetMarkAttrib(Ihandle* ih, const char* value)
+{
+	if(ih->data->mark_mode==ITREE_MARK_SINGLE)
+	{
+		return 0;
+	}
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+
+	
+	if(iupStrEqualNoCase(value, "BLOCK"))
+	{
+	/*
+    GtkTreeIter iterItem1, iterItem2;
+    GtkTreePath* pathFocus;
+    gtk_tree_view_get_cursor(GTK_TREE_VIEW(ih->handle), &pathFocus, NULL);
+    gtk_tree_model_get_iter(model, &iterItem1, pathFocus);
+    gtk_tree_path_free(pathFocus);
+
+    gtkTreeIterInit(ih, &iterItem2, iupAttribGet(ih, "_IUPTREE_MARKSTART_NODE"));
+
+    gtkTreeSelectRange(ih, model, selection, &iterItem1, &iterItem2, 0);
+    */
+    	IupCocoaTreeItem* mark_start_node = (IupCocoaTreeItem*)iupAttribGet(ih, "_IUPTREE_MARKSTART_NODE");
+		if(nil == mark_start_node)
+		{
+			
+			return 0;
+
+		}
+		// There might be a possibility that mark_start_node is not in the NSOutlineView because the user removed it, but we still have a pointer to it.
+		// So make sure it is in the tree.
+		NSInteger mark_start_node_row = [outline_view rowForItem:mark_start_node];
+		if(mark_start_node_row <= 0)
+		{
+			return 0;
+		}
+		// I don't know what the "focus" node should be if there are multiple selections.
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i == NSNotFound)
+		{
+			return 0;
+		}
+
+		if(selected_i == mark_start_node_row)
+		{
+			// only one item is needed, and it is already selected
+			return 1;
+		}
+
+		NSUInteger start_row;
+		NSUInteger number_of_rows;
+		if(mark_start_node_row > selected_i)
+		{
+			start_row = selected_i;
+			number_of_rows = mark_start_node_row - selected_i + 1; // +1 to include the end node
+		}
+		else
+		{
+			start_row = mark_start_node_row;
+			number_of_rows = selected_i - mark_start_node_row + 1; // +1 to include the end node
+		}
+
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start_row, number_of_rows)];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+		
+	}
+	else if(iupStrEqualNoCase(value, "CLEARALL"))
+	{
+		[outline_view deselectAll:nil];
+	}
+	else if(iupStrEqualNoCase(value, "MARKALL"))
+	{
+		[outline_view selectAll:nil];
+	}
+	else if(iupStrEqualNoCase(value, "INVERTALL")) /* INVERTALL *MUST* appear before INVERT, or else INVERTALL will never be called. */
+	{
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		[outline_view selectAll:nil];
+		NSUInteger selected_i = [selected_index firstIndex];
+		while(selected_i != NSNotFound)
+		{
+			[outline_view deselectRow:selected_i];
+			// get the next index in the set
+			selected_i = [selected_index indexGreaterThanIndex:selected_i];
+		}
+	}
+	else if(iupStrEqualPartial(value, "INVERT"))
+	{
+    	/* iupStrEqualPartial allows the use of "INVERTid" form */
+    	const char* id_string = &value[strlen("INVERT")];
+		InodeHandle* inode_handle = iupTreeGetNodeFromString(ih, id_string);
+		
+		// If id is empty or invalid, then the focus node is used as reference node.
+		if(NULL == inode_handle)
+		{
+			// Conundrum: if nothing is selected, there is no focus node, so there is nothing to select.
+			// Do nothing for that case, so we only worry about deselecting?
+			// Or do we select all?
+			NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+			NSUInteger selected_i = [selected_index firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				[outline_view deselectRow:selected_i];
+				// get the next index in the set
+				selected_i = [selected_index indexGreaterThanIndex:selected_i];
+			}
+		}
+		else
+		{
+		
+			IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+			NSInteger item_row = [outline_view rowForItem:tree_item];
+			bool was_item_selected = false;
+			NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+			NSUInteger selected_i = [selected_index firstIndex];
+			while(selected_i != NSNotFound)
+			{
+				IupCocoaTreeItem* selected_item = [outline_view itemAtRow:selected_i];
+				if([selected_item isEqual:tree_item])
+				{
+					was_item_selected = true;
+					break;
+				}
+				// get the next index in the set
+				selected_i = [selected_index indexGreaterThanIndex:selected_i];
+			}
+			
+
+			if(was_item_selected)
+			{
+				[outline_view deselectRow:item_row];
+			}
+			else
+			{
+				NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:item_row];
+				[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+			}
+		}
+	}
+	else
+	{
+		// I don't know what this case is, but it was in the GTK code.
+		// This is a guess translation to Cocoa.
+ 
+//		GtkTreeIter iterItem1, iterItem2;
+		char str1[50], str2[50];
+		if(iupStrToStrStr(value, str1, str2, '-') != 2)
+		{
+			return 0;
+		}
+//		if (!gtkTreeFindNodeFromString(ih, str1, &iterItem1))
+//			return 0;
+//		if (!gtkTreeFindNodeFromString(ih, str2, &iterItem2))
+//			return 0;
+//		gtkTreeSelectRange(ih, model, selection, &iterItem1, &iterItem2, 0);
+
+		InodeHandle* inode_handle1 = iupTreeGetNodeFromString(ih, str1);
+		InodeHandle* inode_handle2 = iupTreeGetNodeFromString(ih, str2);
+		NSInteger item_row1 = [outline_view rowForItem:inode_handle1];
+		NSInteger item_row2 = [outline_view rowForItem:inode_handle2];
+
+		NSUInteger start_row;
+		NSUInteger number_of_rows;
+		if(item_row2 > item_row1)
+		{
+			start_row = item_row1;
+			number_of_rows = item_row2 - item_row1 + 1; // +1 to include the end node
+		}
+		else
+		{
+			start_row = item_row2;
+			number_of_rows = item_row1 - item_row2 + 1; // +1 to include the end node
+		}
+
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start_row, number_of_rows)];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+
+	return 1;
+}
+
+static int cocoaTreeSetMarkStartAttrib(Ihandle* ih, const char* value)
+{
+	InodeHandle* inode_handle = iupTreeGetNodeFromString(ih, value);
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	if(NULL == inode_handle)
+	{
+		[outline_view setMarkStartNode:nil];
+		return 0;
+	}
+	
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+
+	// I'm concerned about dangling pointers or memory leaks.
+	// Because we are keeping a raw pointer indefinately, it could go away and we are left with a dangling pointer.
+	// We could retain it, but we need to be sure to release it.
+	// An alternative solution is to use a weak reference that automatically nils when the object is dealloc'd.
+	// Unfortunately, I think zeroing weak references are only available with ARC.
+	// So we will ratain it in the outline_view so it should be released when the outline_view goes away in the worse case.
+	[outline_view setMarkStartNode:tree_item];
+	iupAttribSet(ih, "_IUPTREE_MARKSTART_NODE", (char*)tree_item);
+
+	return 1;
+}
+
+
+static int cocoaTreeSetValueAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	NSUInteger number_of_visible_rows = [outline_view numberOfRows];
+	
+	if(0 == number_of_visible_rows)
+	{
+		return 0;
+	}
+
+	NSUInteger new_selected_row;
+	
+
+
+	if(iupStrEqualNoCase(value, "ROOT") || iupStrEqualNoCase(value, "FIRST"))
+	{
+		new_selected_row = 0;
+		[outline_view scrollRowToVisible:0];
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:0];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else if(iupStrEqualNoCase(value, "LAST"))
+	{
+		new_selected_row = number_of_visible_rows-1;
+		[outline_view scrollRowToVisible:new_selected_row];
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:new_selected_row];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else if(iupStrEqualNoCase(value, "PGUP"))
+	{
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i == NSNotFound)
+		{
+			return 0;
+		}
+		if(selected_i < 10)
+		{
+			new_selected_row = 0;
+		}
+		else
+		{
+			new_selected_row = selected_i - 10;
+		}
+		[outline_view scrollRowToVisible:new_selected_row];
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:new_selected_row];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else if(iupStrEqualNoCase(value, "PGDN"))
+	{
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i == NSNotFound)
+		{
+			return 0;
+		}
+		if((selected_i+10) > (number_of_visible_rows-1))
+		{
+			new_selected_row = number_of_visible_rows-1;
+		}
+		else
+		{
+			new_selected_row = selected_i+10;
+		}
+		[outline_view scrollRowToVisible:new_selected_row];
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:new_selected_row];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else if(iupStrEqualNoCase(value, "NEXT"))
+	{
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i == NSNotFound)
+		{
+			return 0;
+		}
+		if((selected_i+1) > (number_of_visible_rows-1))
+		{
+			new_selected_row = number_of_visible_rows-1;
+		}
+		else
+		{
+			new_selected_row = selected_i+1;
+		}
+		[outline_view scrollRowToVisible:new_selected_row];
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:new_selected_row];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else if(iupStrEqualNoCase(value, "PREVIOUS"))
+	{
+		NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+		NSUInteger selected_i = [selected_index firstIndex];
+		if(selected_i == NSNotFound)
+		{
+			return 0;
+		}
+		if(selected_i < 1)
+		{
+			new_selected_row = 0;
+		}
+		else
+		{
+			new_selected_row = selected_i - 1;
+		}
+		[outline_view scrollRowToVisible:new_selected_row];
+		NSIndexSet* index_set = [NSIndexSet indexSetWithIndex:new_selected_row];
+		[outline_view selectRowIndexes:index_set byExtendingSelection:NO];
+	}
+	else if (iupStrEqualNoCase(value, "CLEAR"))
+	{
+		[outline_view deselectAll:nil];
+	}
+
+	return 0;
+}
+
+
+static char* cocoaTreeGetValueAttrib(Ihandle* ih)
+{
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	NSIndexSet* selected_index = [outline_view selectedRowIndexes];
+	NSUInteger selected_i = [selected_index firstIndex];
+	if(selected_i != NSNotFound)
+	{
+		InodeHandle* selected_item = (InodeHandle*)[outline_view itemAtRow:selected_i];
+		int object_id = iupTreeFindNodeId(ih, selected_item);
+		return iupStrReturnInt(object_id);
+	}
+	else
+	{
+		if(ih->data->node_count > 0)
+		{
+			return "0"; /* default VALUE is root */
+		}
+		else
+		{
+			return "-1";
+		}
+	}
+}
+
+
+
+
 static int cocoaTreeSetExpandAllAttrib(Ihandle* ih, const char* value)
 {
 	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
@@ -3901,7 +4361,12 @@ static void cocoaTreeUnMapMethod(Ihandle* ih)
 		}
 		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
 	}
-	
+
+
+	IupCocoaOutlineView* outline_view = (IupCocoaOutlineView*)cocoaTreeGetOutlineView(ih);
+	[outline_view setMarkStartNode:nil];
+
+
 	iupCocoaRemoveFromParent(ih);
 	[root_view release];
 	ih->handle = NULL;
@@ -3954,21 +4419,26 @@ void iupdrvTreeInitClass(Iclass* ic)
 #endif
 	/* Change the set method for Cocoa */
 	iupClassRegisterReplaceAttribFunc(ic, "SHOWRENAME", NULL, cocoaTreeSetShowRenameAttrib);
-#if 0
+
 	iupClassRegisterAttributeId(ic, "CHILDCOUNT", cocoaTreeGetChildCountAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttributeId(ic, "TITLEFONT",  cocoaTreeGetTitleFontAttrib,  cocoaTreeSetTitleFontAttrib, IUPAF_NO_INHERIT);
-	
+#endif
+
 	/* IupTree Attributes - MARKS */
 	iupClassRegisterAttributeId(ic, "MARKED", cocoaTreeGetMarkedAttrib, cocoaTreeSetMarkedAttrib, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute  (ic, "MARK",      NULL, cocoaTreeSetMarkAttrib,      NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute  (ic, "STARTING",  NULL, cocoaTreeSetMarkStartAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute  (ic, "MARKSTART", NULL, cocoaTreeSetMarkStartAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttribute  (ic, "MARKEDNODES", cocoaTreeGetMarkedNodesAttrib, cocoaTreeSetMarkedNodesAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	
 	iupClassRegisterAttribute(ic, "MARKWHENTOGGLE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
-	
+#endif
+
 	iupClassRegisterAttribute  (ic, "VALUE", cocoaTreeGetValueAttrib, cocoaTreeSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-	
+
+#if 0
 	// The default implementation does a bunch of things that I don't think do anything useful for Cocoa. So I'm overriding/disabling the default implementation.
 //	iupClassRegisterAttribute(ic, "DRAGDROPTREE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 	iupClassRegisterReplaceAttribFunc(ic, "DRAGDROPTREE", NULL, NULL);
