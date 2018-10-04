@@ -31,6 +31,7 @@
 #include "iup_drvinfo.h"
 
 #include "iupcocoa_drv.h"
+#import "IupCocoaTreeToggleTableCellView.h"
 
 // TODO:
 // Removing the disclosure triangle, Disable indenting
@@ -72,8 +73,9 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 {
 	IupCocoaTreeItem* parentItem;
 	NSMutableArray* childrenArray;
-	int kind; // ITREE_BRANCH ITREE_LEAF
 	NSString* title;
+	int kind; // ITREE_BRANCH ITREE_LEAF
+	NSControlStateValue checkBoxState;
 	BOOL isDeleted;
 	NSImage* bitmapImage;
 	NSImage* collapsedImage;
@@ -82,6 +84,7 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 }
 
 @property(nonatomic, assign) int kind;
+@property(nonatomic, assign) NSControlStateValue checkBoxState;
 @property(nonatomic, copy) NSString* title;
 @property(nonatomic, weak) IupCocoaTreeItem* parentItem;
 @property(nonatomic, assign) BOOL isDeleted;
@@ -102,6 +105,7 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 @implementation IupCocoaTreeItem
 
 @synthesize kind = kind;
+@synthesize checkBoxState = checkBoxState;
 @synthesize title = title;
 @synthesize parentItem = parentItem;
 @synthesize isDeleted = isDeleted;
@@ -863,24 +867,62 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 // WARNING: This is another method that should be fast for performance.
 - (nullable NSView *)outlineView:(NSOutlineView*)outline_view viewForTableColumn:(nullable NSTableColumn*)table_column item:(id)the_item
 {
+	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)the_item;
 	NSCAssert([tree_item isKindOfClass:[IupCocoaTreeItem class]], @"Expected IupCocoaTreeItem");
 	NSString* string_item = [tree_item title];
 
 
-	// Get an existing cell with the MyView identifier if it exists
-	NSTableCellView* table_cell_view = [outline_view makeViewWithIdentifier:@"IupCocoaTreeTableViewCell" owner:self];
-
-	// There is no existing cell to reuse so create a new one
-	if(nil == table_cell_view)
+	NSTableCellView* table_cell_view = nil;
+	
+	// 0 for no toggle, 1 for toggle, 2 for toggle with 3-state
+	if(ih->data->show_toggle > 0)
 	{
-		table_cell_view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+		// Get an existing cell with the MyView identifier if it exists
+		table_cell_view = [outline_view makeViewWithIdentifier:@"IupCocoaTreeToggleTableCellView" owner:self];
+		if(nil == table_cell_view)
+		{
+			table_cell_view = [[IupCocoaTreeToggleTableCellView alloc] initWithFrame:NSZeroRect];
 
-		// The identifier of the NSTextField instance is set to MyView.
-		// This allows the cell to be reused.
-		
-		[table_cell_view setIdentifier:@"IupCocoaTreeTableViewCell"];
+			// The identifier of the NSTextField instance is set to MyView.
+			// This allows the cell to be reused.
+			
+			[table_cell_view setIdentifier:@"IupCocoaTreeToggleTableCellView"];
+		}
+		IupCocoaTreeToggleTableCellView* toggle_cell_view = (IupCocoaTreeToggleTableCellView*)table_cell_view;
+
+		NSButton* check_box = [toggle_cell_view checkBox];
+		if(ih->data->show_toggle == 2)
+		{
+			[check_box setAllowsMixedState:YES];
+		}
+		else
+		{
+			[check_box setAllowsMixedState:NO];
+		}
+		NSControlStateValue check_box_value = [tree_item checkBoxState];
+		[check_box setState:check_box_value];
 	}
+	else
+	{
+		table_cell_view = [outline_view makeViewWithIdentifier:@"IupCocoaTreeTableCellView" owner:self];
+		// There is no existing cell to reuse so create a new one
+		if(nil == table_cell_view)
+		{
+			table_cell_view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+
+			// The identifier of the NSTextField instance is set to MyView.
+			// This allows the cell to be reused.
+			
+			[table_cell_view setIdentifier:@"IupCocoaTreeTableCellView"];
+		}
+	
+	}
+	
+
+	
+
+
 
 	// table_cell_view is now guaranteed to be valid, either as a reused cell
 	// or as a new cell, so set the stringValue of the cell to the
@@ -891,7 +933,6 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 	image_view = [table_cell_view imageView];
 	[text_field setStringValue:string_item];
 
-	Ihandle* ih = [(IupCocoaOutlineView*)outline_view ih];
 	BOOL show_rename = (BOOL)ih->data->show_rename;
 	[text_field setEditable:show_rename];
 
@@ -4234,8 +4275,19 @@ static int cocoaTreeSetLayerBackedAttrib(Ihandle* ih, const char* value)
 static int cocoaTreeMapMethod(Ihandle* ih)
 {
 	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
-	NSNib* outline_nib = [[NSNib alloc] initWithNibNamed:@"IupCocoaOutlineView" bundle:framework_bundle];
 	
+	NSNib* outline_nib = nil;
+	
+	// 0 for no toggle, 1 for toggle, 2 for toggle with 3-state
+	if(ih->data->show_toggle > 0)
+	{
+		outline_nib = [[NSNib alloc] initWithNibNamed:@"IupCocoaOutlineViewToggle" bundle:framework_bundle];
+	}
+	else
+	{
+		outline_nib = [[NSNib alloc] initWithNibNamed:@"IupCocoaOutlineView" bundle:framework_bundle];
+	}
+
 	
 	NSArray* top_level_objects = nil;
 	

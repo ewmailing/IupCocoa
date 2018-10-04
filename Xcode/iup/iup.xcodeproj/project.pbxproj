@@ -286,6 +286,9 @@
 		00E93B0C214FCE2000BC6F5B /* iupcocoa_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93B0B214FCE1D00BC6F5B /* iupcocoa_draw.h */; };
 		00E93B2F21523CCC00BC6F5B /* iupmac_keycodes.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93B2D21523CC000BC6F5B /* iupmac_keycodes.h */; };
 		00E93B3021523CCD00BC6F5B /* iupcocoa_canvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E93B2E21523CC400BC6F5B /* iupcocoa_canvas.h */; };
+		00EAD0212166116700D601F8 /* IupCocoaOutlineViewToggle.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00EAD01F2166116500D601F8 /* IupCocoaOutlineViewToggle.xib */; };
+		00EAD0242166240700D601F8 /* IupCocoaTreeToggleTableCellView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00EAD0222166240200D601F8 /* IupCocoaTreeToggleTableCellView.h */; };
+		00EAD0252166240700D601F8 /* IupCocoaTreeToggleTableCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EAD0232166240500D601F8 /* IupCocoaTreeToggleTableCellView.m */; };
 		6310AB271ED21CE70075B168 /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
 		6310AB291ED21CE70075B168 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
 		6310AB311ED21DFF0075B168 /* TestImage.c in Sources */ = {isa = PBXBuildFile; fileRef = 6310AB301ED21DFF0075B168 /* TestImage.c */; };
@@ -641,6 +644,9 @@
 		00E93B0B214FCE1D00BC6F5B /* iupcocoa_draw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcocoa_draw.h; sourceTree = "<group>"; };
 		00E93B2D21523CC000BC6F5B /* iupmac_keycodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupmac_keycodes.h; sourceTree = "<group>"; };
 		00E93B2E21523CC400BC6F5B /* iupcocoa_canvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iupcocoa_canvas.h; sourceTree = "<group>"; };
+		00EAD0202166116500D601F8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/IupCocoaOutlineViewToggle.xib; sourceTree = "<group>"; };
+		00EAD0222166240200D601F8 /* IupCocoaTreeToggleTableCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IupCocoaTreeToggleTableCellView.h; sourceTree = "<group>"; };
+		00EAD0232166240500D601F8 /* IupCocoaTreeToggleTableCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IupCocoaTreeToggleTableCellView.m; sourceTree = "<group>"; };
 		6310AB2D1ED21CE70075B168 /* ImageApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310AB301ED21DFF0075B168 /* TestImage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TestImage.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -727,11 +733,12 @@
 		005DCB9F1EBD659500A66253 /* xib */ = {
 			isa = PBXGroup;
 			children = (
-				00E8D7291ED4E68200773764 /* IupTextSpinner.xib */,
 				005DCBAA1EBDD27300A66253 /* CanonicalServiceMenu.xib */,
 				005DCBAC1EBDD27300A66253 /* CanonicalWindowMenu.xib */,
 				005DCBA21EBD659500A66253 /* IupMainMenu.xib */,
 				0031556E1ED6A89500D116CA /* IupCocoaOutlineView.xib */,
+				00EAD01F2166116500D601F8 /* IupCocoaOutlineViewToggle.xib */,
+				00E8D7291ED4E68200773764 /* IupTextSpinner.xib */,
 			);
 			path = xib;
 			sourceTree = "<group>";
@@ -1046,6 +1053,8 @@
 		00E3A8971B605A7500BEC175 /* cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				00EAD0222166240200D601F8 /* IupCocoaTreeToggleTableCellView.h */,
+				00EAD0232166240500D601F8 /* IupCocoaTreeToggleTableCellView.m */,
 				00006F0F1ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.h */,
 				00006F101ECA62AB000636B1 /* IUPCocoaVerticalAlignmentTextFieldCell.m */,
 				005DCB9F1EBD659500A66253 /* xib */,
@@ -1259,6 +1268,7 @@
 				00E3A8871B60595300BEC175 /* iupluaim.h in Headers */,
 				00E3A7D31B60583600BEC175 /* iup_strmessage.h in Headers */,
 				00E3A8861B60595300BEC175 /* iupluaglcontrols.h in Headers */,
+				00EAD0242166240700D601F8 /* IupCocoaTreeToggleTableCellView.h in Headers */,
 				007E31A4204CDBC500ED15CB /* iup_flatscrollbar.h in Headers */,
 				002CC4D41EA241E90007C8E7 /* iup_plus.h in Headers */,
 				00E3A86D1B60595300BEC175 /* iup_plot.h in Headers */,
@@ -1577,6 +1587,7 @@
 			files = (
 				005DCBAE1EBDD27300A66253 /* CanonicalServiceMenu.xib in Resources */,
 				005DCBAF1EBDD27300A66253 /* CanonicalWindowMenu.xib in Resources */,
+				00EAD0212166116700D601F8 /* IupCocoaOutlineViewToggle.xib in Resources */,
 				00E8D72B1ED4E68200773764 /* IupTextSpinner.xib in Resources */,
 				003155701ED6A89500D116CA /* IupCocoaOutlineView.xib in Resources */,
 				005DCBA51EBD659600A66253 /* IupMainMenu.xib in Resources */,
@@ -1670,6 +1681,7 @@
 				00E3A7781B60583600BEC175 /* iup_callback.c in Sources */,
 				00E3A8D11B6088B800BEC175 /* iupcocoa_filedlg.m in Sources */,
 				00E3A76B1B60583600BEC175 /* iup.c in Sources */,
+				00EAD0252166240700D601F8 /* IupCocoaTreeToggleTableCellView.m in Sources */,
 				00E3A79B1B60583600BEC175 /* iup_globalattrib.c in Sources */,
 				00E3A8C11B606D0900BEC175 /* iupcocoa_common.m in Sources */,
 				00E3A8C31B606FDD00BEC175 /* iupcocoa_dialog.m in Sources */,
@@ -1900,6 +1912,14 @@
 				00E8D72A1ED4E68200773764 /* Base */,
 			);
 			name = IupTextSpinner.xib;
+			sourceTree = "<group>";
+		};
+		00EAD01F2166116500D601F8 /* IupCocoaOutlineViewToggle.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				00EAD0202166116500D601F8 /* Base */,
+			);
+			name = IupCocoaOutlineViewToggle.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
