@@ -437,9 +437,10 @@ static bool Helper_RecursivelyCountDepth(IupCocoaTreeItem* current_item, IupCoco
 	return false;
 }
 
+/*
 static NSUInteger Helper_RecursivelyCountLeafs(IupCocoaTreeItem* the_item)
 {
-	// If this is a lead, then there are no children to descend into and count
+	// If this is a leaf, then there are no children to descend into and count
 	if(ITREE_LEAF == [the_item kind])
 	{
 		return 1;
@@ -453,6 +454,7 @@ static NSUInteger Helper_RecursivelyCountLeafs(IupCocoaTreeItem* the_item)
 	}
 	return counter;
 }
+*/
 
 static bool Helper_CountDepth(IupCocoaTreeDelegate* tree_delegate, IupCocoaTreeItem* find_item, NSUInteger* out_depth_counter)
 {
@@ -939,6 +941,9 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 
 	NSTableCellView* table_cell_view = nil;
 	
+	BOOL is_enabled = [outline_view isEnabled];
+
+	
 	// 0 for no toggle, 1 for toggle, 2 for toggle with 3-state
 	if(ih->data->show_toggle > 0)
 	{
@@ -981,6 +986,9 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 		[toggle_receiver setIhandle:ih];
 		[check_box setTarget:toggle_receiver];
 		[check_box setAction:@selector(myToggleClickAction:)];
+
+		[check_box setEnabled:is_enabled];
+		
 	}
 	else
 	{
@@ -1038,6 +1046,10 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 		[image_view setHidden:NO];
 		[image_view setImage:active_image];
 	}
+	
+	
+	[text_field setEnabled:is_enabled];
+	[image_view setEnabled:is_enabled];
 
 	[tree_item setTableCellView:table_cell_view]; // kind of a hack. We need it to compute the size in heightOf
  
@@ -3788,6 +3800,120 @@ static char* cocoaTreeGetParentAttrib(Ihandle* ih, int item_id)
 	return iupStrReturnInt(parent_id);
 }
 
+// returns the next brother (same depth) of the specified node. Returns NULLs if at last child node of the parent (at the same depth)
+static char* cocoaTreeGetNextAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	IupCocoaTreeItem* parent_item = [tree_item parentItem];
+	if(nil == parent_item)
+	{
+		return NULL;
+	}
+	NSArray* children_array = [parent_item childrenArray];
+	
+	bool found_current_item = false;
+	NSUInteger index_count = 0;
+	for(IupCocoaTreeItem* a_item in children_array)
+	{
+		index_count += 1;
+		if([tree_item isEqual:a_item])
+		{
+			found_current_item = true;
+			break;
+		}
+	}
+
+	if(index_count >= [children_array count])
+	{
+		// our item was the last node, so return NULL
+		return NULL;
+	}
+	IupCocoaTreeItem* next_item = [children_array objectAtIndex:index_count];
+	int next_id = iupTreeFindNodeId(ih, (InodeHandle*)next_item);
+	return iupStrReturnInt(next_id);
+}
+
+// returns the previous brother (same depth) of the specified node. Returns NULLs if at first child node of the parent (at the same depth).
+static char* cocoaTreeGetPreviousAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	IupCocoaTreeItem* parent_item = [tree_item parentItem];
+	if(nil == parent_item)
+	{
+		return NULL;
+	}
+	NSArray* children_array = [parent_item childrenArray];
+	
+	bool found_current_item = false;
+	NSUInteger index_count = 0;
+	for(IupCocoaTreeItem* a_item in children_array)
+	{
+		if([tree_item isEqual:a_item])
+		{
+			found_current_item = true;
+			break;
+		}
+		index_count += 1;
+	}
+
+	if(index_count == 0)
+	{
+		// our item was the first node, so return NULL
+		return NULL;
+	}
+	IupCocoaTreeItem* previous_item = [children_array objectAtIndex:index_count-1];
+	int previous_id = iupTreeFindNodeId(ih, (InodeHandle*)previous_item);
+	return iupStrReturnInt(previous_id);
+}
+
+static char* cocoaTreeGetFirstAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	IupCocoaTreeItem* parent_item = [tree_item parentItem];
+	if(nil == parent_item)
+	{
+		return NULL;
+	}
+	NSArray* children_array = [parent_item childrenArray];
+	IupCocoaTreeItem* next_item = [children_array firstObject];
+	int next_id = iupTreeFindNodeId(ih, (InodeHandle*)next_item);
+	return iupStrReturnInt(next_id);
+}
+
+static char* cocoaTreeGetLastAttrib(Ihandle* ih, int item_id)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	IupCocoaTreeItem* parent_item = [tree_item parentItem];
+	if(nil == parent_item)
+	{
+		return NULL;
+	}
+	NSArray* children_array = [parent_item childrenArray];
+	IupCocoaTreeItem* next_item = [children_array lastObject];
+	int next_id = iupTreeFindNodeId(ih, (InodeHandle*)next_item);
+	return iupStrReturnInt(next_id);
+}
+
 static char* cocoaTreeGetTitleAttrib(Ihandle* ih, int item_id)
 {
 //	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
@@ -3832,6 +3958,28 @@ static int cocoaTreeSetTitleAttrib(Ihandle* ih, int item_id, const char* value)
 }
 
 
+// I think this is supposed to return the number nodes immediately under the root node (not recursive).
+static char* cocoaTreeGetRootCountAttrib(Ihandle* ih)
+{
+	InodeHandle* inode_handle = iupTreeGetNode(ih, 0);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	
+	
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	
+	// If this is a leaf, then there are no children to descend into and count
+	if(ITREE_LEAF == [tree_item kind])
+	{
+		return iupStrReturnInt(0);
+	}
+
+	return iupStrReturnInt((int)[[tree_item childrenArray] count]);
+}
+
+// returns the immediate children count of the specified branch. It does not count children of child that are branches.
 static char* cocoaTreeGetChildCountAttrib(Ihandle* ih, int item_id)
 {
 	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
@@ -3839,10 +3987,27 @@ static char* cocoaTreeGetChildCountAttrib(Ihandle* ih, int item_id)
 	{
 		return NULL;
 	}
+	
+	
 	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
-	int leaf_count = (int)Helper_RecursivelyCountLeafs(tree_item);
+	
+	// If this is a leaf, then there are no children to descend into and count
+	if(ITREE_LEAF == [tree_item kind])
+	{
+		return iupStrReturnInt(0);
+	}
 
-	return iupStrReturnInt(leaf_count);
+	
+	// else we are a branch
+	int leaf_counter = 0;
+	for(IupCocoaTreeItem* a_item in [tree_item childrenArray])
+	{
+		if(ITREE_LEAF == [a_item kind])
+		{
+			leaf_counter++;
+		}
+	}
+	return iupStrReturnInt(leaf_counter);
 }
 
 
@@ -4630,6 +4795,33 @@ static int cocoaTreeSetLayerBackedAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+
+static char* cocoaTreeGetActiveAttrib(Ihandle *ih)
+{
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+	BOOL was_enabled = [outline_view isEnabled];
+	return iupStrReturnBoolean(was_enabled);
+}
+
+
+static int cocoaTreeSetActiveAttrib(Ihandle* ih, const char* value)
+{
+	bool enable = iupStrBoolean(value);
+	NSOutlineView* outline_view = cocoaTreeGetOutlineView(ih);
+
+	BOOL was_enabled = [outline_view isEnabled];
+	if(was_enabled == enable)
+	{
+		return 0;
+	}
+	[outline_view setEnabled:enable];
+	[outline_view reloadData];
+
+	
+	return 0;
+}
+
+
 static int cocoaTreeMapMethod(Ihandle* ih)
 {
 	NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
@@ -4818,7 +5010,11 @@ void iupdrvTreeInitClass(Iclass* ic)
 	iupClassRegisterAttributeId(ic, "DEPTH",  cocoaTreeGetDepthAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "KIND",   cocoaTreeGetKindAttrib,   NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "PARENT", cocoaTreeGetParentAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-#if 0
+	iupClassRegisterAttributeId(ic, "NEXT", cocoaTreeGetNextAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+	iupClassRegisterAttributeId(ic, "LAST", cocoaTreeGetLastAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+	iupClassRegisterAttributeId(ic, "PREVIOUS", cocoaTreeGetPreviousAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+	iupClassRegisterAttributeId(ic, "FIRST", cocoaTreeGetFirstAttrib, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
+ #if 0
 	iupClassRegisterAttributeId(ic, "COLOR",  cocoaTreeGetColorAttrib,  cocoaTreeSetColorAttrib, IUPAF_NO_INHERIT);
 #endif
 	
@@ -4830,6 +5026,7 @@ void iupdrvTreeInitClass(Iclass* ic)
 	/* Change the set method for Cocoa */
 	iupClassRegisterReplaceAttribFunc(ic, "SHOWRENAME", NULL, cocoaTreeSetShowRenameAttrib);
 
+	iupClassRegisterAttribute(ic, "ROOTCOUNT", cocoaTreeGetRootCountAttrib, NULL, NULL, NULL, IUPAF_READONLY | IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "CHILDCOUNT", cocoaTreeGetChildCountAttrib, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 #if 0
 	iupClassRegisterAttributeId(ic, "TITLEFONT",  cocoaTreeGetTitleFontAttrib,  cocoaTreeSetTitleFontAttrib, IUPAF_NO_INHERIT);
@@ -4851,6 +5048,8 @@ void iupdrvTreeInitClass(Iclass* ic)
 	// The default implementation does a bunch of things that I don't think do anything useful for Cocoa. So I'm overriding/disabling the default implementation.
 //	iupClassRegisterAttribute(ic, "DRAGDROPTREE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 	iupClassRegisterReplaceAttribFunc(ic, "DRAGDROPTREE", NULL, NULL);
+
+	iupClassRegisterReplaceAttribFunc(ic, "ACTIVE", cocoaTreeGetActiveAttrib, cocoaTreeSetActiveAttrib);
 
 	/* IupTree Attributes - ACTION */
 	iupClassRegisterAttributeId(ic, "DELNODE", NULL, cocoaTreeSetDelNodeAttrib, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);

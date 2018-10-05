@@ -500,6 +500,17 @@ int iupdrvIsActive(Ihandle *ih)
 		NSControl* the_control = (NSControl*)the_object;
 		return [the_control isEnabled];
 	}
+	else if([the_object isKindOfClass:[NSScrollView class]])
+	{
+		NSView* document_view = [the_object documentView];
+		if([document_view respondsToSelector:@selector(isEnabled)])
+		{
+			// I forgot if there are rules about primitive types when there is no header definition.
+			// So I'm going to pretend it is a NSControl even though it may not be
+			NSControl* the_control = (NSControl*)document_view;
+			return [the_control isEnabled];
+		}
+	}
 #endif
 	return 1;
 }
@@ -522,6 +533,17 @@ void iupdrvSetActive(Ihandle* ih, int enable)
 		// So I'm going to pretend it is a NSControl even though it may not be
 		NSControl* the_control = (NSControl*)the_object;
 		[the_control setEnabled:enable];
+	}
+	else if([the_object isKindOfClass:[NSScrollView class]])
+	{
+		NSView* document_view = [the_object documentView];
+		if([document_view respondsToSelector:@selector(setEnabled:)])
+		{
+			// I forgot if there are rules about primitive types when there is no header definition.
+			// So I'm going to pretend it is a NSControl even though it may not be
+			NSControl* the_control = (NSControl*)document_view;
+			[the_control setEnabled:enable];
+		}
 	}
 #endif
 }
