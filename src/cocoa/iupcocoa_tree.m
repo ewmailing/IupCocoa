@@ -1723,7 +1723,7 @@ static NSArray<IupCocoaTreeItem*>* iupCocoaTreeCreateFlatItemArray(IupCocoaTreeI
 // This will compile-in a runtime check to make sure the data source delegate and the Iup node_cache are consistent.
 // The check is kind of slow, so it should only be used for debugging.
 // define to 1 to use. define to 0 to disable.
-#define IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE 1
+#define IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE 0
 #if IUPCOCOA_TREE_TEST_VALIDATE_NODE_CACHE
 
 // This is a helper function that traverses through a NSOutlineView data source delegate looking for a certain item, and returns the array index this would be in for the ordering of the Iup node_cache
