@@ -68,6 +68,49 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	
 }
 
+@class IupCocoaTreeItem;
+
+// Be very careful about retain cycles. Nothing in this class retains anything at the moment.
+// IupCocoaTreeItem retains this.
+@interface IupCocoaTreeToggleReceiver : NSObject
+@property(nonatomic, assign) Ihandle* ihandle;
+@property(nonatomic, assign) IupCocoaTreeItem* treeItem; // back pointer to tree item (weak)
+- (IBAction) myToggleClickAction:(id)the_sender;
+@end
+
+@implementation IupCocoaTreeToggleReceiver
+
+/*
+ - (void) dealloc
+ {
+	[super dealloc];
+ }
+ */
+
+- (IBAction) myToggleClickAction:(id)the_sender;
+{
+//	Icallback callback_function;
+//	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(the_sender, IHANDLE_ASSOCIATED_OBJ_KEY);
+	Ihandle* ih = [self ihandle];
+	IupCocoaTreeItem* tree_item = [self treeItem];
+	NSControlStateValue new_state = [the_sender state];
+	
+	int item_id = iupTreeFindNodeId(ih, (InodeHandle*)tree_item);
+
+	IFnii action_callback_function = (IFnii)IupGetCallback(ih, "TOGGLEVALUE_CB");
+	if(action_callback_function)
+	{
+		if(action_callback_function(ih, item_id, (int)new_state) == IUP_CLOSE)
+		{
+			IupExitLoop();
+		}
+	}
+	
+}
+
+@end
+
+
 
 @interface IupCocoaTreeItem : NSObject
 {
@@ -76,23 +119,27 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 	NSString* title;
 	int kind; // ITREE_BRANCH ITREE_LEAF
 	NSControlStateValue checkBoxState;
+	bool checkBoxHidden;
 	BOOL isDeleted;
 	NSImage* bitmapImage;
 	NSImage* collapsedImage;
 	NSTableCellView* tableCellView; // kind of a hack to force layout in heightOf
 	
+	IupCocoaTreeToggleReceiver* toggleReceiver; // For TOGGLE_CB callbacks. cloning is tricky because of (maybe) different ih, so be careful.
 }
 
 @property(nonatomic, assign) int kind;
 @property(nonatomic, assign) NSControlStateValue checkBoxState;
+@property(nonatomic, assign, getter=isCheckBoxHidden) bool checkBoxHidden;
 @property(nonatomic, copy) NSString* title;
 @property(nonatomic, weak) IupCocoaTreeItem* parentItem;
 @property(nonatomic, assign) BOOL isDeleted;
 @property(nonatomic, retain) NSImage* bitmapImage;
 @property(nonatomic, retain) NSImage* collapsedImage;
 @property(nonatomic, weak) NSTableCellView* tableCellView; // this is kind of a hack to force layout in heightOf. I'm not sure if I want to keep a strong reference because I don't know if there is a possible circular reference here.
+@property(nonatomic, retain) IupCocoaTreeToggleReceiver* toggleReceiver; // optional, depending if toggle is used
 
-- (instancetype) cloneWithNewParentItem:(IupCocoaTreeItem*)new_parent_item;
+- (instancetype) cloneWithNewParentItem:(IupCocoaTreeItem*)new_parent_item ihandle:(Ihandle*)ih;
 
 - (IupCocoaTreeItem*) childAtIndex:(NSUInteger)the_index;
 
@@ -106,12 +153,14 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 
 @synthesize kind = kind;
 @synthesize checkBoxState = checkBoxState;
+@synthesize checkBoxHidden = checkBoxHidden;
 @synthesize title = title;
 @synthesize parentItem = parentItem;
 @synthesize isDeleted = isDeleted;
 @synthesize bitmapImage = bitmapImage; // is the expandedImage for branches
 @synthesize collapsedImage = collapsedImage;
 @synthesize tableCellView = tableCellView;
+@synthesize toggleReceiver = toggleReceiver;
 
 
 // Creates, caches, and returns the array of children
@@ -160,6 +209,8 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	//[tableCellView releae];
 	tableCellView = nil; // weak ref
 	
+	[toggleReceiver release];
+	
 	[bitmapImage release];
 	[collapsedImage release];
 
@@ -169,7 +220,7 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	[super dealloc];
 }
 
-- (instancetype) cloneWithNewParentItem:(IupCocoaTreeItem*)new_parent_item
+- (instancetype) cloneWithNewParentItem:(IupCocoaTreeItem*)new_parent_item ihandle:(Ihandle*)ih
 {
 	IupCocoaTreeItem* new_copy = [[IupCocoaTreeItem alloc] init];
 	[new_copy setParentItem:new_parent_item];
@@ -181,6 +232,8 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 
 	[new_copy setTitle:[self title]]; // this is a copy property
 	[new_copy setKind:[self kind]];
+	[new_copy setCheckBoxState:[self checkBoxState]];
+	[new_copy setCheckBoxHidden:[self isCheckBoxHidden]];
 
 	NSMutableArray* new_children_array = [[NSMutableArray alloc] init];
 	[new_copy setChildrenArray:new_children_array];
@@ -188,14 +241,24 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 	
 	for(IupCocoaTreeItem* original_item in childrenArray)
 	{
-		IupCocoaTreeItem* child_copy = [original_item cloneWithNewParentItem:new_copy];
+		IupCocoaTreeItem* child_copy = [original_item cloneWithNewParentItem:new_copy ihandle:ih];
 		[new_children_array addObject:child_copy];
 	}
+
+	IupCocoaTreeToggleReceiver* new_toggle_receiver = [[IupCocoaTreeToggleReceiver alloc] init];
+//	IupCocoaTreeToggleReceiver* original_toggle_receiver = [self toggleReceiver];
+	[new_toggle_receiver setTreeItem:new_copy];
+	[new_toggle_receiver setIhandle:ih];
+	[new_copy setToggleReceiver:new_toggle_receiver];
 
 	return new_copy;
 }
 
+
+
+
 @end
+
 /*
 @interface IupCocoaTreeRoot : NSObject
 {
@@ -902,6 +965,21 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 		}
 		NSControlStateValue check_box_value = [tree_item checkBoxState];
 		[check_box setState:check_box_value];
+		
+		bool check_box_hidden = [tree_item isCheckBoxHidden];
+		[check_box setHidden:check_box_hidden];
+		
+		// Set up the TOGGLE_CB. This requires use to use a delegate object, hence a lot of relationships to set up.
+		IupCocoaTreeToggleReceiver* toggle_receiver = [tree_item toggleReceiver];
+		if(nil == toggle_receiver)
+		{
+			toggle_receiver = [[IupCocoaTreeToggleReceiver alloc] init];
+			[toggle_receiver setTreeItem:tree_item];
+			[tree_item setToggleReceiver:toggle_receiver];
+		}
+		[toggle_receiver setIhandle:ih];
+		[check_box setTarget:toggle_receiver];
+		[check_box setAction:@selector(myToggleClickAction:)];
 	}
 	else
 	{
@@ -915,6 +993,14 @@ static NSImage* helperGetActiveImageForTreeItem(IupCocoaTreeItem* tree_item, Iup
 			// This allows the cell to be reused.
 			
 			[table_cell_view setIdentifier:@"IupCocoaTreeTableCellView"];
+			
+			IupCocoaTreeToggleReceiver* toggle_receiver = [tree_item toggleReceiver];
+			if(nil != toggle_receiver)
+			{
+				[toggle_receiver setTreeItem:nil];
+				[toggle_receiver setIhandle:nil];
+				[tree_item setToggleReceiver:nil];
+			}
 		}
 	
 	}
@@ -2331,7 +2417,7 @@ static void helperCopyAndInsertNode(IupCocoaOutlineView* outline_view, IupCocoaT
 	
 	
 	//IupCocoaTreeItem* new_copy_tree_item = [[IupCocoaTreeItem alloc] init];
-	IupCocoaTreeItem* new_copy_tree_item = [tree_item cloneWithNewParentItem:parent_target_tree_item];
+	IupCocoaTreeItem* new_copy_tree_item = [tree_item cloneWithNewParentItem:parent_target_tree_item ihandle:ih];
 		// If the destination node is a branch and it is expanded,
 	// then the specified node is inserted as the first child of the destination node.
 	// If the branch is not expanded or the destination node is a leaf,
@@ -2412,7 +2498,7 @@ static void helperCrossCopyNode(NSOutlineView* source_outline_view, IupCocoaTree
 	
 	
 	//IupCocoaTreeItem* new_copy_tree_item = [[IupCocoaTreeItem alloc] init];
-	IupCocoaTreeItem* new_copy_tree_item = [source_tree_item cloneWithNewParentItem:parent_target_tree_item];
+	IupCocoaTreeItem* new_copy_tree_item = [source_tree_item cloneWithNewParentItem:parent_target_tree_item ihandle:target_ih];
 		// If the destination node is a branch and it is expanded,
 	// then the specified node is inserted as the first child of the destination node.
 	// If the branch is not expanded or the destination node is a leaf,
@@ -4177,6 +4263,119 @@ static char* cocoaTreeGetValueAttrib(Ihandle* ih)
 }
 
 
+static char* cocoaTreeGetToggleValueAttrib(Ihandle* ih, int item_id)
+{
+	if(ih->data->show_toggle < 1)
+	{
+		return NULL;
+	}
+  	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	// it happens that iupStrReturnChecked uses the same values for mixed, off, and on
+	NSControlStateValue check_box_state = [tree_item checkBoxState];
+	return iupStrReturnChecked((int)check_box_state);
+}
+
+static int cocoaTreeSetToggleValueAttrib(Ihandle* ih, int item_id, const char* value)
+{
+	if(ih->data->show_toggle < 1)
+	{
+		return 0;
+	}
+  	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return 0;
+	}
+	
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	NSControlStateValue check_box_state;
+	
+	if((ih->data->show_toggle == 2) && iupStrEqualNoCase(value, "NOTDEF"))
+	{
+		check_box_state = NSControlStateValueMixed;
+	}
+	else if(iupStrEqualNoCase(value, "ON"))
+	{
+		check_box_state = NSControlStateValueOn;
+	}
+	else if(iupStrEqualNoCase(value, "OFF"))
+	{
+		check_box_state = NSControlStateValueOff;
+	}
+	else
+	{
+		return 0;
+	}
+	
+	[tree_item setCheckBoxState:check_box_state];
+
+	NSTableCellView* table_cell_view = [tree_item tableCellView];
+	// Because the user might try to dynamically switch the type after creation (not allowed by spec), we should add a safety check.
+	// Also, I think it might be possible that the item is off-screen so there is no actual cell available to set
+	if((nil != table_cell_view) && [table_cell_view respondsToSelector:@selector(checkBox)])
+	{
+		IupCocoaTreeToggleTableCellView* toggle_cell_view = (IupCocoaTreeToggleTableCellView*)table_cell_view;
+		NSButton* check_box = [toggle_cell_view checkBox];
+		[check_box setState:check_box_state];
+	}
+	return 0;
+}
+
+static char* cocoaTreeGetToggleVisibleAttrib(Ihandle* ih, int item_id)
+{
+	if(ih->data->show_toggle < 1)
+	{
+		return NULL;
+	}
+  	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return NULL;
+	}
+	
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	// it happens that iupStrReturnChecked uses the same values for mixed, off, and on
+	bool check_box_hidden = [tree_item isCheckBoxHidden];
+	return iupStrReturnBoolean((int)!check_box_hidden);
+}
+
+static int cocoaTreeSetToggleVisibleAttrib(Ihandle* ih, int item_id, const char* value)
+{
+	if(ih->data->show_toggle < 1)
+	{
+		return 0;
+	}
+  	InodeHandle* inode_handle = iupTreeGetNode(ih, item_id);
+	if(NULL == inode_handle)
+	{
+		return 0;
+	}
+	
+	IupCocoaTreeItem* tree_item = (IupCocoaTreeItem*)inode_handle;
+	bool check_box_hidden = !iupStrBoolean(value);
+	
+	
+	[tree_item setCheckBoxHidden:check_box_hidden];
+
+	NSTableCellView* table_cell_view = [tree_item tableCellView];
+	// Because the user might try to dynamically switch the type after creation (not allowed by spec), we should add a safety check.
+	// Also, I think it might be possible that the item is off-screen so there is no actual cell available to set
+	if((nil != table_cell_view) && [table_cell_view respondsToSelector:@selector(checkBox)])
+	{
+		IupCocoaTreeToggleTableCellView* toggle_cell_view = (IupCocoaTreeToggleTableCellView*)table_cell_view;
+		NSButton* check_box = [toggle_cell_view checkBox];
+		[check_box setHidden:!check_box_hidden];
+	}
+	return 0;
+}
+
+
 
 
 static int cocoaTreeSetExpandAllAttrib(Ihandle* ih, const char* value)
@@ -4465,10 +4664,9 @@ void iupdrvTreeInitClass(Iclass* ic)
 	
 	iupClassRegisterAttributeId(ic, "TITLE",  cocoaTreeGetTitleAttrib,  cocoaTreeSetTitleAttrib, IUPAF_NO_INHERIT);
 	
-#if 0
 	iupClassRegisterAttributeId(ic, "TOGGLEVALUE", cocoaTreeGetToggleValueAttrib, cocoaTreeSetToggleValueAttrib, IUPAF_NO_INHERIT);
 	iupClassRegisterAttributeId(ic, "TOGGLEVISIBLE", cocoaTreeGetToggleVisibleAttrib, cocoaTreeSetToggleVisibleAttrib, IUPAF_NO_INHERIT);
-#endif
+
 	/* Change the set method for Cocoa */
 	iupClassRegisterReplaceAttribFunc(ic, "SHOWRENAME", NULL, cocoaTreeSetShowRenameAttrib);
 
