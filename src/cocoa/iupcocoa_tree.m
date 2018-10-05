@@ -1677,7 +1677,7 @@ static int helperCallDragDropCb(Ihandle* ih, IupCocoaTreeItem* tree_item_drag, I
 /* AUXILIAR FUNCTIONS                                                        */
 /*****************************************************************************/
 
-
+#if 0
 static void cocoaTreeChildRebuildCacheRec(Ihandle* ih, IupCocoaTreeItem* tree_item, int* object_id)
 {
 	for(IupCocoaTreeItem* a_item in [tree_item childrenArray])
@@ -1697,6 +1697,7 @@ static void cocoaTreeRebuildNodeCache(Ihandle* ih, int object_id, IupCocoaTreeIt
   ih->data->node_cache[object_id].node_handle = tree_item;
   cocoaTreeChildRebuildCacheRec(ih, tree_item, &object_id);
 }
+#endif
 
 static void iupCocoaTreeRecursivelyCreateFlatItemArray(IupCocoaTreeItem* the_item, NSMutableArray<IupCocoaTreeItem*>* flattened_array_of_items)
 {
