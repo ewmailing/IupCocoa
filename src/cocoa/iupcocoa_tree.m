@@ -395,6 +395,7 @@ static void cocoaTreeReloadItem(IupCocoaTreeItem* tree_item, NSOutlineView* outl
 
 @end
 
+
 static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 {
 	NSUInteger counter = 1;
@@ -404,7 +405,7 @@ static NSUInteger Helper_RecursivelyCountItems(IupCocoaTreeItem* the_item)
 	}
 	return counter;
 }
-
+/*
 static NSUInteger Helper_CountAllItems(IupCocoaTreeDelegate* tree_delegate)
 {
 	NSUInteger counter = 0;
@@ -414,6 +415,7 @@ static NSUInteger Helper_CountAllItems(IupCocoaTreeDelegate* tree_delegate)
 	}
 	return counter;
 }
+*/
 
 static bool Helper_RecursivelyCountDepth(IupCocoaTreeItem* current_item, IupCocoaTreeItem* find_item, NSUInteger* depth_counter)
 {
@@ -614,7 +616,6 @@ static NSInteger Helper_FindFlatIndexofTreeItemInOutlineView(IupCocoaTreeDelegat
 	{
 		return nil;
 	}
-	NSUInteger number_of_descendents = Helper_RecursivelyCountItems(tree_item) - 1; // subtract one because we don't want to count the tree_item itself, just children/grandchildren
 
 	NSMutableArray* children_array = [tree_item childrenArray];
 	NSIndexSet* top_level_children_indexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [children_array count])];
