@@ -23,16 +23,7 @@
 #include "iupcocoa_drv.h"
 
 //#include "iupmac_info.h"
-
-@interface IupCocoaFont : NSObject
-@property(nonatomic, retain) NSFont* nativeFont;
-@property(nonatomic, copy) NSString* iupFontName;
-@property(nonatomic, copy) NSString* typeFace;
-@property(nonatomic, retain) NSMutableDictionary* attributeDictionary;
-@property(nonatomic, assign) int fontSize;
-@property(nonatomic, assign) int charWidth;
-@property(nonatomic, assign) int charHeight;
-@end
+#include "IupCocoaFont.h"
 
 @implementation IupCocoaFont
 
@@ -184,16 +175,18 @@ static IupCocoaFont* cocoaFindFont(const char* iup_font_name)
 	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
 	[attribute_dict autorelease];
 
+	bool uses_attributes = false;
 	if(is_underline)
 	{
   		[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlinePatternSolid|NSUnderlineStyleSingle]
   			forKey:NSUnderlineStyleAttributeName];
+		uses_attributes = true;
 	}
 	if(is_strikeout)
 	{
   		[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlinePatternSolid|NSUnderlineStyleSingle]
 			forKey:NSStrikethroughStyleAttributeName];
-
+		uses_attributes = true;
 	}
 	
 	ns_font = [[NSFontManager sharedFontManager] convertFont:ns_font toHaveTrait:trait_mask];
@@ -206,6 +199,7 @@ static IupCocoaFont* cocoaFindFont(const char* iup_font_name)
 
 	[the_font setNativeFont:ns_font];
 	[the_font setAttributeDictionary:attribute_dict];
+	[the_font setUsesAttributes:uses_attributes];
 	[the_font setIupFontName:ns_iup_font_name];
 	[the_font setFontSize:font_size];
 	[the_font setTypeFace:ns_type_face];
@@ -252,6 +246,12 @@ static IupCocoaFont* cocoaFontGet(Ihandle* ih)
 		}
 	}
 	return the_font;
+}
+
+// version for external files to use
+IupCocoaFont* iupCocoaGetFont(Ihandle* ih)
+{
+	return cocoaFontGet(ih);
 }
 
 int iupdrvSetFontAttrib(Ihandle* ih, const char* value)

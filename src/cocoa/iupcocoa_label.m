@@ -84,37 +84,52 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 	NSTextField* the_label = cocoaLabelGetTextField(ih);
 	if(the_label)
 	{
-		// This could be a NSTextField, some kind of image, or something else.
-		
-		if([the_label respondsToSelector:@selector(setStringValue:)])
+		// NSImageCells don't accept a stringValue, so bail out if we have a cell
+		if([the_label respondsToSelector:@selector(cell)])
 		{
-			NSString* ns_string = nil;
-			if(value)
+			id cell = [the_label cell];
+			if((nil != cell) && [cell isKindOfClass:[NSImageCell class]])
 			{
-				char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
-
-				// This will return nil if the string can't be converted.
-				ns_string = [NSString stringWithUTF8String:stripped_str];
-				
-				if(stripped_str && stripped_str != value)
-				{
-					free(stripped_str);
-				}
+				return 0;
 			}
-			else
+		}
+	
+	
+		NSString* ns_string = nil;
+		if(value)
+		{
+			char* stripped_str = iupStrProcessMnemonic(value, NULL, 0);   /* remove & */
+			
+			// This will return nil if the string can't be converted.
+			ns_string = [NSString stringWithUTF8String:stripped_str];
+			
+			if(stripped_str && stripped_str != value)
 			{
-				ns_string = @"";
+				free(stripped_str);
 			}
-			// NSImageCells don't accept a stringValue
-			id cell = [the_label respondsToSelector:@selector(cell)] ? [the_label cell] : nil;
-			if (![cell isKindOfClass:[NSImageCell class]]) {
-                // This will throw an exception for a nil string.
-                [the_label setStringValue:ns_string];
- 			}
-
+		}
+		else
+		{
+			ns_string = @"";
+		}
+		
+	
+		// If the user set font attributes, we should try to use them
+		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+		if([iup_font usesAttributes]
+			&& [the_label respondsToSelector:@selector(setAttributedStringValue:)]
+		)
+		{
+			NSAttributedString* attr_str = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
+			[the_label setAttributedStringValue:attr_str];
 			// I think I need to call this. I noticed in another program, when I suddenly set a long string, it seems to use the prior layout. This forces a relayout.
 			IupRefresh(ih);
-			
+		}
+		else if([the_label respondsToSelector:@selector(setStringValue:)])
+		{
+			[the_label setStringValue:ns_string];
+			// I think I need to call this. I noticed in another program, when I suddenly set a long string, it seems to use the prior layout. This forces a relayout.
+			IupRefresh(ih);
 		}
 	}
 	return 1;

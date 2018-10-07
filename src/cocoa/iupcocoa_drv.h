@@ -16,6 +16,7 @@ extern "C" {
 #include <asl.h>
 #if __OBJC__
 	#import <Foundation/Foundation.h>
+	#import "IupCocoaFont.h"
 #endif
 	
 // the point of this is we have a unique memory address for an identifier
@@ -92,6 +93,9 @@ IUP_EXPORTI void iupcocoaButtonKeySetStatus(NSEvent* ns_event, char* out_status)
 NSStatusItem* iupCocoaGetGlobalApplicationStatusItem(void);
 Ihandle* iupCocoaGetGlobalApplicationStatusItemMenuIh(void);
 void iupCocoaSetGlobalApplicationStatusItemMenuIh(Ihandle* menu_ih);
+
+IUP_EXPORTI IupCocoaFont* iupCocoaGetFont(Ihandle* ih);
+
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
