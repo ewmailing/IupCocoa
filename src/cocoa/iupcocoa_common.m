@@ -401,7 +401,7 @@ void iupdrvBaseUnMapMethod(Ihandle* ih)
 	[the_handle release];
 }
 
-void iupdrvDisplayUpdate(Ihandle *ih)
+static void iupCocoaDisplayUpdate(Ihandle *ih)
 {
 	id the_handle = ih->handle;
 	
@@ -430,7 +430,7 @@ void iupdrvDisplayUpdate(Ihandle *ih)
 
 void iupdrvDisplayRedraw(Ihandle *ih)
 {
-	iupdrvDisplayUpdate(ih);
+	iupCocoaDisplayUpdate(ih);
 }
 
 void iupdrvScreenToClient(Ihandle* ih, int *x, int *y)
@@ -618,12 +618,12 @@ void iupdrvClientToScreen(Ihandle* ih, int *x, int *y)
 
 void iupdrvPostRedraw(Ihandle *ih)
 {
-	iupdrvDisplayUpdate(ih);
+	iupCocoaDisplayUpdate(ih);
 }
 
 void iupdrvRedrawNow(Ihandle *ih)
 {
-	iupdrvDisplayUpdate(ih);
+	iupCocoaDisplayUpdate(ih);
 }
 void iupdrvSendKey(int key, int press)
 {
