@@ -80,6 +80,7 @@ static NSOutlineView* cocoaTreeGetOutlineView(Ihandle* ih)
 
 @implementation IupCocoaTreeToggleReceiver
 
+// all properties are assign, so we don't need to override dealloc
 /*
  - (void) dealloc
  {
