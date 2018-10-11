@@ -1300,7 +1300,11 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		unsigned char r, g, b;
 		if(iupStrToRGB(format, &r, &g, &b))
 		{
-			NSColor* the_color = [NSColor colorWithCalibratedRed:r green:g blue:b alpha:1.0];
+			CGFloat red = r/255.0;
+			CGFloat green = g/255.0;
+			CGFloat blue = b/255.0;
+
+			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
 			[attribute_dict setValue:the_color
 				forKey:NSForegroundColorAttributeName];
 		}
@@ -1312,8 +1316,11 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		unsigned char r, g, b;
 		if(iupStrToRGB(format, &r, &g, &b))
 		{
-			NSColor* the_color = [NSColor colorWithCalibratedRed:r green:g blue:b alpha:1.0];
-			[attribute_dict setValue:the_color
+			CGFloat red = r/255.0;
+			CGFloat green = g/255.0;
+			CGFloat blue = b/255.0;
+
+			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];			[attribute_dict setValue:the_color
 				forKey:NSBackgroundColorAttributeName];
 		}
 	}
