@@ -2601,11 +2601,12 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	
 	/* update a mnemonic in a label if necessary */
 	iupgtkUpdateMnemonic(ih);
-	
-	if (ih->data->formattags)
-		iupTextUpdateFormatTags(ih);
 #endif
-		
+
+	if(ih->data->formattags)
+	{
+		iupTextUpdateFormatTags(ih);
+	}
 	
 	return IUP_NOERROR;
 }
