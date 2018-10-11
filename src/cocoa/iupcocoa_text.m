@@ -585,38 +585,6 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 }
 
 
-void iupdrvTextConvertLinColToPos(Ihandle* ih, int lin, int col, int *pos)
-{
- 
-}
-
-void iupdrvTextConvertPosToLinCol(Ihandle* ih, int pos, int *lin, int *col)
-{
-
-	
-}
-
-
-
-void* iupdrvTextAddFormatTagStartBulk(Ihandle* ih)
-{
-	
-	
-  return NULL;
-}
-
-void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
-{
-
-	
-}
-
-void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
-{
-
-	
-}
-
 
 static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 {
@@ -637,9 +605,8 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
 			NSTextView* text_view = cocoaTextGetTextView(ih);
-			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
-			
-			NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string];
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+			NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
 			[[text_view textStorage] setAttributedString:attributed_string];
 			[attributed_string release];
 
@@ -649,8 +616,18 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 		{
 			NSTextField* text_field = cocoaTextGetTextField(ih);
 			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
-			[text_field setStringValue:ns_string];
-
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+			if([iup_font usesAttributes])
+			{
+				NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
+				[text_field setAttributedStringValue:attributed_string];
+				[attributed_string release];
+			
+			}
+			else
+			{
+				[text_field setStringValue:ns_string];
+			}
 			break;
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
@@ -676,7 +653,6 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
 			NSTextView* text_view = cocoaTextGetTextView(ih);
-			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
 			
 			NSString* ns_string = [[text_view textStorage] string];
 			value = iupStrReturnStr([ns_string UTF8String]);
@@ -686,7 +662,6 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
 			NSTextField* text_field = cocoaTextGetTextField(ih);
-			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 			
 			NSString* ns_string = [text_field stringValue];
 			value = iupStrReturnStr([ns_string UTF8String]);
@@ -710,6 +685,990 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 	
 	return value;
 }
+
+
+/// For the provided start_line, start_column, end_line, end_column, get the native NSRange for the selection.
+static bool cocoaTextComputeRangeFromLineColumnForTextView(NSTextView* text_view, NSUInteger start_line, NSUInteger start_column, NSUInteger end_line, NSUInteger end_column, NSRange* out_range)
+{
+	*out_range = NSMakeRange(0, 0);
+
+	if(end_line < start_line)
+	{
+		return false;
+	}
+	else if((end_line == start_line) && (end_column < start_column))
+	{
+		return false;
+	}
+
+	NSLayoutManager* layout_manager = [text_view layoutManager];
+	NSUInteger number_of_lines;
+	NSUInteger index;
+	
+	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
+	NSRange line_range = NSMakeRange(0, 0);
+
+	bool found_start_line = false;
+	bool found_start_column = false;
+	NSUInteger selection_start_index = 0;
+
+	for(number_of_lines = 0, index = 0; index < number_of_glyphs;)
+	{
+		NSUInteger last_index = index; // this is for a workaround where end_line==start_line
+		NSRange last_range = line_range; // this is for a workaround where end_line==start_line
+		
+		(void) [layout_manager lineFragmentRectForGlyphAtIndex:index
+			effectiveRange:&line_range];
+		index = NSMaxRange(line_range);
+		number_of_lines++;
+		if(number_of_lines == start_line)
+		{
+			found_start_line = true;
+			// line_range.length will tell us how manay glyphs there are on this line
+			if(line_range.length >= start_column)
+			{
+				found_start_column = true;
+				// The line_range.length may have overshot, so we need to subtract out the extra glyphs
+				NSUInteger overshot_count = line_range.length - (start_column-1);
+	
+				// index contains our total running count of all glyphs, which is what we need to specify the range for text selection
+				selection_start_index = index - overshot_count;
+			}
+			else
+			{
+				// Decision: If there are not enough columns on this line,
+				// do we start the selection at the end of the line
+				// or do we abort?
+				found_start_column = false;
+				selection_start_index = index;
+			}
+			
+			// Edge case: end_line is the same line as start_line
+			// The problem is we handle the end positions in the next block, but advance to the next line earlier in this loop.
+			// The easiest workaround to do is back up the counters and re-do the next line in the next block if this is the case.
+			if(start_line == end_line)
+			{
+				number_of_lines--;
+				line_range = last_range;
+				index = last_index;
+			}
+			
+			break;
+		}
+	}
+
+	if(!found_start_line)
+	{
+		NSLog(@"Failed to find startLine of %lu. Number of lines is %lu", start_line, number_of_lines);
+		return false;
+	}
+
+	// If we comment out this block, we're going to allow being too short on columns.
+/*
+	if(!found_start_column)
+	{
+		NSLog(@"Failed to find startColumn line of %lu. Number of columns at line %lu is %lu", start_column, number_of_lines, line_range.location);
+		return false;
+	}
+*/
+
+	// Do end
+	bool found_end_line = false;
+	bool found_end_column = false;
+	NSUInteger selection_end_index = 0;
+
+	for(; index < number_of_glyphs;)
+	{
+		(void) [layout_manager lineFragmentRectForGlyphAtIndex:index
+			effectiveRange:&line_range];
+		index = NSMaxRange(line_range);
+		number_of_lines++;
+		if(number_of_lines == end_line)
+		{
+			found_end_line = true;
+			// line_range.length will tell us how manay glyphs there are on this line
+			if(line_range.length >= end_column)
+			{
+				found_start_column = true;
+				// The line_range.length may have overshot, so we need to subtract out the extra glyphs
+				NSUInteger overshot_count = line_range.length - (end_column-1);
+	
+				// index contains our total running count of all glyphs, which is what we need to specify the range for text selection
+				selection_end_index = index - overshot_count;
+			}
+			else
+			{
+				// Decision: If there are not enough columns on this line,
+				// do we start the selection at the end of the line
+				// or do we abort?
+				found_end_column = false;
+				selection_end_index = index;
+			}
+			break;
+		}
+	}
+
+	// Decision: If there are not enough lines,
+	// do we select up to the end,
+	// or do we abort?
+	if(!found_end_line)
+	{
+#if 0
+		NSLog(@"Failed to find startLine of %lu. Number of lines is %lu", start_line, number_of_lines);
+		return false;
+#else
+		selection_end_index = index;
+#endif
+	}
+
+	// If we comment out this block, we're going to allow being too short on columns.
+/*
+	if(!found_start_column)
+	{
+		NSLog(@"Failed to find startColumn line of %lu. Number of columns at line %lu is %lu", start_column, number_of_lines, line_range.length);
+		return false;
+	}
+*/
+
+	NSRange selection_range = NSMakeRange(selection_start_index, selection_end_index-selection_start_index);
+//	[textView setSelectedRange:selection_range];
+	*out_range = selection_range;
+
+	return true;
+}
+
+/// For a provided native_selection_range, get the start_line, start_column, end_line, end_column
+/// @param native_selection_range This is a range that something like [text_view selectedRange] would return
+static bool cocoaTextComputeLineColumnFromRangeForTextView(NSTextView* text_view, NSRange native_selection_range, NSUInteger* out_start_line, NSUInteger* out_start_column, NSUInteger* out_end_line, NSUInteger* out_end_column)
+{
+	*out_start_line = 0;
+	*out_start_column = 0;
+	*out_end_line = 0;
+	*out_end_column = 0;
+
+	NSUInteger start_line = 1;
+	NSUInteger start_column = 1;
+	NSUInteger end_line = 1;
+	NSUInteger end_column = 1;
+
+
+	NSLayoutManager* layout_manager = [text_view layoutManager];
+	NSUInteger number_of_lines;
+	NSUInteger index;
+	
+	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
+	NSRange line_range = NSMakeRange(0, 0);
+
+
+
+	bool found_start_line = false;
+	bool found_start_column = false;
+	NSUInteger selection_start_index = native_selection_range.location;
+	NSUInteger selection_end_index = native_selection_range.location + native_selection_range.length;
+
+	for(number_of_lines = 0, index = 0; index < number_of_glyphs;)
+	{
+//		NSUInteger last_index = index; // this is for a workaround where end_line==start_line
+//		NSRange last_range = line_range; // this is for a workaround where end_line==start_line
+		
+		(void) [layout_manager lineFragmentRectForGlyphAtIndex:index
+			effectiveRange:&line_range];
+		index = NSMaxRange(line_range);
+		number_of_lines++;
+		if(index >= selection_start_index)
+		{
+			found_start_line = true;
+			start_line = number_of_lines;
+			
+			found_start_column = true;
+			// Getting a full line at a time may have overshot, so we need to subtract out the extra glyphs
+			NSUInteger overshot_count = index - (selection_start_index);
+
+			// line_range.length will tell us how manay glyphs there are on this lin
+			start_column = line_range.length - overshot_count + 1;
+
+
+			// Edge case: end_line is the same line as start_line
+			// The problem is we handle the end positions in the next block, but advance to the next line earlier in this loop.
+			// So just handle it here and return immediately.
+			if(index >= selection_end_index)
+			{
+				NSUInteger overshot_end_count = index - (selection_end_index);
+				end_column = line_range.length - overshot_end_count + 1;
+				end_line = start_line;
+				
+				*out_start_line = start_line;
+				*out_start_column = start_column;
+				*out_end_line = end_line;
+				*out_end_column = end_column;
+				return true;
+			}
+			break;
+		}
+	}
+
+	if(!found_start_line)
+	{
+		NSLog(@"Failed to find start position at %lu. Number of glyphs is %lu", selection_start_index, number_of_glyphs);
+		return false;
+	}
+
+	// If we comment out this block, we're going to allow being too short on columns.
+/*
+	if(!found_start_column)
+	{
+		NSLog(@"Failed to find startColumn line of %lu. Number of columns at line %lu is %lu", start_column, number_of_lines, line_range.location);
+		return false;
+	}
+*/
+
+	// Do end
+	bool found_end_line = false;
+	bool found_end_column = false;
+
+	for(; index < number_of_glyphs;)
+	{
+		(void) [layout_manager lineFragmentRectForGlyphAtIndex:index
+			effectiveRange:&line_range];
+		index = NSMaxRange(line_range);
+		number_of_lines++;
+		if(index >= selection_end_index)
+		{
+			found_end_line = true;
+			end_line = number_of_lines;
+			
+			found_end_column = true;
+
+			// Getting a full line at a time may have overshot, so we need to subtract out the extra glyphs
+			NSUInteger overshot_count = index - (selection_end_index);
+
+			// line_range.length will tell us how manay glyphs there are on this lin
+			end_column = line_range.length - overshot_count + 1;
+			break;
+		}
+	}
+
+	// Decision: If there are not enough lines,
+	// do we select up to the end,
+	// or do we abort?
+	if(!found_end_line)
+	{
+#if 0
+		NSLog(@"Failed to find end position of %lu. Number of gylphs is %lu", selection_end_index, number_of_glyphs);
+		return false;
+#else
+		end_line = number_of_lines;
+		end_column = line_range.length;
+#endif
+	}
+
+
+
+	*out_start_line = start_line;
+	*out_start_column = start_column;
+	*out_end_line = end_line;
+	*out_end_column = end_column;
+	return true;
+}
+
+void iupdrvTextConvertLinColToPos(Ihandle* ih, int lin, int col, int *pos)
+{
+		NSLog(@"iupdrvTextConvertLinColToPos");
+
+}
+
+void iupdrvTextConvertPosToLinCol(Ihandle* ih, int pos, int *lin, int *col)
+{
+	NSLog(@"iupdrvTextConvertPosToLinCol");
+
+	
+}
+
+
+
+void* iupdrvTextAddFormatTagStartBulk(Ihandle* ih)
+{
+	NSLog(@"iupdrvTextAddFormatTagStartBulk");
+	  NSTextView* text_view = cocoaTextGetTextView(ih);
+
+	  NSTextStorage* text_storage = [text_view textStorage];
+	  [text_storage beginEditing];
+  return NULL;
+}
+
+void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
+{
+	NSLog(@"iupdrvTextAddFormatTagStopBulk");
+
+	  NSTextView* text_view = cocoaTextGetTextView(ih);
+
+	  NSTextStorage* text_storage = [text_view textStorage];
+	  [text_storage endEditing];
+	
+}
+
+static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
+{
+	NSFontManager* font_manager = [NSFontManager sharedFontManager];
+	
+	NSFont* target_font = [iup_font nativeFont];
+	
+	NSFontTraitMask trait_mask = [iup_font traitMask];
+	
+	CGFloat font_size = [target_font pointSize];
+//	NSString* font_family = [target_font familyName];
+	
+	char* format;
+
+
+	format = iupAttribGet(formattag, "FONTSIZE");
+	if(format)
+	{
+		int font_size_int = 0;
+		iupStrToInt(format, &font_size_int);
+		// less than 0 is in "pixels",
+		// but Apple platforms don't really support this because of all the things they do for resolution independent scaling (e.g. retina)
+		// All things must be in points.
+		if(font_size_int < 0)
+		{
+		
+		}
+		else
+		{
+			font_size = (CGFloat)font_size_int;
+		}
+	}
+	
+	format = iupAttribGet(formattag, "FONTFACE");
+	if(format)
+	{
+		/* Map standard names to native names */
+		const char* mapped_name = iupFontGetMacName(format);
+		NSString* ns_family_name = nil;
+		if(mapped_name)
+		{
+			ns_family_name = [NSString stringWithUTF8String:mapped_name];
+		}
+		else
+		{
+			ns_family_name = [NSString stringWithUTF8String:format];
+		}
+		
+		target_font = [font_manager convertFont:target_font toFamily:ns_family_name];
+	}
+	
+	// TODO: Do we reset the traits or are we expected to inherit it from the original font?
+	// And does our NSFont carry these set traits, or do we need to save these traits when they were first set?
+	format = iupAttribGet(formattag, "ITALIC");
+	if(format)
+	{
+		if(iupStrBoolean(format))
+		{
+			trait_mask |= NSItalicFontMask;
+		}
+		else
+		{
+			trait_mask = trait_mask & (~NSItalicFontMask); // To unset the flag, invert the bits, then AND
+		}
+	}
+
+
+	format = iupAttribGet(formattag, "UNDERLINE");
+	if(format)
+	{
+		// TODO: Apple supports DOTTED (and DASHED) independently of SINGLE/DOUBLE.
+		if(iupStrEqualNoCase(format, "SINGLE"))
+		{
+			[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlinePatternSolid|NSUnderlineStyleSingle]
+				forKey:NSUnderlineStyleAttributeName];
+		}
+		else if(iupStrEqualNoCase(format, "DOUBLE"))
+		{
+			[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlinePatternSolid|NSUnderlineStyleDouble]
+				forKey:NSUnderlineStyleAttributeName];
+		}
+		else if(iupStrEqualNoCase(format, "DOTTED"))
+		{
+			[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlineStylePatternDot|NSUnderlineStyleSingle]
+				forKey:NSUnderlineStyleAttributeName];
+		}
+		else /* "NONE" */
+		{
+			[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlineStyleNone]
+				forKey:NSUnderlineStyleAttributeName];
+		}
+	}
+
+
+	format = iupAttribGet(formattag, "STRIKEOUT");
+	if(format)
+	{
+		if(iupStrBoolean(format))
+		{
+	  		[attribute_dict setValue:[NSNumber numberWithInt:YES]
+				forKey:NSStrikethroughStyleAttributeName];
+		}
+		else
+		{
+			[attribute_dict setValue:[NSNumber numberWithInt:NO]
+				forKey:NSStrikethroughStyleAttributeName];
+		}
+	}
+	format = iupAttribGet(formattag, "RISE");
+	if(format)
+	{
+		// For Mac, NSSuperscriptAttributeName
+		// iOS kCTSuperscriptAttributeName
+		// Pass in a negative value for subscript.
+    	if(iupStrEqualNoCase(format, "SUPERSCRIPT"))
+		{
+	  		[attribute_dict setValue:[NSNumber numberWithInt:1]
+				forKey:NSSuperscriptAttributeName];
+			// I don't know how small to make the font. IUP uses X-SMALL on GTK.
+			font_size = font_size * 0.6444444444444;
+		}
+		else if(iupStrEqualNoCase(format, "SUBSCRIPT"))
+		{
+	  		[attribute_dict setValue:[NSNumber numberWithInt:-1]
+				forKey:NSSuperscriptAttributeName];
+			// I don't know how small to make the font. IUP uses X-SMALL on GTK.
+			font_size = font_size * 0.6444444444444;
+		}
+		else
+		{
+			int offset_val = 0;
+			iupStrToInt(format, &offset_val);
+			[attribute_dict setValue:[NSNumber numberWithDouble:(double)offset_val]
+				forKey:NSBaselineOffsetAttributeName];
+			// user is expected to set the font size for this case
+		}
+	}
+
+
+	format = iupAttribGet(formattag, "FONTSCALE");
+	if(format)
+	{
+		double fval = 0;
+		if (iupStrEqualNoCase(format, "XX-SMALL"))
+			fval = 0.5787037037037;
+		else if (iupStrEqualNoCase(format, "X-SMALL"))
+			fval = 0.6444444444444;
+		else if (iupStrEqualNoCase(format, "SMALL"))
+			fval = 0.8333333333333;
+		else if (iupStrEqualNoCase(format, "MEDIUM"))
+			fval = 1.0;
+		else if (iupStrEqualNoCase(format, "LARGE"))
+			fval = 1.2;
+		else if (iupStrEqualNoCase(format, "X-LARGE"))
+			fval = 1.4399999999999;
+		else if (iupStrEqualNoCase(format, "XX-LARGE"))
+			fval = 1.728;
+		else
+			iupStrToDouble(format, &fval);
+		
+		if(fval > 0)
+		{
+			font_size = font_size * fval;
+		}
+	}
+
+	format = iupAttribGet(formattag, "WEIGHT");
+	{
+		/*
+		Apple Terminology						ISO Equivalent
+		1. ultralight
+		2. thin W1. ultralight
+		3. light, extralight 					W2. extralight
+		4. book									W3. light
+		5. regular, plain, display, roman		W4. semilight
+		6. medium								W5. medium
+		7. demi, demibold
+		8. semi, semibold						W6. semibold
+		9. bold									W7. bold
+		10. extra, extrabold					W8. extrabold
+		11. heavy, heavyface
+		12. black, super						W9. ultrabold
+		13. ultra, ultrablack, fat
+		14. extrablack, obese, nord
+		
+		The NSFontManager implementation of this method refuses to convert a font’s weight
+		if it can’t maintain all other traits, such as italic and condensed.
+		You might wish to override this method to allow a looser interpretation of weight conversion
+		*/
+		// NSFontWeightTrait: The valid value range is from -1.0 to 1.0. The value of 0.0 corresponds to the regular or medium font weight.
+//		CGFloat weight_scale = 0;
+		// weightOfFont: An approximation of the weight of the given font, where 0 indicates the lightest possible weight, 5 indicates a normal or book weight, and 9 or more indicates a bold or heavier weight.
+		int target_weight = 5;
+		
+		if(iupStrEqualNoCase(format, "EXTRALIGHT"))
+		{
+//			weight_scale = -1.0;
+			target_weight = 0;
+		}
+		else if(iupStrEqualNoCase(format, "LIGHT"))
+		{
+//			weight_scale = -0.5;
+			target_weight = 3;
+		}
+		else if(iupStrEqualNoCase(format, "SEMIBOLD"))
+		{
+//			weight_scale = 0.25;
+			target_weight = 6;
+		}
+		else if(iupStrEqualNoCase(format, "BOLD"))
+		{
+//			weight_scale = 0.50;
+			target_weight = 8;
+		}
+		else if (iupStrEqualNoCase(format, "EXTRABOLD"))
+		{
+//			weight_scale = 0.75;
+			target_weight = 10;
+		}
+		else if(iupStrEqualNoCase(format, "HEAVY"))
+		{
+//			weight_scale = 1.0;
+			target_weight = 11;
+		}
+		else /* "NORMAL" */
+		{
+//			weight_scale = 0.0;
+			target_weight = 5;
+		}
+		
+		// Ugh: This has no effect.
+		// [attribute_dict setValue:[NSNumber numberWithFloat:weight_scale] forKey:NSFontWeightTrait];
+
+		// I don't want to create a font from scratch because there are warnings about using FamilyName for the default/system font.
+		// And I just don't want to accidentally miss any properties.
+		// But this leaves us only with this curious API which will attempt to bump up/down the weight by 1 level at a time.
+		// If it can't go any higher/lower, it returns back the original font.
+		// The levels are not well defined, so this is very imprecise.
+		NSInteger current_weight = [font_manager weightOfFont:target_font];
+		if(current_weight < target_weight)
+		{
+			// need to go up
+			while(current_weight < target_weight)
+			{
+				NSFont* result_font;
+				result_font = [font_manager convertWeight:YES ofFont:target_font];
+				current_weight = [font_manager weightOfFont:target_font];
+				
+				if(result_font == target_font)
+				{
+					// unable to convert more
+					break;
+				}
+				else
+				{
+					target_font = result_font;
+				}
+			}
+		}
+	   else if(current_weight > target_weight)
+	   {
+			// need to go down
+			while(current_weight > target_weight)
+			{
+				NSFont* result_font;
+				result_font = [font_manager convertWeight:NO ofFont:target_font];
+				current_weight = [font_manager weightOfFont:target_font];
+				
+				if(result_font == target_font)
+				{
+					// unable to convert more
+					break;
+				}
+				else
+				{
+					target_font = result_font;
+				}
+			}
+	   }
+	   else
+	   {
+		   // already at target weight
+	   }
+
+ 
+		
+	}
+	
+	format = iupAttribGet(formattag, "FGCOLOR");
+	if(format)
+	{
+		unsigned char r, g, b;
+		if(iupStrToRGB(format, &r, &g, &b))
+		{
+			NSColor* the_color = [NSColor colorWithCalibratedRed:r green:g blue:b alpha:1.0];
+			[attribute_dict setValue:the_color
+				forKey:NSForegroundColorAttributeName];
+		}
+	}
+	
+	format = iupAttribGet(formattag, "BGCOLOR");
+	if(format)
+	{
+		unsigned char r, g, b;
+		if(iupStrToRGB(format, &r, &g, &b))
+		{
+			NSColor* the_color = [NSColor colorWithCalibratedRed:r green:g blue:b alpha:1.0];
+			[attribute_dict setValue:the_color
+				forKey:NSBackgroundColorAttributeName];
+		}
+	}
+
+	
+
+	target_font = [font_manager convertFont:target_font toSize:font_size];
+	target_font = [font_manager convertFont:target_font toHaveTrait:trait_mask];
+ 	[attribute_dict setValue:target_font forKey:NSFontAttributeName];
+
+}
+
+void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
+{
+	if(!ih->data->is_multiline)
+	{
+		return;
+	}
+	NSTextView* text_view = cocoaTextGetTextView(ih);
+
+
+		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+//	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
+	// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+	[attribute_dict autorelease];
+
+	cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
+
+
+	char* iup_selection = NULL;
+	NSRange native_selection_range = {0, 0};
+	iup_selection = iupAttribGet(formattag, "SELECTION");
+	if(iup_selection)
+	{
+		int ret_val;
+		NSUInteger lin_start=1;
+		NSUInteger col_start=1;
+		NSUInteger lin_end=1;
+		NSUInteger col_end=1;
+
+		ret_val = sscanf(iup_selection, "%lu,%lu:%lu,%lu", &lin_start, &col_start, &lin_end, &col_end);
+		if(ret_val != 4)
+		{
+			return;
+		}
+		if(lin_start<1 || col_start<1 || lin_end<1 || col_end<1)
+		{
+			return;
+		}
+		
+		bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &native_selection_range);
+		if(!did_find_range)
+		{
+			return;
+		}
+	}
+	else
+	{
+		char* iup_selection_pos = iupAttribGet(formattag, "SELECTIONPOS");
+		if(iup_selection_pos)
+		{
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(iup_selection_pos, &start_int, &end_int, ':')!=2)
+			{
+				return;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return;
+			}
+			NSUInteger start = (NSUInteger)start_int;
+			NSUInteger end = (NSUInteger)end_int;
+			native_selection_range = NSMakeRange(start, end-start);
+		}
+		else
+		{
+			NSLog(@"iupdrvTextAddFormatTag fallback case");
+			// new text inserted or typed will be formatted with the tag
+			[text_view setTypingAttributes:attribute_dict];
+			
+			// Return immediately. The fall-through code is for selection-only
+			return;
+			
+		}
+	}
+	
+	NSLog(@"iupdrvTextAddFormatTag: %@", NSStringFromRange(native_selection_range));
+
+	  NSTextStorage* text_storage = [text_view textStorage];
+	  [text_storage beginEditing];
+ 	            [text_storage setAttributes:attribute_dict range:native_selection_range];
+
+	  [text_storage endEditing];
+
+}
+
+static int cocoaTextSetSelectionAttrib(Ihandle* ih, const char* value)
+{
+	if(ih->data->is_multiline)
+	{
+		NSUInteger start;
+		NSUInteger end;
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		NSRange selection_range = NSMakeRange(0, 0);
+
+
+		if (!value || iupStrEqualNoCase(value, "NONE"))
+		{
+//			start = 0;
+//			end = 0;
+		}
+		else if (iupStrEqualNoCase(value, "ALL"))
+		{
+			NSTextStorage* text_storage = [text_view textStorage];
+			
+			start = 0;
+			end = [text_storage length];
+			selection_range = NSMakeRange(start, end);
+		}
+		else
+		{
+			int ret_val;
+			NSUInteger lin_start=1;
+			NSUInteger col_start=1;
+			NSUInteger lin_end=1;
+			NSUInteger col_end=1;
+
+			ret_val = sscanf(value, "%lu,%lu:%lu,%lu", &lin_start, &col_start, &lin_end, &col_end);
+		    if(ret_val != 4)
+		    {
+		    	return 0;
+			}
+			if(lin_start<1 || col_start<1 || lin_end<1 || col_end<1)
+			{
+				return 0;
+			}
+
+			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &selection_range);
+
+		}
+		
+		[text_view setSelectedRange:selection_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+
+		
+	}
+	else
+	{
+		NSUInteger start;
+		NSUInteger end;
+		NSRange selection_range = NSMakeRange(start, end);
+
+		if (!value || iupStrEqualNoCase(value, "NONE"))
+		{
+			start = 0;
+			end = 0;
+		}
+		else if (iupStrEqualNoCase(value, "ALL"))
+		{
+			start = 0;
+			end = -1;  /* a negative value means all */
+		}
+		else
+		{
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+			{
+				return 0;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return 0;
+			}
+			start = (NSUInteger)start_int;
+			end = (NSUInteger)end_int;
+			selection_range = NSMakeRange(start, end-start);
+		}
+		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
+
+	}
+
+	return 0;
+}
+
+static char* cocoaTextGetSelectionAttrib(Ihandle* ih)
+{
+#if 1
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+		NSRange selected_range = [text_view selectedRange];
+		if(NSNotFound == selected_range.location)
+		{
+			return NULL;
+		}
+		
+		NSUInteger lin_start=1;
+		NSUInteger col_start=1;
+		NSUInteger lin_end=1;
+		NSUInteger col_end=1;
+		bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, selected_range, &lin_start, &col_start, &lin_end, &col_end);
+		if(did_find_range)
+		{
+			return iupStrReturnStrf("%lu,%lu:%lu,%lu", lin_start, col_start, lin_end, col_end);
+		}
+	}
+	else
+	{
+		int start, end;
+#if 0
+		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
+		{
+			start++; /* IUP starts at 1 */
+			end++;
+			return iupStrReturnIntInt((int)start, (int)end, ':');
+		}
+#endif
+		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
+	}
+#endif
+
+	return NULL;
+}
+
+
+static int cocoaTextSetSelectionPosAttrib(Ihandle* ih, const char* value)
+{
+	if(ih->data->is_multiline)
+	{
+		NSUInteger start;
+		NSUInteger end;
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		NSRange selection_range = NSMakeRange(0, 0);
+
+
+		if (!value || iupStrEqualNoCase(value, "NONE"))
+		{
+//			start = 0;
+//			end = 0;
+		}
+		else if (iupStrEqualNoCase(value, "ALL"))
+		{
+			NSTextStorage* text_storage = [text_view textStorage];
+			
+			start = 0;
+			end = [text_storage length];
+			selection_range = NSMakeRange(start, end);
+		}
+		else
+		{
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+			{
+				return 0;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return 0;
+			}
+			start = (NSUInteger)start_int;
+			end = (NSUInteger)end_int;
+			selection_range = NSMakeRange(start, end-start);
+		}
+		
+		[text_view setSelectedRange:selection_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+
+		
+	}
+	else
+	{
+		NSUInteger start;
+		NSUInteger end;
+		NSRange selection_range = NSMakeRange(start, end);
+
+		if (!value || iupStrEqualNoCase(value, "NONE"))
+		{
+			start = 0;
+			end = 0;
+		}
+		else if (iupStrEqualNoCase(value, "ALL"))
+		{
+			start = 0;
+			end = -1;  /* a negative value means all */
+		}
+		else
+		{
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+			{
+				return 0;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return 0;
+			}
+			start = (NSUInteger)start_int;
+			end = (NSUInteger)end_int;
+			selection_range = NSMakeRange(start, end-start);
+		}
+		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
+
+	}
+
+	return 0;
+}
+
+static char* cocoaTextGetSelectionPosAttrib(Ihandle* ih)
+{
+#if 1
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+		NSRange selected_range = [text_view selectedRange];
+		if(NSNotFound == selected_range.location)
+		{
+			return NULL;
+		}
+		NSUInteger start = selected_range.location;
+		NSUInteger end = selected_range.location + selected_range.length;
+		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+		return iupStrReturnIntInt((int)start, (int)end, ':');
+
+	}
+	else
+	{
+		int start, end;
+#if 0
+		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
+		{
+			start++; /* IUP starts at 1 */
+			end++;
+			return iupStrReturnIntInt((int)start, (int)end, ':');
+		}
+#endif
+		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
+	}
+#endif
+
+	return NULL;
+}
+
 
 
 static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
@@ -737,7 +1696,6 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
 			NSTextField* text_field = cocoaTextGetTextField(ih);
-			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
 			[text_field setPlaceholderString:ns_string];
 
 			return  1;
@@ -919,10 +1877,12 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 
 	  
 	  NSString* ns_append_string = nil;
+		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+
+		// NSTextStorage is a NSMutableAttributedString
+//	  NSMutableString* mutable_string = [text_storage mutableString];
 	  
-	  NSMutableString* mutable_string = [text_storage mutableString];
-	  
-	  if(ih->data->append_newline && ([mutable_string length] > 0))
+	  if(ih->data->append_newline && ([text_storage length] > 0))
 	  {
 		  ns_append_string = [NSString stringWithFormat:@"\n%s", value];
 
@@ -933,7 +1893,11 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 		  ns_append_string = [NSString stringWithUTF8String:value];
 
 	  }
-	  [mutable_string appendString:ns_append_string];
+	  
+	NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:[iup_font attributeDictionary]];
+	 [attributed_append_string autorelease];
+	  
+	  [text_storage appendAttributedString:attributed_append_string];
 	  
 	  [text_storage endEditing];
 
@@ -947,11 +1911,20 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 		  case IUPCOCOATEXTSUBTYPE_FIELD:
 		  {
 			  NSTextField* text_field = cocoaTextGetTextField(ih);
-			  NSString* old_string_value = [text_field stringValue];
+			  IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+			  // I don't know if the old string is attributed or not, so I need to assume it is
+			  NSMutableAttributedString* old_string_value = [[[text_field attributedStringValue] mutableCopy] autorelease];
+			  
 			  NSString* ns_append_string = [NSString stringWithUTF8String:value];
-			  NSString* new_string = [old_string_value stringByAppendingString:ns_append_string];
-			  [text_field setStringValue:new_string];
-
+			  
+			  
+			  NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:[iup_font attributeDictionary]];
+			  [attributed_append_string autorelease];
+			  
+			  [old_string_value appendAttributedString:attributed_append_string];
+			  
+			  
+			  
 			  break;
 		  }
 		  default:
@@ -1253,7 +2226,6 @@ static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
 		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
 			NSTextView* text_view = cocoaTextGetTextView(ih);
-			NSCAssert([text_view isKindOfClass:[NSTextView class]], @"Expected NSTextView");
 			
 			iupCocoaCommonBaseSetContextMenuForWidget(ih, text_view, menu_ih);
 
@@ -1769,8 +2741,10 @@ void iupdrvTextInitClass(Iclass* ic)
 #if 0
   iupClassRegisterAttribute(ic, "LINEVALUE", gtkTextGetLineValueAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTEDTEXT", gtkTextGetSelectedTextAttrib, gtkTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SELECTION", gtkTextGetSelectionAttrib, gtkTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SELECTIONPOS", gtkTextGetSelectionPosAttrib, gtkTextSetSelectionPosAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+#endif
+  iupClassRegisterAttribute(ic, "SELECTION", cocoaTextGetSelectionAttrib, cocoaTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SELECTIONPOS", cocoaTextGetSelectionPosAttrib, cocoaTextSetSelectionPosAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+#if 0
   iupClassRegisterAttribute(ic, "CARET", gtkTextGetCaretAttrib, gtkTextSetCaretAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CARETPOS", gtkTextGetCaretPosAttrib, gtkTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "INSERT", NULL, gtkTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
@@ -1797,12 +2771,14 @@ void iupdrvTextInitClass(Iclass* ic)
 	// TODO: What is a "line", e.g. does it include lines caused by wrapping?
 	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/CountLines.html
   iupClassRegisterAttribute(ic, "LINECOUNT", gtkTextGetLineCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
+#endif
 
   /* IupText Windows and GTK only */
   iupClassRegisterAttribute(ic, "ADDFORMATTAG", NULL, iupTextSetAddFormatTagAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ADDFORMATTAG_HANDLE", NULL, iupTextSetAddFormatTagHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORMATTING", iupTextGetFormattingAttrib, iupTextSetFormattingAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+#if 0
+  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, gtkTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TABSIZE", NULL, gtkTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
