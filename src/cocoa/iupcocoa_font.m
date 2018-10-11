@@ -44,67 +44,126 @@
 static NSMutableDictionary<NSString*, IupCocoaFont*>* s_mapOfFonts = nil;
 // This is for easy access to our system font since it is used so often.
 static IupCocoaFont* s_systemFont = nil;
+static IupCocoaFont* s_labelFont = nil;
+#ifdef IUPCOCOA_USE_SEPARATE_DEFAULT_FONT
+	static IupCocoaFont* s_defaultFont = nil;
+#endif
+
+static IupCocoaFont* cocoaCreateIupCocoaFontFromNSFont(NSFont* ns_font)
+{
+	IupCocoaFont* the_font = [[IupCocoaFont alloc] init];
+	[the_font autorelease];
+	
+	
+	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
+	[attribute_dict autorelease];
+	
+	
+	
+	[attribute_dict setValue:ns_font forKey:NSFontAttributeName];
+
+	[the_font setNativeFont:ns_font];
+	[the_font setAttributeDictionary:attribute_dict];
+
+	/*
+	familyName: .AppleSystemUIFont
+	fontName: .AppleSystemUIFont
+	displayName: System Font Regular
+	*/
+	int font_size = (int)[ns_font pointSize];
+	NSString* ns_font_name = [ns_font fontName];
+	// Remove leading dot?
+	//ns_font_name = [ns_font_name stringByReplacingOccurrencesOfString:@"." withString:@""];
+	NSString* ns_iup_font_name = [NSString stringWithFormat:@"%@, %d", ns_font_name, font_size];
+//		NSLog(@"ns_iup_font_name: %@", ns_iup_font_name);
+	[the_font setIupFontName:ns_iup_font_name];
+	[the_font setFontSize:font_size];
+	[the_font setTypeFace:ns_font_name];
+	[the_font setTraitMask:0];
+
+
+	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
+	int char_height = iupROUND([lm defaultLineHeightForFont:ns_font]);
+	[the_font setCharHeight:char_height];
+	[lm release];
+
+	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/StringHeight.html#//apple_ref/doc/uid/20001809-CJBGBIBB
+	// defaultLineHeightForFont: 16
+	// boundingRectForFont: (width = 21.099609375, height = 17.6337890625)
+	NSRect rect = [ns_font boundingRectForFont];
+	int char_width = iupROUND(rect.size.width);
+	[the_font setCharWidth:char_width];
+
+
+	return the_font;
+}
 
 static IupCocoaFont* cocoaGetSystemFont()
 {
 	if(nil == s_systemFont)
 	{
-		IupCocoaFont* the_font = [[IupCocoaFont alloc] init];
-		s_systemFont = the_font;
-		
 		NSFont* ns_font = [NSFont systemFontOfSize:0];
-		[s_systemFont setNativeFont:ns_font];
+		IupCocoaFont* iup_font = cocoaCreateIupCocoaFontFromNSFont(ns_font);
+		s_systemFont = [iup_font retain];
 		
-		NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
-		[attribute_dict autorelease];
-		
-		
-		
-		[attribute_dict setValue:ns_font forKey:NSFontAttributeName];
-
-		[the_font setNativeFont:ns_font];
-		[the_font setAttributeDictionary:attribute_dict];
-
-		/*
-		familyName: .AppleSystemUIFont
-		fontName: .AppleSystemUIFont
-		displayName: System Font Regular
-		*/
-		int font_size = (int)[ns_font pointSize];
-		NSString* ns_font_name = [ns_font fontName];
-		// Remove leading dot?
-		//ns_font_name = [ns_font_name stringByReplacingOccurrencesOfString:@"." withString:@""];
-		NSString* ns_iup_font_name = [NSString stringWithFormat:@"%@, %d", ns_font_name, font_size];
-//		NSLog(@"ns_iup_font_name: %@", ns_iup_font_name);
-		[the_font setIupFontName:ns_iup_font_name];
-		[the_font setFontSize:font_size];
-		[the_font setTypeFace:ns_font_name];
-
-
-		NSLayoutManager *lm = [[NSLayoutManager alloc] init];
-		int char_height = iupROUND([lm defaultLineHeightForFont:ns_font]);
-		[the_font setCharHeight:char_height];
-		[lm release];
-	
-		// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/StringHeight.html#//apple_ref/doc/uid/20001809-CJBGBIBB
-		// defaultLineHeightForFont: 16
-		// boundingRectForFont: (width = 21.099609375, height = 17.6337890625)
-		NSRect rect = [ns_font boundingRectForFont];
-		int char_width = iupROUND(rect.size.width);
-		[the_font setCharWidth:char_width];
-
 		// Add to global map
 		NSCAssert(s_mapOfFonts, @"s_mapOfFonts must be initialized");
-		[s_mapOfFonts setObject:s_systemFont forKey:ns_iup_font_name];
+		[s_mapOfFonts setObject:s_systemFont forKey:[iup_font iupFontName]];
 	}
 	return s_systemFont;
 }
+
+static IupCocoaFont* cocoaGetLabelFont()
+{
+	if(nil == s_labelFont)
+	{
+		NSFont* ns_font = [NSFont labelFontOfSize:0];
+		IupCocoaFont* iup_font = cocoaCreateIupCocoaFontFromNSFont(ns_font);
+		s_labelFont = [iup_font retain];
+		
+		// Add to global map
+		NSCAssert(s_mapOfFonts, @"s_mapOfFonts must be initialized");
+		[s_mapOfFonts setObject:s_labelFont forKey:[iup_font iupFontName]];
+	}
+	return s_labelFont;
+}
+
+#ifdef IUPCOCOA_USE_SEPARATE_DEFAULT_FONT
+static IupCocoaFont* cocoaGetDefaultFont()
+{
+	if(nil == s_defaultFont)
+	{
+		NSFont* ns_font = [NSFont systemFontOfSize:0];
+		IupCocoaFont* iup_font = cocoaCreateIupCocoaFontFromNSFont(ns_font);
+		s_defaultFont = [iup_font retain];
+		
+		[iup_font setDefaultFont:true];
+		[iup_font setTypeFace:@"Default"];
+		[iup_font setIupFontName:@"Default, 13"];
+
+		// Add to global map
+		NSCAssert(s_mapOfFonts, @"s_mapOfFonts must be initialized");
+		[s_mapOfFonts setObject:s_defaultFont forKey:[iup_font iupFontName]];
+	}
+	return s_defaultFont;
+}
+#endif
 
 char* iupdrvGetSystemFont(void)
 {
 	static char system_font_cstr[200] = "";
 	if(system_font_cstr[0] == '\0')
 	{
+#ifdef IUPCOCOA_USE_SEPARATE_DEFAULT_FONT
+	    // This actually gets the "default font", which is different than the system font (and the label font)
+		if(nil == s_defaultFont)
+		{
+			// make sure font system was initialized
+			iupdrvFontInit();
+			cocoaGetDefaultFont();
+		}
+	    strlcpy(system_font_cstr, [[s_defaultFont iupFontName] UTF8String], 200);
+#else
 		if(nil == s_systemFont)
 		{
 			// make sure font system was initialized
@@ -112,6 +171,7 @@ char* iupdrvGetSystemFont(void)
 			cocoaGetSystemFont();
 		}
 	    strlcpy(system_font_cstr, [[s_systemFont iupFontName] UTF8String], 200);
+#endif
 	}
 	return (char*)system_font_cstr;
 }
@@ -184,7 +244,7 @@ static IupCocoaFont* cocoaFindFont(const char* iup_font_name)
 	}
 	if(is_strikeout)
 	{
-  		[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlinePatternSolid|NSUnderlineStyleSingle]
+  		[attribute_dict setValue:[NSNumber numberWithInt:YES]
 			forKey:NSStrikethroughStyleAttributeName];
 		uses_attributes = true;
 	}
@@ -203,6 +263,7 @@ static IupCocoaFont* cocoaFindFont(const char* iup_font_name)
 	[the_font setIupFontName:ns_iup_font_name];
 	[the_font setFontSize:font_size];
 	[the_font setTypeFace:ns_type_face];
+	[the_font setTraitMask:trait_mask];
 
 
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
@@ -237,6 +298,11 @@ static IupCocoaFont* cocoaFontCreateNativeFont(Ihandle* ih, const char* value)
 static IupCocoaFont* cocoaFontGet(Ihandle* ih)
 {
 	IupCocoaFont* the_font = (IupCocoaFont*)iupAttribGet(ih, "_IUP_COCOAFONT");
+// I think we should support nil because not all widgets use the default system font. (Some use the label font.)
+// We don't want to accidentally force the system font when it shouldn't have been used.
+// But in practice, I am unable to implement this because IUP wants to set a font in the core.
+// And because IUP computes sizes based on character width & height, we can't leave this undefined.
+#if 1
 	if(nil == the_font)
 	{
 	    the_font = cocoaFontCreateNativeFont(ih, iupGetFontValue(ih));
@@ -245,6 +311,7 @@ static IupCocoaFont* cocoaFontGet(Ihandle* ih)
 			the_font = cocoaFontCreateNativeFont(ih, IupGetGlobal("DEFAULTFONT"));
 		}
 	}
+#endif
 	return the_font;
 }
 
@@ -257,11 +324,12 @@ IupCocoaFont* iupCocoaGetFont(Ihandle* ih)
 int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
 {
 	IupCocoaFont* iup_font = cocoaFontCreateNativeFont(ih, value);
+/*
 	if(nil == iup_font)
 	{
 		return 0;
 	}
-	
+*/
 	/* If FONT is changed, must update the SIZE attribute */
 	iupBaseUpdateAttribFromFont(ih);
 	
@@ -272,7 +340,26 @@ int iupdrvSetFontAttrib(Ihandle* ih, const char* value)
 		id the_widget = (id)ih->handle;
 		if([the_widget respondsToSelector:@selector(setFont:)])
 		{
+			// WARNING: There is a potential bug here.
+			// IUP is forcing us to provide a default font.
+			// But Cocoa uses at least two different fonts depending on circumstances (system & label)
+			// The safest thing would be to setFont:nil, but the way IUP is structured, it is not easy to leave a nil value.
+			// And because IUP computes sizes based on character width & height, we can't leave this undefined.
+			// For now
+#ifdef IUPCOCOA_USE_SEPARATE_DEFAULT_FONT
+			if(![iup_font isDefaultFont])
+			{
+				[the_widget setFont:[iup_font nativeFont]];
+			}
+			else
+			{
+				// This is for trying to detect the DEFAULT font case
+				// While layout might be wrong, the font won't get set so we won't accidentally see the wrong size.
+			}
+#else
 			[the_widget setFont:[iup_font nativeFont]];
+#endif
+
 		}
 	}
 	return 1;
@@ -453,6 +540,19 @@ void iupdrvFontInit(void)
 		// this will set s_systemFont
 		cocoaGetSystemFont();
 	}
+	if(nil == s_labelFont)
+	{
+		// this will set s_systemFont
+		cocoaGetLabelFont();
+	}
+#ifdef IUPCOCOA_USE_SEPARATE_DEFAULT_FONT
+	if(nil == s_defaultFont)
+	{
+		// this will set s_systemFont
+		cocoaGetDefaultFont();
+	}
+#endif
+
 }
 
 void iupdrvFontFinish(void)
@@ -462,4 +562,10 @@ void iupdrvFontFinish(void)
 	s_mapOfFonts = nil;
 	[s_systemFont release];
 	s_systemFont = nil;
+	[s_labelFont release];
+	s_labelFont = nil;
+#ifdef IUPCOCOA_USE_SEPARATE_DEFAULT_FONT
+	[s_defaultFont release];
+	s_defaultFont = nil;
+#endif
 }
