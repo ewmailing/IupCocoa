@@ -122,6 +122,7 @@ static int cocoaLabelSetTitleAttrib(Ihandle* ih, const char* value)
 		{
 			NSAttributedString* attr_str = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
 			[the_label setAttributedStringValue:attr_str];
+			[attr_str release];
 			// I think I need to call this. I noticed in another program, when I suddenly set a long string, it seems to use the prior layout. This forces a relayout.
 			IupRefresh(ih);
 		}
