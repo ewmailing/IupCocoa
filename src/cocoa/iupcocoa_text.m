@@ -1007,6 +1007,176 @@ void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 	
 }
 
+
+static void cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
+{
+	bool needs_paragraph_style = false;
+	char* format;
+
+	NSMutableParagraphStyle* paragraph_style = nil;
+	paragraph_style = [[attribute_dict objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+	if(nil == paragraph_style)
+	{
+		paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+	}
+	
+	[paragraph_style autorelease];
+	
+	
+
+	
+	format = iupAttribGet(formattag, "ALIGNMENT");
+	if(format)
+	{
+		if(iupStrEqualNoCase(format, "JUSTIFY"))
+		{
+			[paragraph_style setAlignment:NSTextAlignmentJustified];
+		}
+		else if(iupStrEqualNoCase(format, "RIGHT"))
+		{
+			[paragraph_style setAlignment:NSTextAlignmentRight];
+		}
+		else if(iupStrEqualNoCase(format, "CENTER"))
+		{
+			[paragraph_style setAlignment:NSTextAlignmentCenter];
+		}
+		else /* "LEFT" */
+		{
+			[paragraph_style setAlignment:NSTextAlignmentLeft];
+		}
+		needs_paragraph_style = true;
+	}
+	
+	format = iupAttribGet(formattag, "INDENT");
+	if(format)
+	{
+		int val = 0;
+		if(iupStrToInt(format, &val))
+		{
+			[paragraph_style setFirstLineHeadIndent:(CGFloat)val];
+			needs_paragraph_style = true;
+		}
+		
+		format = iupAttribGet(formattag, "INDENTRIGHT");
+		if(format && iupStrToInt(format, &val))
+		{
+			// The Iup/Windows implementation seems to use the value relative to the right margin.
+			// In Cocoa, positive values are the distance from the left margin, and negative values are from the right.
+			// NOTE: Cocoa uses head/tail, not left/right because it supports right-to-left languages.
+			[paragraph_style setTailIndent:(CGFloat)(-val)];
+			needs_paragraph_style = true;
+		}
+		
+		format = iupAttribGet(formattag, "INDENTOFFSET");
+		if(format && iupStrToInt(format, &val))
+		{
+			[paragraph_style setHeadIndent:(CGFloat)(val)];
+			needs_paragraph_style = true;
+		}
+	}
+
+
+	format = iupAttribGet(formattag, "LINESPACING");
+	if(format)
+	{
+		double val = 0;
+		
+		if(iupStrEqualNoCase(format, "SINGLE"))
+		{
+			[paragraph_style setLineSpacing:1.0];
+		}
+		else if(iupStrEqualNoCase(format, "ONEHALF"))
+		{
+			[paragraph_style setLineSpacing:1.5];
+		}
+		else if(iupStrEqualNoCase(format, "DOUBLE"))
+		{
+			[paragraph_style setLineSpacing:2.0];
+		}
+		else if(iupStrToDouble(format, &val))
+		{
+			[paragraph_style setLineSpacing:val];
+		}
+		needs_paragraph_style = true;
+	}
+	
+	format = iupAttribGet(formattag, "SPACEBEFORE");
+	if(format)
+	{
+		double val = 0;
+		if(iupStrToDouble(format, &val))
+		{
+			[paragraph_style setParagraphSpacingBefore:val];
+			needs_paragraph_style = true;
+		}
+	}
+	
+	format = iupAttribGet(formattag, "SPACEAFTER");
+	if(format)
+	{
+		double val = 0;
+		if(iupStrToDouble(format, &val))
+		{
+			[paragraph_style setParagraphSpacing:val];
+			needs_paragraph_style = true;
+		}
+	}
+
+	format = iupAttribGet(formattag, "TABSARRAY");
+	if(format)
+	{
+		int pos = 0;
+		char* str;
+		NSMutableArray* tab_array = [NSMutableArray array];
+		
+		while(format)
+		{
+			str = iupStrDupUntil((char**)&format, ' ');
+			if (!str) break;
+  		    pos = atoi(str);
+			free(str);
+			
+			str = iupStrDupUntil((char**)&format, ' ');
+			if (!str) break;
+			
+			NSTextTab* text_tab = nil;
+			// NOTE: DECIMAL is not supported.
+			// Cocoa additioanlly supports natural and justified.
+			if(iupStrEqualNoCase(str, "LEFT"))
+			{
+				text_tab = [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentLeft location:(CGFloat)pos options:[NSDictionary dictionary]];
+			}
+			else if(iupStrEqualNoCase(str, "RIGHT"))
+			{
+				text_tab = [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentRight location:(CGFloat)pos options:[NSDictionary dictionary]];
+			}
+			else if(iupStrEqualNoCase(str, "CENTER"))
+			{
+				text_tab = [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentCenter location:(CGFloat)pos options:[NSDictionary dictionary]];
+			}
+			else /* fallback for unsupported options */
+			{
+				text_tab = [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentLeft location:(CGFloat)pos options:[NSDictionary dictionary]];
+			}
+			free(str);
+			
+			[tab_array addObject:text_tab];
+			[text_tab release];
+		}
+		
+		[paragraph_style setTabStops:tab_array];
+		needs_paragraph_style = true;
+	}
+	
+
+	if(needs_paragraph_style)
+	{
+		[attribute_dict setValue:paragraph_style
+			forKey:NSParagraphStyleAttributeName];
+	}
+
+}
+
 static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
 {
 	NSFontManager* font_manager = [NSFontManager sharedFontManager];
@@ -1348,8 +1518,9 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
 	[attribute_dict autorelease];
 
+	cocoaTextParseParagraphFormat(formattag, attribute_dict, iup_font);
 	cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
-
+	
 
 	char* iup_selection = NULL;
 	NSRange native_selection_range = {0, 0};
@@ -1401,7 +1572,7 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 		}
 		else
 		{
-			NSLog(@"iupdrvTextAddFormatTag fallback case");
+//			NSLog(@"iupdrvTextAddFormatTag fallback case");
 			// new text inserted or typed will be formatted with the tag
 			[text_view setTypingAttributes:attribute_dict];
 			
@@ -1411,13 +1582,12 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 		}
 	}
 	
-	NSLog(@"iupdrvTextAddFormatTag: %@", NSStringFromRange(native_selection_range));
-
-	  NSTextStorage* text_storage = [text_view textStorage];
-	  [text_storage beginEditing];
- 	            [text_storage setAttributes:attribute_dict range:native_selection_range];
-
-	  [text_storage endEditing];
+//	NSLog(@"iupdrvTextAddFormatTag: %@", NSStringFromRange(native_selection_range));
+	
+	NSTextStorage* text_storage = [text_view textStorage];
+	[text_storage beginEditing];
+	[text_storage setAttributes:attribute_dict range:native_selection_range];
+	[text_storage endEditing];
 
 }
 
