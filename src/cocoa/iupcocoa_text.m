@@ -1478,6 +1478,10 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			[attribute_dict setValue:the_color
 				forKey:NSForegroundColorAttributeName];
 		}
+		else
+		{
+			[attribute_dict removeObjectForKey:NSForegroundColorAttributeName];
+		}
 	}
 	
 	format = iupAttribGet(formattag, "BGCOLOR");
@@ -1490,11 +1494,42 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			CGFloat green = g/255.0;
 			CGFloat blue = b/255.0;
 
-			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];			[attribute_dict setValue:the_color
+			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+			[attribute_dict setValue:the_color
 				forKey:NSBackgroundColorAttributeName];
 		}
+		else
+		{
+			[attribute_dict removeObjectForKey:NSBackgroundColorAttributeName];
+		}
 	}
+	
+	// Disabled color (not actually disabled)
+	// Watch-out, FGCOLOR can conflict with this because they both use NSForegroundColorAttributeName
+	format = iupAttribGet(formattag, "DISABLED");
+	if(format)
+	{
+		if(iupStrBoolean(format))
+		{
+			NSColor* the_color = [NSColor disabledControlTextColor];
+			[attribute_dict setValue:the_color
+				forKey:NSForegroundColorAttributeName];
+		}
+		else
+		{
+			// If the user specified FGCOLOR, then it was already set above.
+			if(iupAttribGet(formattag, "FGCOLOR"))
+			{
+			
+			}
+			else
+			{
+				[attribute_dict removeObjectForKey:NSForegroundColorAttributeName];
+			}
 
+		}
+	}
+	
 	
 
 	target_font = [font_manager convertFont:target_font toSize:font_size];
