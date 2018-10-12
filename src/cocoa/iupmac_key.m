@@ -381,7 +381,11 @@ static int cocoaKeyDecode(NSEvent* ns_event, int mac_key_code)
 	// (and figuring out how things are supposed to behave in edge cases like when both are on)
 	// we can use [nsevent characters] to get us what Apple interprets the keys as.
 	// Remember that Iup keys are in ASCII values, so we can do this range check following the ASCII table.
-    if( (iup_base_key >= K_exclam) && (iup_base_key <= K_tilde) )
+	// BUG: [NSEvent characters] throws an exception for non-keyUp/keyDown events. I'm calling this for modifier changes (flagChanged).
+	// So I need avoid this block on NSEventTypeFlagsChanged, and only allow key events
+    if( (iup_base_key >= K_exclam) && (iup_base_key <= K_tilde)
+    	&& ( (NSEventTypeKeyDown == [ns_event type]) || (NSEventTypeKeyUp == [ns_event type]) )
+	)
 	{
 		// turn event info into NSString
 		NSString* character_string = [ns_event characters];
