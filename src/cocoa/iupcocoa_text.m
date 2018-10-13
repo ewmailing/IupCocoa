@@ -294,7 +294,12 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 	NSTextField* text_field = self;
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
 	
-	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+	ret_flag = IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+	if(YES == ret_flag)
+	{
+	    [text_view didChangeText];
+	}
+	return ret_flag;
 }
 
 // WARNING: This was the only way I could figure out how to correctly override the contextual menu for NSTextField.
@@ -359,7 +364,12 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 	NSTextField* text_field = self;
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
 	
-	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+	ret_flag = IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+	if(YES == ret_flag)
+	{
+	    [text_view didChangeText];
+	}
+	return ret_flag;
 }
 
 // WARNING: This was the only way I could figure out how to correctly override the contextual menu for NSTextField.
@@ -450,15 +460,45 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 
 // Inherit from IupCocoaTextFieldDelegate to get VALUECHANGED_CB
 @interface IupCocoaTextViewDelegate : IupCocoaTextFieldDelegate <NSTextViewDelegate>
+{
+	NSUndoManager* undoManager;
+}
 @end
 
 @implementation IupCocoaTextViewDelegate
 
+- (instancetype) init
+{
+	self = [super init];
+	if(nil != self)
+	{
+		undoManager = [[NSUndoManager alloc] init];
+	}
+	return self;
+}
+
+- (void) dealloc
+{
+	[undoManager release];
+	[super dealloc];
+}
+
+- (NSUndoManager*) undoManagerForTextView:(NSTextView*)text_view
+{
+	return undoManager;
+}
+
 - (BOOL) textView:(NSTextView*)text_view shouldChangeTextInRange:(NSRange)change_range replacementString:(NSString*)replacement_string
 {
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_view, IHANDLE_ASSOCIATED_OBJ_KEY);
-	return IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+	BOOL ret_flag = IupCocoaTextFieldActionCallbackHelper(ih, change_range, replacement_string);
+	if(YES == ret_flag)
+	{
+	    [text_view didChangeText];
+	}
+	return ret_flag;
 }
+
 @end
 
 
@@ -1004,7 +1044,8 @@ void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 
 	  NSTextStorage* text_storage = [text_view textStorage];
 	  [text_storage endEditing];
-	
+	  [text_view didChangeText];
+
 }
 
 
@@ -1610,7 +1651,8 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 //			NSLog(@"iupdrvTextAddFormatTag fallback case");
 			// new text inserted or typed will be formatted with the tag
 			[text_view setTypingAttributes:attribute_dict];
-			
+//			[[text_view delegate] textView:text_view shouldChangeTypingAttributes:[iup_font attributeDictionary] toAttributes:attribute_dict];
+
 			// Return immediately. The fall-through code is for selection-only
 			return;
 			
@@ -1618,11 +1660,21 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	}
 	
 //	NSLog(@"iupdrvTextAddFormatTag: %@", NSStringFromRange(native_selection_range));
+	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+	[undo_manager beginUndoGrouping];
 	
 	NSTextStorage* text_storage = [text_view textStorage];
 	[text_storage beginEditing];
+	// Only the bullet/number feature changes the text. nil should express attribute-only change
+	[text_view shouldChangeTextInRange:native_selection_range replacementString:nil];
 	[text_storage setAttributes:attribute_dict range:native_selection_range];
 	[text_storage endEditing];
+	
+
+	[text_view didChangeText];
+//	[[text_view delegate] textView:text_view shouldChangeTypingAttributes:[iup_font attributeDictionary] toAttributes:attribute_dict];
+
+	[undo_manager endUndoGrouping];
 
 }
 
@@ -2106,12 +2158,25 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 
 	  }
 	  
-	NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:[iup_font attributeDictionary]];
-	 [attributed_append_string autorelease];
+
 	  
+	  
+	  NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:[iup_font attributeDictionary]];
+	  [attributed_append_string autorelease];
+
+	  // We need to mark the proposed change range (before we change it) in order to call shouldChangeTextInRange:
+	  NSRange change_range = NSMakeRange([text_storage length], 0);
+	  ih->data->disable_callbacks = 1;
+  	  [text_view shouldChangeTextInRange:change_range replacementString:[attributed_append_string string]];
+
 	  [text_storage appendAttributedString:attributed_append_string];
-	  
+
+	  ih->data->disable_callbacks = 0;
+
 	  [text_storage endEditing];
+
+		// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+	  [text_view didChangeText];
 
   }
   else
@@ -2519,7 +2584,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 //		[[text_view textContainer] setWidthTracksTextView:YES];
 		// Needed to allow things like Cmd-E (put in search buffer), Cmd-G (find next), and the standard Find panel. Even if you don't want the standard find panel, a broken cmd-e/cmd-g is bad.
 		[text_view setUsesFindPanel:YES];
-		
+		[text_view setAllowsUndo:YES];
+
 		[scroll_view setDocumentView:text_view];
 		[text_view release];
 
@@ -2818,6 +2884,14 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	if(ih->data->formattags)
 	{
 		iupTextUpdateFormatTags(ih);
+	}
+	
+	if(ih->data->is_multiline)
+	{
+		// Reset the undo manager so the user can't undo the initial setup.
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+		[undo_manager removeAllActions];
 	}
 	
 	return IUP_NOERROR;
