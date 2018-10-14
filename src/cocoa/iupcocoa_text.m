@@ -1030,10 +1030,13 @@ void* iupdrvTextAddFormatTagStartBulk(Ihandle* ih)
 {
 	NSLog(@"iupdrvTextAddFormatTagStartBulk");
 	  NSTextView* text_view = cocoaTextGetTextView(ih);
-
+	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+	[undo_manager beginUndoGrouping];
+	
 	  NSTextStorage* text_storage = [text_view textStorage];
+	  // I'm not sure if this is safe. The LayoutManager will throw an exception if a layout is done while beginEditing
 	  [text_storage beginEditing];
-  return NULL;
+	return NULL;
 }
 
 void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
@@ -1041,15 +1044,17 @@ void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 	NSLog(@"iupdrvTextAddFormatTagStopBulk");
 
 	  NSTextView* text_view = cocoaTextGetTextView(ih);
-
+	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+	
 	  NSTextStorage* text_storage = [text_view textStorage];
 	  [text_storage endEditing];
-	  [text_view didChangeText];
+//	  [text_view didChangeText];
+	[undo_manager endUndoGrouping];
 
 }
 
 
-static void cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
+static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict)
 {
 	bool needs_paragraph_style = false;
 	char* format;
@@ -1215,14 +1220,504 @@ static void cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionar
 		[attribute_dict setValue:paragraph_style
 			forKey:NSParagraphStyleAttributeName];
 	}
-
+	return needs_paragraph_style;
 }
 
-static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
+/*
+NOTES: Not supporting NUMBERINGTAB because following TextEdit.app conventions, we use two tabs (before & after the marker), so the API doesn't fit.
+Using TABSARRAY seems to be the correct way to control indentation for this (looking at TextEdit.app).
+Additionally, because we must manually inject the markers into the text, a variable number of tabs makes it harder to remove formatting because we already must use regex to find patterns since we don't necessarily know the marker type to remove.
+Long term, we might like to support nested lists, which NUMBERINGTAB will make harder to detect since it could confuse the number of tabs to look for.
+*/
+static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font, NSTextView* text_view, NSRange selection_range)
+{
+	// Apple doesn't provide these string constants until 10.13, so we provide our own copy.
+	static NSString* IupNSTextListMarkerBox = @"{box}";
+	static NSString* IupNSTextListMarkerCheck = @"{check}";
+	static NSString* IupNSTextListMarkerCircle = @"{circle}";
+	static NSString* IupNSTextListMarkerDiamond = @"{diamond}";
+	static NSString* IupNSTextListMarkerDisc = @"{disc}";
+	static NSString* IupNSTextListMarkerHyphen = @"{hyphen}";
+	static NSString* IupNSTextListMarkerSquare = @"{square}";
+	static NSString* IupNSTextListMarkerLowercaseHexadecimal = @"{lower-hexadecimal}";
+	static NSString* IupNSTextListMarkerUppercaseHexadecimal = @"{upper-hexadecimal}";
+	static NSString* IupNSTextListMarkerOctal = @"{octal}";
+	static NSString* IupNSTextListMarkerLowercaseAlpha = @"{lower-alpha}";
+	static NSString* IupNSTextListMarkerUppercaseAlpha = @"{upper-alpha}";
+	static NSString* IupNSTextListMarkerLowercaseLatin = @"{lower-latin}";
+	static NSString* IupNSTextListMarkerUppercaseLatin = @"{upper-latin}";
+	static NSString* IupNSTextListMarkerLowercaseRoman = @"{lower-roman}";
+	static NSString* IupNSTextListMarkerUppercaseRoman = @"{upper-roman}";
+	static NSString* IupNSTextListMarkerDecimal = @"{decimal}";
+	
+	char* format;
+	bool use_list = false;
+	NSString* which_list_marker = nil;
+
+	format = iupAttribGet(formattag, "NUMBERING");
+	if(format)
+	{
+		use_list = true; // will unset in NONE case
+		if(iupStrEqualNoCase(format, "BULLET"))
+		{
+			which_list_marker = IupNSTextListMarkerDisc;
+		}
+		else if(iupStrEqualNoCase(format, "ARABIC"))
+		{
+			which_list_marker = IupNSTextListMarkerDecimal;
+		}
+		else if(iupStrEqualNoCase(format, "LCLETTER"))
+		{
+			which_list_marker = IupNSTextListMarkerLowercaseAlpha;
+		}
+		else if(iupStrEqualNoCase(format, "UCLETTER"))
+		{
+			which_list_marker = IupNSTextListMarkerUppercaseAlpha;
+		}
+		else if(iupStrEqualNoCase(format, "LCROMAN"))
+		{
+			which_list_marker = IupNSTextListMarkerLowercaseRoman;
+		}
+		else if(iupStrEqualNoCase(format, "UCROMAN"))
+		{
+			which_list_marker = IupNSTextListMarkerUppercaseRoman;
+		}
+		else if(iupStrEqualNoCase(format, "NONE"))
+		{
+			use_list = false;
+		}
+		else
+		{
+			use_list = false;
+		}
+	
+		if(use_list)
+		{
+			const NSUInteger kIupNumberingStyleNone = 0;
+			const NSUInteger kIupNumberingStyleRightParenthesis = 1;
+			const NSUInteger kIupNumberingStyleParenthesis = 2;
+			const NSUInteger kIupNumberingStylePeriod = 3;
+			const NSUInteger kIupNumberingStyleNonNumber = 4;
+
+			NSUInteger which_number_style = kIupNumberingStyleNone;
+			
+			/* TODO: WARNING: If the user hits return in the middle of a list, the custom NUMBERINGSTYLE disappears.
+			 	According to this blog:
+				https://meandmark.com/blog/2016/12/adding-markers-to-text-lists-when-pressing-the-return-key/
+				1. Create a subclass of NSTextView.
+				2. Override the function insertNewline in your NSTextView subclass. This function gets called when someone presses the Return key.
+				3. Use the text view’s selectedRange property to determine if you’re inside a list. The selectedRange property’s location field is the text view’s insertion point.
+				4. If you’re inside a list, add the marker to the text view’s text storage at the insertion point.
+
+				I'm suspicious that this may not fully work.
+				I noticed that we lose all the existing NUMBERINGSTYLEs, but they make no mention of that.
+				This makes me think they didn't set up the textLists correctly in the paragraph attributes.
+				Ironically, if we don't set up the TextLists/paragraph attributes correctly,
+				the NUMBERINGSTYLE won't revert.
+				But we lose other properties such as the numbers automatically re-ordering themselves
+				and it being aware that it is a list (tab and shift-tab can change the nesting levels).
+			 
+				This may be worth a DTS incident to fix.
+				Or if somebody can find a modern version of the TextEdit.app source code.
+			*/
+			format = iupAttribGet(formattag, "NUMBERINGSTYLE");
+			if(format)
+			{
+				if(iupStrEqualNoCase(format, "RIGHTPARENTHESIS"))
+				{
+					which_number_style = kIupNumberingStyleRightParenthesis;
+				}
+				else if(iupStrEqualNoCase(format, "PARENTHESIS"))
+				{
+					which_number_style = kIupNumberingStyleParenthesis;
+				}
+				else if(iupStrEqualNoCase(format, "PERIOD"))
+				{
+					which_number_style = kIupNumberingStylePeriod;
+				}
+				else if(iupStrEqualNoCase(format, "NONUMBER"))
+				{
+					which_number_style = kIupNumberingStyleNonNumber;
+				}
+				else if(iupStrEqualNoCase(format, "NONE"))
+				{
+					which_number_style = kIupNumberingStyleNone;
+				}
+				else
+				{
+					which_number_style = kIupNumberingStyleNone;
+				}
+			
+			}
+
+
+
+			NSTextStorage* text_storage = [text_view textStorage];
+			NSString* all_string = [text_storage string];
+
+			// This is messy.
+			// I am using a two-pass solution.
+			// The problem seems to be that in order to change the TextLines attribute for the entire block, I need to re-set the attribute.
+			// But by doing this, I lose the attributes inside the block, which means I lose formatting in the individual lines.
+			// So with the two pass solution:
+			// - In loop-pass 1:
+			// 		- I adjust/expand the selection block to go to the beginning/end of the lines.
+			// 		- I save each attributed line
+			// Then I re-set the paragraph attribute to remove the TextLines
+			// - In loop-pass 2:
+			//		- I delete the markers while using the attributed strings saved from the 1st-pass
+			
+			
+			__block NSUInteger applied_paragraph_start = NSUIntegerMax;
+			__block NSUInteger applied_paragraph_end = 0;
+			__block NSMutableArray* array_of_attributed_lines = [NSMutableArray array];
+			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
+				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
+				{
+					*stop = NO;
+					NSUInteger start_paragraph_index;
+					NSUInteger end_paragraph_index;
+					NSUInteger contents_end_paragraph_index;
+					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
+					
+					if(applied_paragraph_start > start_paragraph_index)
+					{
+						applied_paragraph_start = start_paragraph_index;
+					}
+#if 0
+					if(applied_paragraph_end < contents_end_paragraph_index)
+					{
+						applied_paragraph_end = contents_end_paragraph_index;
+					}
+#else
+					if(applied_paragraph_end < end_paragraph_index)
+					{
+						applied_paragraph_end = end_paragraph_index;
+					}
+#endif
+					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
+
+					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
+					[current_line autorelease];
+					
+					[array_of_attributed_lines addObject:current_line];
+				}
+			];
+
+			
+			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
+			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
+			[text_storage_attributes autorelease];
+			NSMutableParagraphStyle* paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+			[paragraph_style autorelease];
+
+
+			[text_storage beginEditing];
+
+			if(nil == paragraph_style)
+			{
+				NSLog(@"nil == paragraph_style");
+				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+				[paragraph_style autorelease];
+			}
+			
+
+			__block NSMutableArray<NSTextList*>* array_of_text_lists = [NSMutableArray array];
+
+			
+
+			__block NSUInteger item_count = 1;
+			__block NSMutableArray* array_of_line_attributes = [NSMutableArray array];
+			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
+				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
+				{
+					*stop = NO;
+	//				NSLog(@"substring:%@", substring);
+	//				NSLog(@"substringRange:%@", NSStringFromRange(substring_range));
+	//				NSLog(@"enclosingRange:%@", NSStringFromRange(enclosing_range));
+
+					// If the selection block starts in the middle of the paragraph instead of the beginning,
+					// we have to decide whether we should start as-is,
+					// or back-up to the beginning.
+					// TextEdit.app backs up to the beginning, so we will use getParagraphStart to back up to the beginning.
+					NSUInteger start_paragraph_index;
+					NSUInteger end_paragraph_index;
+					NSUInteger contents_end_paragraph_index;
+					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
+
+	//				NSLog(@"start_paragraph_index:%lu", start_paragraph_index);
+	//				NSLog(@"end_paragraph_index:%lu", end_paragraph_index);
+	//				NSLog(@"contents_end_paragraph_index:%lu", contents_end_paragraph_index);
+
+					// end_paragraph_index seems to include the newline, which we want
+					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
+				//	NSRange paragraph_range = NSMakeRange(start_paragraph_index, contents_end_paragraph_index-start_paragraph_index);
+					NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
+
+
+					NSTextList* text_list = [[NSTextList alloc] initWithMarkerFormat:which_list_marker options:0];
+					[text_list autorelease];
+					[array_of_text_lists addObject:text_list];
+					
+					NSMutableAttributedString* current_line = [array_of_attributed_lines objectAtIndex:item_count-1];
+//					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
+//					[current_line autorelease];
+					NSLog(@"current_line: %@", current_line);
+//					NSRange attr_range;
+//					NSDictionary<NSAttributedStringKey, id>* current_line_attributes = [current_line attributesAtIndex:0 effectiveRange:&attr_range];
+					NSDictionary<NSAttributedStringKey, id>* current_line_attributes = [current_line attributesAtIndex:0 effectiveRange:NULL];
+
+					NSLog(@"current_line_attributes: %@", current_line_attributes);
+//					NSLog(@"attr_range:%@", NSStringFromRange(attr_range));
+
+					NSString* marker_with_style_prefix = nil;
+					switch(which_number_style)
+					{
+						case kIupNumberingStyleRightParenthesis:
+						{
+							marker_with_style_prefix = [NSString stringWithFormat:@"\t%@)\t", [text_list markerForItemNumber:item_count]];
+							break;
+						}
+						case kIupNumberingStyleParenthesis:
+						{
+							marker_with_style_prefix = [NSString stringWithFormat:@"\t(%@)\t", [text_list markerForItemNumber:item_count]];
+							break;
+						}
+						case kIupNumberingStylePeriod:
+						{
+							marker_with_style_prefix = [NSString stringWithFormat:@"\t%@.\t", [text_list markerForItemNumber:item_count]];
+							break;
+						}
+						case kIupNumberingStyleNonNumber:
+						{
+							marker_with_style_prefix = @"\t\t";
+							break;
+						}
+						default:
+						{
+							marker_with_style_prefix = [NSString stringWithFormat:@"\t%@\t", [text_list markerForItemNumber:item_count]];
+							break;
+						}
+					}
+					
+					
+					NSAttributedString* attribued_prefix = [[NSAttributedString alloc] initWithString:marker_with_style_prefix attributes:current_line_attributes];
+					[attribued_prefix autorelease];
+					[current_line insertAttributedString:attribued_prefix atIndex:0];
+//					[current_line fixAttributesInRange:NSMakeRange(0, [current_line length])];
+
+					ih->data->disable_callbacks = 1;
+					[text_view shouldChangeTextInRange:paragraph_range replacementString:[current_line string]];
+					ih->data->disable_callbacks = 0;
+					[text_storage replaceCharactersInRange:paragraph_range withAttributedString:current_line];
+
+					//current_line_attributes = [current_line attributesAtIndex:0 effectiveRange:NULL];
+					[array_of_line_attributes addObject:current_line_attributes];
+
+					item_count++;
+				
+				}
+			];
+
+
+			
+			[paragraph_style setTextLists:array_of_text_lists];
+//			[text_storage_attributes setValue:paragraph_style forKey:NSParagraphStyleAttributeName];
+			// Be careful here:
+			// It seems I must do this last, otherwise the list doesn't take effect.
+			// (You should be able to add a new line in-between the lines, and it should automatically
+			// insert a new bullet and renumber all the lines accordingly.)
+			// But applying this last seems to blow away some attributes.
+			// In the text.c test,
+			// I lose the strike-through and italics on "Second Line"
+			// I lose the alignment on "Third Line" (this is not completely unreasonable)
+//			[text_storage setAttributes:text_storage_attributes range:applied_paragraph_range];
+			[text_storage addAttribute:NSParagraphStyleAttributeName value:paragraph_style range:applied_paragraph_range];
+
+
+			[text_storage endEditing];
+			[text_view didChangeText];
+
+			
+		}
+		else // we attempt to remove list formatting
+		{
+			NSTextStorage* text_storage = [text_view textStorage];
+			NSString* all_string = [text_storage string];
+
+			// This is messy.
+			// I am using a two-pass solution.
+			// The problem seems to be that in order to remove the TextLines attribute for the entire block, I need to re-set the attribute.
+			// But by doing this, I lose the attributes inside the block, which means I lose formatting in the individual lines.
+			// I also seem to need to set the attribute before I modify the lines or I end up setting a bad range.
+			// So with the two pass solution:
+			// - In loop-pass 1:
+			// 		- I adjust/expand the selection block to go to the beginning/end of the lines.
+			// 		- I save each attributed line
+			// Then I re-set the paragraph attribute to remove the TextLines
+			// - In loop-pass 2:
+			//		- I delete the markers while using the attributed strings saved from the 1st-pass
+			
+			
+			__block NSUInteger applied_paragraph_start = NSUIntegerMax;
+			__block NSUInteger applied_paragraph_end = 0;
+			__block NSMutableArray* array_of_attributed_lines = [NSMutableArray array];
+			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
+				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
+				{
+					*stop = NO;
+					NSUInteger start_paragraph_index;
+					NSUInteger end_paragraph_index;
+					NSUInteger contents_end_paragraph_index;
+					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
+					
+					if(applied_paragraph_start > start_paragraph_index)
+					{
+						applied_paragraph_start = start_paragraph_index;
+					}
+#if 0
+					if(applied_paragraph_end < contents_end_paragraph_index)
+					{
+						applied_paragraph_end = contents_end_paragraph_index;
+					}
+#else
+					if(applied_paragraph_end < end_paragraph_index)
+					{
+						applied_paragraph_end = end_paragraph_index;
+					}
+#endif
+					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
+
+					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
+					[current_line autorelease];
+					
+					[array_of_attributed_lines addObject:current_line];
+				}
+			];
+
+			
+			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
+			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
+			[text_storage_attributes autorelease];
+			NSMutableParagraphStyle* paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+			[paragraph_style autorelease];
+
+
+			[text_storage beginEditing];
+
+			if(nil == paragraph_style)
+			{
+				// There was no TextList, so there is nothing to remove.
+				NSLog(@"Nothing to remove");
+			}
+			else
+			{
+				[paragraph_style setTextLists:[NSArray array]];
+				/*
+				[text_storage_attributes setValue:paragraph_style forKey:NSParagraphStyleAttributeName];
+				// Be careful here:
+				// It seems we must do before modification, otherwise the selection range becomes wrong.
+				// But the caller is also setting this. So we need to be careful about the caller order.
+				[text_storage setAttributes:text_storage_attributes range:applied_paragraph_range];
+				*/
+				NSLog(@"removed textlist");
+
+				[text_storage removeAttribute:NSParagraphStyleAttributeName range:applied_paragraph_range];
+
+			}
+			
+			
+			
+
+
+
+			// Pass 2
+			__block NSUInteger loop_count = 0;
+			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
+				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
+				{
+					*stop = NO;
+	//				NSLog(@"substring:%@", substring);
+	//				NSLog(@"substringRange:%@", NSStringFromRange(substring_range));
+	//				NSLog(@"enclosingRange:%@", NSStringFromRange(enclosing_range));
+
+					// If the selection block starts in the middle of the paragraph instead of the beginning,
+					// we have to decide whether we should start as-is,
+					// or back-up to the beginning.
+					// TextEdit.app backs up to the beginning, so we will use getParagraphStart to back up to the beginning.
+					NSUInteger start_paragraph_index;
+					NSUInteger end_paragraph_index;
+					NSUInteger contents_end_paragraph_index;
+					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
+
+	//				NSLog(@"start_paragraph_index:%lu", start_paragraph_index);
+	//				NSLog(@"end_paragraph_index:%lu", end_paragraph_index);
+	//				NSLog(@"contents_end_paragraph_index:%lu", contents_end_paragraph_index);
+
+					// end_paragraph_index seems to include the newline, which we want
+					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
+				//	NSRange paragraph_range = NSMakeRange(start_paragraph_index, contents_end_paragraph_index-start_paragraph_index);
+	//				NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
+
+
+					
+					NSMutableAttributedString* current_line = [array_of_attributed_lines objectAtIndex:loop_count];
+					NSString* current_line_nsstr = [current_line string];
+	//				NSLog(@"current_line bef:%@", current_line);
+
+					NSString* marker_prefix_pattern = @"^\t.*?\t";
+					NSError* ns_error = nil;
+					NSRegularExpression* reg_ex = [NSRegularExpression
+						regularExpressionWithPattern:marker_prefix_pattern
+						options:NSRegularExpressionAnchorsMatchLines
+						error:&ns_error
+					];
+					
+					NSArray<NSTextCheckingResult*>* regex_matches = [reg_ex matchesInString:current_line_nsstr
+						options:kNilOptions
+						range:NSMakeRange(0, [current_line_nsstr length])
+					];
+					
+					// There should only be 1 match right now since we anchor with ^
+					// But maybe in the future we can leverage the loop to look at nested lists
+					for(NSTextCheckingResult* match in regex_matches)
+					{
+	//					NSLog(@"match:%@", match);
+	//					NSLog(@"match range:%@", NSStringFromRange([match range]));
+						[current_line deleteCharactersInRange:[match range]];
+	//					NSLog(@"current_line aft:%@", current_line);
+					}
+
+					// Must be [current_line string] and not current_line_nsstr because we mutated current_line and current_line_nsstr may be out of date
+					ih->data->disable_callbacks = 1;
+					[text_view shouldChangeTextInRange:paragraph_range replacementString:[current_line string]];
+					ih->data->disable_callbacks = 0;
+					[text_storage replaceCharactersInRange:paragraph_range withAttributedString:current_line];
+
+
+					loop_count++;
+				}
+			];
+
+			[text_storage endEditing];
+			[text_view didChangeText];
+		}
+		return true;
+	} // end if NUMBERING
+	return false;
+}
+
+static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
 {
 	NSFontManager* font_manager = [NSFontManager sharedFontManager];
 	
-	NSFont* target_font = [iup_font nativeFont];
+	NSFont* target_font = nil;
+	
+	target_font = [attribute_dict objectForKey:NSFontAttributeName];
+	if(nil == target_font)
+	{
+		target_font = [iup_font nativeFont];
+	}
 	
 	NSFontTraitMask trait_mask = [iup_font traitMask];
 	
@@ -1230,7 +1725,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 //	NSString* font_family = [target_font familyName];
 	
 	char* format;
-
+	bool did_change_attribute = false;
 
 	format = iupAttribGet(formattag, "FONTSIZE");
 	if(format)
@@ -1248,6 +1743,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			font_size = (CGFloat)font_size_int;
 		}
+		did_change_attribute = true;
 	}
 	
 	format = iupAttribGet(formattag, "FONTFACE");
@@ -1266,6 +1762,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		}
 		
 		target_font = [font_manager convertFont:target_font toFamily:ns_family_name];
+		did_change_attribute = true;
 	}
 	
 	// TODO: Do we reset the traits or are we expected to inherit it from the original font?
@@ -1281,6 +1778,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			trait_mask = trait_mask & (~NSItalicFontMask); // To unset the flag, invert the bits, then AND
 		}
+		did_change_attribute = true;
 	}
 
 
@@ -1308,6 +1806,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			[attribute_dict setValue:[NSNumber numberWithInt:NSUnderlineStyleNone]
 				forKey:NSUnderlineStyleAttributeName];
 		}
+		did_change_attribute = true;
 	}
 
 
@@ -1324,6 +1823,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			[attribute_dict setValue:[NSNumber numberWithInt:NO]
 				forKey:NSStrikethroughStyleAttributeName];
 		}
+		did_change_attribute = true;
 	}
 	format = iupAttribGet(formattag, "RISE");
 	if(format)
@@ -1353,6 +1853,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 				forKey:NSBaselineOffsetAttributeName];
 			// user is expected to set the font size for this case
 		}
+		did_change_attribute = true;
 	}
 
 
@@ -1381,9 +1882,11 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			font_size = font_size * fval;
 		}
+		did_change_attribute = true;
 	}
 
 	format = iupAttribGet(formattag, "WEIGHT");
+	if(format)
 	{
 		/*
 		Apple Terminology						ISO Equivalent
@@ -1502,7 +2005,8 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 	   }
 
  
-		
+		did_change_attribute = true;
+
 	}
 	
 	format = iupAttribGet(formattag, "FGCOLOR");
@@ -1523,6 +2027,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			[attribute_dict removeObjectForKey:NSForegroundColorAttributeName];
 		}
+		did_change_attribute = true;
 	}
 	
 	format = iupAttribGet(formattag, "BGCOLOR");
@@ -1543,6 +2048,7 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			[attribute_dict removeObjectForKey:NSBackgroundColorAttributeName];
 		}
+		did_change_attribute = true;
 	}
 	
 	// Disabled color (not actually disabled)
@@ -1569,14 +2075,17 @@ static void cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			}
 
 		}
+		did_change_attribute = true;
 	}
 	
 	
-
-	target_font = [font_manager convertFont:target_font toSize:font_size];
-	target_font = [font_manager convertFont:target_font toHaveTrait:trait_mask];
- 	[attribute_dict setValue:target_font forKey:NSFontAttributeName];
-
+	if(did_change_attribute)
+	{
+		target_font = [font_manager convertFont:target_font toSize:font_size];
+		target_font = [font_manager convertFont:target_font toHaveTrait:trait_mask];
+		[attribute_dict setValue:target_font forKey:NSFontAttributeName];
+	}
+	return did_change_attribute;
 }
 
 void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
@@ -1587,16 +2096,6 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	}
 	NSTextView* text_view = cocoaTextGetTextView(ih);
 
-
-		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
-//	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
-	// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
-	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
-	[attribute_dict autorelease];
-
-	cocoaTextParseParagraphFormat(formattag, attribute_dict, iup_font);
-	cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
-	
 
 	char* iup_selection = NULL;
 	NSRange native_selection_range = {0, 0};
@@ -1648,33 +2147,87 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 		}
 		else
 		{
+		
+		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+//	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
+	// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+	[attribute_dict autorelease];
+			NSTextStorage* text_storage = [text_view textStorage];
+	NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:native_selection_range] attributesAtIndex:0 effectiveRange:NULL];
+
+	[attribute_dict addEntriesFromDictionary:text_storage_attributes];
+
+	bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
+	bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
+	
+		
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			
 //			NSLog(@"iupdrvTextAddFormatTag fallback case");
 			// new text inserted or typed will be formatted with the tag
 			[text_view setTypingAttributes:attribute_dict];
 //			[[text_view delegate] textView:text_view shouldChangeTypingAttributes:[iup_font attributeDictionary] toAttributes:attribute_dict];
 
+			
+			// Set the selection range to be at the very last character.
+			native_selection_range = NSMakeRange([text_storage length]-1, 0);
+			cocoaTextParseBulletNumberListFormat(ih, formattag, attribute_dict, iup_font, text_view, native_selection_range);
+			[undo_manager endUndoGrouping];
+			
 			// Return immediately. The fall-through code is for selection-only
 			return;
 			
 		}
 	}
 	
+	
+		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+//	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
+	// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+	[attribute_dict autorelease];
+						NSLog(@"start attribute_dict: %@", attribute_dict);
+NSTextStorage* text_storage = [text_view textStorage];
+
+	NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:native_selection_range] attributesAtIndex:0 effectiveRange:NULL];
+						NSLog(@"text_storage_attributes: %@", text_storage_attributes);
+
+	[attribute_dict addEntriesFromDictionary:text_storage_attributes];
+							NSLog(@"addEntriesFromDictionary attribute_dict: %@", attribute_dict);
+	bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
+	bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
+							NSLog(@"post attribute_dict: %@", attribute_dict);
+
+	
+	
 //	NSLog(@"iupdrvTextAddFormatTag: %@", NSStringFromRange(native_selection_range));
 	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 	[undo_manager beginUndoGrouping];
 	
-	NSTextStorage* text_storage = [text_view textStorage];
-	[text_storage beginEditing];
+//	[text_storage beginEditing];
 	// Only the bullet/number feature changes the text. nil should express attribute-only change
 	[text_view shouldChangeTextInRange:native_selection_range replacementString:nil];
-	[text_storage setAttributes:attribute_dict range:native_selection_range];
-	[text_storage endEditing];
 	
+	// Tricky: cocoaTextParseBulletNumberListFormat needs to call this, but the range may change since it alters the text length.
+	// This will lead to a bad range/exception.
+	// So call this before cocoaTextParseBulletNumberListFormat and then let
+	// cocoaTextParseBulletNumberListFormat call again with its own range.
+	cocoaTextParseBulletNumberListFormat(ih, formattag, attribute_dict, iup_font, text_view, native_selection_range);
+	if(needs_character_style_change || needs_paragraph_style_change)
+	{
+		[text_storage setAttributes:attribute_dict range:native_selection_range];
+	}
+
+	
+//	[text_storage endEditing];
 
 	[text_view didChangeText];
 //	[[text_view delegate] textView:text_view shouldChangeTypingAttributes:[iup_font attributeDictionary] toAttributes:attribute_dict];
 
 	[undo_manager endUndoGrouping];
+	
 
 }
 
@@ -2137,7 +2690,6 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 	  NSTextView* text_view = cocoaTextGetTextView(ih);
 
 	  NSTextStorage* text_storage = [text_view textStorage];
-	  [text_storage beginEditing];
 
 	  
 	  NSString* ns_append_string = nil;
@@ -2168,6 +2720,7 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 	  NSRange change_range = NSMakeRange([text_storage length], 0);
 	  ih->data->disable_callbacks = 1;
   	  [text_view shouldChangeTextInRange:change_range replacementString:[attributed_append_string string]];
+	  [text_storage beginEditing];
 
 	  [text_storage appendAttributedString:attributed_append_string];
 
