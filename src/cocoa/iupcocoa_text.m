@@ -1244,8 +1244,8 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 	static NSString* IupNSTextListMarkerOctal = @"{octal}";
 	static NSString* IupNSTextListMarkerLowercaseAlpha = @"{lower-alpha}";
 	static NSString* IupNSTextListMarkerUppercaseAlpha = @"{upper-alpha}";
-	static NSString* IupNSTextListMarkerLowercaseLatin = @"{lower-latin}";
-	static NSString* IupNSTextListMarkerUppercaseLatin = @"{upper-latin}";
+	static NSString* IupNSTextListMarkerLowercaseLatin = @"{lower-latin}"; // seems to be the same as alpha
+	static NSString* IupNSTextListMarkerUppercaseLatin = @"{upper-latin}"; // seems to be the same as alpha
 	static NSString* IupNSTextListMarkerLowercaseRoman = @"{lower-roman}";
 	static NSString* IupNSTextListMarkerUppercaseRoman = @"{upper-roman}";
 	static NSString* IupNSTextListMarkerDecimal = @"{decimal}";
@@ -1285,6 +1285,50 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 		else if(iupStrEqualNoCase(format, "NONE"))
 		{
 			use_list = false;
+		}
+		else if(iupStrEqualNoCase(format, "BOX"))
+		{
+			which_list_marker = IupNSTextListMarkerBox;
+		}
+		else if(iupStrEqualNoCase(format, "CHECK"))
+		{
+			which_list_marker = IupNSTextListMarkerCheck;
+		}
+		else if(iupStrEqualNoCase(format, "CIRCLE"))
+		{
+			which_list_marker = IupNSTextListMarkerCircle;
+		}
+		else if(iupStrEqualNoCase(format, "DIAMOND"))
+		{
+			which_list_marker = IupNSTextListMarkerDiamond;
+		}
+		else if(iupStrEqualNoCase(format, "HYPHEN"))
+		{
+			which_list_marker = IupNSTextListMarkerHyphen;
+		}
+		else if(iupStrEqualNoCase(format, "SQUARE"))
+		{
+			which_list_marker = IupNSTextListMarkerSquare;
+		}
+		else if(iupStrEqualNoCase(format, "LCHEX"))
+		{
+			which_list_marker = IupNSTextListMarkerLowercaseHexadecimal;
+		}
+		else if(iupStrEqualNoCase(format, "UCHEX"))
+		{
+			which_list_marker = IupNSTextListMarkerUppercaseHexadecimal;
+		}
+		else if(iupStrEqualNoCase(format, "OCTAL"))
+		{
+			which_list_marker = IupNSTextListMarkerOctal;
+		}
+		else if(iupStrEqualNoCase(format, "LCLATIN"))
+		{
+			which_list_marker = IupNSTextListMarkerLowercaseLatin;
+		}
+		else if(iupStrEqualNoCase(format, "UCLATIN"))
+		{
+			which_list_marker = IupNSTextListMarkerUppercaseLatin;
 		}
 		else
 		{
