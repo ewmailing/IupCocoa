@@ -2337,11 +2337,46 @@ static int cocoaTextSetSelectedTextAttrib(Ihandle* ih, const char* value)
 				return 0;
 			}
 			
-			NSString* ns_string = [NSString stringWithUTF8String:value];
+			// We can't use NSTextView insertText because
+			// if this is used to programmatically alter text while the widget is disabled,
+			// then the insert will fail.
+			// So we must alter NSTextStorage directly.
+			
+			NSTextStorage* text_storage = [text_view textStorage];
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
 
-			// Undo manager should automatically handle high-level NSTextView operations
-//			[text_view insertText:ns_string]; // deprecated
-			[text_view insertText:ns_string replacementRange:selected_range];
+			// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+			NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+			[attribute_dict autorelease];
+			// Set the selection range to be at the very last character.
+			// Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
+			// This will overwrite/merge the current attributes into our font copy attributes.
+			// Needs to be 1 character or it raises an exception
+			NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:selected_range] attributesAtIndex:0 effectiveRange:NULL];
+			[attribute_dict addEntriesFromDictionary:text_storage_attributes];
+			
+			NSString* ns_insert_string = [NSString stringWithUTF8String:value];
+			
+			NSAttributedString* attributed_insert_string = [[NSAttributedString alloc] initWithString:ns_insert_string attributes:attribute_dict];
+			[attributed_insert_string autorelease];
+			
+			
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			
+			ih->data->disable_callbacks = 1;
+			[text_view shouldChangeTextInRange:selected_range replacementString:[attributed_insert_string string]];
+			[text_storage beginEditing];
+			
+			[text_storage replaceCharactersInRange:selected_range withAttributedString:attributed_insert_string];
+			
+			ih->data->disable_callbacks = 0;
+			
+			[text_storage endEditing];
+			
+			// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+			[text_view didChangeText];
+			[undo_manager endUndoGrouping];
 
 
 			return 0;
@@ -2854,14 +2889,29 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 
 	  }
 	  
-
 	  
-	  
-	  NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:[iup_font attributeDictionary]];
-	  [attributed_append_string autorelease];
-
 	  // We need to mark the proposed change range (before we change it) in order to call shouldChangeTextInRange:
 	  NSRange change_range = NSMakeRange([text_storage length], 0);
+	  
+	  
+	  // Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+	  NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+	  [attribute_dict autorelease];
+	  // Set the selection range to be at the very last character.
+	  // Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
+	  // This will overwrite/merge the current attributes into our font copy attributes.
+	  // Needs to be 1 character or it raises an exception
+	  NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:NSMakeRange([text_storage length]-1, 1)] attributesAtIndex:0 effectiveRange:NULL];
+	  [attribute_dict addEntriesFromDictionary:text_storage_attributes];
+	  
+
+	  
+	  NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:attribute_dict];
+	  [attributed_append_string autorelease];
+
+	  NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+	  [undo_manager beginUndoGrouping];
+	  
 	  ih->data->disable_callbacks = 1;
   	  [text_view shouldChangeTextInRange:change_range replacementString:[attributed_append_string string]];
 	  [text_storage beginEditing];
@@ -2874,6 +2924,9 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 
 		// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
 	  [text_view didChangeText];
+	  [undo_manager endUndoGrouping];
+
+
 
   }
   else
@@ -2911,6 +2964,134 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
   ih->data->disable_callbacks = 0;
   return 0;
 }
+
+
+static int cocoaTextSetInsertAttrib(Ihandle* ih, const char* value)
+{
+	if(NULL == ih->handle)  /* do not do the action before map */
+	{
+		return 0;
+	}
+	if(NULL == value)
+	{
+		return 0;
+	}
+
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSTextStorage* text_storage = [text_view textStorage];
+
+			NSRange insertion_point = [[[text_view selectedRanges] lastObject] rangeValue];
+			if(NSNotFound == insertion_point.location)
+			{
+				// I guess we append if there is no cursor location?
+				// A bit of a hack...cocoaTextSetAppendAttrib does extra stuff I don't want, so this will temporarily disable those features.
+				int saved_newline = ih->data->append_newline;
+				ih->data->append_newline = 0;
+				int ret_val = cocoaTextSetAppendAttrib(ih, value);
+				ih->data->append_newline = saved_newline;
+				return ret_val;
+			}
+			else if([text_storage length] == insertion_point.location)
+			{
+				// We are appending
+				// A bit of a hack...cocoaTextSetAppendAttrib does extra stuff I don't want, so this will temporarily disable those features.
+				int saved_newline = ih->data->append_newline;
+				ih->data->append_newline = 0;
+				int ret_val = cocoaTextSetAppendAttrib(ih, value);
+				ih->data->append_newline = saved_newline;
+				return ret_val;
+			}
+			else if(insertion_point.length > 0)
+			{
+				// We do selected text
+				return cocoaTextSetSelectedTextAttrib(ih, value);
+			}
+			
+			// We can't use NSTextView insertText because
+			// if this is used to programmatically alter text while the widget is disabled,
+			// then the insert will fail.
+			// So we must alter NSTextStorage directly.
+			
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+
+			// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+			NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+			[attribute_dict autorelease];
+			// Set the selection range to be at the very last character.
+			// Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
+			// This will overwrite/merge the current attributes into our font copy attributes.
+			// Needs to be 1 character or it raises an exception
+			// We already know our location is not at the end and length==0
+			NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:NSMakeRange(insertion_point.location, 1)] attributesAtIndex:0 effectiveRange:NULL];
+			[attribute_dict addEntriesFromDictionary:text_storage_attributes];
+			
+			NSString* ns_insert_string = [NSString stringWithUTF8String:value];
+			
+			NSAttributedString* attributed_insert_string = [[NSAttributedString alloc] initWithString:ns_insert_string attributes:attribute_dict];
+			[attributed_insert_string autorelease];
+			
+			
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			
+			ih->data->disable_callbacks = 1;
+			[text_view shouldChangeTextInRange:insertion_point replacementString:[attributed_insert_string string]];
+			[text_storage beginEditing];
+			
+			[text_storage insertAttributedString:attributed_insert_string atIndex:insertion_point.location];
+			
+			ih->data->disable_callbacks = 0;
+			
+			[text_storage endEditing];
+			
+			// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+			[text_view didChangeText];
+			[undo_manager endUndoGrouping];
+			
+			
+
+			return 0;
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSRange selected_range = [field_editor selectedRange];
+			if(NSNotFound == selected_range.location)
+			{
+				// I guess we append if there is no cursor location?
+				return cocoaTextSetAppendAttrib(ih, value);
+			}
+			else if(selected_range.length > 0)
+			{
+				// We do selected text
+				return cocoaTextSetSelectedTextAttrib(ih, value);
+			}
+			
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			[(NSTextView*)field_editor insertText:ns_string replacementRange:selected_range];
+			return 0;
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	return 0;
+}
+
 
 static char* cocoaTextGetCountAttrib(Ihandle* ih)
 {
@@ -3759,9 +3940,9 @@ void iupdrvTextInitClass(Iclass* ic)
 #if 0
   iupClassRegisterAttribute(ic, "CARET", gtkTextGetCaretAttrib, gtkTextSetCaretAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CARETPOS", gtkTextGetCaretPosAttrib, gtkTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "INSERT", NULL, gtkTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #endif
 	
+  iupClassRegisterAttribute(ic, "INSERT", NULL, cocoaTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "APPEND", NULL, cocoaTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "READONLY", cocoaTextGetReadOnlyAttrib, cocoaTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
