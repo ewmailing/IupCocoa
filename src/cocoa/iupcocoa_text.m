@@ -2030,7 +2030,9 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 	{
 		if(iupStrBoolean(format))
 		{
+			// Is it secondarySelectedControlColor or disabledControlTextColor?
 			NSColor* the_color = [NSColor disabledControlTextColor];
+//			NSColor* the_color = [NSColor secondarySelectedControlColor];
 			[attribute_dict setValue:the_color
 				forKey:NSForegroundColorAttributeName];
 		}
@@ -2278,7 +2280,100 @@ static int cocoaTextSetRemoveFormattingAttrib(Ihandle* ih, const char* value)
 	return 0;
 }
 
+static char* cocoaTextGetSelectedTextAttrib(Ihandle* ih)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			// Note: use selectedRanges if we need to support multiple selection
+			NSRange selected_range = [text_view selectedRange];
+			NSString* selected_string = [[[text_view textStorage] string] substringWithRange:selected_range];
+			return iupStrReturnStr([selected_string UTF8String]);
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSRange selected_range = [field_editor selectedRange];
+			NSString* selected_string = [[field_editor string] substringWithRange:selected_range];
+			return iupStrReturnStr([selected_string UTF8String]);
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return NULL;
+}
 
+static int cocoaTextSetSelectedTextAttrib(Ihandle* ih, const char* value)
+{
+	if(NULL == value)
+	{
+		return 0;
+	}
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			// Note: use selectedRanges if we need to support multiple selection
+			NSRange selected_range = [text_view selectedRange];
+			// make sure something is selected
+			if((NSNotFound == selected_range.location) || (0 == selected_range.length))
+			{
+				return 0;
+			}
+			
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+
+			// Undo manager should automatically handle high-level NSTextView operations
+//			[text_view insertText:ns_string]; // deprecated
+			[text_view insertText:ns_string replacementRange:selected_range];
+
+
+			return 0;
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSRange selected_range = [field_editor selectedRange];
+			if((NSNotFound == selected_range.location) || (0 == selected_range.length))
+			{
+				return 0;
+			}
+			
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			[(NSTextView*)field_editor insertText:ns_string replacementRange:selected_range];
+			return 0;
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	return 0;
+}
 
 static int cocoaTextSetSelectionAttrib(Ihandle* ih, const char* value)
 {
@@ -3657,8 +3752,8 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "VALUE", cocoaTextGetValueAttrib, cocoaTextSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "LINEVALUE", gtkTextGetLineValueAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SELECTEDTEXT", gtkTextGetSelectedTextAttrib, gtkTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
+  iupClassRegisterAttribute(ic, "SELECTEDTEXT", cocoaTextGetSelectedTextAttrib, cocoaTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTION", cocoaTextGetSelectionAttrib, cocoaTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTIONPOS", cocoaTextGetSelectionPosAttrib, cocoaTextSetSelectionPosAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #if 0
