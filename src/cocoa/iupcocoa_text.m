@@ -2214,6 +2214,53 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 
 }
 
+
+static int cocoaTextSetRemoveFormattingAttrib(Ihandle* ih, const char* value)
+{
+	if(!ih->data->is_multiline)
+	{
+		return 0;
+	}
+	
+	NSTextView* text_view = cocoaTextGetTextView(ih);
+	NSRange selection_range;
+	NSTextStorage* text_storage = [text_view textStorage];
+	
+	if(iupStrEqualNoCase(value, "ALL"))
+	{
+		selection_range = NSMakeRange(0, [text_storage length]);
+	}
+	else
+	{
+		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+		selection_range = [text_view selectedRange];
+		if(NSNotFound == selection_range.location)
+		{
+			return 0;
+		}
+	}
+	
+	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+	[undo_manager beginUndoGrouping];
+	[text_storage beginEditing];
+	
+	ih->data->disable_callbacks = 1;
+	[text_view shouldChangeTextInRange:selection_range replacementString:nil];
+	[text_storage setAttributes:nil range:selection_range];
+	ih->data->disable_callbacks = 0;
+	
+	[text_storage endEditing];
+	
+	// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+	[text_view didChangeText];
+	[text_storage endEditing];
+	[undo_manager endUndoGrouping];
+	
+	return 0;
+}
+
+
+
 static int cocoaTextSetSelectionAttrib(Ihandle* ih, const char* value)
 {
 	if(ih->data->is_multiline)
@@ -3600,10 +3647,10 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "ADDFORMATTAG", NULL, iupTextSetAddFormatTagAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ADDFORMATTAG_HANDLE", NULL, iupTextSetAddFormatTagHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORMATTING", iupTextGetFormattingAttrib, iupTextSetFormattingAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, cocoaTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, gtkTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TABSIZE", NULL, gtkTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
 #endif
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
