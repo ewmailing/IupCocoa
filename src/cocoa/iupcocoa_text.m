@@ -1460,6 +1460,15 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 			];
 
 
+			if(applied_paragraph_start == NSUIntegerMax)
+			{
+				applied_paragraph_start = selection_range.location;
+			}
+			if(applied_paragraph_end == 0)
+			{
+				applied_paragraph_end = selection_range.location + selection_range.length;
+			}
+
 			
 			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
 			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
@@ -2047,33 +2056,66 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 		}
 		else
 		{
-		
-		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
-//	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
-	// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
-	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
-	[attribute_dict autorelease];
+			
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+
+			// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
+			NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
+			[attribute_dict autorelease];
 			NSTextStorage* text_storage = [text_view textStorage];
-	NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:native_selection_range] attributesAtIndex:0 effectiveRange:NULL];
-
-	[attribute_dict addEntriesFromDictionary:text_storage_attributes];
-
-	bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
-	bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
-	
-		
+			// Set the selection range to be at the very last character.
+			// Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
+			// This will overwrite/merge the current attributes into our font copy attributes.
+			NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:NSMakeRange([text_storage length]-1, 1)] attributesAtIndex:0 effectiveRange:NULL];
+			[attribute_dict addEntriesFromDictionary:text_storage_attributes];
+			
+			
 			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 			[undo_manager beginUndoGrouping];
 			
-//			NSLog(@"iupdrvTextAddFormatTag fallback case");
-			// new text inserted or typed will be formatted with the tag
-			[text_view setTypingAttributes:attribute_dict];
-//			[[text_view delegate] textView:text_view shouldChangeTypingAttributes:[iup_font attributeDictionary] toAttributes:attribute_dict];
-
 			
-			// Set the selection range to be at the very last character.
-			native_selection_range = NSMakeRange([text_storage length]-1, 0);
+			bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
+			bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
+			
+			if(needs_character_style_change || needs_paragraph_style_change)
+			{
+				[text_view setTypingAttributes:attribute_dict];
+			}
+			
+
+			// Append a newline so we have a fresh line to enable bullet lists
+			// If we don't, the previous line gets converted into a list which is often not what I think people expect.
+			NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:@"\n" attributes:attribute_dict];
+			[attributed_append_string autorelease];
+			
+			// We need to mark the proposed change range (before we change it) in order to call shouldChangeTextInRange:
+			NSRange change_range = NSMakeRange([text_storage length], 0);
+			ih->data->disable_callbacks = 1;
+			[text_view shouldChangeTextInRange:change_range replacementString:[attributed_append_string string]];
+			[text_storage beginEditing];
+			[text_storage appendAttributedString:attributed_append_string];
+			  ih->data->disable_callbacks = 0;
+			[text_storage endEditing];
+		
+		
+			// We need a length of least 1 or an exception gets thrown inside cocoaTextParseBulletNumberListFormat
+			// Hence why we append a newline.
+			native_selection_range = NSMakeRange([text_storage length]-1, 1);
+//			native_selection_range = NSMakeRange(change_range.location, 1);
 			cocoaTextParseBulletNumberListFormat(ih, formattag, text_view, native_selection_range);
+			
+			// The result of the above yields an extra blank line after the bullet.
+			// So another hack is the delete the final newline
+			change_range = NSMakeRange([text_storage length]-1, 1);
+			ih->data->disable_callbacks = 1;
+			[text_view shouldChangeTextInRange:change_range replacementString:@""];
+			[text_storage beginEditing];
+			[text_storage deleteCharactersInRange:change_range];
+			  ih->data->disable_callbacks = 0;
+			[text_storage endEditing];
+		
+		
+			
 			[undo_manager endUndoGrouping];
 			
 			// Return immediately. The fall-through code is for selection-only
@@ -2083,24 +2125,18 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	}
 	
 	
-		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
-//	NSMutableDictionary* attribute_dict = [[NSMutableDictionary alloc] init];
+	IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+
 	// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
 	NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
 	[attribute_dict autorelease];
-						NSLog(@"start attribute_dict: %@", attribute_dict);
-NSTextStorage* text_storage = [text_view textStorage];
-
+	NSTextStorage* text_storage = [text_view textStorage];
+	// Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
+	// This will overwrite/merge the current attributes into our font copy attributes.
 	NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:native_selection_range] attributesAtIndex:0 effectiveRange:NULL];
-						NSLog(@"text_storage_attributes: %@", text_storage_attributes);
-
 	[attribute_dict addEntriesFromDictionary:text_storage_attributes];
-							NSLog(@"addEntriesFromDictionary attribute_dict: %@", attribute_dict);
-	bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
-	bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
-							NSLog(@"post attribute_dict: %@", attribute_dict);
 
-	
+
 	
 //	NSLog(@"iupdrvTextAddFormatTag: %@", NSStringFromRange(native_selection_range));
 	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
@@ -2109,12 +2145,17 @@ NSTextStorage* text_storage = [text_view textStorage];
 //	[text_storage beginEditing];
 	// Only the bullet/number feature changes the text. nil should express attribute-only change
 	[text_view shouldChangeTextInRange:native_selection_range replacementString:nil];
-	
-	// Tricky: cocoaTextParseBulletNumberListFormat needs to call this, but the range may change since it alters the text length.
-	// This will lead to a bad range/exception.
-	// So call this before cocoaTextParseBulletNumberListFormat and then let
-	// cocoaTextParseBulletNumberListFormat call again with its own range.
+
+
+	// cocoaTextParseBulletNumberListFormat actually re-adjusts its ranges to fit the list block.
+	// So it doesn't use the attribute_dict for our current range.
+	// I originally had a lot of problems with attributes clobbering each other, so order used to matter.
+	// I think some of those issues are improved, so order may not be as important now.
 	cocoaTextParseBulletNumberListFormat(ih, formattag, text_view, native_selection_range);
+
+	bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
+	bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
+
 	if(needs_character_style_change || needs_paragraph_style_change)
 	{
 		[text_storage setAttributes:attribute_dict range:native_selection_range];
@@ -2124,8 +2165,6 @@ NSTextStorage* text_storage = [text_view textStorage];
 //	[text_storage endEditing];
 
 	[text_view didChangeText];
-//	[[text_view delegate] textView:text_view shouldChangeTypingAttributes:[iup_font attributeDictionary] toAttributes:attribute_dict];
-
 	[undo_manager endUndoGrouping];
 	
 
