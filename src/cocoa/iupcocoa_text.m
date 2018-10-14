@@ -1242,6 +1242,83 @@ static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionar
 	return needs_paragraph_style;
 }
 
+
+const NSUInteger kIupNumberingStyleNone = 0;
+const NSUInteger kIupNumberingStyleRightParenthesis = 1;
+const NSUInteger kIupNumberingStyleParenthesis = 2;
+const NSUInteger kIupNumberingStylePeriod = 3;
+const NSUInteger kIupNumberingStyleNonNumber = 4;
+
+@interface IupNumberingTextList : NSTextList
+
+@property(nonatomic, assign) NSUInteger numberingStyle;
+
+// override
+- (NSString*) markerForItemNumber:(NSInteger)item_num;
+
+// convenience method
+- (NSString*) markerWithTabsForItemNumber:(NSInteger)item_num;
+
+@end
+
+@implementation IupNumberingTextList
+
+// We need to override this because when the user hits return to insert a new line,
+// any custom formatting manually added to the marker will get discarded.
+// Adding the custom formatting here should preserve our customizations.
+- (NSString*) markerForItemNumber:(NSInteger)item_num
+{
+	NSString* base_string = [super markerForItemNumber:item_num];
+	NSString* customized_marker = nil;
+	switch([self numberingStyle])
+	{
+		case kIupNumberingStyleRightParenthesis:
+		{
+			customized_marker = [NSString stringWithFormat:@"%@)", base_string];
+			break;
+		}
+		case kIupNumberingStyleParenthesis:
+		{
+			customized_marker = [NSString stringWithFormat:@"(%@)", base_string];
+			break;
+		}
+		case kIupNumberingStylePeriod:
+		{
+			customized_marker = [NSString stringWithFormat:@"%@.", base_string];
+			break;
+		}
+		case kIupNumberingStyleNonNumber:
+		{
+			customized_marker = @"";
+			break;
+		}
+		
+		case kIupNumberingStyleNone:
+		default:
+		{
+			customized_marker = base_string;
+			break;
+		}
+	}
+	
+	return customized_marker;
+}
+
+// When we use this to format (create) a list, we are required to add a leading and trailing tab.
+// Apple's documentation doesn't state this, but this appears to be a requirement.
+// However, I cannot put it directly in markerForItemNumber because it seems to screw up things
+// when I hit return to insert new lines in a list. It appears in that case, Apple is trying to add tabs,
+// and then gets too many and it thinks it needs to created new nested lists and gets screwy.
+- (NSString*) markerWithTabsForItemNumber:(NSInteger)item_num
+{
+	NSString* base_string = [self markerForItemNumber:item_num];
+	NSString* customized_marker = nil;
+	customized_marker = [NSString stringWithFormat:@"\t%@\t", base_string];
+	return customized_marker;
+}
+
+@end
+
 /*
 NOTES: Not supporting NUMBERINGTAB because following TextEdit.app conventions, we use two tabs (before & after the marker), so the API doesn't fit.
 Using TABSARRAY seems to be the correct way to control indentation for this (looking at TextEdit.app).
@@ -1356,33 +1433,10 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 	
 		if(use_list)
 		{
-			const NSUInteger kIupNumberingStyleNone = 0;
-			const NSUInteger kIupNumberingStyleRightParenthesis = 1;
-			const NSUInteger kIupNumberingStyleParenthesis = 2;
-			const NSUInteger kIupNumberingStylePeriod = 3;
-			const NSUInteger kIupNumberingStyleNonNumber = 4;
+
 
 			NSUInteger which_number_style = kIupNumberingStyleNone;
 			
-			/* TODO: WARNING: If the user hits return in the middle of a list, the custom NUMBERINGSTYLE disappears.
-			 	According to this blog:
-				https://meandmark.com/blog/2016/12/adding-markers-to-text-lists-when-pressing-the-return-key/
-				1. Create a subclass of NSTextView.
-				2. Override the function insertNewline in your NSTextView subclass. This function gets called when someone presses the Return key.
-				3. Use the text view’s selectedRange property to determine if you’re inside a list. The selectedRange property’s location field is the text view’s insertion point.
-				4. If you’re inside a list, add the marker to the text view’s text storage at the insertion point.
-
-				I'm suspicious that this may not fully work.
-				I noticed that we lose all the existing NUMBERINGSTYLEs, but they make no mention of that.
-				This makes me think they didn't set up the textLists correctly in the paragraph attributes.
-				Ironically, if we don't set up the TextLists/paragraph attributes correctly,
-				the NUMBERINGSTYLE won't revert.
-				But we lose other properties such as the numbers automatically re-ordering themselves
-				and it being aware that it is a list (tab and shift-tab can change the nesting levels).
-			 
-				This may be worth a DTS incident to fix.
-				Or if somebody can find a modern version of the TextEdit.app source code.
-			*/
 			format = iupAttribGet(formattag, "NUMBERINGSTYLE");
 			if(format)
 			{
@@ -1462,8 +1516,9 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 //					NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
 
 
-					NSTextList* text_list = [[NSTextList alloc] initWithMarkerFormat:which_list_marker options:0];
+					IupNumberingTextList* text_list = [[IupNumberingTextList alloc] initWithMarkerFormat:which_list_marker options:0];
 					[text_list autorelease];
+					[text_list setNumberingStyle:which_number_style];
 					[array_of_text_lists addObject:text_list];
 					
 					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
@@ -1474,35 +1529,7 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 //					NSLog(@"current_line_attributes: %@", current_line_attributes);
 
 					NSString* marker_with_style_prefix = nil;
-					switch(which_number_style)
-					{
-						case kIupNumberingStyleRightParenthesis:
-						{
-							marker_with_style_prefix = [NSString stringWithFormat:@"\t%@)\t", [text_list markerForItemNumber:item_count]];
-							break;
-						}
-						case kIupNumberingStyleParenthesis:
-						{
-							marker_with_style_prefix = [NSString stringWithFormat:@"\t(%@)\t", [text_list markerForItemNumber:item_count]];
-							break;
-						}
-						case kIupNumberingStylePeriod:
-						{
-							marker_with_style_prefix = [NSString stringWithFormat:@"\t%@.\t", [text_list markerForItemNumber:item_count]];
-							break;
-						}
-						case kIupNumberingStyleNonNumber:
-						{
-							marker_with_style_prefix = @"\t\t";
-							break;
-						}
-						default:
-						{
-							marker_with_style_prefix = [NSString stringWithFormat:@"\t%@\t", [text_list markerForItemNumber:item_count]];
-							break;
-						}
-					}
-					
+					marker_with_style_prefix = [text_list markerWithTabsForItemNumber:item_count];
 					
 					NSAttributedString* attribued_prefix = [[NSAttributedString alloc] initWithString:marker_with_style_prefix attributes:current_line_attributes];
 					[attribued_prefix autorelease];
