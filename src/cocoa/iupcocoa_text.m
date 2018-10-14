@@ -646,9 +646,28 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 		{
 			NSTextView* text_view = cocoaTextGetTextView(ih);
 			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+			NSTextStorage* text_storage = [text_view textStorage];
+			
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			[text_storage beginEditing];
+			
+			
 			NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
-			[[text_view textStorage] setAttributedString:attributed_string];
-			[attributed_string release];
+			[attributed_string autorelease];
+			
+			
+			ih->data->disable_callbacks = 1;
+			[text_view shouldChangeTextInRange:NSMakeRange(0, [text_storage length]) replacementString:ns_string];
+			[text_storage setAttributedString:attributed_string];
+			ih->data->disable_callbacks = 0;
+			
+			[text_storage endEditing];
+			
+			// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+			[text_view didChangeText];
+			[text_storage endEditing];
+			[undo_manager endUndoGrouping];
 
 			break;
 		}
@@ -2863,6 +2882,34 @@ static char* cocoaTextGetCountAttrib(Ihandle* ih)
 	return iupStrReturnInt(character_count);
 }
 
+// This includes wrapped lines in the count.
+// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/CountLines.html
+static char* cocoaTextGetLineCountAttrib(Ihandle* ih)
+{
+	if(!ih->data->is_multiline)
+	{
+		return "1";
+	}
+	
+	NSTextView* text_view = cocoaTextGetTextView(ih);
+	
+	NSLayoutManager* layout_manager = [text_view layoutManager];
+	NSUInteger number_of_lines;
+	NSUInteger index;
+	
+	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
+	NSRange line_range = NSMakeRange(0, 0);
+	
+	for(number_of_lines = 0, index = 0; index < number_of_glyphs;)
+	{
+		(void) [layout_manager lineFragmentRectForGlyphAtIndex:index effectiveRange:&line_range];
+		index = NSMaxRange(line_range);
+	}
+	
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	return iupStrReturnInt((int)number_of_lines);
+}
+
 static int cocoaTextSetScrollToPosAttrib(Ihandle* ih, const char* value)
 {
   int pos = 0;
@@ -3637,11 +3684,8 @@ void iupdrvTextInitClass(Iclass* ic)
 #endif
 
   iupClassRegisterAttribute(ic, "COUNT", cocoaTextGetCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-#if 0
-	// TODO: What is a "line", e.g. does it include lines caused by wrapping?
-	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/TextLayout/Tasks/CountLines.html
-  iupClassRegisterAttribute(ic, "LINECOUNT", gtkTextGetLineCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
-#endif
+
+  iupClassRegisterAttribute(ic, "LINECOUNT", cocoaTextGetLineCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 
   /* IupText Windows and GTK only */
   iupClassRegisterAttribute(ic, "ADDFORMATTAG", NULL, iupTextSetAddFormatTagAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
