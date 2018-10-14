@@ -1229,7 +1229,7 @@ Using TABSARRAY seems to be the correct way to control indentation for this (loo
 Additionally, because we must manually inject the markers into the text, a variable number of tabs makes it harder to remove formatting because we already must use regex to find patterns since we don't necessarily know the marker type to remove.
 Long term, we might like to support nested lists, which NUMBERINGTAB will make harder to detect since it could confuse the number of tabs to look for.
 */
-static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font, NSTextView* text_view, NSRange selection_range)
+static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag, NSTextView* text_view, NSRange selection_range)
 {
 	// Apple doesn't provide these string constants until 10.13, so we provide our own copy.
 	static NSString* IupNSTextListMarkerBox = @"{box}";
@@ -1444,7 +1444,7 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 					NSAttributedString* attribued_prefix = [[NSAttributedString alloc] initWithString:marker_with_style_prefix attributes:current_line_attributes];
 					[attribued_prefix autorelease];
 					[current_line insertAttributedString:attribued_prefix atIndex:0];
-					[current_line fixAttributesInRange:NSMakeRange(0, [current_line length])];
+//					[current_line fixAttributesInRange:NSMakeRange(0, [current_line length])];
 
 					ih->data->disable_callbacks = 1;
 					// For undo manager
@@ -1468,7 +1468,7 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 			[paragraph_style autorelease];
 			if(nil == paragraph_style)
 			{
-				NSLog(@"nil == paragraph_style");
+//				NSLog(@"nil == paragraph_style");
 				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
 				[paragraph_style autorelease];
 			}
@@ -1496,94 +1496,14 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 			NSTextStorage* text_storage = [text_view textStorage];
 			NSString* all_string = [text_storage string];
 
-			// This is messy.
-			// I am using a two-pass solution.
 			// The problem seems to be that in order to remove the TextLines attribute for the entire block, I need to re-set the attribute.
-			// But by doing this, I lose the attributes inside the block, which means I lose formatting in the individual lines.
-			// I also seem to need to set the attribute before I modify the lines or I end up setting a bad range.
-			// So with the two pass solution:
-			// - In loop-pass 1:
-			// 		- I adjust/expand the selection block to go to the beginning/end of the lines.
-			// 		- I save each attributed line
-			// Then I re-set the paragraph attribute to remove the TextLines
-			// - In loop-pass 2:
-			//		- I delete the markers while using the attributed strings saved from the 1st-pass
-			
-			
-			__block NSUInteger applied_paragraph_start = NSUIntegerMax;
-			__block NSUInteger applied_paragraph_end = 0;
-			__block NSMutableArray* array_of_attributed_lines = [NSMutableArray array];
-			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
-				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
-				{
-					*stop = NO;
-					NSUInteger start_paragraph_index;
-					NSUInteger end_paragraph_index;
-					NSUInteger contents_end_paragraph_index;
-					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
-					
-					if(applied_paragraph_start > start_paragraph_index)
-					{
-						applied_paragraph_start = start_paragraph_index;
-					}
-#if 0
-					if(applied_paragraph_end < contents_end_paragraph_index)
-					{
-						applied_paragraph_end = contents_end_paragraph_index;
-					}
-#else
-					if(applied_paragraph_end < end_paragraph_index)
-					{
-						applied_paragraph_end = end_paragraph_index;
-					}
-#endif
-					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
-
-					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
-					[current_line autorelease];
-					
-					[array_of_attributed_lines addObject:current_line];
-				}
-			];
+			// So I have to be very careful about applying attributes and not clobbering them.
 
 			
-			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
-			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
-			[text_storage_attributes autorelease];
-			NSMutableParagraphStyle* paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-			[paragraph_style autorelease];
-
-
 			[text_storage beginEditing];
 
-			if(nil == paragraph_style)
-			{
-				// There was no TextList, so there is nothing to remove.
-				NSLog(@"Nothing to remove");
-			}
-			else
-			{
-				[paragraph_style setTextLists:[NSArray array]];
-				/*
-				[text_storage_attributes setValue:paragraph_style forKey:NSParagraphStyleAttributeName];
-				// Be careful here:
-				// It seems we must do before modification, otherwise the selection range becomes wrong.
-				// But the caller is also setting this. So we need to be careful about the caller order.
-				[text_storage setAttributes:text_storage_attributes range:applied_paragraph_range];
-				*/
-				NSLog(@"removed textlist");
-
-				[text_storage removeAttribute:NSParagraphStyleAttributeName range:applied_paragraph_range];
-
-			}
-			
-			
-			
-
-
-
-			// Pass 2
-			__block NSUInteger loop_count = 0;
+			__block NSUInteger applied_paragraph_start = NSUIntegerMax;
+			__block NSUInteger applied_paragraph_end = 0;
 			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
 				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
 				{
@@ -1600,7 +1520,14 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 					NSUInteger end_paragraph_index;
 					NSUInteger contents_end_paragraph_index;
 					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
-
+					if(applied_paragraph_start > start_paragraph_index)
+					{
+						applied_paragraph_start = start_paragraph_index;
+					}
+					if(applied_paragraph_end < end_paragraph_index)
+					{
+						applied_paragraph_end = end_paragraph_index;
+					}
 	//				NSLog(@"start_paragraph_index:%lu", start_paragraph_index);
 	//				NSLog(@"end_paragraph_index:%lu", end_paragraph_index);
 	//				NSLog(@"contents_end_paragraph_index:%lu", contents_end_paragraph_index);
@@ -1611,8 +1538,8 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 	//				NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
 
 
-					
-					NSMutableAttributedString* current_line = [array_of_attributed_lines objectAtIndex:loop_count];
+					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
+					[current_line autorelease];
 					NSString* current_line_nsstr = [current_line string];
 	//				NSLog(@"current_line bef:%@", current_line);
 
@@ -1646,9 +1573,31 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 					[text_storage replaceCharactersInRange:paragraph_range withAttributedString:current_line];
 
 
-					loop_count++;
 				}
 			];
+			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
+			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
+			[text_storage_attributes autorelease];
+			NSMutableParagraphStyle* paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+			[paragraph_style autorelease];
+			if(nil == paragraph_style)
+			{
+				// There was no TextList, so there is nothing to remove.
+//				NSLog(@"Nothing to remove");
+			}
+			else
+			{
+				// Can't set nil, so set empty array
+				[paragraph_style setTextLists:[NSArray array]];
+				/*
+				// Be careful here:
+				// Use removeAttribute and not setAttributes
+				*/
+//				NSLog(@"removed textlist");
+
+				[text_storage removeAttribute:NSParagraphStyleAttributeName range:applied_paragraph_range];
+
+			}
 
 			[text_storage endEditing];
 			[text_view didChangeText];
@@ -2124,7 +2073,7 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 			
 			// Set the selection range to be at the very last character.
 			native_selection_range = NSMakeRange([text_storage length]-1, 0);
-			cocoaTextParseBulletNumberListFormat(ih, formattag, attribute_dict, iup_font, text_view, native_selection_range);
+			cocoaTextParseBulletNumberListFormat(ih, formattag, text_view, native_selection_range);
 			[undo_manager endUndoGrouping];
 			
 			// Return immediately. The fall-through code is for selection-only
@@ -2165,7 +2114,7 @@ NSTextStorage* text_storage = [text_view textStorage];
 	// This will lead to a bad range/exception.
 	// So call this before cocoaTextParseBulletNumberListFormat and then let
 	// cocoaTextParseBulletNumberListFormat call again with its own range.
-	cocoaTextParseBulletNumberListFormat(ih, formattag, attribute_dict, iup_font, text_view, native_selection_range);
+	cocoaTextParseBulletNumberListFormat(ih, formattag, text_view, native_selection_range);
 	if(needs_character_style_change || needs_paragraph_style_change)
 	{
 		[text_storage setAttributes:attribute_dict range:native_selection_range];
