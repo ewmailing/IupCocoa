@@ -1347,7 +1347,6 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 				{
 					which_number_style = kIupNumberingStyleNone;
 				}
-			
 			}
 
 
@@ -1355,79 +1354,16 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 			NSTextStorage* text_storage = [text_view textStorage];
 			NSString* all_string = [text_storage string];
 
-			// This is messy.
-			// I am using a two-pass solution.
 			// The problem seems to be that in order to change the TextLines attribute for the entire block, I need to re-set the attribute.
-			// But by doing this, I lose the attributes inside the block, which means I lose formatting in the individual lines.
-			// So with the two pass solution:
-			// - In loop-pass 1:
-			// 		- I adjust/expand the selection block to go to the beginning/end of the lines.
-			// 		- I save each attributed line
-			// Then I re-set the paragraph attribute to remove the TextLines
-			// - In loop-pass 2:
-			//		- I delete the markers while using the attributed strings saved from the 1st-pass
+			// So I have to be very careful about applying attributes and not clobbering them.
 			
+			[text_storage beginEditing];
+
 			
 			__block NSUInteger applied_paragraph_start = NSUIntegerMax;
 			__block NSUInteger applied_paragraph_end = 0;
-			__block NSMutableArray* array_of_attributed_lines = [NSMutableArray array];
-			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
-				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
-				{
-					*stop = NO;
-					NSUInteger start_paragraph_index;
-					NSUInteger end_paragraph_index;
-					NSUInteger contents_end_paragraph_index;
-					[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
-					
-					if(applied_paragraph_start > start_paragraph_index)
-					{
-						applied_paragraph_start = start_paragraph_index;
-					}
-#if 0
-					if(applied_paragraph_end < contents_end_paragraph_index)
-					{
-						applied_paragraph_end = contents_end_paragraph_index;
-					}
-#else
-					if(applied_paragraph_end < end_paragraph_index)
-					{
-						applied_paragraph_end = end_paragraph_index;
-					}
-#endif
-					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
-
-					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
-					[current_line autorelease];
-					
-					[array_of_attributed_lines addObject:current_line];
-				}
-			];
-
-			
-			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
-			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
-			[text_storage_attributes autorelease];
-			NSMutableParagraphStyle* paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-			[paragraph_style autorelease];
-
-
-			[text_storage beginEditing];
-
-			if(nil == paragraph_style)
-			{
-				NSLog(@"nil == paragraph_style");
-				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
-				[paragraph_style autorelease];
-			}
-			
-
 			__block NSMutableArray<NSTextList*>* array_of_text_lists = [NSMutableArray array];
-
-			
-
 			__block NSUInteger item_count = 1;
-			__block NSMutableArray* array_of_line_attributes = [NSMutableArray array];
 			[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
 				^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
 				{
@@ -1449,26 +1385,30 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 	//				NSLog(@"end_paragraph_index:%lu", end_paragraph_index);
 	//				NSLog(@"contents_end_paragraph_index:%lu", contents_end_paragraph_index);
 
+					if(applied_paragraph_start > start_paragraph_index)
+					{
+						applied_paragraph_start = start_paragraph_index;
+					}
+					if(applied_paragraph_end < end_paragraph_index)
+					{
+						applied_paragraph_end = end_paragraph_index;
+					}
+
 					// end_paragraph_index seems to include the newline, which we want
 					NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
-				//	NSRange paragraph_range = NSMakeRange(start_paragraph_index, contents_end_paragraph_index-start_paragraph_index);
-					NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
+//					NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
 
 
 					NSTextList* text_list = [[NSTextList alloc] initWithMarkerFormat:which_list_marker options:0];
 					[text_list autorelease];
 					[array_of_text_lists addObject:text_list];
 					
-					NSMutableAttributedString* current_line = [array_of_attributed_lines objectAtIndex:item_count-1];
-//					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
-//					[current_line autorelease];
-					NSLog(@"current_line: %@", current_line);
-//					NSRange attr_range;
-//					NSDictionary<NSAttributedStringKey, id>* current_line_attributes = [current_line attributesAtIndex:0 effectiveRange:&attr_range];
+					NSMutableAttributedString* current_line = [[text_storage attributedSubstringFromRange:paragraph_range] mutableCopy];
+					[current_line autorelease];
+//					NSLog(@"current_line: %@", current_line);
 					NSDictionary<NSAttributedStringKey, id>* current_line_attributes = [current_line attributesAtIndex:0 effectiveRange:NULL];
 
-					NSLog(@"current_line_attributes: %@", current_line_attributes);
-//					NSLog(@"attr_range:%@", NSStringFromRange(attr_range));
+//					NSLog(@"current_line_attributes: %@", current_line_attributes);
 
 					NSString* marker_with_style_prefix = nil;
 					switch(which_number_style)
@@ -1504,15 +1444,15 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 					NSAttributedString* attribued_prefix = [[NSAttributedString alloc] initWithString:marker_with_style_prefix attributes:current_line_attributes];
 					[attribued_prefix autorelease];
 					[current_line insertAttributedString:attribued_prefix atIndex:0];
-//					[current_line fixAttributesInRange:NSMakeRange(0, [current_line length])];
+					[current_line fixAttributesInRange:NSMakeRange(0, [current_line length])];
 
 					ih->data->disable_callbacks = 1;
+					// For undo manager
 					[text_view shouldChangeTextInRange:paragraph_range replacementString:[current_line string]];
 					ih->data->disable_callbacks = 0;
 					[text_storage replaceCharactersInRange:paragraph_range withAttributedString:current_line];
 
-					//current_line_attributes = [current_line attributesAtIndex:0 effectiveRange:NULL];
-					[array_of_line_attributes addObject:current_line_attributes];
+
 
 					item_count++;
 				
@@ -1521,17 +1461,28 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 
 
 			
-			[paragraph_style setTextLists:array_of_text_lists];
-//			[text_storage_attributes setValue:paragraph_style forKey:NSParagraphStyleAttributeName];
+			NSRange applied_paragraph_range = NSMakeRange(applied_paragraph_start, applied_paragraph_end-applied_paragraph_start);
+			NSMutableDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[[text_storage attributedSubstringFromRange:applied_paragraph_range] attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
+			[text_storage_attributes autorelease];
+			NSMutableParagraphStyle* paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+			[paragraph_style autorelease];
+			if(nil == paragraph_style)
+			{
+				NSLog(@"nil == paragraph_style");
+				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+				[paragraph_style autorelease];
+			}
+			
 			// Be careful here:
 			// It seems I must do this last, otherwise the list doesn't take effect.
 			// (You should be able to add a new line in-between the lines, and it should automatically
 			// insert a new bullet and renumber all the lines accordingly.)
 			// But applying this last seems to blow away some attributes.
+			// Use addAttribute and avoid setAttributes
 			// In the text.c test,
 			// I lose the strike-through and italics on "Second Line"
 			// I lose the alignment on "Third Line" (this is not completely unreasonable)
-//			[text_storage setAttributes:text_storage_attributes range:applied_paragraph_range];
+			[paragraph_style setTextLists:array_of_text_lists];
 			[text_storage addAttribute:NSParagraphStyleAttributeName value:paragraph_style range:applied_paragraph_range];
 
 
