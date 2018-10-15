@@ -152,7 +152,7 @@ static NSStepper* cocoaTextGetStepperView(Ihandle* ih)
 #endif
 }
 
-static NSTextView* cocoaTextGetStepperTextField(Ihandle* ih)
+static NSTextField* cocoaTextGetStepperTextField(Ihandle* ih)
 {
 #if 0
 	NSStackView* root_container_view = (NSStackView*)ih->handle;
@@ -622,6 +622,211 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 	
 	
 
+}
+
+@interface IupNumberFormatter : NSNumberFormatter
+@end
+
+@implementation IupNumberFormatter
+
+- (BOOL)isPartialStringValid:(NSString*)partial_string newEditingString:(NSString**)new_string errorDescription:(NSString**)the_error
+{
+    if(new_string)
+    {
+		*new_string = nil;
+	}
+	if(the_error)
+    {
+		*the_error = nil;
+	}
+
+	// empty string is okay
+    if([partial_string length] == 0)
+    {
+        return YES;
+	}
+
+	NSMutableCharacterSet* allowed_character_set = [[NSCharacterSet decimalDigitCharacterSet] mutableCopy];
+	[allowed_character_set autorelease];
+	// Allow scientific notation, decimal points, and positive and negative. Also allow people to enter commas as both decimals and separators. Space is also separator.
+	if(NSNumberFormatterNoStyle == [self numberStyle])
+	{
+		// Turns out NSNumberFormatterNoStyle is very restrictive.
+		// No leading + allowed (- is okay)
+		// No grouping separators
+		/*
+		NSString* grouping_separator = [self groupingSeparator]; // doesb't seem to include space
+		[allowed_character_set addCharactersInString:grouping_separator];
+		[allowed_character_set addCharactersInString:@"+- "];
+		*/
+		[allowed_character_set addCharactersInString:@"-"];
+	}
+	else
+	{
+		[allowed_character_set addCharactersInString:@".e+-, "];
+	}
+	NSCharacterSet* disallowed_character_set = [allowed_character_set invertedSet];
+
+	
+	// TODO: FIXME: I'm being lazy.
+	// This will allow invalid strings like 100-111, 23+eee-34,
+	// We may also want to specialize this for decimal, integer, scientific modes
+    if([partial_string rangeOfCharacterFromSet:disallowed_character_set].location != NSNotFound)
+    {
+        return NO;
+    }
+
+    return YES;
+}
+
+
+@end
+
+// Only for NSTextField. LOWERCASE, UPPERCASE not supported.
+// Introducing INTEGER, SCIENTIFC, CURRENCY
+static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
+{
+  	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+	
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+
+			// remove the formatter
+			if(NULL == value)
+			{
+				[text_field setFormatter:nil];
+				return 1;
+			}
+
+
+			if(iupStrEqualNoCase(value, "NUMBER"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterDecimalStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			if(iupStrEqualNoCase(value, "INTEGER"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterNoStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			if(iupStrEqualNoCase(value, "SCIENTIFIC"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterScientificStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			if(iupStrEqualNoCase(value, "CURRENCY"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter autorelease];
+				[number_formatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// I'm not completelt sure I want to allow this for stepper because this will overwrite the NumberFormmater I set in Interface Builder
+			
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+	
+			// TODO: We should restore the interface builder formatter, but I'm lazy.
+			if(NULL == value)
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterDecimalStyle];
+				[text_field setFormatter:number_formatter];
+
+				return 1;
+			}
+			
+			if(iupStrEqualNoCase(value, "NUMBER"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterDecimalStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			if(iupStrEqualNoCase(value, "INTEGER"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterNoStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			if(iupStrEqualNoCase(value, "SCIENTIFIC"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter setNumberStyle:NSNumberFormatterScientificStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			if(iupStrEqualNoCase(value, "CURRENCY"))
+			{
+				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+//				[number_formatter setFormattingContext:NSFormattingContextDynamic];
+				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+				[number_formatter setPartialStringValidationEnabled:YES];
+				[number_formatter autorelease];
+				[number_formatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+				[text_field setFormatter:number_formatter];
+				return 1;
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return 0;
 }
 
 
@@ -4003,12 +4208,14 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CUEBANNER", NULL, cocoaTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
-#if 0
-  /* Not Supported */
-  iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
-#endif
+
+//  iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FILTER", NULL, cocoaTextSetFilterAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
 	/* New API for view specific contextual menus (Mac only) */
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaTextSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
+	// TODO: LAYERBACKED
+	// TODO: ALLOWSUNDO
+	// TODO: CLEARUNDO/REMOVEALLACTIONS
 }
