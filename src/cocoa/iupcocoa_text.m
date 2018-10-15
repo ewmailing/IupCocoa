@@ -1093,6 +1093,185 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 }
 
 
+static int cocoaTextSetBgColorAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			
+			unsigned char r, g, b;
+			if(iupStrToRGB(value, &r, &g, &b))
+			{
+				CGFloat red = r/255.0;
+				CGFloat green = g/255.0;
+				CGFloat blue = b/255.0;
+				
+				NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+				[text_view setBackgroundColor:the_color];
+			}
+			else
+			{
+				NSColor* the_color = [NSColor textBackgroundColor];
+				[text_view setBackgroundColor:the_color];
+			}
+	
+			
+			// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+			[text_view didChangeText];
+			[undo_manager endUndoGrouping];
+
+			return 1;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			
+			unsigned char r, g, b;
+			if(iupStrToRGB(value, &r, &g, &b))
+			{
+				CGFloat red = r/255.0;
+				CGFloat green = g/255.0;
+				CGFloat blue = b/255.0;
+				
+				NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+				[text_field setBackgroundColor:the_color];
+			}
+			else
+			{
+				[text_field setBackgroundColor:nil];
+			}
+			return 1;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			
+			unsigned char r, g, b;
+			if(iupStrToRGB(value, &r, &g, &b))
+			{
+				CGFloat red = r/255.0;
+				CGFloat green = g/255.0;
+				CGFloat blue = b/255.0;
+				
+				NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+				[text_field setBackgroundColor:the_color];
+			}
+			else
+			{
+				[text_field setBackgroundColor:nil];
+			}
+
+			return 1;
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return 0;
+}
+
+static int cocoaTextSetFgColorAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			// WARNING: FORMATTING is better to use than this
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			
+			unsigned char r, g, b;
+			if(iupStrToRGB(value, &r, &g, &b))
+			{
+				CGFloat red = r/255.0;
+				CGFloat green = g/255.0;
+				CGFloat blue = b/255.0;
+				
+				NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+				// setTextColor is provided by NSText
+				[text_view setTextColor:the_color];
+			}
+			else
+			{
+				NSColor* the_color = [NSColor textBackgroundColor];
+				[text_view setTextColor:the_color];
+			}
+	
+			
+			// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+			[text_view didChangeText];
+			[undo_manager endUndoGrouping];
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			
+			unsigned char r, g, b;
+			if(iupStrToRGB(value, &r, &g, &b))
+			{
+				CGFloat red = r/255.0;
+				CGFloat green = g/255.0;
+				CGFloat blue = b/255.0;
+				
+				NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+				[text_field setTextColor:the_color];
+			}
+			else
+			{
+				[text_field setTextColor:nil];
+			}
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			
+			unsigned char r, g, b;
+			if(iupStrToRGB(value, &r, &g, &b))
+			{
+				CGFloat red = r/255.0;
+				CGFloat green = g/255.0;
+				CGFloat blue = b/255.0;
+				
+				NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+				[text_field setTextColor:the_color];
+			}
+			else
+			{
+				[text_field setTextColor:nil];
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return iupdrvBaseSetBgColorAttrib(ih, value);
+}
+
+
 /// For the provided start_line, start_column, end_line, end_column, get the native NSRange for the selection.
 static bool cocoaTextComputeRangeFromLineColumnForTextView(NSTextView* text_view, NSUInteger start_line, NSUInteger start_column, NSUInteger end_line, NSUInteger end_column, NSRange* out_range)
 {
@@ -4577,14 +4756,13 @@ void iupdrvTextInitClass(Iclass* ic)
 //	ic->LayoutUpdate = cocoaTextLayoutUpdateMethod;
 	ic->ComputeNaturalSize = cocoaTextComputeNaturalSizeMethod;
 
-#if 0
 
   /* Driver Dependent Attribute functions */
 
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, cocoaTextSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaTextSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
-#endif
+
   // need to override active behavior for text
   iupClassRegisterAttribute(ic, "ACTIVE", cocoaTextGetActiveAttrib, cocoaTextSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
