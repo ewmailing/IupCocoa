@@ -568,14 +568,33 @@ char* iupdrvBaseGetClientSizeAttrib(Ihandle *ih)
 }
  */
 
+// TODO: I don't know if anything actually uses this.
 int iupdrvBaseSetBgColorAttrib(Ihandle* ih, const char* value)
 {
+	id the_object = ih->handle;
 
+	// Our custom CanvasView is going back and forth between subclassing NSView and NSControl.
+	// Make sure to not implement any other NSViews that do something wonky with the enabled property.
+	if([the_object respondsToSelector:@selector(setBackgroundColor:)])
+	{
+		unsigned char r, g, b;
+		if(iupStrToRGB(value, &r, &g, &b))
+		{
+			CGFloat red = r/255.0;
+			CGFloat green = g/255.0;
+			CGFloat blue = b/255.0;
+			
+			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+			[the_object setBackgroundColor:the_color];
+		}
+		else
+		{
+			[the_object setBackgroundColor:nil];
+		}
+		return 1;
+	}
 	
-
-  /* DO NOT NEED TO UPDATE GTK IMAGES SINCE THEY DO NOT DEPEND ON BGCOLOR */
-
-  return 1;
+  return 0;
 }
 
 int iupdrvBaseSetCursorAttrib(Ihandle* ih, const char* value)
