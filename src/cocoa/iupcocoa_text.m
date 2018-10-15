@@ -836,7 +836,97 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 	return 0;
 }
 
+// This is currently broken.
+// I don't really understand how setDefaultTabInterval is supposed to work.
+// Also, this seems to clobber all existing paragraph attributes so it breaks things.
+// I tried as create-only, which avoids the clobbering problem, but it still doesn't resolve the first issue.
+/*
+static int cocoaTextSetTabSizeAttrib(Ihandle* ih, const char* value)
+{
+	if(!ih->data->is_multiline)
+	{
+		return 0;
+	}
 
+  	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+			NSTextStorage* text_storage = [text_view textStorage];
+			
+			
+			NSRange full_range = NSMakeRange(0, [text_storage length]);
+			
+			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+			[undo_manager beginUndoGrouping];
+			[text_storage beginEditing];
+			
+			NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = nil;
+			NSMutableParagraphStyle* paragraph_style = nil;
+			if((full_range.location == 0) && (full_range.length==0))
+			{
+			
+			}
+			else
+			{
+				text_storage_attributes = [[text_storage attributedSubstringFromRange:full_range] attributesAtIndex:0 effectiveRange:NULL];
+				paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+				[paragraph_style autorelease];
+			}
+			if(nil == paragraph_style)
+			{
+//				NSLog(@"nil == paragraph_style");
+				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+				[paragraph_style autorelease];
+			}
+			
+			int tab_size_int = 8;
+			iupStrToInt(value, &tab_size_int);
+ 
+			// WARNING: Cocoa uses points, not characters.
+			CGFloat tab_size_float = (CGFloat)(tab_size_int * [iup_font charWidth]);
+
+			[paragraph_style setDefaultTabInterval:tab_size_float];
+//			[paragraph_style setDefaultTabInterval:20 * [iup_font charWidth]];
+			[text_storage addAttribute:NSParagraphStyleAttributeName value:paragraph_style range:full_range];
+
+
+ 			// Try setTypingAttributes out of desperation?
+//			text_storage_attributes = [[text_storage_attributes mutableCopy] autorelease];
+//			[(NSMutableDictionary*)text_storage_attributes setObject:paragraph_style forKey:NSParagraphStyleAttributeName];
+//			[text_view setTypingAttributes:text_storage_attributes];
+
+
+			[text_storage endEditing];
+			[text_view didChangeText];
+			[undo_manager endUndoGrouping];
+			return 1;
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			break;
+
+
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	return 0;
+}
+*/
 
 static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 {
@@ -3140,9 +3230,22 @@ static int cocoaTextSetAppendAttrib(Ihandle* ih, const char* value)
 	  // Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
 	  // This will overwrite/merge the current attributes into our font copy attributes.
 	  // Needs to be 1 character or it raises an exception
-	  NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:NSMakeRange([text_storage length]-1, 1)] attributesAtIndex:0 effectiveRange:NULL];
-	  [attribute_dict addEntriesFromDictionary:text_storage_attributes];
+
+		
+	  // This throws an exception if:
+	  // - We are the last character (we must use -1)
+	  // - But then we have a problem if the view is empty
+	  NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = nil;
+	  if(change_range.location == 0)
+	  {
+		  text_storage_attributes = [iup_font attributeDictionary];
+	  }
+	  else
+	  {
+		  text_storage_attributes = [text_storage attributesAtIndex:change_range.location-1 effectiveRange:NULL];
+	  }
 	  
+	  [attribute_dict addEntriesFromDictionary:text_storage_attributes];
 
 	  
 	  NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:ns_append_string attributes:attribute_dict];
@@ -3789,7 +3892,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[text_view_delegate release];
 		
 		
-		
+
+
 		
 	}
 	else if(iupAttribGetBoolean(ih, "SPIN"))
@@ -4007,7 +4111,6 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	
 	
 	
-	
 	ih->handle = the_view;
 	
 
@@ -4210,8 +4313,8 @@ void iupdrvTextInitClass(Iclass* ic)
 #if 0
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "TABSIZE", NULL, gtkTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
 #endif
+ // iupClassRegisterAttribute(ic, "TABSIZE", NULL, cocoaTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CUEBANNER", NULL, cocoaTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
