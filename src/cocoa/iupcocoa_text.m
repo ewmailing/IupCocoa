@@ -838,7 +838,7 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 
 // This is currently broken.
 // I don't really understand how setDefaultTabInterval is supposed to work.
-// Also, this seems to clobber all existing paragraph attributes so it breaks things.
+// Also, I have to be very carefuly about not clobbering other attributes.
 // I tried as create-only, which avoids the clobbering problem, but it still doesn't resolve the first issue.
 /*
 static int cocoaTextSetTabSizeAttrib(Ihandle* ih, const char* value)
@@ -860,47 +860,92 @@ static int cocoaTextSetTabSizeAttrib(Ihandle* ih, const char* value)
 			
 			NSRange full_range = NSMakeRange(0, [text_storage length]);
 			
+			if((full_range.location == 0) && (full_range.length==0))
+			{
+				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+				[undo_manager beginUndoGrouping];
+				//		[text_storage beginEditing];
+				
+				// Try setTypingAttributes out of desperation?
+				NSMutableDictionary* typing_attributes = [[text_view typingAttributes] mutableCopy];
+				[typing_attributes autorelease];
+				NSMutableParagraphStyle* paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+				[paragraph_style autorelease];
+				[(NSMutableDictionary*)typing_attributes setObject:paragraph_style forKey:NSParagraphStyleAttributeName];
+				[text_view setTypingAttributes:typing_attributes];
+				
+				
+				//		[text_storage endEditing];
+				[text_view didChangeText];
+				[undo_manager endUndoGrouping];
+				return 1;
+			}
+			
+			
+			
+			
 			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 			[undo_manager beginUndoGrouping];
 			[text_storage beginEditing];
 			
-			NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = nil;
-			NSMutableParagraphStyle* paragraph_style = nil;
-			if((full_range.location == 0) && (full_range.length==0))
-			{
 			
-			}
-			else
-			{
-				text_storage_attributes = [[text_storage attributedSubstringFromRange:full_range] attributesAtIndex:0 effectiveRange:NULL];
-				paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-				[paragraph_style autorelease];
-			}
-			if(nil == paragraph_style)
-			{
-//				NSLog(@"nil == paragraph_style");
-				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
-				[paragraph_style autorelease];
-			}
+			NSString* all_string = [text_storage string];
 			
-			int tab_size_int = 8;
-			iupStrToInt(value, &tab_size_int);
- 
-			// WARNING: Cocoa uses points, not characters.
-			CGFloat tab_size_float = (CGFloat)(tab_size_int * [iup_font charWidth]);
-
-			[paragraph_style setDefaultTabInterval:tab_size_float];
-//			[paragraph_style setDefaultTabInterval:20 * [iup_font charWidth]];
-			[text_storage addAttribute:NSParagraphStyleAttributeName value:paragraph_style range:full_range];
-
-
- 			// Try setTypingAttributes out of desperation?
-//			text_storage_attributes = [[text_storage_attributes mutableCopy] autorelease];
-//			[(NSMutableDictionary*)text_storage_attributes setObject:paragraph_style forKey:NSParagraphStyleAttributeName];
-//			[text_view setTypingAttributes:text_storage_attributes];
-
-
+			// The problem seems to be that in order to change the TextLines attribute for the entire block, I need to re-set the attribute.
+			// So I have to be very careful about applying attributes and not clobbering them.
+			// Try going paragraph by paragraph to add the attribute so I don't clobber it with a global value.
+			
+			
+			[all_string enumerateSubstringsInRange:full_range options:NSStringEnumerationByParagraphs usingBlock:
+			 ^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
+			 {
+				 *stop = NO;
+				 				NSLog(@"substring:%@", substring);
+				 				NSLog(@"substringRange:%@", NSStringFromRange(substring_range));
+				 				NSLog(@"enclosingRange:%@", NSStringFromRange(enclosing_range));
+				 
+				 NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = nil;
+				 NSMutableParagraphStyle* paragraph_style = nil;
+				 
+				 text_storage_attributes = [[text_storage attributedSubstringFromRange:enclosing_range] attributesAtIndex:0 effectiveRange:NULL];
+				 paragraph_style = [[text_storage_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+				 [paragraph_style autorelease];
+				 if(nil == paragraph_style)
+				 {
+					 				NSLog(@"nil == paragraph_style");
+					 paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+					 [paragraph_style autorelease];
+				 }
+				 
+				 int tab_size_int = 8;
+				 iupStrToInt(value, &tab_size_int);
+				 
+				 // WARNING: Cocoa uses points, not characters.
+				 // FIXME/TODO: Should probably ask for font of beginning of line instead of the main font.
+				 CGFloat tab_size_float = (CGFloat)(tab_size_int * [iup_font charWidth]);
+				 
+				 [paragraph_style setDefaultTabInterval:tab_size_float];
+				 //			[paragraph_style setDefaultTabInterval:20 * [iup_font charWidth]];
+				 [text_storage addAttribute:NSParagraphStyleAttributeName value:paragraph_style range:enclosing_range];
+				 
+				 
+		
+				 
+			 }
+			 ];
+			
 			[text_storage endEditing];
+
+			// Try setTypingAttributes for end
+			{
+				NSMutableDictionary* typing_attributes = [[text_view typingAttributes] mutableCopy];
+				[typing_attributes autorelease];
+				NSMutableParagraphStyle* paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+				[paragraph_style autorelease];
+				[(NSMutableDictionary*)typing_attributes setObject:paragraph_style forKey:NSParagraphStyleAttributeName];
+				[text_view setTypingAttributes:typing_attributes];
+			}
+
 			[text_view didChangeText];
 			[undo_manager endUndoGrouping];
 			return 1;
@@ -4591,7 +4636,7 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
- // iupClassRegisterAttribute(ic, "TABSIZE", NULL, cocoaTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
+//  iupClassRegisterAttribute(ic, "TABSIZE", NULL, cocoaTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CUEBANNER", NULL, cocoaTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
