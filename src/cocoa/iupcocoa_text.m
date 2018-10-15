@@ -1063,10 +1063,21 @@ static bool cocoaTextComputeRangeFromLineColumnForTextView(NSTextView* text_view
 	}
 
 	NSLayoutManager* layout_manager = [text_view layoutManager];
+	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
+	if(0 == number_of_glyphs)
+	{
+		if((start_line <= 1) && (start_column <= 1))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	NSUInteger number_of_lines;
 	NSUInteger index;
-	
-	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
+
 	NSRange line_range = NSMakeRange(0, 0);
 
 	bool found_start_line = false;
@@ -1202,10 +1213,10 @@ static bool cocoaTextComputeRangeFromLineColumnForTextView(NSTextView* text_view
 /// @param native_selection_range This is a range that something like [text_view selectedRange] would return
 static bool cocoaTextComputeLineColumnFromRangeForTextView(NSTextView* text_view, NSRange native_selection_range, NSUInteger* out_start_line, NSUInteger* out_start_column, NSUInteger* out_end_line, NSUInteger* out_end_column)
 {
-	*out_start_line = 0;
-	*out_start_column = 0;
-	*out_end_line = 0;
-	*out_end_column = 0;
+	*out_start_line = 1;
+	*out_start_column = 1;
+	*out_end_line = 1;
+	*out_end_column = 1;
 
 	NSUInteger start_line = 1;
 	NSUInteger start_column = 1;
@@ -1214,10 +1225,21 @@ static bool cocoaTextComputeLineColumnFromRangeForTextView(NSTextView* text_view
 
 
 	NSLayoutManager* layout_manager = [text_view layoutManager];
+	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
+	if(0 == number_of_glyphs)
+	{
+		if(native_selection_range.location == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
 	NSUInteger number_of_lines;
 	NSUInteger index;
-	
-	NSUInteger number_of_glyphs = [layout_manager numberOfGlyphs];
 	NSRange line_range = NSMakeRange(0, 0);
 
 
@@ -1334,15 +1356,272 @@ static bool cocoaTextComputeLineColumnFromRangeForTextView(NSTextView* text_view
 
 void iupdrvTextConvertLinColToPos(Ihandle* ih, int lin, int col, int *pos)
 {
-		NSLog(@"iupdrvTextConvertLinColToPos");
+//		NSLog(@"iupdrvTextConvertLinColToPos");
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			NSUInteger lin_start = lin;
+			NSUInteger col_start = col;
+			NSUInteger lin_end = lin;
+			NSUInteger col_end = col;
+			NSRange native_selection_range = NSMakeRange(0, 0);
+			
+			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &native_selection_range);
+			if(did_find_range)
+			{
+				if(pos)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*pos = (int)native_selection_range.location;
+				}
+			}
+			return;
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// This should be trivial, but it isn't quite...
+			// Without newlines, it should be pos = col -1
+			// Because the user can add newlines in a NSTextField (option-return), we may need to do some heroics.
+
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+
+			if(![field_editor isKindOfClass:[NSTextView class]])
+			{
+				if(pos)
+				{
+					if(col > 0)
+					{
+						*pos = col - 1;
+					}
+					else
+					{
+						// What do we do here?
+						*pos = 0;
+					}
+				}
+				return;
+			}
+			
+			NSTextView* text_view = (NSTextView*)field_editor;
+			NSUInteger lin_start = lin;
+			NSUInteger col_start = col;
+			NSUInteger lin_end = lin;
+			NSUInteger col_end = col;
+			NSRange native_selection_range = NSMakeRange(0, 0);
+			
+			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &native_selection_range);
+			if(did_find_range)
+			{
+				if(pos)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*pos = (int)native_selection_range.location;
+				}
+			}
+			return;
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// This should be trivial, but it isn't quite...
+			// Without newlines, it should be pos = col -1
+			// Because the user can add newlines in a NSTextField (option-return), we may need to do some heroics.
+
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+
+			if(![field_editor isKindOfClass:[NSTextView class]])
+			{
+				if(pos)
+				{
+					if(col > 0)
+					{
+						*pos = col - 1;
+					}
+					else
+					{
+						// What do we do here?
+						*pos = 0;
+					}
+				}
+				return;
+			}
+			
+			NSTextView* text_view = (NSTextView*)field_editor;
+			NSUInteger lin_start = lin;
+			NSUInteger col_start = col;
+			NSUInteger lin_end = lin;
+			NSUInteger col_end = col;
+			NSRange native_selection_range = NSMakeRange(0, 0);
+			
+			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &native_selection_range);
+			if(did_find_range)
+			{
+				if(pos)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*pos = (int)native_selection_range.location;
+				}
+			}
+			return;
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 
 }
 
 void iupdrvTextConvertPosToLinCol(Ihandle* ih, int pos, int *lin, int *col)
 {
-	NSLog(@"iupdrvTextConvertPosToLinCol");
 
-	
+//	NSLog(@"iupdrvTextConvertPosToLinCol");
+
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+			NSRange range_position = NSMakeRange(pos, 0);
+
+			
+			NSUInteger lin_start=1;
+			NSUInteger col_start=1;
+			NSUInteger lin_end=1;
+			NSUInteger col_end=1;
+			bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, range_position, &lin_start, &col_start, &lin_end, &col_end);
+			if(did_find_range)
+			{
+				if(lin)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*lin = (int)lin_start;
+				}
+				if(col)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*col = (int)col_start;
+				}
+			}
+			return;
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// This should be trivial, but it isn't quite...
+			// Without newlines, it should be pos = col -1
+			// Because the user can add newlines in a NSTextField (option-return), we may need to do some heroics.
+
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+
+			if(![field_editor isKindOfClass:[NSTextView class]])
+			{
+				if(lin)
+				{
+					*lin = 1;
+				}
+				if(col)
+				{
+					*col = pos + 1;
+				}
+
+				return;
+			}
+			
+			
+			NSTextView* text_view = (NSTextView*)field_editor;
+			NSUInteger lin_start=1;
+			NSUInteger col_start=1;
+			NSUInteger lin_end=1;
+			NSUInteger col_end=1;
+			NSRange range_position = NSMakeRange(pos, 0);
+			bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, range_position, &lin_start, &col_start, &lin_end, &col_end);
+			if(did_find_range)
+			{
+				if(lin)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*lin = (int)lin_start;
+				}
+				if(col)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*col = (int)col_start;
+				}
+			}
+			return;
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+
+			// This should be trivial, but it isn't quite...
+			// Without newlines, it should be pos = col -1
+			// Because the user can add newlines in a NSTextField (option-return), we may need to do some heroics.
+
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+
+			if(![field_editor isKindOfClass:[NSTextView class]])
+			{
+				if(lin)
+				{
+					*lin = 1;
+				}
+				if(col)
+				{
+					*col = pos + 1;
+				}
+
+				return;
+			}
+			
+			
+			NSTextView* text_view = (NSTextView*)field_editor;
+			NSUInteger lin_start=1;
+			NSUInteger col_start=1;
+			NSUInteger lin_end=1;
+			NSUInteger col_end=1;
+			NSRange range_position = NSMakeRange(pos, 0);
+			bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, range_position, &lin_start, &col_start, &lin_end, &col_end);
+			if(did_find_range)
+			{
+				if(lin)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*lin = (int)lin_start;
+				}
+				if(col)
+				{
+					// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+					*col = (int)col_start;
+				}
+			}
+			return;
+			
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 }
 
 
@@ -4117,8 +4396,6 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
-	
-
 
 #if 0
 	/* configure for DRAG&DROP */
@@ -4260,14 +4537,14 @@ void iupdrvTextInitClass(Iclass* ic)
   /* Driver Dependent Attribute functions */
 
   /* Visual */
-  iupClassRegisterAttribute(ic, "BGCOLOR", NULL, gtkTextSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "BGCOLOR", NULL, cocoaTextSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTBGCOLOR", IUPAF_DEFAULT);
+  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, cocoaTextSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
 #endif
   // need to override active behavior for text
   iupClassRegisterAttribute(ic, "ACTIVE", cocoaTextGetActiveAttrib, cocoaTextSetActiveAttrib, IUPAF_SAMEASSYSTEM, "YES", IUPAF_DEFAULT);
 
 #if 0
   /* Special */
-  iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iupdrvBaseSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "TXTFGCOLOR", IUPAF_DEFAULT);
 
   /* IupText only */
   iupClassRegisterAttribute(ic, "PADDING", iupTextGetPaddingAttrib, gtkTextSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
