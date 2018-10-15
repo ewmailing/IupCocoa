@@ -665,7 +665,7 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 	{
 		// () is another way to express negative, but doesn't seem to work with our supported modes
 		// + only works with e, 1e+2 and not +5. We don't need it.
-		[allowed_character_set addCharactersInString:@".eE+-, "];
+		[allowed_character_set addCharactersInString:@".eE-, "];
 	}
 	NSCharacterSet* disallowed_character_set = [allowed_character_set invertedSet];
 
