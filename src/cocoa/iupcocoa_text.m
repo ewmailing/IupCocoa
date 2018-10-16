@@ -3139,7 +3139,7 @@ static int cocoaTextSetFormattingAttrib(Ihandle* ih, const char* value)
 				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 //				[undo_manager beginUndoGrouping];
 				[text_view setRichText:enable_formatting];
-				[text_view setImportsGraphics:enable_formatting];
+//				[text_view setImportsGraphics:enable_formatting];
 //				[undo_manager endUndoGrouping];
 				
 				// I can't seem to undo setRichText:
@@ -3170,7 +3170,7 @@ static int cocoaTextSetFormattingAttrib(Ihandle* ih, const char* value)
 				IupCocoaFont* iup_font = iupCocoaGetFont(ih);
 
 				[text_view setTypingAttributes:[iup_font attributeDictionary]];
-				[text_view setImportsGraphics:enable_formatting];
+	//			[text_view setImportsGraphics:enable_formatting];
 				[text_view setRichText:enable_formatting];
 			
 				// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
@@ -4968,8 +4968,9 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		// Make sure the text view is synchronized with the variable.
 		[text_view setRichText:ih->data->has_formatting];
-		[text_view setImportsGraphics:ih->data->has_formatting];
-		
+//		[text_view setImportsGraphics:ih->data->has_formatting];
+		[text_view setImportsGraphics:NO];
+
 		if (iupAttribGetBoolean(ih, "WORDWRAP"))
 		{
 			wordwrap = 1;
