@@ -1038,6 +1038,20 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
+			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+			if([iup_font usesAttributes])
+			{
+				NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
+				[text_field setAttributedStringValue:attributed_string];
+				[attributed_string release];
+			
+			}
+			else
+			{
+				[text_field setStringValue:ns_string];
+			}
 			break;
 		}
 		default:
@@ -1076,6 +1090,11 @@ static char* cocoaTextGetValueAttrib(Ihandle* ih)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			
+			NSString* ns_string = [text_field stringValue];
+			value = iupStrReturnStr([ns_string UTF8String]);
+			
 			break;
 		}
 		default:
@@ -3570,8 +3589,9 @@ static char* cocoaTextGetSelectionAttrib(Ihandle* ih)
 				did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, 1, col_start, 1, col_end, &selected_range);
 				if(did_find_range)
 				{
-					col_start = selected_range.location;
-					col_end = selected_range.location + selected_range.length;
+					// pos is 0 indexed, col is 1 indexed, so we need to add 1
+					col_start = selected_range.location + 1;
+					col_end = col_start + selected_range.length;
 				}
 				else
 				{
@@ -3734,172 +3754,176 @@ static char* cocoaTextGetSelectionPosAttrib(Ihandle* ih)
 
 
 
-static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
+static int cocoaTextSetCaretAttrib(Ihandle* ih, const char* value)
 {
-	NSString* ns_string;
-	
-	if(NULL == value)
-	{
-		ns_string = @"";
-	}
-	else
-	{
-		ns_string = [NSString stringWithUTF8String:value];
-	}
-	
+	NSTextView* text_view = nil;
 	
 	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
 	switch(sub_type)
 	{
 		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
-			
+			text_view = cocoaTextGetTextView(ih);
+
 			break;
 		}
 		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
 			NSTextField* text_field = cocoaTextGetTextField(ih);
-			[text_field setPlaceholderString:ns_string];
-
-			return  1;
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
 			
+
+			break;
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
 			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
-			[text_field setPlaceholderString:ns_string];
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
 			break;
 		}
 		default:
 		{
+			return 0;
 			break;
 		}
+	}
+	
+	
+	NSRange cursor_range = NSMakeRange(0, 0);
+	
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	int start_int = 0;
+	int end_int = 0;
+	
+	if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+	{
+		return 0;
+	}
+	if(start_int<0 || end_int<0)
+	{
+		return 0;
+	}
+	NSUInteger lin_start=start_int;
+	NSUInteger col_start=end_int;
+	NSUInteger lin_end=start_int;
+	NSUInteger col_end=end_int;
+	bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &cursor_range);
+	if(did_find_range)
+	{
+		[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+		[text_view scrollRangeToVisible:cursor_range];
 	}
 	
 
 	return 0;
 }
 
-
-
-static int cocoaTextSetCaretAttrib(Ihandle* ih, const char* value)
-{
-	if(ih->data->is_multiline)
-	{
-
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		NSRange cursor_range = NSMakeRange(0, 0);
-
-
-
-			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-			int start_int = 0;
-			int end_int = 0;
-
-			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
-			{
-				return 0;
-			}
-      		if(start_int<0 || end_int<0)
-      		{
-		        return 0;
-			}
-			NSUInteger lin_start=start_int;
-			NSUInteger col_start=end_int;
-			NSUInteger lin_end=start_int;
-			NSUInteger col_end=end_int;
-			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &cursor_range);
-			if(did_find_range)
-			{
-				[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
-				[text_view scrollRangeToVisible:cursor_range];
-			}
-		
-
-		
-	}
-	else
-	{
-		NSUInteger start;
-		NSUInteger end;
-		NSRange selection_range = NSMakeRange(start, end);
-
-		if (!value || iupStrEqualNoCase(value, "NONE"))
-		{
-			start = 0;
-			end = 0;
-		}
-		else if (iupStrEqualNoCase(value, "ALL"))
-		{
-			start = 0;
-			end = -1;  /* a negative value means all */
-		}
-		else
-		{
-			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-			int start_int = 0;
-			int end_int = 0;
-
-			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
-			{
-				return 0;
-			}
-      		if(start_int<0 || end_int<0)
-      		{
-		        return 0;
-			}
-			start = (NSUInteger)start_int;
-			end = (NSUInteger)end_int;
-			selection_range = NSMakeRange(start, end-start);
-		}
-		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
-
-	}
-
-	return 0;
-}
-
 static char* cocoaTextGetCaretAttrib(Ihandle* ih)
 {
-#if 1
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		
-		NSRange cursor_range = [[[text_view selectedRanges] lastObject] rangeValue];
-		if(NSNotFound == cursor_range.location)
+		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
-			// what do we do?
-			return NULL;
+			text_view = cocoaTextGetTextView(ih);
+
+			break;
 		}
-		
-		NSUInteger lin_start=1;
-		NSUInteger col_start=1;
-		NSUInteger lin_end=1;
-		NSUInteger col_end=1;
-		bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, cursor_range, &lin_start, &col_start, &lin_end, &col_end);
-		if(did_find_range)
+		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
-			[text_view scrollRangeToVisible:cursor_range];
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
+		{
+			return NULL;
+			break;
+		}
+	}
+
+
+	NSRange cursor_range = [[[text_view selectedRanges] lastObject] rangeValue];
+	if(NSNotFound == cursor_range.location)
+	{
+		// what do we do?
+		return NULL;
+	}
+	
+	NSUInteger lin_start=1;
+	NSUInteger col_start=1;
+	NSUInteger lin_end=1;
+	NSUInteger col_end=1;
+	bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, cursor_range, &lin_start, &col_start, &lin_end, &col_end);
+	if(!did_find_range)
+	{
+		return NULL;
+	}
+	
+	[text_view scrollRangeToVisible:cursor_range];
+
+
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
 			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
 			return iupStrReturnIntInt((int)lin_start, (int)col_start, ':');
-		}
-	}
-	else
-	{
-		int start, end;
-#if 0
-		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
-		{
-			start++; /* IUP starts at 1 */
-			end++;
-			return iupStrReturnIntInt((int)start, (int)end, ':');
-		}
-#endif
-		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
-	}
-#endif
 
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// FIXME: There is an edge case where a \n is snuck into the NSTextField. This will break things.
+			// This algorithm may be overkill.
+			if(lin_end > 1)
+			{
+				did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, 1, col_start, 1, col_end, &cursor_range);
+				if(did_find_range)
+				{
+					// pos is 0 indexed, col is 1 indexed, so we need to add 1
+					col_start = cursor_range.location + 1;
+//					col_end = col_start + cursor_range.length;
+				}
+				else
+				{
+					return NULL;
+				}
+			}
+			
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+   			 return iupStrReturnInt((int)col_start);
+
+			break;
+		}
+		default:
+		{
+			return NULL;
+			break;
+		}
+	}
+	
 	return NULL;
 }
 
@@ -4059,6 +4083,54 @@ static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
 
 
 
+static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
+{
+	NSString* ns_string;
+	
+	if(NULL == value)
+	{
+		ns_string = @"";
+	}
+	else
+	{
+		ns_string = [NSString stringWithUTF8String:value];
+	}
+	
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			[text_field setPlaceholderString:ns_string];
+
+			return  1;
+			
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			[text_field setPlaceholderString:ns_string];
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+
+	return 0;
+}
+
+
+
 
 // NSControl's setEnabled didn't seem to do anything on NSTextField. Also, NSTextView isn't an NSControl.
 static int cocoaTextSetActiveAttrib(Ihandle* ih, const char* value)
@@ -4121,6 +4193,9 @@ static char* cocoaTextGetActiveAttrib(Ihandle* ih)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+//			is_active = [text_field isEditable];
+			is_active = [text_field isSelectable];
 			break;
 		}
 		default:
@@ -4155,6 +4230,8 @@ static int cocoaTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			[text_field setEditable:is_editable];
 			break;
 		}
 		default:
@@ -4189,6 +4266,8 @@ static char* cocoaTextGetReadOnlyAttrib(Ihandle* ih)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			is_editable = [text_field isEditable];
 			break;
 		}
 		default:
@@ -4481,6 +4560,8 @@ static char* cocoaTextGetCountAttrib(Ihandle* ih)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			text_string = [text_field stringValue];
 			break;
 		}
 		default:
@@ -4801,6 +4882,23 @@ static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+
+			// We can't use iupCocoaCommonBaseSetContextMenuForWidget() because field editors are shared.
+			// We will override textView:menu:forEvent:atIndex: and inject the menu options there.
+			if(NULL != menu_ih)
+			{
+				// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
+				// I think calling IupMap() is the correct thing to do and fixes the problem.
+				// But this should be reviewed.
+				if(NULL == menu_ih->handle)
+				{
+					IupMap(menu_ih);
+				}
+			}
+			// Save the menu_ih so we can access it in the callback
+			iupAttribSet(ih, "_COCOA_CONTEXT_MENU_IH", (const char*)menu_ih);
 			break;
 		}
 		default:
