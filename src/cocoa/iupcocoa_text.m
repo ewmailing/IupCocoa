@@ -3246,6 +3246,51 @@ static int cocoaTextSetRemoveFormattingAttrib(Ihandle* ih, const char* value)
 	return 0;
 }
 
+
+static int cocoaTextSetAlignmentAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			
+			// NSText provides these methods
+			if(iupStrEqualNoCase(value, "ARIGHT"))
+			{
+				[text_view setAlignment:NSTextAlignmentRight];
+			}
+			else if (iupStrEqualNoCase(value, "ACENTER"))
+			{
+				[text_view setAlignment:NSTextAlignmentCenter];
+			}
+			else /* "ALEFT" */
+			{
+				[text_view setAlignment:NSTextAlignmentLeft];
+			}
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	return 1;
+}
+
+
+
+
 static char* cocoaTextGetSelectedTextAttrib(Ihandle* ih)
 {
 	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
@@ -5695,8 +5740,8 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "ADDFORMATTAG_HANDLE", NULL, iupTextSetAddFormatTagHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FORMATTING", cocoaTextGetFormattingAttrib, cocoaTextSetFormattingAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, cocoaTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, cocoaTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
 #if 0
-  iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
 //  iupClassRegisterAttribute(ic, "TABSIZE", NULL, cocoaTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
