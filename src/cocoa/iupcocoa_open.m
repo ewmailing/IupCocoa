@@ -80,20 +80,61 @@ void* iupdrvGetDisplay(void)
   return NULL;
 }
 
+static bool cocoaGetByteRGBAFromNSColor(NSColor* ns_color, unsigned char* red, unsigned char* green, unsigned char* blue, unsigned char* alpha)
+{
+	NSColor* rgb_color = [ns_color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+	if(rgb_color)
+	{
+		CGFloat rgba_components[4];
+		[rgb_color getComponents:rgba_components];
+		*red = iupROUND(rgba_components[0] * 255.0);
+		*green = iupROUND(rgba_components[1] * 255.0);
+		*blue = iupROUND(rgba_components[2] * 255.0);
+		*alpha = iupROUND(rgba_components[3] * 255.0);
+		return true;
+	}
+	else
+	{
+		NSCAssert(false, @"Color conversion failed");
+		return false;
+	}
+}
 
 void iupmacUpdateGlobalColors(void)
 {
-  iupGlobalSetDefaultColorAttrib("DLGBGCOLOR", 237,237,237);
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+	unsigned char a;
 
-  iupGlobalSetDefaultColorAttrib("DLGFGCOLOR", 0,0,0);
-
-  iupGlobalSetDefaultColorAttrib("TXTBGCOLOR", 255,255,255);
-
-  iupGlobalSetDefaultColorAttrib("TXTFGCOLOR", 0,0,0);
-
-  iupGlobalSetDefaultColorAttrib("MENUBGCOLOR", 183,183,183);
-
-  iupGlobalSetDefaultColorAttrib("MENUFGCOLOR", 0,0,0);
+	// I don't know what this should be
+	//	cocoaGetByteRGBAFromNSColor([NSColor controlBackgroundColor], &r, &g, &b, &a);
+	cocoaGetByteRGBAFromNSColor([NSColor windowFrameColor], &r, &g, &b, &a);
+	// 	cocoaGetByteRGBAFromNSColor([NSColor windowBackgroundColor], &r, &g, &b, &a);
+	iupGlobalSetDefaultColorAttrib("DLGBGCOLOR", r, g, b);
+	
+	cocoaGetByteRGBAFromNSColor([NSColor windowFrameTextColor], &r, &g, &b, &a);
+	
+	iupGlobalSetDefaultColorAttrib("DLGFGCOLOR", r, g, b);
+	
+	
+	
+	
+	cocoaGetByteRGBAFromNSColor([NSColor textBackgroundColor], &r, &g, &b, &a);
+	
+	iupGlobalSetDefaultColorAttrib("TXTBGCOLOR", r, g, b);
+	
+	cocoaGetByteRGBAFromNSColor([NSColor controlTextColor], &r, &g, &b, &a);
+	
+	iupGlobalSetDefaultColorAttrib("TXTFGCOLOR", r, g, b);
+	
+	// FIXME: I don't know where these values came from
+	iupGlobalSetDefaultColorAttrib("MENUBGCOLOR", 183,183,183);
+	
+	
+	cocoaGetByteRGBAFromNSColor([NSColor controlTextColor], &r, &g, &b, &a);
+	
+	iupGlobalSetDefaultColorAttrib("MENUFGCOLOR", r, g, b);
 }
 
 int iupdrvOpen(int *argc, char ***argv)
