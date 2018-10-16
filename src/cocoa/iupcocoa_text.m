@@ -4682,6 +4682,149 @@ static int cocoaTextSetInsertAttrib(Ihandle* ih, const char* value)
 	return 0;
 }
 
+// UNDO, REDO only work for NSTextView
+// New feature: CLEARUNDO
+static int cocoaTextSetClipboardAttrib(Ihandle* ih, const char* value)
+{
+	ih->data->disable_callbacks = 1;
+	
+	NSView* the_view = nil;
+	
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			the_view = text_view;
+			
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			the_view = text_field;
+			
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			the_view = text_field;
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	
+	if(iupStrEqualNoCase(value, "COPY"))
+	{
+		[[NSApplication sharedApplication] sendAction:@selector(copy:) to:the_view from:nil];
+		
+	}
+	else if(iupStrEqualNoCase(value, "CUT"))
+	{
+		[[NSApplication sharedApplication] sendAction:@selector(cut:) to:the_view from:nil];
+		
+	}
+	else if(iupStrEqualNoCase(value, "PASTE"))
+	{
+		[[NSApplication sharedApplication] sendAction:@selector(paste:) to:the_view from:nil];
+		
+	}
+	else if(iupStrEqualNoCase(value, "CLEAR"))
+	{
+		[[NSPasteboard generalPasteboard] clearContents];
+	}
+	else if(iupStrEqualNoCase(value, "UNDO"))
+	{
+		switch(sub_type)
+		{
+			case IUPCOCOATEXTSUBTYPE_VIEW:
+			{
+				NSTextView* text_view = (NSTextView*)the_view;
+				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+				[undo_manager undo];
+				
+				break;
+			}
+			case IUPCOCOATEXTSUBTYPE_FIELD:
+			case IUPCOCOATEXTSUBTYPE_STEPPER:
+			{
+				// I haven't been able to make this work
+//				[the_view becomeFirstResponder];
+//				[[NSApplication sharedApplication] sendAction:@selector(undo:) to:nil from:nil];
+				
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+	else if(iupStrEqualNoCase(value, "REDO"))
+	{
+		switch(sub_type)
+		{
+			case IUPCOCOATEXTSUBTYPE_VIEW:
+			{
+				NSTextView* text_view = (NSTextView*)the_view;
+				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+				[undo_manager redo];
+				
+				break;
+			}
+			case IUPCOCOATEXTSUBTYPE_FIELD:
+			case IUPCOCOATEXTSUBTYPE_STEPPER:
+			{
+				// I haven't been able to make this work
+//				[the_view becomeFirstResponder];
+//				[[NSApplication sharedApplication] sendAction:@selector(redo:) to:nil from:nil];
+				
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+	else if(iupStrEqualNoCase(value, "CLEARUNDO"))
+	{
+		switch(sub_type)
+		{
+			case IUPCOCOATEXTSUBTYPE_VIEW:
+			{
+				NSTextView* text_view = (NSTextView*)the_view;
+				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+				[undo_manager removeAllActions];
+				
+				break;
+			}
+			case IUPCOCOATEXTSUBTYPE_FIELD:
+			case IUPCOCOATEXTSUBTYPE_STEPPER:
+			{
+
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+	
+  ih->data->disable_callbacks = 0;
+  return 0;
+}
+
+
 
 static char* cocoaTextGetCountAttrib(Ihandle* ih)
 {
@@ -5532,8 +5675,8 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "READONLY", cocoaTextGetReadOnlyAttrib, cocoaTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
 #if 0
   iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, gtkTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
-  iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, gtkTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
+  iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, cocoaTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, cocoaTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, cocoaTextSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
