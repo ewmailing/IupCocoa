@@ -4276,6 +4276,63 @@ static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
 }
 
 
+static char* cocoaTextGetLineValueAttrib(Ihandle* ih)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+
+			
+			NSRange cursor_range = [[[text_view selectedRanges] lastObject] rangeValue];
+			if(NSNotFound == cursor_range.location)
+			{
+				// what do we do?
+				return NULL;
+			}
+			
+			// We don't want the entire range, just the start cursor position (in case the user has selected multiple lines)
+			cursor_range.length = 0;
+			
+			NSTextStorage* text_storage = [text_view textStorage];
+			NSString* text_string = [text_storage string];
+			NSUInteger start_index = 0;
+			NSUInteger contents_end_index = 0;
+			
+			[text_string getLineStart:&start_index end:NULL contentsEnd:&contents_end_index forRange:cursor_range];
+			
+			NSRange line_range = NSMakeRange(start_index, contents_end_index - start_index);
+			NSString* selected_string = [text_string substringWithRange:line_range];
+			return iupStrReturnStr([selected_string UTF8String]);
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			// I originally tried to do the overkill thing and worry about injected newlines.
+			// So I used the field editor and tried to share the textview code.
+			// But unless the field is selected, there is no string in the field editor, so that approach won't work.
+			return cocoaTextGetValueAttrib(ih);
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// I originally tried to do the overkill thing and worry about injected newlines.
+			// So I used the field editor and tried to share the textview code.
+			// But unless the field is selected, there is no string in the field editor, so that approach won't work.
+			return cocoaTextGetValueAttrib(ih);
+			break;
+		}
+		default:
+		{
+			return NULL;
+			break;
+		}
+	}
+	
+	
+}
 
 static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 {
@@ -5705,9 +5762,9 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "PADDING", iupTextGetPaddingAttrib, gtkTextSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
 #endif
   iupClassRegisterAttribute(ic, "VALUE", cocoaTextGetValueAttrib, cocoaTextSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#if 0
-  iupClassRegisterAttribute(ic, "LINEVALUE", gtkTextGetLineValueAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#endif
+
+  iupClassRegisterAttribute(ic, "LINEVALUE", cocoaTextGetLineValueAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
   iupClassRegisterAttribute(ic, "SELECTEDTEXT", cocoaTextGetSelectedTextAttrib, cocoaTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTION", cocoaTextGetSelectionAttrib, cocoaTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTIONPOS", cocoaTextGetSelectionPosAttrib, cocoaTextSetSelectionPosAttrib, NULL, NULL, IUPAF_NO_INHERIT);
