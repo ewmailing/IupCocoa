@@ -3252,6 +3252,11 @@ static char* cocoaTextGetSelectedTextAttrib(Ihandle* ih)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSRange selected_range = [field_editor selectedRange];
+			NSString* selected_string = [[field_editor string] substringWithRange:selected_range];
+			return iupStrReturnStr([selected_string UTF8String]);
 			break;
 		}
 		default:
@@ -3347,6 +3352,19 @@ static int cocoaTextSetSelectedTextAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSRange selected_range = [field_editor selectedRange];
+			if((NSNotFound == selected_range.location) || (0 == selected_range.length))
+			{
+				return 0;
+			}
+			
+			NSString* ns_string = [NSString stringWithUTF8String:value];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			[(NSTextView*)field_editor insertText:ns_string replacementRange:selected_range];
+			return 0;
+			
 			break;
 		}
 		default:
@@ -3359,131 +3377,220 @@ static int cocoaTextSetSelectedTextAttrib(Ihandle* ih, const char* value)
 
 static int cocoaTextSetSelectionAttrib(Ihandle* ih, const char* value)
 {
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			text_view = cocoaTextGetTextView(ih);
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
+	
+	
+
+	NSRange selection_range = NSMakeRange(0, 0);
+	
+	
+	if (!value || iupStrEqualNoCase(value, "NONE"))
+	{
+		//			start = 0;
+		//			end = 0;
+	}
+	else if (iupStrEqualNoCase(value, "ALL"))
+	{
+		NSTextStorage* text_storage = [text_view textStorage];
 		NSUInteger start;
 		NSUInteger end;
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		NSRange selection_range = NSMakeRange(0, 0);
-
-
-		if (!value || iupStrEqualNoCase(value, "NONE"))
-		{
-//			start = 0;
-//			end = 0;
-		}
-		else if (iupStrEqualNoCase(value, "ALL"))
-		{
-			NSTextStorage* text_storage = [text_view textStorage];
-			
-			start = 0;
-			end = [text_storage length];
-			selection_range = NSMakeRange(start, end);
-		}
-		else
-		{
-			int ret_val;
-			NSUInteger lin_start=1;
-			NSUInteger col_start=1;
-			NSUInteger lin_end=1;
-			NSUInteger col_end=1;
-
-			ret_val = sscanf(value, "%lu,%lu:%lu,%lu", &lin_start, &col_start, &lin_end, &col_end);
-		    if(ret_val != 4)
-		    {
-		    	return 0;
-			}
-			if(lin_start<1 || col_start<1 || lin_end<1 || col_end<1)
-			{
-				return 0;
-			}
-
-			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &selection_range);
-
-		}
-		
-		[text_view setSelectedRange:selection_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
-
-		
+		start = 0;
+		end = [text_storage length];
+		selection_range = NSMakeRange(start, end);
 	}
 	else
 	{
-		NSUInteger start;
-		NSUInteger end;
-		NSRange selection_range = NSMakeRange(start, end);
+		int ret_val;
+		NSUInteger lin_start=1;
+		NSUInteger col_start=1;
+		NSUInteger lin_end=1;
+		NSUInteger col_end=1;
+		
+		
+		switch(sub_type)
+		{
+			case IUPCOCOATEXTSUBTYPE_VIEW:
+			{
+				ret_val = sscanf(value, "%lu,%lu:%lu,%lu", &lin_start, &col_start, &lin_end, &col_end);
+				if(ret_val != 4)
+				{
+					return 0;
+				}
+				if(lin_start<1 || col_start<1 || lin_end<1 || col_end<1)
+				{
+					return 0;
+				}
+				break;
+			}
+			case IUPCOCOATEXTSUBTYPE_FIELD:
+			case IUPCOCOATEXTSUBTYPE_STEPPER:
+			{
+				int col_start_int = 1;
+				int col_end_int = 1;
+				if(iupStrToIntInt(value, &col_start_int, &col_end_int, ':')!=2)
+				{
+					return 0;
+				}
+				col_start = col_start_int;
+				col_end = col_end_int;
 
-		if (!value || iupStrEqualNoCase(value, "NONE"))
-		{
-			start = 0;
-			end = 0;
-		}
-		else if (iupStrEqualNoCase(value, "ALL"))
-		{
-			start = 0;
-			end = -1;  /* a negative value means all */
-		}
-		else
-		{
-			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-			int start_int = 0;
-			int end_int = 0;
-
-			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+				if(col_start<0 || col_end<0)
+				{
+					return 0;
+				}
+				break;
+			}
+			default:
 			{
 				return 0;
+				break;
 			}
-      		if(start_int<0 || end_int<0)
-      		{
-		        return 0;
-			}
-			start = (NSUInteger)start_int;
-			end = (NSUInteger)end_int;
-			selection_range = NSMakeRange(start, end-start);
 		}
-		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
-
+		
+		bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &selection_range);
+		if(!did_find_range)
+		{
+			return 0;
+		}
 	}
+	
+	[text_view setSelectedRange:selection_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
 
 	return 0;
 }
 
 static char* cocoaTextGetSelectionAttrib(Ihandle* ih)
 {
-#if 1
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
-		NSRange selected_range = [text_view selectedRange];
-		if(NSNotFound == selected_range.location)
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			text_view = cocoaTextGetTextView(ih);
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
 		{
 			return NULL;
+			break;
 		}
-		
-		NSUInteger lin_start=1;
-		NSUInteger col_start=1;
-		NSUInteger lin_end=1;
-		NSUInteger col_end=1;
-		bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, selected_range, &lin_start, &col_start, &lin_end, &col_end);
-		if(did_find_range)
+	}
+
+
+	// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+	NSRange selected_range = [text_view selectedRange];
+	if(NSNotFound == selected_range.location)
+	{
+		return NULL;
+	}
+	
+	NSUInteger lin_start=1;
+	NSUInteger col_start=1;
+	NSUInteger lin_end=1;
+	NSUInteger col_end=1;
+	bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, selected_range, &lin_start, &col_start, &lin_end, &col_end);
+	if(!did_find_range)
+	{
+		return NULL;
+	}
+	
+
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
 			return iupStrReturnStrf("%lu,%lu:%lu,%lu", lin_start, col_start, lin_end, col_end);
+
+			break;
 		}
-	}
-	else
-	{
-		int start, end;
-#if 0
-		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
-			start++; /* IUP starts at 1 */
-			end++;
-			return iupStrReturnIntInt((int)start, (int)end, ':');
+			// FIXME: There is an edge case where a \n is snuck into the NSTextField. This will break things.
+			// This algorithm may be overkill.
+			if(lin_end > 1)
+			{
+				did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, 1, col_start, 1, col_end, &selected_range);
+				if(did_find_range)
+				{
+					col_start = selected_range.location;
+					col_end = selected_range.location + selected_range.length;
+				}
+				else
+				{
+					return NULL;
+				}
+			}
+			
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			return iupStrReturnIntInt((int)col_start, (int)col_end, ':');
+
+			break;
 		}
-#endif
-		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
+		default:
+		{
+			return NULL;
+			break;
+		}
 	}
-#endif
+	
 
 	return NULL;
 }
@@ -3491,125 +3598,138 @@ static char* cocoaTextGetSelectionAttrib(Ihandle* ih)
 
 static int cocoaTextSetSelectionPosAttrib(Ihandle* ih, const char* value)
 {
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSUInteger start;
-		NSUInteger end;
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		NSRange selection_range = NSMakeRange(0, 0);
-
-
-		if (!value || iupStrEqualNoCase(value, "NONE"))
+		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
-//			start = 0;
-//			end = 0;
+			text_view = cocoaTextGetTextView(ih);
+
+			break;
 		}
-		else if (iupStrEqualNoCase(value, "ALL"))
+		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
-			NSTextStorage* text_storage = [text_view textStorage];
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
 			
-			start = 0;
-			end = [text_storage length];
-			selection_range = NSMakeRange(start, end);
+
+			break;
 		}
-		else
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
-			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-			int start_int = 0;
-			int end_int = 0;
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
 
-			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
-			{
-				return 0;
-			}
-      		if(start_int<0 || end_int<0)
-      		{
-		        return 0;
-			}
-			start = (NSUInteger)start_int;
-			end = (NSUInteger)end_int;
-			selection_range = NSMakeRange(start, end-start);
+			break;
 		}
-		
-		[text_view setSelectedRange:selection_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
 
+	NSUInteger start;
+	NSUInteger end;
+	NSRange selection_range = NSMakeRange(0, 0);
+	
+	
+	if (!value || iupStrEqualNoCase(value, "NONE"))
+	{
+		//			start = 0;
+		//			end = 0;
+	}
+	else if (iupStrEqualNoCase(value, "ALL"))
+	{
+		NSTextStorage* text_storage = [text_view textStorage];
 		
+		start = 0;
+		end = [text_storage length];
+		selection_range = NSMakeRange(start, end);
 	}
 	else
 	{
-		NSUInteger start;
-		NSUInteger end;
-		NSRange selection_range = NSMakeRange(start, end);
-
-		if (!value || iupStrEqualNoCase(value, "NONE"))
+		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+		int start_int = 0;
+		int end_int = 0;
+		
+		if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
 		{
-			start = 0;
-			end = 0;
+			return 0;
 		}
-		else if (iupStrEqualNoCase(value, "ALL"))
+		if(start_int<0 || end_int<0)
 		{
-			start = 0;
-			end = -1;  /* a negative value means all */
+			return 0;
 		}
-		else
-		{
-			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-			int start_int = 0;
-			int end_int = 0;
-
-			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
-			{
-				return 0;
-			}
-      		if(start_int<0 || end_int<0)
-      		{
-		        return 0;
-			}
-			start = (NSUInteger)start_int;
-			end = (NSUInteger)end_int;
-			selection_range = NSMakeRange(start, end-start);
-		}
-		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
-
+		start = (NSUInteger)start_int;
+		end = (NSUInteger)end_int;
+		selection_range = NSMakeRange(start, end-start);
 	}
+	
+	[text_view setSelectedRange:selection_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+	
+
 
 	return 0;
 }
 
 static char* cocoaTextGetSelectionPosAttrib(Ihandle* ih)
 {
-#if 1
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
-		NSRange selected_range = [text_view selectedRange];
-		if(NSNotFound == selected_range.location)
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			text_view = cocoaTextGetTextView(ih);
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
 		{
 			return NULL;
+			break;
 		}
-		NSUInteger start = selected_range.location;
-		NSUInteger end = selected_range.location + selected_range.length;
-		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-		return iupStrReturnIntInt((int)start, (int)end, ':');
-
 	}
-	else
+	
+	// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+	NSRange selected_range = [text_view selectedRange];
+	if(NSNotFound == selected_range.location)
 	{
-		int start, end;
-#if 0
-		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
-		{
-			start++; /* IUP starts at 1 */
-			end++;
-			return iupStrReturnIntInt((int)start, (int)end, ':');
-		}
-#endif
-		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
+		return NULL;
 	}
-#endif
-
-	return NULL;
+	NSUInteger start = selected_range.location;
+	NSUInteger end = selected_range.location + selected_range.length;
+	
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	return iupStrReturnIntInt((int)start, (int)end, ':');
+	
 }
 
 
@@ -3646,6 +3766,8 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			[text_field setPlaceholderString:ns_string];
 			break;
 		}
 		default:
@@ -3896,7 +4018,7 @@ static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
 		}
 		default:
 		{
-			return 0;
+			return NULL;
 			break;
 		}
 	}
@@ -3926,7 +4048,7 @@ static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
 		}
 		default:
 		{
-			return 0;
+			return NULL;
 			break;
 		}
 	}
