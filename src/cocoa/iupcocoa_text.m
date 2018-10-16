@@ -1849,30 +1849,31 @@ void iupdrvTextConvertPosToLinCol(Ihandle* ih, int pos, int *lin, int *col)
 }
 
 
-
+// FIXME: I don't know if this is ever called.
 void* iupdrvTextAddFormatTagStartBulk(Ihandle* ih)
 {
 	NSLog(@"iupdrvTextAddFormatTagStartBulk");
-	  NSTextView* text_view = cocoaTextGetTextView(ih);
+	NSTextView* text_view = cocoaTextGetTextView(ih);
 	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 	[undo_manager beginUndoGrouping];
 	
-	  NSTextStorage* text_storage = [text_view textStorage];
-	  // I'm not sure if this is safe. The LayoutManager will throw an exception if a layout is done while beginEditing
-	  [text_storage beginEditing];
+	NSTextStorage* text_storage = [text_view textStorage];
+	// I'm not sure if this is safe. The LayoutManager will throw an exception if a layout is done while beginEditing
+	[text_storage beginEditing];
 	return NULL;
 }
 
+// FIXME: I don't know if this is ever called.
 void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 {
 	NSLog(@"iupdrvTextAddFormatTagStopBulk");
-
-	  NSTextView* text_view = cocoaTextGetTextView(ih);
+	
+	NSTextView* text_view = cocoaTextGetTextView(ih);
 	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 	
-	  NSTextStorage* text_storage = [text_view textStorage];
-	  [text_storage endEditing];
-//	  [text_view didChangeText];
+	NSTextStorage* text_storage = [text_view textStorage];
+	[text_storage endEditing];
+	//	  [text_view didChangeText];
 	[undo_manager endUndoGrouping];
 
 }
@@ -2900,6 +2901,10 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	{
 		return;
 	}
+	if(!ih->data->has_formatting)
+	{
+		return;
+	}
 	NSTextView* text_view = cocoaTextGetTextView(ih);
 
 
@@ -3065,6 +3070,116 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	[undo_manager endUndoGrouping];
 	
 
+}
+
+
+
+static char* cocoaTextGetFormattingAttrib(Ihandle* ih)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			
+			NSCAssert(([cocoaTextGetTextView(ih) isRichText] == ih->data->has_formatting), @"Expecting isRichText==ih->data->has_formatting");
+			return iupStrReturnBoolean(ih->data->has_formatting);
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		default:
+		{
+			break;
+		}
+	}
+	
+  return iupStrReturnBoolean(false);
+}
+
+static int cocoaTextSetFormattingAttrib(Ihandle* ih, const char* value)
+{
+	if(!ih->handle)
+	{
+		// This is before map.
+		// Let the variable be set, so we can read it inside Map and do the right thing.
+		ih->data->has_formatting = iupStrBoolean(value);
+		return 0;
+	}
+
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			NSTextView* text_view = cocoaTextGetTextView(ih);
+			bool enable_formatting = iupStrBoolean(value);
+			
+			if(enable_formatting)
+			{
+				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+//				[undo_manager beginUndoGrouping];
+				[text_view setRichText:enable_formatting];
+				[text_view setImportsGraphics:enable_formatting];
+//				[undo_manager endUndoGrouping];
+				
+				// I can't seem to undo setRichText:
+				// NOTE: If this could be made to work, to correctly implement this,
+				// I would need to override setRichText: to keep ih->data->has_formatting in sync for the undo.
+				// But since I can't make it work, reset the undo stack.
+				[undo_manager removeAllActions];
+				
+			}
+			else
+			{
+				NSTextView* text_view = cocoaTextGetTextView(ih);
+				NSRange selection_range;
+				NSTextStorage* text_storage = [text_view textStorage];
+				selection_range = NSMakeRange(0, [text_storage length]);
+				
+				NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
+//				[undo_manager beginUndoGrouping];
+				[text_storage beginEditing];
+				
+				ih->data->disable_callbacks = 1;
+				[text_view shouldChangeTextInRange:selection_range replacementString:nil];
+				[text_storage setAttributes:nil range:selection_range];
+				ih->data->disable_callbacks = 0;
+				
+				[text_storage endEditing];
+				
+				IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+
+				[text_view setTypingAttributes:[iup_font attributeDictionary]];
+				[text_view setImportsGraphics:enable_formatting];
+				[text_view setRichText:enable_formatting];
+			
+				// We must call both shouldChangeTextInRange and didChangeText to keep the undo manager consistent
+				[text_view didChangeText];
+				[text_storage endEditing];
+//				[undo_manager endUndoGrouping];
+
+				// I can't seem to undo setRichText:
+				// NOTE: If this could be made to work, to correctly implement this,
+				// I would need to override setRichText: to keep ih->data->has_formatting in sync for the undo.
+				// But since I can't make it work, reset the undo stack.
+				[undo_manager removeAllActions];
+			}
+			
+			
+			ih->data->has_formatting = enable_formatting;
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		default:
+		{
+			ih->data->has_formatting = 0;
+			break;
+		}
+	}
+	
+	return 0;
 }
 
 
@@ -3668,100 +3783,155 @@ static char* cocoaTextGetCaretAttrib(Ihandle* ih)
 
 static int cocoaTextSetCaretPosAttrib(Ihandle* ih, const char* value)
 {
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		NSRange cursor_range = NSMakeRange(0, 0);
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			text_view = cocoaTextGetTextView(ih);
 
-		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-		int pos = 0;
-		if(!iupStrToInt(value, &pos))
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
 		{
 			return 0;
+			break;
 		}
-		if(pos<0)
+	}
+	
+	NSRange cursor_range = NSMakeRange(0, 0);
+	
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	int pos = 0;
+	if(!iupStrToInt(value, &pos))
+	{
+		return 0;
+	}
+	if(pos<0)
+	{
+		return 0;
+	}
+	cursor_range = NSMakeRange(pos, 0);
+	
+	[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			[text_view scrollRangeToVisible:cursor_range];
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+
+			break;
+		}
+		default:
 		{
 			return 0;
+			break;
 		}
-		cursor_range = NSMakeRange(pos, 0);
-		
-		[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
-		[text_view scrollRangeToVisible:cursor_range];
-		
 	}
-	else
-	{
-		NSUInteger start;
-		NSUInteger end;
-		NSRange selection_range = NSMakeRange(start, end);
-
-		if (!value || iupStrEqualNoCase(value, "NONE"))
-		{
-			start = 0;
-			end = 0;
-		}
-		else if (iupStrEqualNoCase(value, "ALL"))
-		{
-			start = 0;
-			end = -1;  /* a negative value means all */
-		}
-		else
-		{
-			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-			int start_int = 0;
-			int end_int = 0;
-
-			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
-			{
-				return 0;
-			}
-      		if(start_int<0 || end_int<0)
-      		{
-		        return 0;
-			}
-			start = (NSUInteger)start_int;
-			end = (NSUInteger)end_int;
-			selection_range = NSMakeRange(start, end-start);
-		}
-		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
-
-	}
-
 	return 0;
 }
 
 static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
 {
-#if 1
-	if(ih->data->is_multiline)
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
 	{
-		NSTextView* text_view = cocoaTextGetTextView(ih);
-		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
-		NSRange cursor_range = [text_view selectedRange];
-		if(NSNotFound == cursor_range.location)
+		case IUPCOCOATEXTSUBTYPE_VIEW:
 		{
-			return NULL;
-		}
-		[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
-		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
-		return iupStrReturnInt((int)cursor_range.location);
-	}
-	else
-	{
-		int start, end;
-#if 0
-		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
-		{
-			start++; /* IUP starts at 1 */
-			end++;
-			return iupStrReturnIntInt((int)start, (int)end, ':');
-		}
-#endif
-		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
-	}
-#endif
+			text_view = cocoaTextGetTextView(ih);
 
-	return NULL;
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
+	
+	NSRange cursor_range = [[[text_view selectedRanges] lastObject] rangeValue];
+	if(NSNotFound == cursor_range.location)
+	{
+		// what do we do?
+		return NULL;
+	}
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			[text_view scrollRangeToVisible:cursor_range];
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+
+			break;
+		}
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	return iupStrReturnInt((int)cursor_range.location);
 }
 
 
@@ -4575,9 +4745,10 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		int wordwrap = 0;
 
-		
-		/* formatting is always supported when MULTILINE=YES */
-		ih->data->has_formatting = 1;
+
+		// Make sure the text view is synchronized with the variable.
+		[text_view setRichText:ih->data->has_formatting];
+		[text_view setImportsGraphics:ih->data->has_formatting];
 		
 		if (iupAttribGetBoolean(ih, "WORDWRAP"))
 		{
@@ -5031,7 +5202,7 @@ void iupdrvTextInitClass(Iclass* ic)
   /* IupText Windows and GTK only */
   iupClassRegisterAttribute(ic, "ADDFORMATTAG", NULL, iupTextSetAddFormatTagAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "ADDFORMATTAG_HANDLE", NULL, iupTextSetAddFormatTagHandleAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "FORMATTING", iupTextGetFormattingAttrib, iupTextSetFormattingAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "FORMATTING", cocoaTextGetFormattingAttrib, cocoaTextSetFormattingAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, cocoaTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, gtkTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
