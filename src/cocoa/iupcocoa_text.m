@@ -624,7 +624,91 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 
 }
 
+// GOTCHA: Modern characters may be multiple bytes (e.g. emoji characters).
+// Because of this, [string length] isn't correct, because it tells us the number of bytes, not characters.
+// The correct thing to do is to iterate through the string and count the glyphs.
+// But it probably is more expensive than what people think when they call this routine.
+// See https://www.objc.io/issues/9-strings/unicode/
+// NSString *s = @"The weather on \U0001F30D is \U0001F31E today.";
+// The weather on 🌍 is 🌞 today.
+static NSUInteger cocoaTextCountGlyphsInString(NSString* text_string)
+{
+	// Which of these two algorithms is better?
+	
+	
+//	NSLog(@"length: %zu\n%@", [text_string length], text_string);
+#if 0
+	NSUInteger glyph_count = 0;
+	NSUInteger index = 0;
+	NSUInteger raw_length = [text_string length];
+	while (index < raw_length)
+	{
+		NSRange the_range = [text_string rangeOfComposedCharacterSequenceAtIndex:index];
+		glyph_count++;
+		index += the_range.length;
+	}
+	return glyph_count;
+#else
+	NSRange full_range = NSMakeRange(0, [text_string length]);
+	// Remember __block let's us modify this outside variable inside the block
+	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Blocks/Articles/bxVariables.html#//apple_ref/doc/uid/TP40007502-CH6-SW1
+	__block int glyph_count = 0;
+	[text_string enumerateSubstringsInRange:full_range
+		options:NSStringEnumerationByComposedCharacterSequences
+		usingBlock:^(NSString* substring, NSRange substring_range,
+		NSRange enclosing_range, BOOL* stop)
+		{
+			glyph_count++;
+		}
+	 ];
+	 return glyph_count;
+#endif
+	
+}
+
+// This formatter exists solely to support the NC feature.
+@interface IupFormatter : NSFormatter
+@property(nonatomic, assign) Ihandle* ihandle;
+@end
+
+@implementation IupFormatter
+
+- (BOOL)isPartialStringValid:(NSString*)partial_string newEditingString:(NSString**)new_string errorDescription:(NSString**)the_error
+{
+    if(new_string)
+    {
+		*new_string = nil;
+	}
+	if(the_error)
+    {
+		*the_error = nil;
+	}
+
+	// empty string is okay
+    if([partial_string length] == 0)
+    {
+        return YES;
+	}
+	// Make sure to limit the length if the IUP "NC" feature is in use
+	Ihandle* ih = [self ihandle];
+	if(ih->data->nc > 0)
+	{
+		// I think this is supposed to be a glyph count instead of a byte count.
+		// So we need to do extra work.
+		NSUInteger glyph_count = cocoaTextCountGlyphsInString(partial_string);
+		if(glyph_count > ih->data->nc)
+		{
+			return NO;
+		}
+	}
+	return YES;
+}
+
+@end
+
+// This formatter exists to support the FILTER feature and the "NC" feature.
 @interface IupNumberFormatter : NSNumberFormatter
+@property(nonatomic, assign) Ihandle* ihandle;
 @end
 
 @implementation IupNumberFormatter
@@ -644,6 +728,18 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
     if([partial_string length] == 0)
     {
         return YES;
+	}
+	// Make sure to limit the length if the IUP "NC" feature is in use
+	Ihandle* ih = [self ihandle];
+	if(ih->data->nc > 0)
+	{
+		// I think this is supposed to be a glyph count instead of a byte count.
+		// So we need to do extra work.
+		NSUInteger glyph_count = cocoaTextCountGlyphsInString(partial_string);
+		if(glyph_count > ih->data->nc)
+		{
+			return NO;
+		}
 	}
 
 	NSMutableCharacterSet* allowed_character_set = [[NSCharacterSet decimalDigitCharacterSet] mutableCopy];
@@ -684,8 +780,69 @@ void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 
 @end
 
+
+// Only for NSTextField.
+// I do not have a good solution for NSTextView
+static int cocoaTextSetNCAttrib(Ihandle* ih, const char* value)
+{
+	if(!iupStrToInt(value, &ih->data->nc))
+	{
+		ih->data->nc = 0;
+	}
+	
+	if(ih->handle)
+	{
+		IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+		switch(sub_type)
+		{
+			case IUPCOCOATEXTSUBTYPE_VIEW:
+			{
+				
+				break;
+			}
+			case IUPCOCOATEXTSUBTYPE_FIELD:
+			{
+				NSTextField* text_field = cocoaTextGetTextField(ih);
+				// If we already attached a formatter, it should already have the code to check for NC.
+				// We don't want to replace an IupNumberFormatter if it is already there, otherwise we lose the number formatting part.
+				if([text_field formatter])
+				{
+					return 0;
+				}
+				
+				IupFormatter* nc_formatter = [[IupFormatter alloc] init];
+				[nc_formatter autorelease];
+				[nc_formatter setIhandle:ih];
+				[text_field setFormatter:nc_formatter];
+				return 0;
+				
+				break;
+			}
+			case IUPCOCOATEXTSUBTYPE_STEPPER:
+			{
+				// Leave the existing the Number formatter alone
+				return 0;
+				
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+		
+		return 0;
+		
+	}
+	else
+	{
+		return 1; /* store until not mapped, when mapped will be set again */
+	}
+}
+
 // Only for NSTextField. LOWERCASE, UPPERCASE not supported.
 // Introducing INTEGER, SCIENTIFC, CURRENCY
+// WATCH OUT: Be careful with the "NC" feature because the formatters may overwrite each other.
 static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 {
   	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
@@ -703,15 +860,27 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 			// remove the formatter
 			if(NULL == value)
 			{
-				[text_field setFormatter:nil];
+				// If "NC" is being used, we need to add back a formatter for that
+				if(ih->data->nc > 0)
+				{
+					IupFormatter* nc_formatter = [[IupFormatter alloc] init];
+					[nc_formatter autorelease];
+					[nc_formatter setIhandle:ih];
+					[text_field setFormatter:nc_formatter];
+				}
+				else
+				{
+					[text_field setFormatter:nil];
+				}
 				return 1;
 			}
 
 
 			if(iupStrEqualNoCase(value, "NUMBER"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -721,8 +890,9 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 			}
 			if(iupStrEqualNoCase(value, "INTEGER"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -732,8 +902,9 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 			}
 			if(iupStrEqualNoCase(value, "SCIENTIFIC"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -745,11 +916,12 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 /*
 			if(iupStrEqualNoCase(value, "CURRENCY"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
-				[number_formatter autorelease];
 				[number_formatter setNumberStyle:NSNumberFormatterCurrencyStyle];
 				[text_field setFormatter:number_formatter];
 				return 1;
@@ -759,15 +931,16 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
-			// I'm not completelt sure I want to allow this for stepper because this will overwrite the NumberFormmater I set in Interface Builder
+			// I'm not completely sure I want to allow this for stepper because this will overwrite the NumberFormatter I set in Interface Builder
 			
 			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
 	
 			// TODO: We should restore the interface builder formatter, but I'm lazy.
 			if(NULL == value)
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -779,8 +952,9 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 			
 			if(iupStrEqualNoCase(value, "NUMBER"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -790,8 +964,9 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 			}
 			if(iupStrEqualNoCase(value, "INTEGER"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -801,8 +976,9 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 			}
 			if(iupStrEqualNoCase(value, "SCIENTIFIC"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
 				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
@@ -814,11 +990,12 @@ static int cocoaTextSetFilterAttrib(Ihandle* ih, const char* value)
 /*
 			if(iupStrEqualNoCase(value, "CURRENCY"))
 			{
-				NSNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+				[number_formatter autorelease];
+				[number_formatter setIhandle:ih];
 //				[number_formatter setFormattingContext:NSFormattingContextDynamic];
 				[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 				[number_formatter setPartialStringValidationEnabled:YES];
-				[number_formatter autorelease];
 				[number_formatter setNumberStyle:NSNumberFormatterCurrencyStyle];
 				[text_field setFormatter:number_formatter];
 				return 1;
@@ -4979,20 +5156,10 @@ static char* cocoaTextGetCountAttrib(Ihandle* ih)
 
 //	NSLog(@"length: %zu\n%@", [text_string length], text_string);
 
-	NSRange full_range = NSMakeRange(0, [text_string length]);
-	// Remember __block let's us modify this outside variable inside the block
-	// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Blocks/Articles/bxVariables.html#//apple_ref/doc/uid/TP40007502-CH6-SW1
-	__block int character_count = 0;
-	[text_string enumerateSubstringsInRange:full_range
-		options:NSStringEnumerationByComposedCharacterSequences
-		usingBlock:^(NSString* substring, NSRange substring_range,
-		NSRange enclosing_range, BOOL* stop)
-		{
-			character_count++;
-		}
-	 ];
-//	NSLog(@"final count: %d", character_count);
-	return iupStrReturnInt(character_count);
+	NSUInteger glyph_count = cocoaTextCountGlyphsInString(text_string);
+
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	return iupStrReturnInt((int)glyph_count);
 }
 
 // This includes wrapped lines in the count.
@@ -5469,6 +5636,19 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[text_spinner_nib release];
 		
 		
+		// Attach a number formatter since this is always a number ("INTEGER").
+		// Also supports "NC"
+		IupNumberFormatter* number_formatter = [[IupNumberFormatter alloc] init];
+		[number_formatter autorelease];
+		[number_formatter setIhandle:ih];
+//		[number_formatter setFormattingContext:NSFormattingContextDynamic];
+		[number_formatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+		[number_formatter setPartialStringValidationEnabled:YES];
+		[number_formatter setNumberStyle:NSNumberFormatterNoStyle];
+		[text_field setFormatter:number_formatter];
+		
+		
+		
 		
 		[stepper_view setValueWraps:(BOOL)iupAttribGetBoolean(ih, "SPINWRAP")];
 		
@@ -5776,7 +5956,7 @@ void iupdrvTextInitClass(Iclass* ic)
 
   iupClassRegisterAttribute(ic, "READONLY", cocoaTextGetReadOnlyAttrib, cocoaTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
 #if 0
-  iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, gtkTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, cocoaTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
 #endif
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, cocoaTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, cocoaTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
