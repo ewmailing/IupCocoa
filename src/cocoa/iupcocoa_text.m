@@ -3752,8 +3752,157 @@ static char* cocoaTextGetSelectionPosAttrib(Ihandle* ih)
 	
 }
 
+// TODO: This is almost identical to Caret. (Caret also sets the cursor.) Should make Caret call this.
+static int cocoaTextSetScrollToAttrib(Ihandle* ih, const char* value)
+{
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			text_view = cocoaTextGetTextView(ih);
 
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
 
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
+	
+	
+	NSRange cursor_range = NSMakeRange(0, 0);
+	
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	int start_int = 0;
+	int end_int = 0;
+	
+	if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+	{
+		return 0;
+	}
+	if(start_int<0 || end_int<0)
+	{
+		return 0;
+	}
+	NSUInteger lin_start=start_int;
+	NSUInteger col_start=end_int;
+	NSUInteger lin_end=start_int;
+	NSUInteger col_end=end_int;
+	bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &cursor_range);
+	if(did_find_range)
+	{
+		[text_view scrollRangeToVisible:cursor_range];
+	}
+	
+
+	return 0;
+}
+
+// TODO: This is almost identical to Caret. (Caret also sets the cursor.) Should make Caret call this.
+static int cocoaTextSetScrollToPosAttrib(Ihandle* ih, const char* value)
+{
+	NSTextView* text_view = nil;
+	
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			text_view = cocoaTextGetTextView(ih);
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+			
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSText* field_editor = [[text_field window] fieldEditor:YES forObject:text_field];
+			NSCAssert([field_editor isKindOfClass:[NSTextView class]], @"Expected that the field editor is a NSTextView");
+			text_view = (NSTextView*)field_editor;
+
+			break;
+		}
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
+	
+	NSRange cursor_range = NSMakeRange(0, 0);
+	
+	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+	int pos = 0;
+	if(!iupStrToInt(value, &pos))
+	{
+		return 0;
+	}
+	if(pos<0)
+	{
+		return 0;
+	}
+	cursor_range = NSMakeRange(pos, 0);
+	
+
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_VIEW:
+		{
+			[text_view scrollRangeToVisible:cursor_range];
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_FIELD:
+		{
+
+			break;
+		}
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+
+			break;
+		}
+		default:
+		{
+			return 0;
+			break;
+		}
+	}
+	return 0;
+}
+
+// TODO: This is almost identical to ScrollTo. (Caret also sets the cursor.) Should make Caret call ScrollTo.
 static int cocoaTextSetCaretAttrib(Ihandle* ih, const char* value)
 {
 	NSTextView* text_view = nil;
@@ -3927,6 +4076,7 @@ static char* cocoaTextGetCaretAttrib(Ihandle* ih)
 	return NULL;
 }
 
+// TODO: This is almost identical to ScrollPos. (Caret also sets the cursor.) Should make Caret call ScrollPos.
 static int cocoaTextSetCaretPosAttrib(Ihandle* ih, const char* value)
 {
 	NSTextView* text_view = nil;
@@ -4079,7 +4229,6 @@ static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
 	// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
 	return iupStrReturnInt((int)cursor_range.location);
 }
-
 
 
 
@@ -4629,29 +4778,7 @@ static char* cocoaTextGetLineCountAttrib(Ihandle* ih)
 	return iupStrReturnInt((int)number_of_lines);
 }
 
-static int cocoaTextSetScrollToPosAttrib(Ihandle* ih, const char* value)
-{
-  int pos = 0;
 
-  if (!value)
-    return 0;
-
-  iupStrToInt(value, &pos);
-  if (pos < 0) pos = 0;
-
-  if (ih->data->is_multiline)
-  {
-	  NSTextView* text_view = cocoaTextGetTextView(ih);
-	  
-	  [text_view scrollRangeToVisible:NSMakeRange(pos, 0)];
-  }
-  else
-  {
-	  // I don't think this makes any sense to scroll other widgets
-  }
-
-  return 0;
-}
 
 // Need to override because the position offsets are wrong otherwise.
 static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
@@ -5406,8 +5533,8 @@ void iupdrvTextInitClass(Iclass* ic)
 #if 0
   iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, gtkTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, gtkTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SCROLLTO", NULL, gtkTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #endif
+  iupClassRegisterAttribute(ic, "SCROLLTO", NULL, cocoaTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, cocoaTextSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "SPINMIN", NULL, gtkTextSetSpinMinAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
