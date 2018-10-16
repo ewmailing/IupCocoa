@@ -3543,6 +3543,231 @@ static int cocoaTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 	return 0;
 }
 
+
+
+static int cocoaTextSetCaretAttrib(Ihandle* ih, const char* value)
+{
+	if(ih->data->is_multiline)
+	{
+
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		NSRange cursor_range = NSMakeRange(0, 0);
+
+
+
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+			{
+				return 0;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return 0;
+			}
+			NSUInteger lin_start=start_int;
+			NSUInteger col_start=end_int;
+			NSUInteger lin_end=start_int;
+			NSUInteger col_end=end_int;
+			bool did_find_range = cocoaTextComputeRangeFromLineColumnForTextView(text_view, lin_start, col_start, lin_end, col_end, &cursor_range);
+			if(did_find_range)
+			{
+				[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+				[text_view scrollRangeToVisible:cursor_range];
+			}
+		
+
+		
+	}
+	else
+	{
+		NSUInteger start;
+		NSUInteger end;
+		NSRange selection_range = NSMakeRange(start, end);
+
+		if (!value || iupStrEqualNoCase(value, "NONE"))
+		{
+			start = 0;
+			end = 0;
+		}
+		else if (iupStrEqualNoCase(value, "ALL"))
+		{
+			start = 0;
+			end = -1;  /* a negative value means all */
+		}
+		else
+		{
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+			{
+				return 0;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return 0;
+			}
+			start = (NSUInteger)start_int;
+			end = (NSUInteger)end_int;
+			selection_range = NSMakeRange(start, end-start);
+		}
+		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
+
+	}
+
+	return 0;
+}
+
+static char* cocoaTextGetCaretAttrib(Ihandle* ih)
+{
+#if 1
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		
+		NSRange cursor_range = [[[text_view selectedRanges] lastObject] rangeValue];
+		if(NSNotFound == cursor_range.location)
+		{
+			// what do we do?
+			return NULL;
+		}
+		
+		NSUInteger lin_start=1;
+		NSUInteger col_start=1;
+		NSUInteger lin_end=1;
+		NSUInteger col_end=1;
+		bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, cursor_range, &lin_start, &col_start, &lin_end, &col_end);
+		if(did_find_range)
+		{
+			[text_view scrollRangeToVisible:cursor_range];
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			return iupStrReturnIntInt((int)lin_start, (int)col_start, ':');
+		}
+	}
+	else
+	{
+		int start, end;
+#if 0
+		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
+		{
+			start++; /* IUP starts at 1 */
+			end++;
+			return iupStrReturnIntInt((int)start, (int)end, ':');
+		}
+#endif
+		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
+	}
+#endif
+
+	return NULL;
+}
+
+static int cocoaTextSetCaretPosAttrib(Ihandle* ih, const char* value)
+{
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		NSRange cursor_range = NSMakeRange(0, 0);
+
+		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+		int pos = 0;
+		if(!iupStrToInt(value, &pos))
+		{
+			return 0;
+		}
+		if(pos<0)
+		{
+			return 0;
+		}
+		cursor_range = NSMakeRange(pos, 0);
+		
+		[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+		[text_view scrollRangeToVisible:cursor_range];
+		
+	}
+	else
+	{
+		NSUInteger start;
+		NSUInteger end;
+		NSRange selection_range = NSMakeRange(start, end);
+
+		if (!value || iupStrEqualNoCase(value, "NONE"))
+		{
+			start = 0;
+			end = 0;
+		}
+		else if (iupStrEqualNoCase(value, "ALL"))
+		{
+			start = 0;
+			end = -1;  /* a negative value means all */
+		}
+		else
+		{
+			// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+			int start_int = 0;
+			int end_int = 0;
+
+			if(iupStrToIntInt(value, &start_int, &end_int, ':')!=2)
+			{
+				return 0;
+			}
+      		if(start_int<0 || end_int<0)
+      		{
+		        return 0;
+			}
+			start = (NSUInteger)start_int;
+			end = (NSUInteger)end_int;
+			selection_range = NSMakeRange(start, end-start);
+		}
+		NSLog(@"cocoaTextSetSelectionAttrib not implemented");
+
+	}
+
+	return 0;
+}
+
+static char* cocoaTextGetCaretPosAttrib(Ihandle* ih)
+{
+#if 1
+	if(ih->data->is_multiline)
+	{
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+		// Use selectedRanges to get an array of multiple selections if we ever have to handle that
+		NSRange cursor_range = [text_view selectedRange];
+		if(NSNotFound == cursor_range.location)
+		{
+			return NULL;
+		}
+		[text_view setSelectedRange:cursor_range affinity:NSSelectionAffinityDownstream stillSelecting:NO];
+		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+		return iupStrReturnInt((int)cursor_range.location);
+	}
+	else
+	{
+		int start, end;
+#if 0
+		if (gtk_editable_get_selection_bounds(GTK_EDITABLE(ih->handle), &start, &end))
+		{
+			start++; /* IUP starts at 1 */
+			end++;
+			return iupStrReturnIntInt((int)start, (int)end, ':');
+		}
+#endif
+		NSLog(@"cocoaTextGetSelectionAttrib not implemented");
+	}
+#endif
+
+	return NULL;
+}
+
+
+
+
+
 // NSControl's setEnabled didn't seem to do anything on NSTextField. Also, NSTextView isn't an NSControl.
 static int cocoaTextSetActiveAttrib(Ihandle* ih, const char* value)
 {
@@ -4779,10 +5004,8 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "SELECTEDTEXT", cocoaTextGetSelectedTextAttrib, cocoaTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTION", cocoaTextGetSelectionAttrib, cocoaTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTIONPOS", cocoaTextGetSelectionPosAttrib, cocoaTextSetSelectionPosAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-#if 0
-  iupClassRegisterAttribute(ic, "CARET", gtkTextGetCaretAttrib, gtkTextSetCaretAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "CARETPOS", gtkTextGetCaretPosAttrib, gtkTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
-#endif
+  iupClassRegisterAttribute(ic, "CARET", cocoaTextGetCaretAttrib, cocoaTextSetCaretAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CARETPOS", cocoaTextGetCaretPosAttrib, cocoaTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
 	
   iupClassRegisterAttribute(ic, "INSERT", NULL, cocoaTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "APPEND", NULL, cocoaTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
