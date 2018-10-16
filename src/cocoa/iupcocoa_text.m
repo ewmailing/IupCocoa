@@ -1242,7 +1242,7 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 
 static char* cocoaTextGetValueAttrib(Ihandle* ih)
 {
-	char* value;
+	char* value = NULL;
 	
 	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
 	switch(sub_type)
@@ -3450,10 +3450,40 @@ static int cocoaTextSetAlignmentAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
+			NSTextField* text_field = cocoaTextGetTextField(ih);
+			// NSControl provides these methods
+			if(iupStrEqualNoCase(value, "ARIGHT"))
+			{
+				[text_field setAlignment:NSTextAlignmentRight];
+			}
+			else if (iupStrEqualNoCase(value, "ACENTER"))
+			{
+				[text_field setAlignment:NSTextAlignmentCenter];
+			}
+			else /* "ALEFT" */
+			{
+				[text_field setAlignment:NSTextAlignmentLeft];
+			}
+
 			break;
 		}
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			// NSControl provides these methods
+			if(iupStrEqualNoCase(value, "ARIGHT"))
+			{
+				[text_field setAlignment:NSTextAlignmentRight];
+			}
+			else if (iupStrEqualNoCase(value, "ACENTER"))
+			{
+				[text_field setAlignment:NSTextAlignmentCenter];
+			}
+			else /* "ALEFT" */
+			{
+				[text_field setAlignment:NSTextAlignmentLeft];
+			}
+
 			break;
 		}
 		default:
@@ -5400,7 +5430,7 @@ static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
 		case IUPCOCOATEXTSUBTYPE_FIELD:
 		{
 			// Neither the field nor the cell work. I think I must change the field editor.
-			NSTextField* text_field = cocoaTextGetTextField(ih);
+//			NSTextField* text_field = cocoaTextGetTextField(ih);
 
 			// We can't use iupCocoaCommonBaseSetContextMenuForWidget() because field editors are shared.
 			// We will override textView:menu:forEvent:atIndex: and inject the menu options there.
@@ -5422,7 +5452,7 @@ static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
 		case IUPCOCOATEXTSUBTYPE_STEPPER:
 		{
 			// Neither the field nor the cell work. I think I must change the field editor.
-			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+//			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
 
 			// We can't use iupCocoaCommonBaseSetContextMenuForWidget() because field editors are shared.
 			// We will override textView:menu:forEvent:atIndex: and inject the menu options there.
@@ -5955,9 +5985,8 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "APPEND", NULL, cocoaTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "READONLY", cocoaTextGetReadOnlyAttrib, cocoaTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
-#if 0
   iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, cocoaTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
-#endif
+
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, cocoaTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, cocoaTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, cocoaTextSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
