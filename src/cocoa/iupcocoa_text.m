@@ -147,7 +147,7 @@ static NSStepper* cocoaTextGetStepperView(Ihandle* ih)
 	return stepper_view;
 #else
 	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
-	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerFilesOwner class]], @"Expected IUPTextSpinnerFilesOwner");
+	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerContainer class]], @"Expected IUPTextSpinnerContainer");
 	return [spinner_container stepperView];
 #endif
 }
@@ -161,17 +161,23 @@ static NSTextField* cocoaTextGetStepperTextField(Ihandle* ih)
 	return text_field;
 #else
 	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
-	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerFilesOwner class]], @"Expected IUPTextSpinnerFilesOwner");
+	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerContainer class]], @"Expected IUPTextSpinnerContainer");
 	return [spinner_container textField];
 #endif
 }
 
 static IUPStepperObject* cocoaTextGetStepperObject(Ihandle* ih)
 {
-
 	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
 	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerContainer class]], @"Expected IUPTextSpinnerContainer");
 	return [spinner_container stepperObject];
+}
+
+static IUPStepperObjectController* cocoaTextGetStepperObjectController(Ihandle* ih)
+{
+	IUPTextSpinnerContainer* spinner_container = (IUPTextSpinnerContainer*)objc_getAssociatedObject((id)ih->handle, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY);
+	NSCAssert([spinner_container isKindOfClass:[IUPTextSpinnerContainer class]], @"Expected IUPTextSpinnerContainer");
+	return [spinner_container stepperObjectController];
 }
 
 
@@ -774,6 +780,45 @@ static NSUInteger cocoaTextCountGlyphsInString(NSString* text_string)
         return NO;
     }
 
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// NSNumberFormatter is more resilant to of fancy numbers (e.g. commas, locales, etc) than NSString integerValue
+			// And although the documentation says we only support INTEGERs,
+			// because we let people muck with FILTER,
+			// we may eventually end up in a more complicated case.
+			NSNumberFormatter* conversion_formatter = [[NSNumberFormatter alloc] init];
+			[conversion_formatter autorelease];
+			[conversion_formatter setNumberStyle:[self numberStyle]];
+			NSNumber* ns_number = [conversion_formatter numberFromString:partial_string];
+
+			double current_number = [ns_number doubleValue];
+			NSStepper* stepper_view = cocoaTextGetStepperView(ih);
+			double max_value = [stepper_view maxValue];
+			if(current_number > max_value)
+			{
+				return NO;
+			}
+			double min_value = [stepper_view minValue];
+			if(current_number < min_value)
+			{
+				return NO;
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	
+
+
+
     return YES;
 }
 
@@ -1217,18 +1262,49 @@ static int cocoaTextSetValueAttrib(Ihandle* ih, const char* value)
 		{
 			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
 			NSCAssert([text_field isKindOfClass:[NSTextField class]], @"Expected NSTextField");
-			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
-			if([iup_font usesAttributes])
-			{
-				NSAttributedString* attributed_string = [[NSAttributedString alloc] initWithString:ns_string attributes:[iup_font attributeDictionary]];
-				[text_field setAttributedStringValue:attributed_string];
-				[attributed_string release];
 			
+			// NSNumberFormatter is more resilant to of fancy numbers (e.g. commas, locales, etc) than NSString integerValue
+			// And although the documentation says we only support INTEGERs,
+			// because we let people muck with FILTER,
+			// we may eventually end up in a more complicated case.
+			NSNumberFormatter* conversion_formatter = [[NSNumberFormatter alloc] init];
+			[conversion_formatter autorelease];
+			NSNumberFormatter* text_field_formatter = (NSNumberFormatter*)[text_field formatter];
+			[conversion_formatter setNumberStyle:[text_field_formatter numberStyle]];
+			NSNumber* ns_number = [conversion_formatter numberFromString:ns_string];
+
+			double current_number = [ns_number doubleValue];
+			NSStepper* stepper_view = cocoaTextGetStepperView(ih);
+			double max_value = [stepper_view maxValue];
+			if(current_number > max_value)
+			{
+				current_number = max_value;
+			}
+			double min_value = [stepper_view minValue];
+			if(current_number < min_value)
+			{
+				current_number = min_value;
+			}
+
+			// Do we need to worry about NSAttributedString?
+			if(iupAttribGetBoolean(ih, "SPINAUTO"))
+			{
+				// With Cocoa Bindings, we must set the model or controller, not the view.
+				// Otherwise, if we set the view directly,
+				// when we click on the stepper, it will have a stale version of the world
+				// and increment from the stale value instead of the value seen in the field.
+				NSNumber* number_to_set = [NSNumber numberWithDouble:current_number];
+				IUPStepperObject* stepper_object = cocoaTextGetStepperObject(ih);
+				[stepper_object setStepperValue:number_to_set];
 			}
 			else
 			{
+				ns_string = [NSString stringWithFormat:@"%lf", current_number];
 				[text_field setStringValue:ns_string];
 			}
+			
+			
+			
 			break;
 		}
 		default:
@@ -5221,6 +5297,189 @@ static char* cocoaTextGetLineCountAttrib(Ihandle* ih)
 }
 
 
+/************************************** Begin SPIN *****************************************************/
+
+static int cocoaTextSetSpinValueAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			
+			int int_value = 0;
+			if(iupStrToInt(value, &int_value))
+			{
+				ih->data->disable_callbacks = 1;
+
+				NSStepper* stepper_view = cocoaTextGetStepperView(ih);
+				double max_value = [stepper_view maxValue];
+				if((double)int_value > max_value)
+				{
+					int_value = (int)max_value;
+				}
+				double min_value = [stepper_view minValue];
+				if((double)int_value < min_value)
+				{
+					int_value = (int)min_value;
+				}
+				
+				if(iupAttribGetBoolean(ih, "SPINAUTO"))
+				{
+					// With Cocoa Bindings, we must set the model or controller, not the view.
+					// Otherwise, if we set the view directly,
+					// when we click on the stepper, it will have a stale version of the world
+					// and increment from the stale value instead of the value seen in the field.
+					NSNumber* number_to_set = [NSNumber numberWithInt:int_value];
+					IUPStepperObject* stepper_object = cocoaTextGetStepperObject(ih);
+					[stepper_object setStepperValue:number_to_set];
+				}
+				else
+				{
+					NSString* ns_string = [NSString stringWithFormat:@"%d", int_value];
+					[text_field setStringValue:ns_string];
+				}
+
+				ih->data->disable_callbacks = 0;
+
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return 1;
+}
+
+
+
+static char* cocoaTextGetSpinValueAttrib(Ihandle* ih)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			// Neither the field nor the cell work. I think I must change the field editor.
+			NSTextField* text_field = cocoaTextGetStepperTextField(ih);
+			NSString* ns_string = [text_field stringValue];
+			return iupStrReturnStr([ns_string UTF8String]);
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	
+	return NULL;
+}
+
+
+static int cocoaTextSetSpinMinAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			int new_min;
+			if(iupStrToInt(value, &new_min))
+			{
+				ih->data->disable_callbacks = 1;
+
+				// TODO: What if min > max?
+				// TODO: What if current value is outside new range?
+				NSStepper* stepper_view = cocoaTextGetStepperView(ih);
+				[stepper_view setMinValue:(double)new_min];
+
+				ih->data->disable_callbacks = 0;
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	return 1;
+}
+
+static int cocoaTextSetSpinMaxAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			int new_max;
+			if(iupStrToInt(value, &new_max))
+			{
+				ih->data->disable_callbacks = 1;
+				
+				// TODO: What if min > max?
+				// TODO: What if current value is outside new range?
+				NSStepper* stepper_view = cocoaTextGetStepperView(ih);
+				[stepper_view setMaxValue:(double)new_max];
+
+				ih->data->disable_callbacks = 0;
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	return 1;
+}
+
+static int cocoaTextSetSpinIncAttrib(Ihandle* ih, const char* value)
+{
+	IupCocoaTextSubType sub_type = cocoaTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPCOCOATEXTSUBTYPE_STEPPER:
+		{
+			int new_inc;
+			if(iupStrToInt(value, &new_inc))
+			{
+				ih->data->disable_callbacks = 1;
+				
+				NSStepper* stepper_view = cocoaTextGetStepperView(ih);
+				[stepper_view setIncrement:(double)new_inc];
+
+				ih->data->disable_callbacks = 0;
+			}
+			
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	return 1;
+}
+
+
+
+/************************************** End SPIN *****************************************************/
+
+
+
 
 // Need to override because the position offsets are wrong otherwise.
 static void cocoaTextLayoutUpdateMethod(Ihandle* ih)
@@ -5619,7 +5878,16 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		// The NIB file has setup the NSStackView and also the Cocoa Bindings to connect the textfield and stepper.
 		
 		NSBundle* framework_bundle = [NSBundle bundleWithIdentifier:@"br.puc-rio.tecgraf.iup"];
-		NSNib* text_spinner_nib = [[NSNib alloc] initWithNibNamed:@"IupTextSpinner" bundle:framework_bundle];
+		NSNib* text_spinner_nib = nil;
+		if(!iupAttribGetBoolean(ih, "SPINAUTO"))
+		{
+			text_spinner_nib = [[NSNib alloc] initWithNibNamed:@"IupTextSpinnerNoBindings" bundle:framework_bundle];
+		}
+		else
+		{
+			text_spinner_nib = [[NSNib alloc] initWithNibNamed:@"IupTextSpinner" bundle:framework_bundle];
+		}
+		
 
 
 		NSArray* top_level_objects = nil;
@@ -5642,11 +5910,13 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		NSStackView* stack_view = [files_owner stackView];
 		NSStepper* stepper_view = [files_owner stepperView];
 		NSTextField* text_field = [files_owner textField];
+		IUPStepperObject* stepper_object = [files_owner stepperObject];
+		IUPStepperObjectController* stepper_object_controller = [files_owner stepperObjectController];
 
 		[text_spinner_container setStepperView:stepper_view];
 		[text_spinner_container setTextField:text_field];
-		[text_spinner_container setStepperObject:[files_owner stepperObject]];
-		[text_spinner_container setStepperObjectController:[files_owner stepperObjectController]];
+		[text_spinner_container setStepperObject:stepper_object];
+		[text_spinner_container setStepperObjectController:stepper_object_controller];
 		
 		// can't turn off decimals in IB, so do it here.
 		{
@@ -5713,10 +5983,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		objc_setAssociatedObject(text_field, IUP_COCOA_TEXT_DELEGATE_OBJ_KEY, (id)text_spinner_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		[text_spinner_delegate release];
 		
-		if(!iupAttribGetBoolean(ih, "SPINAUTO"))
-		{
-			// disconnect the bindings
-		}
+
 #endif
 		
 
@@ -5990,12 +6257,11 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, cocoaTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, cocoaTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTOPOS", NULL, cocoaTextSetScrollToPosAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-#if 0
-  iupClassRegisterAttribute(ic, "SPINMIN", NULL, gtkTextSetSpinMinAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SPINMAX", NULL, gtkTextSetSpinMaxAttrib, IUPAF_SAMEASSYSTEM, "100", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SPININC", NULL, gtkTextSetSpinIncAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SPINVALUE", gtkTextGetSpinValueAttrib, gtkTextSetSpinValueAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
-#endif
+
+  iupClassRegisterAttribute(ic, "SPINMIN", NULL, cocoaTextSetSpinMinAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SPINMAX", NULL, cocoaTextSetSpinMaxAttrib, IUPAF_SAMEASSYSTEM, "100", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SPININC", NULL, cocoaTextSetSpinIncAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SPINVALUE", cocoaTextGetSpinValueAttrib, cocoaTextSetSpinValueAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_INHERIT);
 
   iupClassRegisterAttribute(ic, "COUNT", cocoaTextGetCountAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 
@@ -6009,13 +6275,13 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "ALIGNMENT", NULL, cocoaTextSetAlignmentAttrib, IUPAF_SAMEASSYSTEM, "ALEFT", IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "OVERWRITE", gtkTextGetOverwriteAttrib, gtkTextSetOverwriteAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-#endif
+// FIXME:
 //  iupClassRegisterAttribute(ic, "TABSIZE", NULL, cocoaTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
+#endif
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "CUEBANNER", NULL, cocoaTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
 
-//  iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTER", NULL, cocoaTextSetFilterAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
 	/* New API for view specific contextual menus (Mac only) */

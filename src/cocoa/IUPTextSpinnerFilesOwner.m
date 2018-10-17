@@ -13,6 +13,13 @@
 
 @implementation IUPStepperObject
 @synthesize stepperValue = stepperValue;
+
+- (void) dealloc
+{
+	[stepperValue release];
+	[super dealloc];
+}
+
 @end
 
 

@@ -11,9 +11,11 @@
 // for Cocoa Bindings
 @interface IUPStepperObject : NSObject
 {
-	NSInteger stepperValue;
+//	NSInteger stepperValue;
+	NSNumber* stepperValue;
 }
-@property(nonatomic, assign) NSInteger stepperValue;
+//@property(nonatomic, assign) NSInteger stepperValue;
+@property(nonatomic, retain) NSNumber* stepperValue;
 @end
 
 // for Cocoa Bindings
