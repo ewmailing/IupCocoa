@@ -133,10 +133,7 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
 	CGContextRef cg_context = dc->cgContext;
 	
 	CGColorRef the_color = coregraphicsCreateAutoreleasedColor(r, g, b, a);
-	
-	CGRect the_rectangle = CGRectMake(x1, y1, x2-x1+1, y2-y1+1);
-	CGContextAddRect(cg_context, the_rectangle);
-	
+
 	if(IUP_DRAW_FILL == style)
 	{
 		CGContextSetFillColorWithColor(cg_context, the_color);
@@ -147,16 +144,19 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
 		coregraphicsSetLineStyle(dc, style);
 	}
 	CGContextSetLineWidth(cg_context, (CGFloat)line_width);
-	
 
 	CGFloat w = x2-x1+1;
 	CGFloat h = y2-y1+1;
 	CGFloat xc = x1 + w/2;
 	CGFloat yc = y1 + h/2;
-	
+
+	// Must convert degrees to radians
+	CGFloat rad1 = a1/180.0*M_PI;
+	CGFloat rad2 = a2/180.0*M_PI;
+
 	if (w == h)
 	{
-		CGContextAddArc(cg_context, xc, yc, 0.5*w, a1, a2, 1);
+		CGContextAddArc(cg_context, xc, yc, w, rad1, rad2, 1);
 		if(IUP_DRAW_FILL == style)
 		{
 			CGContextFillPath(cg_context);
@@ -175,7 +175,7 @@ void iupdrvDrawArc(IdrawCanvas* dc, int x1, int y1, int x2, int y2, double a1, d
 		CGContextScaleCTM(cg_context, w/h, 1.0);
 		CGContextTranslateCTM(cg_context, -xc, -yc);
 	
-		CGContextAddArc(cg_context, xc, yc, 0.5*h, a1, a2, 1);
+		CGContextAddArc(cg_context, xc, yc, 0.5*h, rad1, rad2, 1);
 		
 		if(IUP_DRAW_FILL == style)
 		{
