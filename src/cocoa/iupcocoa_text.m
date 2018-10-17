@@ -394,7 +394,7 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 
 @end
 
-@interface IupCocoaTextFieldDelegate : NSObject <NSControlTextEditingDelegate>
+@interface IupCocoaTextFieldDelegate : NSObject <NSControlTextEditingDelegate, NSTextFieldDelegate>
 @end
 
 @implementation IupCocoaTextFieldDelegate
@@ -424,43 +424,42 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 // NOTE: This callback is unfinished. Need to understand SPIN_CB rules better.
 // Inherit from IupCocoaTextFieldDelegate to get VALUECHANGED_CB
 @interface IupCocoaTextSpinnerDelegate : IupCocoaTextFieldDelegate
+@property(nonatomic, assign) Ihandle* ihandle;
 @end
 
 @implementation IupCocoaTextSpinnerDelegate
-- (void) controlTextDidEndEditing:(NSNotification*)the_notification
+
+/*
+- (BOOL)control:(NSControl*)the_control textShouldEndEditing:(NSText *)field_editor;
+{
+//	NSLog(@"control: %@", the_control);
+//	NSLog(@"textShouldEndEditing: %@", field_editor);
+}
+*/
+
+- (IBAction) mySpinnerClickAction:(id)the_sender
 {
 	IFni callback_function;
-	NSTextField* text_field = [the_notification object];
-	Ihandle* ih = (Ihandle*)objc_getAssociatedObject(text_field, IHANDLE_ASSOCIATED_OBJ_KEY);
+	Ihandle* ih = [self ihandle];
 	
-	NSLog(@"controlTextDidEndEditing: %@", [the_notification userInfo]);
-	
-	callback_function = IupGetCallback(ih, "SPIN_CB");
+	callback_function = (IFni)IupGetCallback(ih, "SPIN_CB");
 	if(callback_function)
 	{
-		int current_value = [text_field intValue];
+		IUPStepperObject* stepper_object = cocoaTextGetStepperObject(ih);
+		NSNumber* ns_number = [stepper_object stepperValue];
+		
+		int current_value = [ns_number intValue];
 		
 		int ret_val = callback_function(ih, current_value);
 		
-//		if(IUP_IGNORE == ret_val)
+		if(IUP_IGNORE == ret_val)
 		{
-			IUPStepperObject* stepper_object = cocoaTextGetStepperObject(ih);
-			NSInteger old_value = [stepper_object stepperValue];
-			NSLog(@"old_value: %d", old_value);
-
-		}
-//		else
-		{
-			
+			// We can't do anything with this
 		}
 	}
-	
-	
 }
-- (IBAction) mySpinnerClickAction:(id)the_sender
-{
-	NSLog(@"mySpinnerClickAction");
-}
+
+
 @end
 
 
@@ -469,6 +468,7 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 {
 	NSUndoManager* undoManager;
 }
+@property(nonatomic, assign) Ihandle* ihandle;
 @end
 
 @implementation IupCocoaTextViewDelegate
@@ -503,6 +503,50 @@ static void cocoaTextFieldOverrideContextMenuHelper(Ihandle* ih, NSTextView* tex
 	    [text_view didChangeText];
 	}
 	return ret_flag;
+}
+
+
+
+// forward declaration
+static bool cocoaTextComputeLineColumnFromRangeForTextView(NSTextView* text_view, NSRange native_selection_range, NSUInteger* out_start_line, NSUInteger* out_start_column, NSUInteger* out_end_line, NSUInteger* out_end_column);
+
+// For CARET_CB
+- (void) textViewDidChangeSelection:(NSNotification*)the_notification
+{
+	IFniii callback_function;
+	Ihandle* ih = [self ihandle];
+	
+	callback_function = (IFniii)IupGetCallback(ih, "CARET_CB");
+	if(callback_function)
+	{
+		Ihandle* ih = [self ihandle];
+		NSTextView* text_view = cocoaTextGetTextView(ih);
+
+		NSRange cursor_range = [[[text_view selectedRanges] lastObject] rangeValue];
+		if(NSNotFound == cursor_range.location)
+		{
+			// what do we do?
+			NSTextStorage* text_storage = [text_view textStorage];
+			cursor_range.location = [text_storage length];
+			cursor_range.length = 0;
+		}
+		
+		NSUInteger lin_start=1;
+		NSUInteger col_start=1;
+		NSUInteger lin_end=1;
+		NSUInteger col_end=1;
+		bool did_find_range = cocoaTextComputeLineColumnFromRangeForTextView(text_view, cursor_range, &lin_start, &col_start, &lin_end, &col_end);
+		if(!did_find_range)
+		{
+		}
+		// FIXME: Iup is artificially constraining us to 32-bit by not supporting 64-bit variants.
+		int ret_val = callback_function(ih, (int)lin_start, (int)col_start, (int)cursor_range.location);
+		// This API doesn't claim to do anything with return values
+
+
+
+	}
+
 }
 
 @end
@@ -806,6 +850,9 @@ static NSUInteger cocoaTextCountGlyphsInString(NSString* text_string)
 			{
 				return NO;
 			}
+			
+			
+			
 			
 			break;
 		}
@@ -5834,6 +5881,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		
 		IupCocoaTextViewDelegate* text_view_delegate = [[IupCocoaTextViewDelegate alloc] init];
 		[text_view setDelegate:text_view_delegate];
+		[text_view_delegate setIhandle:ih];
 		objc_setAssociatedObject(text_view, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 		// putting on the text_field just for storage. This is to make it consistent with the regular NSTextField (non-spinner) case.
 		objc_setAssociatedObject(text_view, IUP_COCOA_TEXT_DELEGATE_OBJ_KEY, (id)text_view_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -5972,6 +6020,7 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		IupCocoaTextSpinnerDelegate* text_spinner_delegate = [[IupCocoaTextSpinnerDelegate alloc] init];
 //		[stepper_view setDelegate:text_spinner_delegate];
 		[text_field setDelegate:text_spinner_delegate];
+		[text_spinner_delegate setIhandle:ih];
 
 		[stepper_view setTarget:text_spinner_delegate];
 		[stepper_view setAction:@selector(mySpinnerClickAction:)];
