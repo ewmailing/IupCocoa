@@ -630,6 +630,70 @@ But this means that the widgets will never get the focus ring.
 	}
 }
 
+/*
+TODO: Menu Items / Responder Chain for Undo, Redo, Cut, Copy, Paste (and any other menu items)
+
+I would like to allow our custom (Canvas) Views to respond to the standard menu items.
+This means graying/not graying out, and being able to respond to the actions.
+
+While I think it would be cool to provide direct integration with NSUndoManager for undo/redo,
+I worry the semantics won't fit well with a cross-platform program in that the user will have to
+write a lot more code to keep the undo manager aprised of the application state.
+And this code will not be easily reusable with the other platforms, so nobody will want to write it.
+(TODO: Re-evaluate other platforms and see if the modern APIs look closer to NSUndoManager.)
+
+So instead of direct NSUndoManager integration, let's presume the user wrote their own
+cross-platform manual undo system, with typical custom functions like myundo() and myredo().
+(See 7GUI #6)
+
+So instead, let's just override this View's responder to forward the menu events to the user's cross-platform
+custom undo/redo system.
+
+This will allow the user to reuse all their own code, and only require a little bit of additional code
+to hook into it for Cocoa.
+
+
+We can extend this idea to cut, copy, paste as well.
+
+*/
+/*
+- (void) undo:(id)the_sender
+{
+	NSLog(@"Undo");
+ 	// Provide a new callback, e.g. MENU_CB or MENUACTION_CB or MENUITEM_CB
+ 	// We can provide pre-canned strings like "UNDO", "REDO", "CUT", "COPY", "PASTE"
+ 	// telling them which action they need to handle.
+ 
+}
+- (BOOL) validateMenuItem:(NSMenuItem*)menu_item
+{
+	// Instead of this, check for user callback, e.g. VALIDATEMENU_CB.
+	// User should return YES/NO (I can't seem to call super.)
+	// They should implement for all titles they need to support (Undo, Redo, Cut Copy Paste)
+	// Not sure how to handle localized strings
+
+	if([menu_item isEqualTo:@"Undo"])
+	{
+		return NO;
+	}
+	return NO;
+}
+
+- (void) redo:(id)the_sender
+{
+}
+- (void) cut:(id)the_sender
+{
+}
+- (void) copy:(id)the_sender
+{
+}
+- (void) paste:(id)the_sender
+{
+}
+
+*/
+
 @end
 
 
