@@ -936,6 +936,28 @@ bool iupCocoaCommonBaseScrollWheelCallback(Ihandle* ih, NSEvent* the_event, NSVi
 }
 
 
+int iupCocoaCommonBaseSetLayerBackedAttrib(Ihandle* ih, const char* value)
+{
+	id the_object = ih->handle;
+	if([the_object respondsToSelector:@selector(setWantsLayer:)])
+	{
+		BOOL should_enable = (BOOL)iupStrBoolean(value);
+		[the_object setWantsLayer:should_enable];
+	}
+	return 0;
+}
+
+char* iupCocoaCommonBaseGetLayerBackedAttrib(Ihandle* ih)
+{
+	id the_object = ih->handle;
+	if([the_object respondsToSelector:@selector(setWantsLayer:)])
+	{
+		BOOL is_enabled = [the_object wantsLayer];
+		return iupStrReturnBoolean(is_enabled);
+	}
+	return iupStrReturnBoolean(false);
+}
+
 int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value)
 {
 	Ihandle* menu_ih = (Ihandle*)value;

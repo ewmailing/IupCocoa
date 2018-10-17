@@ -73,6 +73,10 @@ IUP_EXPORTI bool iupCocoaCommonBaseHandleMouseMotionCallback(Ihandle* ih, NSEven
 IUP_EXPORTI bool iupCocoaCommonBaseScrollWheelCallback(Ihandle* ih, NSEvent* the_event, NSView* represented_view);
 
 
+// For Layer Backed Views
+IUP_EXPORTI int iupCocoaCommonBaseSetLayerBackedAttrib(Ihandle* ih, const char* value);
+IUP_EXPORTI char* iupCocoaCommonBaseGetLayerBackedAttrib(Ihandle* ih);
+
 // This is for NSResponder context menus. (I expect new modules will want to call these.)
 IUP_EXPORTI void iupCocoaCommonBaseAppendMenuItems(NSMenu* dst_menu, NSMenu* src_menu);
 IUP_EXPORTI void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Class class_of_widget);

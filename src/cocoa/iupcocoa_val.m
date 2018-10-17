@@ -112,18 +112,39 @@ CANFOCUS seems to mostly be about getting the focus ring and being able to get k
 
 void iupdrvValGetMinSize(Ihandle* ih, int *w, int *h)
 {
-#if 1
-  if(ih->data->orientation == IVAL_HORIZONTAL)
-  {
-    *w = 20;
-    *h = 35;
-  }
-  else
-  {
-    *w = 35;
-    *h = 20;
-  }
-#endif
+	if(ih->handle)
+	{
+//		NSLog(@"iupdrvValGetMinSize with handle");
+		NSSlider* the_slider = (NSSlider*)ih->handle;
+		CGFloat knob_thickness = [the_slider knobThickness];
+//		NSLog(@"iupdrvValGetMinSize knob_thickness:%lf", knob_thickness);
+		
+		const int PADDING = 4;
+		
+		*w = knob_thickness + PADDING;
+		*h = knob_thickness + PADDING;
+		return;
+	}
+	else
+	{
+//		NSLog(@"iupdrvValGetMinSize no handle");
+		
+	}
+	// 10.13 knobThickness is 20.0 for pointy, 21.0 for round
+	
+	const int KNOBTHICKNESS = 21;
+	const int PADDING = 4;
+	
+	if(ih->data->orientation == IVAL_HORIZONTAL)
+	{
+		*w = KNOBTHICKNESS + PADDING;
+		*h = KNOBTHICKNESS + PADDING;
+	}
+	else
+	{
+		*w = KNOBTHICKNESS + PADDING;
+		*h = KNOBTHICKNESS + PADDING;
+	}
 }
 
 static int cocoaValSetValueAttrib(Ihandle* ih, const char* value)
@@ -132,7 +153,7 @@ static int cocoaValSetValueAttrib(Ihandle* ih, const char* value)
 	if(iupStrToDouble(value, &new_value))
 	{
 		NSSlider* the_slider = ih->handle;
-		
+		// Not sure if I should bounds check in case the user is trying to reset max, min and this, but out of order.
 		if(new_value < ih->data->vmin)
 		{
 			new_value = ih->data->vmin;
@@ -150,13 +171,102 @@ static int cocoaValSetValueAttrib(Ihandle* ih, const char* value)
 }
 
 
+static int cocoaValSetMaxAttrib(Ihandle* ih, const char* value)
+{
+	double new_value = 0;
+	if(iupStrToDouble(value, &new_value))
+	{
+		NSSlider* the_slider = ih->handle;
+		
+		// Not going to bounds check in case the user is trying to change both max and min which could cross into an invalid state
+		
+		ih->data->val = new_value;
+		
+		[the_slider setMaxValue:new_value];
+	}
+	return 0; /* do not store value in hash table */
+}
+
+static char* cocoaValGetMaxAttrib(Ihandle* ih)
+{
+	return iupStrReturnDouble(ih->data->vmax);
+}
+
+static int cocoaValSetMinAttrib(Ihandle* ih, const char* value)
+{
+	double new_value = 0;
+	if(iupStrToDouble(value, &new_value))
+	{
+		NSSlider* the_slider = ih->handle;
+		
+		// Not going to bounds check in case the user is trying to change both max and min which could cross into an invalid state
+		
+		ih->data->val = new_value;
+		
+		[the_slider setMinValue:new_value];
+	}
+	return 0; /* do not store value in hash table */
+}
+
+static char* cocoaValGetMinAttrib(Ihandle* ih)
+{
+	return iupStrReturnDouble(ih->data->vmin);
+}
+
+
+// STEP: Controls the increment for keyboard control and the mouse wheel.
+// It is not the size of the increment.
+// The increment size is "step*(max-min)", so it must be 0<step<1. Default is "0.01".
+static int cocoaValSetStepAttrib(Ihandle* ih, const char* value)
+{
+	if(iupStrToDoubleDef(value, &(ih->data->step), 0.01))
+	{
+		double inc_size = ih->data->step * (ih->data->vmax - ih->data->vmin);
+		NSSlider* the_slider = ih->handle;
+		[the_slider setAltIncrementValue:inc_size];
+	}
+	return 0; /* do not store value in hash table */
+}
+
+
+
+static int cocoaValSetShowTicksAttrib(Ihandle* ih, const char* value)
+{
+	int show_ticks = 0;
+	if(value != NULL)
+	{
+		show_ticks = atoi(value);
+	}
+
+	//  if (show_ticks<2) show_ticks=2;
+
+	ih->data->show_ticks = show_ticks;
+	
+	NSSlider* the_slider = ih->handle;
+	[the_slider setNumberOfTickMarks:show_ticks];
+	
+	return 0;
+}
+
+static int cocoaValSetStepOnTicksAttrib(Ihandle* ih, const char* value)
+{
+	BOOL should_step_on_ticks = (BOOL)iupStrBoolean(value);
+	NSSlider* the_slider = ih->handle;
+	[the_slider setAllowsTickMarkValuesOnly:should_step_on_ticks];
+	return 0;
+}
+
+static char* cocoaValGetStepOnTicksAttrib(Ihandle* ih)
+{
+	NSSlider* the_slider = ih->handle;
+	BOOL should_step_on_ticks = [the_slider allowsTickMarkValuesOnly];
+	return iupStrReturnBoolean(should_step_on_ticks);
+}
+
+
+
 static int cocoaValMapMethod(Ihandle* ih)
 {
-//	char* value;
-
-
-
-
 	IupCocoaSlider* the_slider = [[IupCocoaSlider alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
 
 	[the_slider setMinValue:0.0];
@@ -164,6 +274,15 @@ static int cocoaValMapMethod(Ihandle* ih)
 	// PAGESTEP cannot be supported. Only STEP.
 	[the_slider setAltIncrementValue:0.01];
 	[the_slider setNumberOfTickMarks:0];
+
+	if(ih->data->orientation == IVAL_VERTICAL)
+	{
+		[the_slider setVertical:YES];
+	}
+	else
+	{
+		[the_slider setVertical:NO];
+	}
 
 
 	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
@@ -230,7 +349,7 @@ void iupdrvValInitClass(Iclass* ic)
 
 
   /* Driver Dependent Attribute functions */
-  
+
   /* Visual */
   iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_DEFAULT); 
 
@@ -238,13 +357,32 @@ void iupdrvValInitClass(Iclass* ic)
 
   /* IupVal only */
   iupClassRegisterAttribute(ic, "VALUE", iupValGetValueAttrib, cocoaValSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-#if 0
-  iupClassRegisterAttribute(ic, "PAGESTEP", iupValGetPageStepAttrib, macValSetPageStepAttrib, IUPAF_SAMEASSYSTEM, "0.1", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "STEP", iupValGetStepAttrib, macValSetStepAttrib, IUPAF_SAMEASSYSTEM, "0.01", IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SHOWTICKS", NULL, NULL, NULL, NULL, IUPAF_WRITEONLY|IUPAF_READONLY);  /* showticks is not supported in GTK */
-#endif
+
+  iupClassRegisterAttribute(ic, "MAX", cocoaValGetMaxAttrib, cocoaValSetMaxAttrib, IUPAF_SAMEASSYSTEM, "1", IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "MIN", cocoaValGetMinAttrib, cocoaValSetMinAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
+
+
+
+  iupClassRegisterAttribute(ic, "STEP", iupValGetStepAttrib, cocoaValSetStepAttrib, IUPAF_SAMEASSYSTEM, "0.01", IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "SHOWTICKS", iupValGetShowTicksAttrib, cocoaValSetShowTicksAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_DEFAULT);
+
+
+
+	// Not supported
+	  iupClassRegisterAttribute(ic, "PAGESTEP", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED);
+  iupClassRegisterAttribute(ic, "INVERTED", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NOT_MAPPED);
+  iupClassRegisterAttribute(ic, "TICKSPOS", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NOT_MAPPED);
+
+
+
+	// New API
+	// For setting and retrieving whether values on the slider can be anything
+	//   the slider normally allows, or only values that correspond to a tick mark.
+	//   This has no effect if numberOfTickMarks is 0.
+  iupClassRegisterAttribute(ic, "STEPONTICKS", cocoaValGetStepOnTicksAttrib, cocoaValSetStepOnTicksAttrib, IUPAF_SAMEASSYSTEM, "NO", IUPAF_DEFAULT);
 
 	/* New API for view specific contextual menus (Mac only) */
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, iupCocoaCommonBaseSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "LAYERBACKED", iupCocoaCommonBaseGetLayerBackedAttrib, iupCocoaCommonBaseSetLayerBackedAttrib, NULL, "NO", IUPAF_DEFAULT);
 
 }
