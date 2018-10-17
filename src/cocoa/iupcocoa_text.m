@@ -2194,7 +2194,7 @@ void iupdrvTextConvertPosToLinCol(Ihandle* ih, int pos, int *lin, int *col)
 // FIXME: I don't know if this is ever called.
 void* iupdrvTextAddFormatTagStartBulk(Ihandle* ih)
 {
-	NSLog(@"iupdrvTextAddFormatTagStartBulk");
+//	NSLog(@"iupdrvTextAddFormatTagStartBulk");
 	NSTextView* text_view = cocoaTextGetTextView(ih);
 	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 	[undo_manager beginUndoGrouping];
@@ -2208,7 +2208,7 @@ void* iupdrvTextAddFormatTagStartBulk(Ihandle* ih)
 // FIXME: I don't know if this is ever called.
 void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 {
-	NSLog(@"iupdrvTextAddFormatTagStopBulk");
+//	NSLog(@"iupdrvTextAddFormatTagStopBulk");
 	
 	NSTextView* text_view = cocoaTextGetTextView(ih);
 	NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
@@ -2220,7 +2220,18 @@ void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 
 }
 
-
+// TODO/FIXME: I still get cases where I clobber formatting when (maybe?) I should not be clobbering. (The Iup spec is a bit undefined on this.)
+// Example: The text case with 3 lines of containing "First Line" "Second Line Big Big Big" "Third Line"
+// If you then set a color format for the selection of the 3 lines, you lose italics, underline, strikethrough. (But font size is preserved.)
+// I'm thinking maybe the algorithm should be changed to use any enumeration APIs Cocoa may provide.
+// Since of blindly applying the attributes for the selected block,
+// we enumerate over the range and try to pick up each individual piece and try to preserve existing attributes for each section.
+// Then we apply the new attribute over each sub-section.
+// This will require modifcation to the calling algorthm, because it sets the attribute for the entire section from the caller.
+// That will need to be pushed down into here.
+// See:
+// - (void)enumerateAttributesInRange:(NSRange)enumerationRange options:(NSAttributedStringEnumerationOptions)opts usingBlock:(void (NS_NOESCAPE ^)(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange range, BOOL *stop))block API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+// And see the Bullet/Numbering code because it has started moving towards that model already.
 static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict)
 {
 	bool needs_paragraph_style = false;
@@ -2854,6 +2865,18 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 	return false;
 }
 
+// TODO/FIXME: I still get cases where I clobber formatting when (maybe?) I should not be clobbering. (The Iup spec is a bit undefined on this.)
+// Example: The text case with 3 lines of containing "First Line" "Second Line Big Big Big" "Third Line"
+// If you then set a color format for the selection of the 3 lines, you lose italics, underline, strikethrough. (But font size is preserved.)
+// I'm thinking maybe the algorithm should be changed to use any enumeration APIs Cocoa may provide.
+// Since of blindly applying the attributes for the selected block,
+// we enumerate over the range and try to pick up each individual piece and try to preserve existing attributes for each section.
+// Then we apply the new attribute over each sub-section.
+// This will require modifcation to the calling algorthm, because it sets the attribute for the entire section from the caller.
+// That will need to be pushed down into here.
+// See:
+// - (void)enumerateAttributesInRange:(NSRange)enumerationRange options:(NSAttributedStringEnumerationOptions)opts usingBlock:(void (NS_NOESCAPE ^)(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange range, BOOL *stop))block API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+// And see the Bullet/Numbering code because it has started moving towards that model already.
 static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
 {
 	NSFontManager* font_manager = [NSFontManager sharedFontManager];
