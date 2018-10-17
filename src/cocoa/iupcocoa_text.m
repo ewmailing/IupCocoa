@@ -721,7 +721,30 @@ static NSUInteger cocoaTextCountGlyphsInString(NSString* text_string)
 @property(nonatomic, assign) Ihandle* ihandle;
 @end
 
+// I only use isPartialStringValid for "NC"
 @implementation IupFormatter
+
+// required. pass-through behavior
+- (NSString*) stringForObjectValue:(id)obj_val
+{
+    return obj_val;
+}
+
+
+// required. pass-through behavior
+- (BOOL)getObjectValue:(id*)out_obj_result forString:(NSString*)the_string errorDescription:(NSString**)the_error
+{
+	if(the_error)
+    {
+		*the_error = nil;
+	}
+    if(out_obj_result)
+    {
+		*out_obj_result = [the_string retain];
+	}
+    return YES;
+}
+
 
 - (BOOL)isPartialStringValid:(NSString*)partial_string newEditingString:(NSString**)new_string errorDescription:(NSString**)the_error
 {
