@@ -2220,34 +2220,13 @@ void iupdrvTextAddFormatTagStopBulk(Ihandle* ih, void* state)
 
 }
 
-// TODO/FIXME: I still get cases where I clobber formatting when (maybe?) I should not be clobbering. (The Iup spec is a bit undefined on this.)
-// Example: The text case with 3 lines of containing "First Line" "Second Line Big Big Big" "Third Line"
-// If you then set a color format for the selection of the 3 lines, you lose italics, underline, strikethrough. (But font size is preserved.)
-// I'm thinking maybe the algorithm should be changed to use any enumeration APIs Cocoa may provide.
-// Since of blindly applying the attributes for the selected block,
-// we enumerate over the range and try to pick up each individual piece and try to preserve existing attributes for each section.
-// Then we apply the new attribute over each sub-section.
-// This will require modifcation to the calling algorthm, because it sets the attribute for the entire section from the caller.
-// That will need to be pushed down into here.
-// See:
-// - (void)enumerateAttributesInRange:(NSRange)enumerationRange options:(NSAttributedStringEnumerationOptions)opts usingBlock:(void (NS_NOESCAPE ^)(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange range, BOOL *stop))block API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-// And see the Bullet/Numbering code because it has started moving towards that model already.
-static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict)
+// You must pass in a valid paragraph_style. This routine will alter it depending on which Iup attributes were set.
+// Called by cocoaTextParseParagraphFormat to apply format tags.
+// But broken out so it can also be used for setTypingAttributes:
+static bool cocoaTextParseParagraphAttributes(NSMutableParagraphStyle* paragraph_style, Ihandle* formattag)
 {
 	bool needs_paragraph_style = false;
 	char* format;
-
-	NSMutableParagraphStyle* paragraph_style = nil;
-	paragraph_style = [[attribute_dict objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-	if(nil == paragraph_style)
-	{
-		paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
-	}
-	
-	[paragraph_style autorelease];
-	
-	
-
 	
 	format = iupAttribGet(formattag, "ALIGNMENT");
 	if(format)
@@ -2298,8 +2277,8 @@ static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionar
 			needs_paragraph_style = true;
 		}
 	}
-
-
+	
+	
 	format = iupAttribGet(formattag, "LINESPACING");
 	if(format)
 	{
@@ -2345,7 +2324,7 @@ static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionar
 			needs_paragraph_style = true;
 		}
 	}
-
+	
 	format = iupAttribGet(formattag, "TABSARRAY");
 	if(format)
 	{
@@ -2357,7 +2336,7 @@ static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			str = iupStrDupUntil((char**)&format, ' ');
 			if (!str) break;
-  		    pos = atoi(str);
+			pos = atoi(str);
 			free(str);
 			
 			str = iupStrDupUntil((char**)&format, ' ');
@@ -2391,14 +2370,100 @@ static bool cocoaTextParseParagraphFormat(Ihandle* formattag, NSMutableDictionar
 		[paragraph_style setTabStops:tab_array];
 		needs_paragraph_style = true;
 	}
-	
 
-	if(needs_paragraph_style)
-	{
-		[attribute_dict setValue:paragraph_style
-			forKey:NSParagraphStyleAttributeName];
-	}
 	return needs_paragraph_style;
+}
+
+// TODO/FIXME: I still get cases where I clobber formatting when (maybe?) I should not be clobbering. (The Iup spec is a bit undefined on this.)
+// Example: The text case with 3 lines of containing "First Line" "Second Line Big Big Big" "Third Line"
+// If you then set a color format for the selection of the 3 lines, you lose italics, underline, strikethrough. (But font size is preserved.)
+// I'm thinking maybe the algorithm should be changed to use any enumeration APIs Cocoa may provide.
+// Since of blindly applying the attributes for the selected block,
+// we enumerate over the range and try to pick up each individual piece and try to preserve existing attributes for each section.
+// Then we apply the new attribute over each sub-section.
+// This will require modifcation to the calling algorthm, because it sets the attribute for the entire section from the caller.
+// That will need to be pushed down into here.
+// See:
+// - (void)enumerateAttributesInRange:(NSRange)enumerationRange options:(NSAttributedStringEnumerationOptions)opts usingBlock:(void (NS_NOESCAPE ^)(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange range, BOOL *stop))block API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+// And see the Bullet/Numbering code because it has started moving towards that model already.
+static bool cocoaTextParseParagraphFormat(Ihandle* ih, Ihandle* formattag, NSTextView* text_view, NSRange selection_range)
+{
+	NSTextStorage* text_storage = [text_view textStorage];
+	NSString* all_string = [text_storage string];
+	__block bool did_change_attribute = false;
+	// The problem seems to be that in order to change the TextLines attribute for the entire block, I need to re-set the attribute.
+	// So I have to be very careful about applying attributes and not clobbering them.
+	
+	[text_storage beginEditing];
+	
+	
+	[all_string enumerateSubstringsInRange:selection_range options:NSStringEnumerationByParagraphs usingBlock:
+	 ^(NSString * _Nullable substring, NSRange substring_range, NSRange enclosing_range, BOOL * _Nonnull stop)
+		{
+			*stop = NO;
+			// NSLog(@"substring:%@", substring);
+			// NSLog(@"substringRange:%@", NSStringFromRange(substring_range));
+			// NSLog(@"enclosingRange:%@", NSStringFromRange(enclosing_range));
+			
+			// If the selection block starts in the middle of the paragraph instead of the beginning,
+			// we have to decide whether we should start as-is,
+			// or back-up to the beginning.
+			// We will use getParagraphStart to back up to the beginning.
+			NSUInteger start_paragraph_index;
+			NSUInteger end_paragraph_index;
+			NSUInteger contents_end_paragraph_index;
+			[all_string getParagraphStart:&start_paragraph_index end:&end_paragraph_index contentsEnd:&contents_end_paragraph_index forRange:enclosing_range];
+			
+			// NSLog(@"start_paragraph_index:%lu", start_paragraph_index);
+			// NSLog(@"end_paragraph_index:%lu", end_paragraph_index);
+			// NSLog(@"contents_end_paragraph_index:%lu", contents_end_paragraph_index);
+			
+			
+			// end_paragraph_index seems to include the newline, which we want
+			NSRange paragraph_range = NSMakeRange(start_paragraph_index, end_paragraph_index-start_paragraph_index);
+			// NSLog(@"paragraph_range:%@", NSStringFromRange(paragraph_range));
+			
+			
+			NSAttributedString* current_paragraph = [text_storage attributedSubstringFromRange:paragraph_range];
+			//					NSLog(@"current_line: %@", current_line);
+			NSDictionary<NSAttributedStringKey, id>* current_paragraph_attributes = [current_paragraph attributesAtIndex:0 effectiveRange:NULL];
+			
+			// Assumption: I'm going to assume I don't need to worry about substrings with different attributes because I am only changing the paragraph attribute which should apply to the whole paragraph.
+			// That's why I'm ignoring the efffectiveRange: result here.
+			// If I'm wrong, this code should either duplicate the cocoaTextParseCharacterFormat,
+			// or be merged directly into cocoaTextParseParagraphFormat since if I'm wrong,
+			// that implies there is no point of having distinct paragraph attributes anyway.
+			
+			
+			// We only care about the ParagraphStyle attribute.
+			// Get the existing one so we don't clobber existing properties, or if it doesn't exist, create a default one.
+			NSMutableParagraphStyle* paragraph_style = nil;
+			paragraph_style = [[current_paragraph_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+			if(nil == paragraph_style)
+			{
+				paragraph_style = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+			}
+			[paragraph_style autorelease];
+			
+			
+			bool needs_paragraph_style = cocoaTextParseParagraphAttributes(paragraph_style, formattag);
+			if(needs_paragraph_style)
+			{
+				[text_view shouldChangeTextInRange:paragraph_range replacementString:nil];
+				[text_storage addAttribute:NSParagraphStyleAttributeName value:paragraph_style range:paragraph_range];
+				did_change_attribute = true;
+			}
+		}
+	];
+	
+	[text_storage endEditing];
+	
+	if(did_change_attribute)
+	{
+		[text_view didChangeText];
+	}
+	return did_change_attribute;
+	
 }
 
 
@@ -2865,37 +2930,109 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 	return false;
 }
 
-// TODO/FIXME: I still get cases where I clobber formatting when (maybe?) I should not be clobbering. (The Iup spec is a bit undefined on this.)
-// Example: The text case with 3 lines of containing "First Line" "Second Line Big Big Big" "Third Line"
-// If you then set a color format for the selection of the 3 lines, you lose italics, underline, strikethrough. (But font size is preserved.)
-// I'm thinking maybe the algorithm should be changed to use any enumeration APIs Cocoa may provide.
-// Since of blindly applying the attributes for the selected block,
-// we enumerate over the range and try to pick up each individual piece and try to preserve existing attributes for each section.
-// Then we apply the new attribute over each sub-section.
-// This will require modifcation to the calling algorthm, because it sets the attribute for the entire section from the caller.
-// That will need to be pushed down into here.
-// See:
-// - (void)enumerateAttributesInRange:(NSRange)enumerationRange options:(NSAttributedStringEnumerationOptions)opts usingBlock:(void (NS_NOESCAPE ^)(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange range, BOOL *stop))block API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-// And see the Bullet/Numbering code because it has started moving towards that model already.
-static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionary* attribute_dict, IupCocoaFont* iup_font)
+
+
+static NSFont* cocoaTextChangeFontWeight(NSFont* start_font, int font_target_weight)
 {
+	// Ugh: This has no effect.
+	// [attribute_dict setValue:[NSNumber numberWithFloat:weight_scale] forKey:NSFontWeightTrait];
+	
+	// I don't want to create a font from scratch because there are warnings about using FamilyName for the default/system font.
+	// And I just don't want to accidentally miss any properties.
+	// But this leaves us only with this curious API which will attempt to bump up/down the weight by 1 level at a time.
+	// If it can't go any higher/lower, it returns back the original font.
+	// The levels are not well defined, so this is very imprecise.
+	
 	NSFontManager* font_manager = [NSFontManager sharedFontManager];
-	
-	NSFont* target_font = nil;
-	
-	target_font = [attribute_dict objectForKey:NSFontAttributeName];
-	if(nil == target_font)
+	NSFont* target_font = start_font;
+
+	NSInteger current_weight = [font_manager weightOfFont:target_font];
+	if(current_weight < font_target_weight)
 	{
-		target_font = [iup_font nativeFont];
+		// need to go up
+		while(current_weight < font_target_weight)
+		{
+			NSFont* result_font;
+			result_font = [font_manager convertWeight:YES ofFont:target_font];
+			current_weight = [font_manager weightOfFont:target_font];
+			
+			if(result_font == target_font)
+			{
+				// unable to convert more
+				break;
+			}
+			else
+			{
+				target_font = result_font;
+			}
+		}
 	}
-	
-	NSFontTraitMask trait_mask = [iup_font traitMask];
-	
-	CGFloat font_size = [target_font pointSize];
-//	NSString* font_family = [target_font familyName];
-	
+	else if(current_weight > font_target_weight)
+	{
+		// need to go down
+		while(current_weight > font_target_weight)
+		{
+			NSFont* result_font;
+			result_font = [font_manager convertWeight:NO ofFont:target_font];
+			current_weight = [font_manager weightOfFont:target_font];
+			
+			if(result_font == target_font)
+			{
+				// unable to convert more
+				break;
+			}
+			else
+			{
+				target_font = result_font;
+			}
+		}
+	}
+	else
+	{
+		// already at target weight
+	}
+	return target_font;
+}
+
+
+// This returns a non-nil dictionary only for the setTypingAttributes: case (change formatting at the end of the document).
+// Calls may merge that dictionary with whatever to call setTypingAttributes:
+// Otherwise it changes the formatting at the selected range and returns nil.
+//
+// Be careful about clobbering:
+// Example: The text case with 3 lines of containing "First Line" "Second Line Big Big Big" "Third Line" with different sizes, strike through, underline, colors, alignments in different sections.
+// If you then set a color format for the selection of the 3 lines,
+// you don't want to lose italics, underline, strikethrough, font size, alignment (paragraph attribute)
+//
+// This is like the 3rd time I've re-written this.
+// The problem has been clobbering previous properties that have been set earlier.
+// I generally don't want to lose the old properties if they are orthogonal to the ones being set.
+// This is compounded when the user selects a range that spans characters that have applied different attributes.
+// So this algorithm now attempts to traverse the substrings broken up by different attribute types,
+// and uses addAttributes to only add/overwrite changes to the substring to try to avoid clobbering.
+static NSMutableDictionary* cocoaTextParseCharacterFormat(Ihandle* ih, Ihandle* formattag, NSTextView* text_view, NSRange selection_range)
+{
 	char* format;
 	bool did_change_attribute = false;
+	bool did_change_font_size = false;
+	bool did_change_font_family = false;
+	bool did_change_font_traits = false;
+	bool did_change_font_weight = false;
+
+	bool did_change_font_fgcolor = false;
+	bool did_change_font_bgcolor = false;
+
+	// This is a bonus for calling removeObject:forKey: if the user provided NULL for a color and there was a color already set.
+	bool needs_add_font_fgcolor = false;
+	bool needs_add_font_bgcolor = false;
+
+
+	NSString* font_family_name = nil;
+	CGFloat font_size = 0.0;
+	NSFontTraitMask trait_mask = 0;
+	int font_target_weight = 5;
+	NSMutableDictionary* attribute_dict = [NSMutableDictionary dictionary];
+	
 
 	format = iupAttribGet(formattag, "FONTSIZE");
 	if(format)
@@ -2912,8 +3049,9 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		else
 		{
 			font_size = (CGFloat)font_size_int;
+			did_change_font_size = true;
+			did_change_attribute = true;
 		}
-		did_change_attribute = true;
 	}
 	
 	format = iupAttribGet(formattag, "FONTFACE");
@@ -2921,34 +3059,95 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 	{
 		/* Map standard names to native names */
 		const char* mapped_name = iupFontGetMacName(format);
-		NSString* ns_family_name = nil;
 		if(mapped_name)
 		{
-			ns_family_name = [NSString stringWithUTF8String:mapped_name];
+			font_family_name = [NSString stringWithUTF8String:mapped_name];
 		}
 		else
 		{
-			ns_family_name = [NSString stringWithUTF8String:format];
+			font_family_name = [NSString stringWithUTF8String:format];
 		}
 		
-		target_font = [font_manager convertFont:target_font toFamily:ns_family_name];
+//		target_font = [font_manager convertFont:target_font toFamily:font_family_name];
+		did_change_attribute = true;
+		did_change_font_family = true;
+	}
+
+	format = iupAttribGet(formattag, "RISE");
+	if(format)
+	{
+		// For Mac, NSSuperscriptAttributeName
+		// iOS kCTSuperscriptAttributeName
+		// Pass in a negative value for subscript.
+    	if(iupStrEqualNoCase(format, "SUPERSCRIPT"))
+		{
+	  		[attribute_dict setValue:[NSNumber numberWithInt:1]
+				forKey:NSSuperscriptAttributeName];
+			// I don't know how small to make the font. IUP uses X-SMALL on GTK.
+			font_size = font_size * 0.6444444444444;
+			did_change_font_size = true;
+		}
+		else if(iupStrEqualNoCase(format, "SUBSCRIPT"))
+		{
+	  		[attribute_dict setValue:[NSNumber numberWithInt:-1]
+				forKey:NSSuperscriptAttributeName];
+			// I don't know how small to make the font. IUP uses X-SMALL on GTK.
+			font_size = font_size * 0.6444444444444;
+			did_change_font_size = true;
+		}
+		else
+		{
+			int offset_val = 0;
+			iupStrToInt(format, &offset_val);
+			[attribute_dict setValue:[NSNumber numberWithDouble:(double)offset_val]
+				forKey:NSBaselineOffsetAttributeName];
+			// user is expected to set the font size for this case
+		}
 		did_change_attribute = true;
 	}
+
+
+	format = iupAttribGet(formattag, "FONTSCALE");
+	if(format)
+	{
+		double fval = 0;
+		if (iupStrEqualNoCase(format, "XX-SMALL"))
+			fval = 0.5787037037037;
+		else if (iupStrEqualNoCase(format, "X-SMALL"))
+			fval = 0.6444444444444;
+		else if (iupStrEqualNoCase(format, "SMALL"))
+			fval = 0.8333333333333;
+		else if (iupStrEqualNoCase(format, "MEDIUM"))
+			fval = 1.0;
+		else if (iupStrEqualNoCase(format, "LARGE"))
+			fval = 1.2;
+		else if (iupStrEqualNoCase(format, "X-LARGE"))
+			fval = 1.4399999999999;
+		else if (iupStrEqualNoCase(format, "XX-LARGE"))
+			fval = 1.728;
+		else
+			iupStrToDouble(format, &fval);
+		
+		if(fval > 0)
+		{
+			font_size = font_size * fval;
+			did_change_font_size = true;
+			did_change_attribute = true;
+		}
+	}
+
+
 	
-	// TODO: Do we reset the traits or are we expected to inherit it from the original font?
-	// And does our NSFont carry these set traits, or do we need to save these traits when they were first set?
+
 	format = iupAttribGet(formattag, "ITALIC");
 	if(format)
 	{
 		if(iupStrBoolean(format))
 		{
 			trait_mask |= NSItalicFontMask;
+			did_change_attribute = true;
+			did_change_font_traits = true;
 		}
-		else
-		{
-			trait_mask = trait_mask & (~NSItalicFontMask); // To unset the flag, invert the bits, then AND
-		}
-		did_change_attribute = true;
 	}
 
 
@@ -2992,65 +3191,6 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 		{
 			[attribute_dict setValue:[NSNumber numberWithInt:NO]
 				forKey:NSStrikethroughStyleAttributeName];
-		}
-		did_change_attribute = true;
-	}
-	format = iupAttribGet(formattag, "RISE");
-	if(format)
-	{
-		// For Mac, NSSuperscriptAttributeName
-		// iOS kCTSuperscriptAttributeName
-		// Pass in a negative value for subscript.
-    	if(iupStrEqualNoCase(format, "SUPERSCRIPT"))
-		{
-	  		[attribute_dict setValue:[NSNumber numberWithInt:1]
-				forKey:NSSuperscriptAttributeName];
-			// I don't know how small to make the font. IUP uses X-SMALL on GTK.
-			font_size = font_size * 0.6444444444444;
-		}
-		else if(iupStrEqualNoCase(format, "SUBSCRIPT"))
-		{
-	  		[attribute_dict setValue:[NSNumber numberWithInt:-1]
-				forKey:NSSuperscriptAttributeName];
-			// I don't know how small to make the font. IUP uses X-SMALL on GTK.
-			font_size = font_size * 0.6444444444444;
-		}
-		else
-		{
-			int offset_val = 0;
-			iupStrToInt(format, &offset_val);
-			[attribute_dict setValue:[NSNumber numberWithDouble:(double)offset_val]
-				forKey:NSBaselineOffsetAttributeName];
-			// user is expected to set the font size for this case
-		}
-		did_change_attribute = true;
-	}
-
-
-	format = iupAttribGet(formattag, "FONTSCALE");
-	if(format)
-	{
-		double fval = 0;
-		if (iupStrEqualNoCase(format, "XX-SMALL"))
-			fval = 0.5787037037037;
-		else if (iupStrEqualNoCase(format, "X-SMALL"))
-			fval = 0.6444444444444;
-		else if (iupStrEqualNoCase(format, "SMALL"))
-			fval = 0.8333333333333;
-		else if (iupStrEqualNoCase(format, "MEDIUM"))
-			fval = 1.0;
-		else if (iupStrEqualNoCase(format, "LARGE"))
-			fval = 1.2;
-		else if (iupStrEqualNoCase(format, "X-LARGE"))
-			fval = 1.4399999999999;
-		else if (iupStrEqualNoCase(format, "XX-LARGE"))
-			fval = 1.728;
-		else
-			iupStrToDouble(format, &fval);
-		
-		if(fval > 0)
-		{
-			font_size = font_size * fval;
 		}
 		did_change_attribute = true;
 	}
@@ -3119,65 +3259,14 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 //			weight_scale = 0.0;
 			target_weight = 5;
 		}
-		
-		// Ugh: This has no effect.
-		// [attribute_dict setValue:[NSNumber numberWithFloat:weight_scale] forKey:NSFontWeightTrait];
+		font_target_weight = target_weight;
 
-		// I don't want to create a font from scratch because there are warnings about using FamilyName for the default/system font.
-		// And I just don't want to accidentally miss any properties.
-		// But this leaves us only with this curious API which will attempt to bump up/down the weight by 1 level at a time.
-		// If it can't go any higher/lower, it returns back the original font.
-		// The levels are not well defined, so this is very imprecise.
-		NSInteger current_weight = [font_manager weightOfFont:target_font];
-		if(current_weight < target_weight)
-		{
-			// need to go up
-			while(current_weight < target_weight)
-			{
-				NSFont* result_font;
-				result_font = [font_manager convertWeight:YES ofFont:target_font];
-				current_weight = [font_manager weightOfFont:target_font];
-				
-				if(result_font == target_font)
-				{
-					// unable to convert more
-					break;
-				}
-				else
-				{
-					target_font = result_font;
-				}
-			}
-		}
-	   else if(current_weight > target_weight)
-	   {
-			// need to go down
-			while(current_weight > target_weight)
-			{
-				NSFont* result_font;
-				result_font = [font_manager convertWeight:NO ofFont:target_font];
-				current_weight = [font_manager weightOfFont:target_font];
-				
-				if(result_font == target_font)
-				{
-					// unable to convert more
-					break;
-				}
-				else
-				{
-					target_font = result_font;
-				}
-			}
-	   }
-	   else
-	   {
-		   // already at target weight
-	   }
-
- 
 		did_change_attribute = true;
+		did_change_font_weight = true;
 
 	}
+	
+	
 	
 	format = iupAttribGet(formattag, "FGCOLOR");
 	if(format)
@@ -3192,12 +3281,17 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
 			[attribute_dict setValue:the_color
 				forKey:NSForegroundColorAttributeName];
+
+			needs_add_font_fgcolor = true;
 		}
 		else
 		{
-			[attribute_dict removeObjectForKey:NSForegroundColorAttributeName];
+			// removing is unnecessary with the current algorthm since it shouldn't be in there, but also won't hurt
+//			[attribute_dict removeObjectForKey:NSForegroundColorAttributeName];
+			needs_add_font_fgcolor = false;
 		}
 		did_change_attribute = true;
+		did_change_font_fgcolor = true;
 	}
 	
 	format = iupAttribGet(formattag, "BGCOLOR");
@@ -3211,14 +3305,18 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			CGFloat blue = b/255.0;
 
 			NSColor* the_color = [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
-			[attribute_dict setValue:the_color
+			[attribute_dict setObject:the_color
 				forKey:NSBackgroundColorAttributeName];
+				needs_add_font_bgcolor = true;
 		}
 		else
 		{
-			[attribute_dict removeObjectForKey:NSBackgroundColorAttributeName];
+			// removing is unnecessary with the current algorthm since it shouldn't be in there, but also won't hurt
+//			[attribute_dict removeObjectForKey:NSBackgroundColorAttributeName];
+			needs_add_font_bgcolor = false;
 		}
 		did_change_attribute = true;
+		did_change_font_bgcolor = true;
 	}
 	
 	// Disabled color (not actually disabled)
@@ -3233,6 +3331,8 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 //			NSColor* the_color = [NSColor secondarySelectedControlColor];
 			[attribute_dict setValue:the_color
 				forKey:NSForegroundColorAttributeName];
+			did_change_font_fgcolor = true;
+			needs_add_font_fgcolor = true;
 		}
 		else
 		{
@@ -3243,7 +3343,10 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 			}
 			else
 			{
+				// this removes the FGCOLOR if it was set
 				[attribute_dict removeObjectForKey:NSForegroundColorAttributeName];
+				did_change_font_fgcolor = true;
+				needs_add_font_fgcolor = false;
 			}
 
 		}
@@ -3251,13 +3354,164 @@ static bool cocoaTextParseCharacterFormat(Ihandle* formattag, NSMutableDictionar
 	}
 	
 	
+	
+	
+	
+
 	if(did_change_attribute)
 	{
-		target_font = [font_manager convertFont:target_font toSize:font_size];
-		target_font = [font_manager convertFont:target_font toHaveTrait:trait_mask];
-		[attribute_dict setValue:target_font forKey:NSFontAttributeName];
+		NSFontManager* font_manager = [NSFontManager sharedFontManager];
+		IupCocoaFont* iup_font = iupCocoaGetFont(ih);
+
+		NSTextStorage* text_storage = [text_view textStorage];
+		
+		
+		// Ugh: I need to handle two separate cases that don't quite fit.
+		// Case 1: Apply formatting to existing strings.
+		// Case 2: Apply formatting to all new text (setTypingAttributes:)
+		// So I have a bunch of code duplication.
+
+		
+		if(selection_range.location < [text_storage length])
+		{
+			[text_storage beginEditing];
+			ih->data->disable_callbacks = 1;
+			//		NSString* text_string = [text_storage string];
+			
+			
+			// This loop will iterate through all the sub-strings with different attributes
+			// We are using attributesAtIndex:effectiveRange:
+			// where the return value of effectiveRange: will tell us how far the current substring goes until the next attribute change.
+			// We then apply the new attributes to each piece at a time.
+			NSUInteger loc = selection_range.location;
+			NSUInteger end = selection_range.length + loc;
+			while(loc < end)
+			{	/* Run through the string in terms of attachment runs */
+				NSRange attrib_range;	/* Attachment attribute run */
+				
+				NSRange sub_range = {loc, end-loc};
+				NSAttributedString* current_substring = [text_storage attributedSubstringFromRange:sub_range];
+				NSDictionary<NSAttributedStringKey, id>* current_substring_attributes = [current_substring attributesAtIndex:0 effectiveRange:&attrib_range];
+		
+				NSFont* target_font = nil;
+
+				if(did_change_font_family || did_change_font_traits || did_change_font_size || did_change_font_weight)
+				{
+					NSFont* base_font = [current_substring_attributes objectForKey:NSFontAttributeName];
+					if(nil == base_font)
+					{
+						base_font = [iup_font nativeFont];
+					}
+					target_font = base_font;
+					
+					if(did_change_font_family)
+					{
+						target_font = [font_manager convertFont:target_font toFamily:font_family_name];
+					}
+					if(did_change_font_size)
+					{
+						target_font = [font_manager convertFont:target_font toSize:font_size];
+					}
+					if(did_change_font_traits)
+					{
+						target_font = [font_manager convertFont:target_font toHaveTrait:trait_mask];
+					}
+					
+					
+					
+					if(did_change_font_weight)
+					{
+						target_font = cocoaTextChangeFontWeight(target_font, font_target_weight);
+					}
+					
+					[attribute_dict setObject:target_font forKey:NSFontAttributeName];
+					
+				}
+				NSRange adjusted_range = { loc, attrib_range.length };
+				[text_view shouldChangeTextInRange:adjusted_range replacementString:nil];
+				[text_storage addAttributes:attribute_dict range:adjusted_range];
+				
+				
+				// This is going above & beyond the IUP required spec.
+				// I am removing color attributes if the user passed NULL (or illegal values)
+				if(did_change_font_fgcolor && !needs_add_font_fgcolor)
+				{
+					[text_storage removeAttribute:NSForegroundColorAttributeName range:adjusted_range];
+				}
+				if(did_change_font_bgcolor && !needs_add_font_bgcolor)
+				{
+					[text_storage removeAttribute:NSBackgroundColorAttributeName range:adjusted_range];
+				}
+				
+				
+				loc += attrib_range.length;
+				
+			}
+			
+			ih->data->disable_callbacks = 0;
+			[text_storage endEditing];
+			[text_view didChangeText];
+			
+			// We used the dictionary and no longer need it.
+			// Returning a non-nil dictionary is used by case 2:
+			attribute_dict = nil;
+			
+		}
+		else // for setTypingAttributes:
+		{
+			// Instead of setting the typingAttributes here, we are going to prepare an attribute dictionary to return.
+			// The reason is that the paragraph attribute handler passes back modifications,
+			// so returning a dictionary that can be later merged with that one makes things easier.
+
+
+			NSDictionary<NSAttributedStringKey, id>* current_substring_attributes = [text_view typingAttributes];
+		
+			NSFont* target_font = nil;
+
+			if(did_change_font_family || did_change_font_traits || did_change_font_size || did_change_font_weight)
+			{
+				NSFont* base_font = [current_substring_attributes objectForKey:NSFontAttributeName];
+				if(nil == base_font)
+				{
+					base_font = [iup_font nativeFont];
+				}
+				target_font = base_font;
+				
+				if(did_change_font_family)
+				{
+					target_font = [font_manager convertFont:target_font toFamily:font_family_name];
+				}
+				if(did_change_font_size)
+				{
+					target_font = [font_manager convertFont:target_font toSize:font_size];
+				}
+				if(did_change_font_traits)
+				{
+					target_font = [font_manager convertFont:target_font toHaveTrait:trait_mask];
+				}
+				
+				
+				
+				if(did_change_font_weight)
+				{
+					target_font = cocoaTextChangeFontWeight(target_font, font_target_weight);
+				}
+				
+				[attribute_dict setObject:target_font forKey:NSFontAttributeName];
+			}
+	
+		}
+		
 	}
-	return did_change_attribute;
+	
+	if(did_change_attribute)
+	{
+		return attribute_dict;
+	}
+	else
+	{
+		return nil;
+	}
 }
 
 void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
@@ -3323,36 +3577,49 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 		}
 		else
 		{
-			
-			IupCocoaFont* iup_font = iupCocoaGetFont(ih);
 
-			// Use the current set font as the baseline. We will modify a local copy of its attributes from there.
-			NSMutableDictionary* attribute_dict = [[iup_font attributeDictionary] mutableCopy];
-			[attribute_dict autorelease];
 			NSTextStorage* text_storage = [text_view textStorage];
-			// Set the selection range to be at the very last character.
-			// Get the attributes (if any) for the selected range, and merge it into our copy of the font's attributes.
-			// This will overwrite/merge the current attributes into our font copy attributes.
-			NSDictionary<NSAttributedStringKey, id>* text_storage_attributes = [[text_storage attributedSubstringFromRange:NSMakeRange([text_storage length]-1, 1)] attributesAtIndex:0 effectiveRange:NULL];
-			[attribute_dict addEntriesFromDictionary:text_storage_attributes];
-			
-			
+			native_selection_range = NSMakeRange([text_storage length], 0);
+
 			NSUndoManager* undo_manager = [[text_view delegate] undoManagerForTextView:text_view];
 			[undo_manager beginUndoGrouping];
 			
-			
-			bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
-			bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
-			
-			if(needs_character_style_change || needs_paragraph_style_change)
+			NSDictionary* typing_attributes = [text_view typingAttributes];
+			NSMutableParagraphStyle* paragraph_style = [[typing_attributes objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+			if(nil == paragraph_style)
 			{
-				[text_view setTypingAttributes:attribute_dict];
+				paragraph_style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+			}
+			[paragraph_style autorelease];
+			bool needs_paragraph_style_change = cocoaTextParseParagraphAttributes(paragraph_style, formattag);
+			
+
+			NSMutableDictionary* new_character_attributes = cocoaTextParseCharacterFormat(ih, formattag, text_view, native_selection_range);
+			
+			if(new_character_attributes || needs_paragraph_style_change)
+			{
+				// Merge all the attributes together
+				NSMutableDictionary* merged_attributes = [typing_attributes mutableCopy];
+				[merged_attributes autorelease];
+				
+				if(new_character_attributes != nil)
+				{
+					// This should overwrite any new properties with the old, while retaining the unchanged attributes
+					[merged_attributes addEntriesFromDictionary:new_character_attributes];
+				}
+				if(needs_paragraph_style_change)
+				{
+					[merged_attributes setObject:paragraph_style forKey:NSParagraphStyleAttributeName];
+				}
+			
+				[text_view setTypingAttributes:merged_attributes];
+				typing_attributes = merged_attributes;
 			}
 			
 
 			// Append a newline so we have a fresh line to enable bullet lists
 			// If we don't, the previous line gets converted into a list which is often not what I think people expect.
-			NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:@"\n" attributes:attribute_dict];
+			NSAttributedString* attributed_append_string = [[NSAttributedString alloc] initWithString:@"\n" attributes:typing_attributes];
 			[attributed_append_string autorelease];
 			
 			// We need to mark the proposed change range (before we change it) in order to call shouldChangeTextInRange:
@@ -3420,13 +3687,8 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 	// I think some of those issues are improved, so order may not be as important now.
 	cocoaTextParseBulletNumberListFormat(ih, formattag, text_view, native_selection_range);
 
-	bool needs_paragraph_style_change = cocoaTextParseParagraphFormat(formattag, attribute_dict);
-	bool needs_character_style_change = cocoaTextParseCharacterFormat(formattag, attribute_dict, iup_font);
-
-	if(needs_character_style_change || needs_paragraph_style_change)
-	{
-		[text_storage setAttributes:attribute_dict range:native_selection_range];
-	}
+	cocoaTextParseParagraphFormat(ih, formattag, text_view, native_selection_range);
+	cocoaTextParseCharacterFormat(ih, formattag, text_view, native_selection_range);
 
 	
 //	[text_storage endEditing];
