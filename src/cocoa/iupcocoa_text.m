@@ -2603,7 +2603,7 @@ static bool cocoaTextParseBulletNumberListFormat(Ihandle* ih, Ihandle* formattag
 				{
 					which_number_style = kIupNumberingStyleRightParenthesis;
 				}
-				else if(iupStrEqualNoCase(format, "PARENTHESIS"))
+				else if(iupStrEqualNoCase(format, "PARENTHESES"))
 				{
 					which_number_style = kIupNumberingStyleParenthesis;
 				}
