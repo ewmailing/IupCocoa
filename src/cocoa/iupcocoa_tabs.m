@@ -34,6 +34,20 @@ Uses NSTabViewController which requires 10.10.
 
 #include "iupcocoa_drv.h"
 
+static NSTabViewController* cocoaGetTabViewController(Ihandle* ih)
+{
+	if(ih && ih->handle)
+	{
+		NSTabViewController* tab_view_controller = (NSTabViewController*)ih->handle;
+		NSCAssert([tab_view_controller isKindOfClass:[NSTabViewController class]], @"Expected NSTabViewController");
+		return tab_view_controller;
+	}
+	else
+	{
+		NSCAssert(1, @"Expected ih->handle");
+	}
+	return nil;
+}
 
 int iupdrvTabsExtraDecor(Ihandle* ih)
 {
@@ -49,58 +63,71 @@ int iupdrvTabsGetLineCountAttrib(Ihandle* ih)
 
 void iupdrvTabsSetCurrentTab(Ihandle* ih, int pos)
 {
+	NSTabViewController* tab_view_controller = cocoaGetTabViewController(ih);
+	[tab_view_controller setSelectedTabViewItemIndex:pos];
 }
 
 int iupdrvTabsGetCurrentTab(Ihandle* ih)
 {
-	return 0;
+	NSTabViewController* tab_view_controller = cocoaGetTabViewController(ih);
+	return (int)[tab_view_controller selectedTabViewItemIndex];
 }
 
 
 
 int iupdrvTabsIsTabVisible(Ihandle* child, int pos)
 {
-	return 0;
-	
+	return 1;
 }
 
 
 static void cocoaTabsChildAddedMethod(Ihandle* ih, Ihandle* child)
 {
   /* make sure it has at least one name */
-  if (!iupAttribGetHandleName(child))
-  {
-    iupAttribSetHandleName(child);
+	if (!iupAttribGetHandleName(child))
+	{
+		iupAttribSetHandleName(child);
+	}
+	
+	if(ih->handle)
+	{
+		NSTabViewController* tab_view_controller = cocoaGetTabViewController(ih);
+		
+		int pos = IupGetChildPos(ih, child);
+		
+		// It appears I am required to setup a NSViewController for each tab.
+		// Since I do not have a nib, I am also required to alloc a NSView for it.
+		NSViewController* view_controller = [[[NSViewController alloc] initWithNibName:nil bundle:nil] autorelease];
+		NSView* content_view = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+		[view_controller setView:content_view];
+		NSTabViewItem* tab_item = [NSTabViewItem tabViewItemWithViewController:view_controller];
+		
+		[tab_view_controller insertTabViewItem:tab_item atIndex:pos];
+		//	[tab_view_controller addTabViewItem:tab_item];
+		//	NSView* content_view = [tab_item view];
+
+		// IMPORTANT: We are putting the content_view in here and not the ViewController or TabViewItem
+		// This is because the rest of IUP "just works" when there is a regular view for the map key.
+		// And the system will correctly add, layout, and remove this view.
+		iupAttribSet(child, "_IUPTAB_CONTAINER", (char*)content_view);
+	}
 }
 
-  if(ih->handle)
-  {
-//  	NSTabView* tab_control = ih->handle;
-	NSTabViewController* tab_view_controller = ih->handle;
-
-    int pos = IupGetChildPos(ih, child);
-
-//	NSTabViewItem* tab_item = [NSTabViewItem tabViewItemWithViewController:tab_view_controller];
-//	NSTabViewItem* tab_item = [[[NSTabViewItem alloc] init] autorelease];
-
-	NSViewController* view_controller = [[[NSViewController alloc] initWithNibName:nil bundle:nil] autorelease];
-	NSView* content_view = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
-	[view_controller setView:content_view];
-	NSTabViewItem* tab_item = [NSTabViewItem tabViewItemWithViewController:view_controller];
-
-
-	[tab_view_controller insertTabViewItem:tab_item atIndex:pos];
-//	[tab_view_controller addTabViewItem:tab_item];
-
-//	NSView* content_view = [tab_item view];
-
-    iupAttribSet(child, "_IUPTAB_CONTAINER", (char*)content_view);
-
-
-  }
+static void cocoaTabsChildRemovedMethod(Ihandle* ih, Ihandle* child, int pos)
+{
+	if(ih->handle)
+	{
+		NSTabViewController* tab_view_controller = cocoaGetTabViewController(ih);
+		
+		// I think this will make Iup switch the current tab to something else so when we remove the tab, both the native & IUP will agree which tab number they are on
+		iupTabsCheckCurrentTab(ih, pos, 1);
+		iupAttribSet(child, "_IUPTAB_CONTAINER", NULL);
+		
+		NSArray* array_of_items = [tab_view_controller tabViewItems];
+		NSTabViewItem* tab_view_item = [array_of_items objectAtIndex:pos];
+		[tab_view_controller removeTabViewItem:tab_view_item];
+	}
 }
-
-
 
 static int cocoaTabsMapMethod(Ihandle* ih)
 {
@@ -131,32 +158,31 @@ static int cocoaTabsMapMethod(Ihandle* ih)
 
 //	ih->handle = tab_control;
 	ih->handle = tab_view_controller;
-
 	
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
 
 	
-	  /* Create pages and tabs */
-  if(ih->firstchild)
-  {
-    Ihandle* child;
-    Ihandle* current_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
-
-    for(child = ih->firstchild; child; child = child->brother)
-    {
-      cocoaTabsChildAddedMethod(ih, child);
+	/* Create pages and tabs */
+	if(ih->firstchild)
+	{
+		Ihandle* child;
+		Ihandle* current_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
+		
+		for(child = ih->firstchild; child; child = child->brother)
+		{
+			cocoaTabsChildAddedMethod(ih, child);
+		}
+		
+		if(current_child)
+		{
+			IupSetAttribute(ih, "VALUE_HANDLE", (char*)current_child);
+			
+			/* current value is now given by the native system */
+			iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
+		}
 	}
-
-    if(current_child)
-    {
-      IupSetAttribute(ih, "VALUE_HANDLE", (char*)current_child);
-
-      /* current value is now given by the native system */
-      iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
-    }
-  }
 	
 	
 	
@@ -191,8 +217,8 @@ void iupdrvTabsInitClass(Iclass* ic)
   ic->Map = cocoaTabsMapMethod;
     ic->UnMap = cocoaTabsUnMapMethod;
   ic->ChildAdded     = cocoaTabsChildAddedMethod;
+  ic->ChildRemoved   = cocoaTabsChildRemovedMethod;
 #if 0
-  ic->ChildRemoved   = gtkTabsChildRemovedMethod;
 
   /* Driver Dependent Attribute functions */
 
