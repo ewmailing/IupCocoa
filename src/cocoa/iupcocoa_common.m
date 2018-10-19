@@ -43,6 +43,13 @@ void iupCocoaAddToParent(Ihandle* ih)
 	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	
 	id child_handle = ih->handle;
+	if([child_handle isKindOfClass:[NSViewController class]])
+	{
+		child_handle = [child_handle view];
+		// fall through to next block
+	}
+	
+	
 	if([child_handle isKindOfClass:[NSView class]])
 	{
 		NSView* the_view = (NSView*)child_handle;
@@ -78,6 +85,7 @@ void iupCocoaAddToParent(Ihandle* ih)
 
 		}
 		 */
+
 		else if([parent_native_handle isKindOfClass:[NSView class]])
 		{
 			NSView* parent_view = (NSView*)parent_native_handle;
@@ -85,6 +93,13 @@ void iupCocoaAddToParent(Ihandle* ih)
 			[parent_view addSubview:the_view];
 			
 //			[[parent_view window] recalculateKeyViewLoop];
+		}
+		else if([parent_native_handle isKindOfClass:[NSViewController class]])
+		{
+			NSViewController* view_controller = (NSViewController*)parent_native_handle;
+			NSView* parent_view = [view_controller view];
+			[parent_view addSubview:the_view];
+
 		}
 		else
 		{
@@ -116,6 +131,14 @@ void iupCocoaRemoveFromParent(Ihandle* ih)
 	{
 		NSView* the_view = (NSView*)child_handle;
 		NSWindow* parent_window = [the_view window];
+		[the_view removeFromSuperview];
+//		[parent_window recalculateKeyViewLoop];
+	}
+	if([child_handle isKindOfClass:[NSViewController class]])
+	{
+		NSViewController* view_controller = (NSViewController*)child_handle;
+		NSView* the_view = [view_controller view];
+//		NSWindow* parent_window = [the_view window];
 		[the_view removeFromSuperview];
 //		[parent_window recalculateKeyViewLoop];
 	}
@@ -220,6 +243,13 @@ NSView* iupCocoaCommonBaseLayoutGetChildView(Ihandle* ih)
 {
 	id child_handle = ih->handle;
 	NSView* the_view = nil;
+
+	if([child_handle isKindOfClass:[NSViewController class]])
+	{
+		child_handle = [(NSViewController*)child_handle view];
+		// fall through to next block
+	}
+	
 	if([child_handle isKindOfClass:[NSView class]])
 	{
 		the_view = (NSView*)child_handle;

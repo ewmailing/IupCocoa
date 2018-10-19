@@ -4,7 +4,12 @@
 * See Copyright Notice in "iup.h"
 */
 
-#include <Cocoa/Cocoa.h>
+/*
+Uses NSTabViewController which requires 10.10.
+*/
+
+#import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,7 +38,7 @@
 int iupdrvTabsExtraDecor(Ihandle* ih)
 {
   (void)ih;
-  return 0;
+  return 8;
 }
 
 int iupdrvTabsGetLineCountAttrib(Ihandle* ih)
@@ -60,12 +65,133 @@ int iupdrvTabsIsTabVisible(Ihandle* child, int pos)
 }
 
 
+static void cocoaTabsChildAddedMethod(Ihandle* ih, Ihandle* child)
+{
+  /* make sure it has at least one name */
+  if (!iupAttribGetHandleName(child))
+  {
+    iupAttribSetHandleName(child);
+}
+
+  if(ih->handle)
+  {
+//  	NSTabView* tab_control = ih->handle;
+	NSTabViewController* tab_view_controller = ih->handle;
+
+    int pos = IupGetChildPos(ih, child);
+
+//	NSTabViewItem* tab_item = [NSTabViewItem tabViewItemWithViewController:tab_view_controller];
+//	NSTabViewItem* tab_item = [[[NSTabViewItem alloc] init] autorelease];
+
+	NSViewController* view_controller = [[[NSViewController alloc] initWithNibName:nil bundle:nil] autorelease];
+	NSView* content_view = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+	[view_controller setView:content_view];
+	NSTabViewItem* tab_item = [NSTabViewItem tabViewItemWithViewController:view_controller];
+
+
+	[tab_view_controller insertTabViewItem:tab_item atIndex:pos];
+//	[tab_view_controller addTabViewItem:tab_item];
+
+//	NSView* content_view = [tab_item view];
+
+    iupAttribSet(child, "_IUPTAB_CONTAINER", (char*)content_view);
+
+
+  }
+}
+
+
+
+static int cocoaTabsMapMethod(Ihandle* ih)
+{
+//	NSTabView* tab_control = [[NSTabView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+	NSTabViewController* tab_view_controller = [[NSTabViewController alloc] init];
+
+
+	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
+	objc_setAssociatedObject(tab_view_controller, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+//	objc_setAssociatedObject(tab_control, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+	// I also need to track the memory of the buttion action receiver.
+	// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
+	// So with only one pointer to deal with, this means we need our button to hold a reference to the receiver object.
+	// This is generally not good Cocoa as buttons don't retain their receivers, but this seems like the best option.
+	// Be careful of retain cycles.
+//	IupCocoaSliderReceiver* slider_receiver = [[IupCocoaSliderReceiver alloc] init];
+//	[the_slider setTarget:slider_receiver];
+//	[the_slider setAction:@selector(mySliderDidMove:)];
+
+	// We're going to use OBJC_ASSOCIATION_RETAIN because I do believe it will do the right thing for us.
+	// Just be very careful to not have anything in the delegate retain main widget, or we get a retain cycle.
+//	objc_setAssociatedObject(the_slider, IUP_COCOA_SLIDER_RECEIVER_OBJ_KEY, (id)slider_receiver, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+//	[slider_receiver release];
+	
+	
+
+	
+
+//	ih->handle = tab_control;
+	ih->handle = tab_view_controller;
+
+	
+	// All Cocoa views shoud call this to add the new view to the parent view.
+	iupCocoaAddToParent(ih);
+	
+
+	
+	  /* Create pages and tabs */
+  if(ih->firstchild)
+  {
+    Ihandle* child;
+    Ihandle* current_child = (Ihandle*)iupAttribGet(ih, "_IUPTABS_VALUE_HANDLE");
+
+    for(child = ih->firstchild; child; child = child->brother)
+    {
+      cocoaTabsChildAddedMethod(ih, child);
+	}
+
+    if(current_child)
+    {
+      IupSetAttribute(ih, "VALUE_HANDLE", (char*)current_child);
+
+      /* current value is now given by the native system */
+      iupAttribSet(ih, "_IUPTABS_VALUE_HANDLE", NULL);
+    }
+  }
+	
+	
+	
+	return IUP_NOERROR;
+}
+
+static void cocoaTabsUnMapMethod(Ihandle* ih)
+{
+	id tab_control = ih->handle;
+
+	// Destroy the context menu ih it exists
+	{
+		Ihandle* context_menu_ih = (Ihandle*)iupCocoaCommonBaseGetContextMenuAttrib(ih);
+		if(NULL != context_menu_ih)
+		{
+			IupDestroy(context_menu_ih);
+		}
+		iupCocoaCommonBaseSetContextMenuAttrib(ih, NULL);
+	}
+
+	iupCocoaRemoveFromParent(ih);
+	[tab_control release];
+	ih->handle = NULL;
+	
+}
+
+
 void iupdrvTabsInitClass(Iclass* ic)
 {
-#if 0
+
   /* Driver Dependent Class functions */
-  ic->Map = gtkTabsMapMethod;
-  ic->ChildAdded     = gtkTabsChildAddedMethod;
+  ic->Map = cocoaTabsMapMethod;
+    ic->UnMap = cocoaTabsUnMapMethod;
+  ic->ChildAdded     = cocoaTabsChildAddedMethod;
+#if 0
   ic->ChildRemoved   = gtkTabsChildRemovedMethod;
 
   /* Driver Dependent Attribute functions */
