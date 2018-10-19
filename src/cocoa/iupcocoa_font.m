@@ -79,7 +79,7 @@ static IupCocoaFont* cocoaCreateIupCocoaFontFromNSFont(NSFont* ns_font)
 	[the_font setIupFontName:ns_iup_font_name];
 	[the_font setFontSize:font_size];
 	[the_font setTypeFace:ns_font_name];
-	[the_font setTraitMask:0];
+//	[the_font setTraitMask:0];
 
 
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
@@ -263,7 +263,7 @@ static IupCocoaFont* cocoaFindFont(const char* iup_font_name)
 	[the_font setIupFontName:ns_iup_font_name];
 	[the_font setFontSize:font_size];
 	[the_font setTypeFace:ns_type_face];
-	[the_font setTraitMask:trait_mask];
+//	[the_font setTraitMask:trait_mask];
 
 
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];

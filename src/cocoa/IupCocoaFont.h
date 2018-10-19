@@ -25,7 +25,7 @@
 @property(nonatomic, copy) NSDictionary* attributeDictionary;
 @property(nonatomic, assign) bool usesAttributes;
 @property(nonatomic, assign) int fontSize;
-@property(nonatomic, assign) NSFontTraitMask traitMask;
+//@property(nonatomic, assign) NSFontTraitMask traitMask;
 @property(nonatomic, assign) int charWidth;
 @property(nonatomic, assign) int charHeight;
 
