@@ -20,6 +20,13 @@ int iupdrvBaseSetTipAttrib(Ihandle* ih, const char* value)
 {
 	id widget_handle = ih->handle;
 	NSView* the_view = nil;
+	
+	if([widget_handle isKindOfClass:[NSViewController class]])
+	{
+		widget_handle = [(NSViewController*)widget_handle view];
+		// fall through to next block
+	}
+	
 	if([widget_handle respondsToSelector:@selector(setToolTip:)])
 	{
 		the_view = (NSView*)widget_handle;

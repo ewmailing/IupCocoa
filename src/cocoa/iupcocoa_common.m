@@ -134,7 +134,7 @@ void iupCocoaRemoveFromParent(Ihandle* ih)
 		[the_view removeFromSuperview];
 //		[parent_window recalculateKeyViewLoop];
 	}
-	if([child_handle isKindOfClass:[NSViewController class]])
+	else if([child_handle isKindOfClass:[NSViewController class]])
 	{
 		NSViewController* view_controller = (NSViewController*)child_handle;
 		NSView* the_view = [view_controller view];
@@ -227,6 +227,16 @@ NSView* iupCocoaCommonBaseLayoutGetParentView(Ihandle* ih)
 	else if([parent_native_handle isKindOfClass:[NSView class]])
 	{
 		parent_view = (NSView*)parent_native_handle;
+	}
+	/*
+	else if([parent_native_handle isKindOfClass:[NSTabViewController class]])
+	{
+		parent_view = [(NSTabViewController*)parent_native_handle tabView];
+	}
+	*/
+	else if([parent_native_handle isKindOfClass:[NSViewController class]])
+	{
+		parent_view = [(NSViewController*)parent_native_handle view];
 	}
 	else
 	{
@@ -488,7 +498,13 @@ void iupdrvSetVisible(Ihandle* ih, int visible)
 		bool is_hidden = !(bool)visible;
 		[the_view setHidden:is_hidden];
 	}
-	
+	else if([the_object isKindOfClass:[NSViewController class]])
+	{
+		NSViewController* the_viewcontroller = (NSViewController*)the_object;
+		NSView* the_view = [the_viewcontroller view];
+		bool is_hidden = !(bool)visible;
+		[the_view setHidden:is_hidden];
+	}
 	
 }
 
@@ -503,6 +519,12 @@ int iupdrvIsVisible(Ihandle* ih)
 	else if([the_object isKindOfClass:[NSView class]])
 	{
 		NSView* the_view = (NSView*)the_object;
+		return [the_view isHidden] ? NO : YES;
+	}
+	else if([the_object isKindOfClass:[NSViewController class]])
+	{
+		NSViewController* the_viewcontroller = (NSViewController*)the_object;
+		NSView* the_view = [the_viewcontroller view];
 		return [the_view isHidden] ? NO : YES;
 	}
 	else
@@ -521,6 +543,9 @@ int iupdrvIsActive(Ihandle *ih)
 		return [the_control isEnabled];
 	}
 #else
+
+	// Note: NSViewController's contentView is probably never going to respond to the enabled property, so its handling is skipped.
+
 	// Our custom CanvasView is going back and forth between subclassing NSView and NSControl.
 	// Make sure to not implement any other NSViews that do something wonky with the enabled property.
 	if([the_object respondsToSelector:@selector(isEnabled)])
@@ -555,6 +580,11 @@ void iupdrvSetActive(Ihandle* ih, int enable)
 		[the_control setEnabled:enable];
 	}
 #else
+
+
+	// Note: NSViewController's contentView is probably never going to respond to the enabled property, so its handling is skipped.
+
+
 	// Our custom CanvasView is going back and forth between subclassing NSView and NSControl.
 	// Make sure to not implement any other NSViews that do something wonky with the enabled property.
 	if([the_object respondsToSelector:@selector(setEnabled:)])
@@ -974,17 +1004,36 @@ int iupCocoaCommonBaseSetLayerBackedAttrib(Ihandle* ih, const char* value)
 		BOOL should_enable = (BOOL)iupStrBoolean(value);
 		[the_object setWantsLayer:should_enable];
 	}
+	else if([the_object isKindOfClass:[NSViewController class]])
+	{
+		the_object = [(NSViewController*)the_object view];
+		if([the_object respondsToSelector:@selector(setWantsLayer:)])
+		{
+			BOOL should_enable = (BOOL)iupStrBoolean(value);
+			[the_object setWantsLayer:should_enable];
+		}
+	}
 	return 0;
 }
 
 char* iupCocoaCommonBaseGetLayerBackedAttrib(Ihandle* ih)
 {
 	id the_object = ih->handle;
-	if([the_object respondsToSelector:@selector(setWantsLayer:)])
+	if([the_object respondsToSelector:@selector(wantsLayer)])
 	{
 		BOOL is_enabled = [the_object wantsLayer];
 		return iupStrReturnBoolean(is_enabled);
 	}
+	else if([the_object isKindOfClass:[NSViewController class]])
+	{
+		the_object = [(NSViewController*)the_object view];
+		if([the_object respondsToSelector:@selector(wantsLayer)])
+		{
+			BOOL is_enabled = [the_object wantsLayer];
+			return iupStrReturnBoolean(is_enabled);
+		}
+	}
+	
 	return iupStrReturnBoolean(false);
 }
 
