@@ -188,7 +188,9 @@ int iupdrvOpen(int *argc, char ***argv)
 	}
 	
 	
-  IupSetGlobal("DRIVER", "MAC");
+//  IupSetGlobal("DRIVER", "MAC");
+  IupSetGlobal("DRIVER", "Cocoa");
+
 
 //  IupSetGlobal("SYSTEMLANGUAGE", iupmacGetSystemLanguage());
 
