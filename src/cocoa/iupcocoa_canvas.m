@@ -769,7 +769,7 @@ static char* cocoaCanvasGetDrawSizeAttrib(Ihandle *ih)
 
 static char* cocoaCanvasGetNativeFocusRingAttrib(Ihandle* ih)
 {
-	IupCocoaCanvasView* canvas_view = ih->handle;
+	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
 	bool should_use_native = [canvas_view useNativeFocusRing];
 /*
 	struct _IdrawCanvas* dc = [canvas_view dc];
@@ -783,7 +783,7 @@ static char* cocoaCanvasGetNativeFocusRingAttrib(Ihandle* ih)
 
 static int cocoaCanvasSetNativeFocusRingAttrib(Ihandle* ih, const char* value)
 {
-	IupCocoaCanvasView* canvas_view = ih->handle;
+	IupCocoaCanvasView* canvas_view = cocoaCanvasGetCanvasView(ih);
 	bool should_use_native = (bool)iupStrBoolean(value);
 
 	[canvas_view setUseNativeFocusRing:should_use_native];
