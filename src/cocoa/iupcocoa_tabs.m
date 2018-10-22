@@ -478,6 +478,14 @@ static int cocoaTabsMapMethod(Ihandle* ih)
 //	ih->handle = tab_control;
 	ih->handle = tab_view_controller;
 	
+	// sanity checks
+/*
+	ih->data->is_multiline = 0;
+	ih->data->show_close = 0;
+	ih->data->vert_padding = 0;
+	ih->data->horiz_padding = 0;
+*/
+
 	// Need to apply the style if the user has set it already
 	cocoaTabsSetTabTypeAttrib(ih, iupTabsGetTabTypeAttrib(ih));
 	
@@ -623,11 +631,16 @@ static int cocoaTabsComputeFullTabBarWidth(Ihandle* ih)
 			current_tab_width += 9 + 9;
 
 		}
-		else
+		else if(tabtitle)
 		{
 			// There is an about 14 pixel lead-in and 14 pixel trail.
 			// Update: I was coming in over, so I dropped by 1
 			current_tab_width += 13 + 13;
+		}
+		else
+		{
+			// I'm seeing about 18 pixels in the empty NULL title
+			current_tab_width += 9 + 9;
 		}
 		
 	
