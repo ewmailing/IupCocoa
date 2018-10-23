@@ -924,6 +924,6 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "NATIVEFOCUSRING", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL, "NO", IUPAF_DEFAULT);
 
 	// TODO: We need a layer backed API for everything. But especially for here to workaround the native focus ring rendering corruption.
-	//iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL, "NO", IUPAF_DEFAULT);
+	//iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL,  NULL, IUPAF_NO_DEFAULTVALUE);
 
 }

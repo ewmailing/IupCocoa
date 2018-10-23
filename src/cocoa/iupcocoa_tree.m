@@ -5065,7 +5065,6 @@ void iupdrvTreeInitClass(Iclass* ic)
 
 	/* New API for view specific contextual menus (Mac only) */
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, cocoaTreeSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-//	iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaTreeGetLayerBackedAttrib, cocoaTreeSetLayerBackedAttrib, "NO", "NO", IUPAF_DEFAULT);
 	iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaTreeGetLayerBackedAttrib, cocoaTreeSetLayerBackedAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
 

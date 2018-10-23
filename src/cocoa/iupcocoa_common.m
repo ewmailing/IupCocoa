@@ -1006,12 +1006,9 @@ int iupCocoaCommonBaseSetLayerBackedAttrib(Ihandle* ih, const char* value)
 	}
 	else if([the_object isKindOfClass:[NSViewController class]])
 	{
-		the_object = [(NSViewController*)the_object view];
-		if([the_object respondsToSelector:@selector(setWantsLayer:)])
-		{
-			BOOL should_enable = (BOOL)iupStrBoolean(value);
-			[the_object setWantsLayer:should_enable];
-		}
+		NSView* the_view = [(NSViewController*)the_object view];
+		BOOL should_enable = (BOOL)iupStrBoolean(value);
+		[the_view setWantsLayer:should_enable];
 	}
 	return 0;
 }
@@ -1026,14 +1023,10 @@ char* iupCocoaCommonBaseGetLayerBackedAttrib(Ihandle* ih)
 	}
 	else if([the_object isKindOfClass:[NSViewController class]])
 	{
-		the_object = [(NSViewController*)the_object view];
-		if([the_object respondsToSelector:@selector(wantsLayer)])
-		{
-			BOOL is_enabled = [the_object wantsLayer];
-			return iupStrReturnBoolean(is_enabled);
-		}
+		NSView* the_view = [(NSViewController*)the_object view];
+		BOOL is_enabled = [the_view wantsLayer];
+		return iupStrReturnBoolean(is_enabled);
 	}
-	
 	return iupStrReturnBoolean(false);
 }
 
