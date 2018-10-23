@@ -883,26 +883,77 @@ static int cocoaDialogSetMaxSizeAttrib(Ihandle* ih, const char* value)
 static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 {
 	NSWindow* the_window = (NSWindow*)ih->handle;
-
 	if(value)
 	{
 		NSString* ns_string = [NSString stringWithUTF8String:value];
-
 		[the_window setTitle:ns_string];
-
 	}
 	else
 	{
-		[the_window setTitle:nil];
-
+		[the_window setTitle:@""];
 	}
-
-	
-	return 1;
+	// Not sure if this should be 0 or 1. The PROXYICONTITLE could theoretically change this.
+	return 0;
 }
 
 
+static int cocoaDialogSetLayerBackedAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSView* the_view = [the_window contentView];
+	BOOL should_enable = (BOOL)iupStrBoolean(value);
+	[the_view setWantsLayer:should_enable];
+	return 0;
+}
 
+static char* cocoaDialogGetLayerBackedAttrib(Ihandle* ih)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSView* the_view = [the_window contentView];
+	BOOL is_enabled = [the_view wantsLayer];
+	return iupStrReturnBoolean(is_enabled);
+}
+
+
+static char* cocoaDialogGetProxyIconAttrib(Ihandle* ih)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSString* ns_file_name = [the_window representedFilename];
+	return iupStrReturnStr([ns_file_name fileSystemRepresentation]);
+}
+
+static int cocoaDialogSetProxyIconAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	if(value)
+	{
+		NSString* ns_string = [NSString stringWithUTF8String:value];
+		[the_window setRepresentedFilename:ns_string];
+	}
+	else
+	{
+		[the_window setRepresentedFilename:@""];
+	}
+	return 0;
+}
+
+// WATCH OUT: Setting the window title conflicts with this setting. They will clobber each other. Last one to call, "wins".
+// If you call before Map, the call order is undefined. Thus you must avoid setting the window title for this to work.
+// Setting the title to @"" doesn't work, and setting to nil is disallowed (assertion failure).
+static int cocoaDialogSetProxyIconTitleAttrib(Ihandle* ih, const char* value)
+{
+	NSWindow* the_window = (NSWindow*)ih->handle;
+	if(value)
+	{
+		NSString* ns_string = [NSString stringWithUTF8String:value];
+		[the_window setTitleWithRepresentedFilename:ns_string];
+	}
+	else
+	{
+		[the_window setTitleWithRepresentedFilename:@""];
+	}
+	return 0;
+}
 
 
 static int cocoaDialogModalPopupMethod(Ihandle* ih, int x, int y)
@@ -1374,6 +1425,13 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "MDIMENU", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "MDICHILD", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
+
+
+	/* New API for view specific contextual menus (Mac only) */
+	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, iupCocoaCommonBaseSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaDialogGetLayerBackedAttrib, cocoaDialogSetLayerBackedAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
+	iupClassRegisterAttribute(ic, "PROXYICONPATH", cocoaDialogGetProxyIconAttrib, cocoaDialogSetProxyIconAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "PROXYICONTITLE", NULL, cocoaDialogSetProxyIconTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
 }
 
