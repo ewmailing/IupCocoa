@@ -1431,7 +1431,7 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "CONTEXTMENU", iupCocoaCommonBaseGetContextMenuAttrib, iupCocoaCommonBaseSetContextMenuAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaDialogGetLayerBackedAttrib, cocoaDialogSetLayerBackedAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 	iupClassRegisterAttribute(ic, "PROXYICONPATH", cocoaDialogGetProxyIconAttrib, cocoaDialogSetProxyIconAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "PROXYICONTITLE", NULL, cocoaDialogSetProxyIconTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "PROXYICONTITLE", NULL, cocoaDialogSetProxyIconTitleAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
 }
 
