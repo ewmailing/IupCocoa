@@ -10,4 +10,8 @@
 
 @interface IupAppDelegate : NSObject <NSApplicationDelegate>
 
+@property(nonatomic, assign, getter=isInitialized) bool initialized;
+@property(nonatomic, copy) NSArray<NSString*>* deferredOpenFiles;
+@property(nonatomic, copy) NSString* deferredOpenURL;
+
 @end
