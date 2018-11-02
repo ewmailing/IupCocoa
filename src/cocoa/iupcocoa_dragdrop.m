@@ -9,7 +9,8 @@
 #include <string.h>             
 #include <limits.h>             
 
-#include <Cocoa/Cocoa.h>
+#import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
 
 #include "iup.h"
 #include "iupcbs.h"
@@ -23,29 +24,1426 @@
 #include "iup_image.h"
 
 #include "iupcocoa_drv.h"
+#import "iupcocoa_dragdrop.h"
 
+const void* IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY = @"IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+const void* IUPTARGETDROP_ASSOCIATED_OBJ_KEY = @"IUPTARGETDROP_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+
+
+@implementation IupTargetDropAssociatedData
+/*
+- (IupTargetDropAssociatedData*) iupTargetDropAssociatedData
+{
+	Ihandle* ih = [self ihandle];
+	
+	IupTargetDropAssociatedData* associated_data = (IupTargetDropAssociatedData*)objc_getAssociatedObject((id)ih->handle, IUPTARGETDROP_ASSOCIATED_OBJ_KEY);
+
+	return associated_data;
+}
+*/
+int cocoaTargetDropBasePerformDropCallback(Ihandle* ih, id<NSDraggingInfo> the_sender, NSPasteboard* paste_board, NSPoint drop_point)
+{
+
+//	NSPasteboard* paste_board = [the_sender draggingPasteboard];
+//	NSPoint drop_point = [the_sender draggingLocation];
+//	NSPoint converted_point = [self convertPoint:drop_point fromView:nil];
+
+	IFnsViii drop_data_callback = (IFnsViii)IupGetCallback(ih, "DROPDATA_CB");
+	if(NULL == drop_data_callback)
+	{
+		return 0;
+	}
+
+	IupTargetDropAssociatedData* associated_data = cocoaTargetDropGetAssociatedData(ih);
+	NSArray* drop_types = [associated_data dropRegisteredTypes];
+
+//	NSInteger number_of_files = [the_sender numberOfValidItemsForDrop];
+
+//	NSString* best_type = [paste_board availableTypeFromArray:drop_types];
+
+
+/* Classes in the provided array must implement the NSPasteboardReading protocol.
+	Cocoa classes that implement this protocol include NSImage, NSString, NSURL, NSColor, NSAttributedString, and NSPasteboardItem.
+	For every item on the pasteboard, each class in the provided array will be
+	queried for the types it can read using -readableTypesForPasteboard:.
+	An instance will be created of the first class found in the provided array
+	whose readable types match a conforming type contained in that pasteboard item.
+	Any instances that could be created from pasteboard item data is returned to the caller.
+    Additional options, such as restricting the search to file URLs with particular content types,
+    can be specified with an options dictionary.  See the comments for the option keys for a full description.
+	Returns nil if there is an error in retrieving the requested items from the pasteboard
+	or if no objects of the specified types can be created.
+
+	Example: there are five items on the pasteboard, two contain TIFF data, two contain RTF data, one contains a private data type.  Calling -readObjectsForClasses: with just the NSImage class, will return an array containing two image objects.  Calling with just the NSAttributedString class, will return an array containing two attributed strings.  Calling with both classes will return two image objects and two attributed strings.  Note that in the above examples, the count of objects returned is less than the number of items on the pasteboard.  Only objects of the requested classes are returned.  You can always ensure to receive one object per item on the pasteboard by including the NSPasteboardItem class in the array of classes.  In this example, an array containing the NSImage, NSAttributedString, and NSSPasteboardItem classes will return an array with two images, two attributed strings, and one pasteboard item containing the private data type.
+*/
+	NSMutableArray* acceptable_classes = [NSMutableArray arrayWithCapacity:[drop_types count]];
+	for(NSString* type_name in drop_types)
+	{
+		if([type_name isEqualToString:NSPasteboardTypeString])
+		{
+//			[acceptable_classes addObject:[NSAttributedString class]];
+			[acceptable_classes addObject:[NSString class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeTIFF])
+		{
+			[acceptable_classes addObject:[NSImage class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypePNG])
+		{
+			[acceptable_classes addObject:[NSImage class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRTF])
+		{
+			[acceptable_classes addObject:[NSAttributedString class]];
+//			[acceptable_classes addObject:[NSString class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRTFD])
+		{
+			[acceptable_classes addObject:[NSAttributedString class]];
+//			[acceptable_classes addObject:[NSString class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeHTML])
+		{
+			[acceptable_classes addObject:[NSAttributedString class]];
+//			[acceptable_classes addObject:[NSString class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeTextFinderOptions])
+		{
+			[acceptable_classes addObject:[NSURL class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeURL])
+		{
+			[acceptable_classes addObject:[NSURL class]];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeFileURL])
+		{
+			[acceptable_classes addObject:[NSURL class]];
+		}
+	}
+	/*
+	NSPasteboardTypeString: public.utf8-plain-text
+NSPasteboardTypePDF: com.adobe.pdf
+NSPasteboardTypeTIFF: public.tiff
+NSPasteboardTypePNG: public.png
+NSPasteboardTypeRTF: public.rtf
+NSPasteboardTypeRTFD: com.apple.flat-rtfd
+NSPasteboardTypeHTML: public.html
+NSPasteboardTypeTabularText: public.utf8-tab-separated-values-text
+NSPasteboardTypeFont: com.apple.cocoa.pasteboard.character-formatting
+NSPasteboardTypeRuler: com.apple.cocoa.pasteboard.paragraph-formatting
+NSPasteboardTypeColor: com.apple.cocoa.pasteboard.color
+NSPasteboardTypeSound: com.apple.cocoa.pasteboard.sound
+NSPasteboardTypeMultipleTextSelection: com.apple.cocoa.pasteboard.multiple-text-selection
+NSPasteboardTypeTextFinderOptions: com.apple.cocoa.pasteboard.find-panel-search-options
+NSPasteboardTypeURL: public.url
+NSPasteboardTypeFileURL: public.file-url
+*/
+//- (nullable NSArray *)readObjectsForClasses:(NSArray<Class> *)classArray options:(nullable NSDictionary<NSPasteboardReadingOptionKey, id> *)options NS_AVAILABLE_MAC(10_6);
+
+  NSArray* acceptable_drop_items = [paste_board readObjectsForClasses:acceptable_classes options:nil];
+
+	for(id drop_item in acceptable_drop_items)
+	{
+//		NSLog(@"drop_item:%@", drop_item);
+		
+		int ret_val = 0;
+		
+		if([drop_item isKindOfClass:[NSImage class]])
+		{
+			NSImage* ns_image = (NSImage*)drop_item;
+			int w;
+			int h;
+			int bpp;
+			iupdrvImageGetInfo(ns_image,&w, &h, &bpp);
+			int bytes_per_row = iupCocoaCaluclateBytesPerRow(w, bpp/8);
+			size_t buffer_size = bytes_per_row*h;
+			unsigned char* img_data = malloc(buffer_size);
+			iupdrvImageGetRawData(ns_image, img_data);
+			char type_string[1024];
+			snprintf(type_string, 1024, "IMAGE %d %d %d", w, h, bpp);
+			ret_val = drop_data_callback(ih, type_string, (char*)img_data, (int)buffer_size, drop_point.x, drop_point.y);
+
+			free(img_data);
+		}
+		else if([drop_item isKindOfClass:[NSURL class]])
+		{
+			NSURL* ns_url = (NSURL*)drop_item;
+			
+			if([ns_url isFileURL])
+			{
+				NSString* file_url = [ns_url path]; // still has file://
+				const char* file_path = [file_url fileSystemRepresentation];
+				size_t buffer_size = strlen(file_path) + 1;
+				ret_val = drop_data_callback(ih, "FILEPATH", (char*)file_path, (int)buffer_size, drop_point.x, drop_point.y);
+			}
+			else
+			{
+			
+				NSString* ns_string = [ns_url absoluteString];
+				const char* c_str = [ns_string UTF8String];
+				size_t buffer_size = strlen(c_str) + 1;
+				ret_val = drop_data_callback(ih, "URL", (char*)c_str, (int)buffer_size, drop_point.x, drop_point.y);
+			}
+		}
+		else if([drop_item isKindOfClass:[NSString class]])
+		{
+			NSString* ns_string = (NSString*)drop_item;
+			const char* c_str = [ns_string UTF8String];
+			size_t buffer_size = strlen(c_str) + 1;
+			ret_val = drop_data_callback(ih, "TEXT", (char*)c_str, (int)buffer_size, drop_point.x, drop_point.y);
+
+		}
+		else if([drop_item isKindOfClass:[NSAttributedString class]])
+		{
+			// Not supported.
+		}
+		else if([drop_item isKindOfClass:[NSColor class]])
+		{
+			NSColor* ns_color = (NSColor*)drop_item;
+			NSColor* rgb_color = [ns_color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+			int r = iupROUND([rgb_color redComponent] * 255.0);
+			int g = iupROUND([rgb_color greenComponent] * 255.0);
+			int b = iupROUND([rgb_color blueComponent] * 255.0);
+			int a = iupROUND([rgb_color alphaComponent] * 255.0);
+
+			char color_string[20];
+			snprintf(color_string, 20, "%d %d %d %d", r, g, b, a);
+
+			size_t buffer_size = strlen(color_string) + 1;
+			ret_val = drop_data_callback(ih, "COLOR", (char*)color_string, (int)buffer_size, drop_point.x, drop_point.y);
+			
+		}
+ 		// NSFont is not mentioned as one of the NSPasteboardReading classes, so this might never be called
+ 		else if([drop_item isKindOfClass:[NSFont class]])
+		{
+//			NSLog(@"got NSFont1");
+			NSFont* ns_font = (NSFont*)drop_item;
+
+			// FIXME: Does not include style
+			NSString* ns_string = [NSString stringWithFormat:@"%@, %lf", [ns_font fontName], [ns_font pointSize]];
+			const char* c_str = [ns_string UTF8String];
+			size_t buffer_size = strlen(c_str) + 1;
+			ret_val = drop_data_callback(ih, "FONT", (char*)c_str, (int)buffer_size, drop_point.x, drop_point.y);
+
+		}
+		else // NSPasteboardItem
+		{
+			NSPasteboardItem* pasteboard_item = (NSPasteboardItem*)drop_item;
+
+			NSString* best_type = [pasteboard_item availableTypeFromArray:drop_types];
+			NSData* ns_data = [pasteboard_item dataForType:best_type];
+			
+			if([best_type isEqualToString:NSPasteboardTypeFont])
+			{
+//				NSLog(@"got NSFont2");
+				NSFont* ns_font = (NSFont*)[NSUnarchiver unarchiveObjectWithData:ns_data];
+
+				// FIXME: Does not include style
+				NSString* ns_string = [NSString stringWithFormat:@"%@, %lf", [ns_font fontName], [ns_font pointSize]];
+				const char* c_str = [ns_string UTF8String];
+				size_t buffer_size = strlen(c_str) + 1;
+				ret_val = drop_data_callback(ih, "FONT", (char*)c_str, (int)buffer_size, drop_point.x, drop_point.y);
+
+			}
+			else
+			{
+				const void* data_buffer = [ns_data bytes];
+				NSUInteger buffer_size = [ns_data length];
+				const char* c_type_str = [best_type UTF8String];
+				ret_val = drop_data_callback(ih, (char*)c_type_str, (char*)data_buffer, (int)buffer_size, drop_point.x, drop_point.y);
+			}
+
+		}
+		
+		
+	}
+	
+	return 0;
+}
+
+@end
+
+@implementation IupSourceDragAssociatedData
+
+- (NSDragOperation) draggingSession:(NSDraggingSession*)dragging_session sourceOperationMaskForDraggingContext:(NSDraggingContext)dragging_context
+{
+    if(NSDraggingContextOutsideApplication == dragging_context)
+    {
+        return NSDragOperationCopy;
+    }
+	
+    // NSDraggingContextWithinApplication
+   	Ihandle* ih = [self ihandle];
+   	// FIXME/TODO:
+   	// 1. The user may need finer grain control on when to set copy or move
+   	// (i.e. which widget is targeted, which key modifier is pressed).
+	// 2. The user may need the other types
+	// e.g. NSDragOperationLink, NSDragOperationNone
+	
+   	bool is_move = iupAttribGetBoolean(ih, "DRAGSOURCEMOVE");
+	if(is_move)
+	{
+		return NSDragOperationMove;
+	}
+	else
+	{
+	    return NSDragOperationCopy;
+	}
+}
+
+
+static void cocoaSourceDragProvideDataForTypeDefault(Ihandle* ih, NSPasteboard* paste_board, NSPasteboardItem* pasteboard_item, NSPasteboardType type_name, NSView* main_view, NSView* root_view)
+{
+		if([type_name isEqualToString:NSPasteboardTypeTIFF])
+		{
+			
+			NSRect bounds_rect = [main_view bounds];
+#if 1
+			NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
+			NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
+			[image_data autorelease];
+			NSData* tiff_data = [image_data TIFFRepresentation];
+			[pasteboard_item setData:tiff_data forType:type_name];
+#else
+			// this doesn't work
+			NSBitmapImageRep* bitmap_rep = [main_view bitmapImageRepForCachingDisplayInRect:bounds_rect];
+			NSData* tiff_data = [bitmap_rep representationUsingType:NSBitmapImageFileTypeTIFF properties:@{}];
+			[pasteboard_item setData:tiff_data forType:type_name];
+#endif
+
+
+//			NSLog(@"Type:%@, value:%@", type_name, pdf_data);
+
+		}
+		else if([type_name isEqualToString:NSPasteboardTypePNG])
+		{
+			NSRect bounds_rect = [main_view bounds];
+//			NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
+			
+			NSBitmapImageRep* bitmap_rep = [main_view bitmapImageRepForCachingDisplayInRect:bounds_rect];
+			NSData* png_rep = [bitmap_rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+
+			[pasteboard_item setData:png_rep forType:type_name];
+//			NSLog(@"Type:%@, value:%@", type_name, pdf_data);
+
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRTF])
+		{
+			if([main_view respondsToSelector:@selector(attributedStringValue)])
+			{
+				NSAttributedString* attr_str = [main_view attributedStringValue];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:attr_str];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, attr_str);
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRTFD])
+		{
+			if([main_view respondsToSelector:@selector(attributedStringValue)])
+			{
+				NSAttributedString* attr_str = [main_view attributedStringValue];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:attr_str];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, attr_str);
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeHTML])
+		{
+		/*
+			if([main_view respondsToSelector:@selector(attributedStringValue)])
+			{
+				NSAttributedString* attr_str = [main_view attributedStringValue];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:attr_str];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+				NSLog(@"Type:%@, value:%@", type_name, attr_str);
+			}
+		*/
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_string = [main_view stringValue];
+				[pasteboard_item setString:ns_string forType:type_name];
+//				NSLog(@"Type:%@, value:%@", type_name, ns_string);
+			}
+		}
+		// I don't understand what Apple intends this to be.
+		else if([type_name isEqualToString:NSPasteboardTypeTextFinderOptions])
+		{
+#if 0
+			if([self respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_str = [main_view stringValue];
+				NSURL* ns_url = [NSURL URLWithString:ns_str];
+				NSData* ns_data = [NSData dataWithContentsOfURL:ns_url];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, ns_str);
+			}
+#else
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_string = [main_view stringValue];
+				[pasteboard_item setString:ns_string forType:type_name];
+//				NSLog(@"Type:%@, value:%@", type_name, ns_string);
+			}
+#endif
+
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeFileURL])
+		{
+			// This one is extra tricky.
+			// If the user wants to provide a file path, then we get to do the easy thing.
+			// But if the user has data (like an image), and wants to automatically create a file from it,
+			// we have to use the NSFilePromise APIs and require the user to deal with the associated callbacks for that.
+			// But we need to be able to distinguish which case the user wants.
+		
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_str = [main_view stringValue];
+				NSURL* ns_url = [NSURL URLWithString:ns_str];
+				NSData* ns_data = [NSData dataWithContentsOfURL:ns_url];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, ns_str);
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeURL])
+		{
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_str = [main_view stringValue];
+				NSURL* ns_url = [NSURL URLWithString:ns_str];
+				NSData* ns_data = [NSData dataWithContentsOfURL:ns_url];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, ns_str);
+			}
+
+			
+		}
+
+		else if([type_name isEqualToString:NSPasteboardTypeTabularText])
+		{
+
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_string = [main_view stringValue];
+				[pasteboard_item setString:ns_string forType:type_name];
+//				NSLog(@"Type:%@, value:%@", type_name, ns_string);
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeString])
+		{
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_string = [main_view stringValue];
+				[pasteboard_item setString:ns_string forType:type_name];
+//				NSLog(@"Type:%@, value:%@", type_name, ns_string);
+			}
+		}
+	
+		else if([type_name isEqualToString:NSPasteboardTypePDF])
+		{
+			NSRect bounds_rect = [main_view bounds];
+			NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
+			[pasteboard_item setData:pdf_data forType:type_name];
+//			NSLog(@"Type:%@, value:%@", type_name, pdf_data);
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeFont])
+		{
+			//
+			NSData* ns_data = [pasteboard_item dataForType:type_name];
+//			NSLog(@"Type:%@, value:%@", type_name, ns_data);
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRuler])
+		{
+			if([main_view respondsToSelector:@selector(attributedStringValue)])
+			{
+				NSAttributedString* attr_str = [main_view attributedStringValue];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:attr_str];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, attr_str);
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeColor])
+		{
+			if([main_view respondsToSelector:@selector(color)])
+			{
+				NSColor* the_color = [main_view color];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:the_color];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, the_color);
+			}
+			else if([main_view respondsToSelector:@selector(foregroundColor)])
+			{
+				NSColor* the_color = [main_view foregroundColor];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:the_color];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, the_color);
+			}
+			else if([main_view respondsToSelector:@selector(backgroundColor)])
+			{
+				NSColor* the_color = [main_view backgroundColor];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:the_color];
+				[pasteboard_item setData:ns_data forType:type_name];
+
+//				NSLog(@"Type:%@, value:%@", type_name, the_color);
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeSound])
+		{
+
+			NSData* ns_data = [pasteboard_item dataForType:type_name];
+//			NSLog(@"Type:%@, value:%@", type_name, ns_data);
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeMultipleTextSelection])
+		{
+			if([main_view respondsToSelector:@selector(stringValue)])
+			{
+				NSString* ns_string = [main_view stringValue];
+				[pasteboard_item setString:ns_string forType:type_name];
+//				NSLog(@"Type:%@, value:%@", type_name, ns_string);
+			}
+		}
+
+		else
+		{
+//			NSData* ns_data = [pasteboard_item dataForType:type_name];
+//			NSLog(@"Type:%@, value:%@", type_name, ns_data);
+		}
+
+}
+
+static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* paste_board, NSPasteboardItem* pasteboard_item, NSPasteboardType type_name, NSView* main_view, NSView* root_view, void* data_buffer, int data_size)
+{
+
+		if([type_name isEqualToString:NSPasteboardTypeTIFF])
+		{
+			// I'm not thrilled with this, but our options aren't great.
+
+			// In order to construct a usable image, I need not only the pixel data,
+			// but also the width, height, and bit depth.
+			// I would have to invent a new format for the user to provide this information in the buffer, which I don't want to do.
+
+			// The more robust thing to do is just accept an IupImage which has all this information.
+			// However, the Iup callback interface isn't well designed for this.
+			// So this means the user will need to convert their IupFont Ihandle* to an intptr_t,
+			// write the intptr_t value into the buffer (using sizeof(intptr_t)),
+			// and we have to convert it back to a pointer here.
+			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
+			// But those binding from other languages will have to pay special attention here.
+			
+			if(data_size >= sizeof(intptr_t))
+			{
+				intptr_t int_ptr_for_iupimage = 0;
+				memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
+				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
+				Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
+				
+				int height;
+				int width;
+				int bpp;
+				iupdrvImageGetInfo(iup_image, &width, &height, &bpp);
+				const char* pixel_data = IupGetAttribute(iup_image, "WID");
+
+				NSBitmapImageRep* bitmap_image = (NSBitmapImageRep*)iupdrvImageCreateImageRaw(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
+				NSData* ns_data = [bitmap_image TIFFRepresentation];
+				[pasteboard_item setData:ns_data forType:type_name];
+			}
+
+
+		}
+		else if([type_name isEqualToString:NSPasteboardTypePNG])
+		{
+			// I'm not thrilled with this, but our options aren't great.
+
+			// In order to construct a usable image, I need not only the pixel data,
+			// but also the width, height, and bit depth.
+			// I would have to invent a new format for the user to provide this information in the buffer, which I don't want to do.
+
+			// The more robust thing to do is just accept an IupImage which has all this information.
+			// However, the Iup callback interface isn't well designed for this.
+			// So this means the user will need to convert their IupFont Ihandle* to an intptr_t,
+			// write the intptr_t value into the buffer (using sizeof(intptr_t)),
+			// and we have to convert it back to a pointer here.
+			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
+			// But those binding from other languages will have to pay special attention here.
+			
+			if(data_size >= sizeof(intptr_t))
+			{
+				intptr_t int_ptr_for_iupimage = 0;
+				memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
+				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
+				Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
+				
+				int height;
+				int width;
+				int bpp;
+				iupdrvImageGetInfo(iup_image, &width, &height, &bpp);
+				const char* pixel_data = IupGetAttribute(iup_image, "WID");
+
+				NSBitmapImageRep* bitmap_image = (NSBitmapImageRep*)iupdrvImageCreateImageRaw(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
+				NSData* ns_data = [bitmap_image representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+
+				[pasteboard_item setData:ns_data forType:type_name];
+			}
+
+
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRTF])
+		{
+			// I don't what to do
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRTFD])
+		{
+			// I don't what to do
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeHTML])
+		{
+			// I'm guessing the user can enter plain text HTML data (including tags)
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			[pasteboard_item setString:ns_string forType:type_name];
+		}
+		// I don't understand what Apple intends this to be.
+		else if([type_name isEqualToString:NSPasteboardTypeTextFinderOptions])
+		{
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			NSString* ns_string = [[NSString alloc] initWithData:ns_data encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			[pasteboard_item setString:ns_string forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeFileURL])
+		{
+			// This one is extra tricky.
+			// If the user wants to provide a file path, then we get to do the easy thing.
+			// But if the user has data (like an image), and wants to automatically create a file from it,
+			// we have to use the NSFilePromise APIs and require the user to deal with the associated callbacks for that.
+			// But we need to be able to distinguish which case the user wants.
+		
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			NSURL* ns_url = [NSURL fileURLWithPath:ns_string];
+			NSData* ns_data = [NSData dataWithContentsOfURL:ns_url];
+			[pasteboard_item setData:ns_data forType:type_name];
+
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeURL])
+		{
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			NSURL* ns_url = [NSURL URLWithString:ns_string];
+			NSData* ns_data = [NSData dataWithContentsOfURL:ns_url];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+
+		else if([type_name isEqualToString:NSPasteboardTypeTabularText])
+		{
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			[pasteboard_item setString:ns_string forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeString])
+		{
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			[pasteboard_item setString:ns_string forType:type_name];
+		}
+	
+		else if([type_name isEqualToString:NSPasteboardTypePDF])
+		{
+			// I don't know what to do. Trust that the user gave me a valid PDF, and that Apple knows what to do with it when put in an NSData?
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeFont])
+		{
+			// I'm not thrilled with this, but our options aren't great.
+			// Should we support taking an IupFont pointer (check for sizeof pointer)?
+			// Or do we require a string description?
+			
+			// I can try to parse a Iup font string, but at the moment of this writing,
+			// the Iup font string format is pretty lose as each platform can define it slightly differently,
+			// and I haven't really decided if I need to invent a new variation for Cocoa.
+			// The more robust thing to do is just accept an IupFont, so if we change the string format,
+			// this code doesn't need to care.
+			// However, the Iup callback interface isn't well designed for this.
+			// So this means the user will need to convert their IupFont Ihandle* to an intptr_t,
+			// write the intptr_t value into the buffer (using sizeof(intptr_t)),
+			// and we have to convert it back to a pointer here.
+			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
+			// But those binding from other languages will have to pay special attention here.
+			
+			if(data_size >= sizeof(intptr_t))
+			{
+				intptr_t int_ptr_for_iupfont = 0;
+				memcpy(&int_ptr_for_iupfont, data_buffer, sizeof(intptr_t));
+				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
+				Ihandle* iup_font = (Ihandle*)int_ptr_for_iupfont;
+				
+				// Get the internal Cocoa representation backing the iup_font
+				IupCocoaFont* iup_cocoa_font = iupCocoaGetFont(iup_font);
+				// Get the native Cocoa representation backing the IupCocoaFont
+				NSFont* cocoa_font = [iup_cocoa_font nativeFont];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:cocoa_font];
+				[pasteboard_item setData:ns_data forType:type_name];
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeRuler])
+		{
+			// I don't know what to do. Maybe somehow integrate with IupText???
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeColor])
+		{
+			unsigned char r = 0;
+			unsigned char g = 0;
+			unsigned char b = 0;
+			unsigned char a = 0;
+
+			int is_valid = iupStrToRGBA(data_buffer, &r, &g, &b, &a);
+			if(1 != is_valid)
+			{
+				is_valid = iupStrToRGB(data_buffer, &r, &g, &b);
+				a = 255;
+			}
+			if(is_valid)
+			{
+				NSColor* the_color = [NSColor colorWithCalibratedRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:a/255.0];
+				NSData* ns_data = [NSKeyedArchiver archivedDataWithRootObject:the_color];
+				[pasteboard_item setData:ns_data forType:type_name];
+			}
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeSound])
+		{
+			// No idea. NSSound doesn't provide APIs for raw PCM data.
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+		else if([type_name isEqualToString:NSPasteboardTypeMultipleTextSelection])
+		{
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
+			[ns_string autorelease];
+			[pasteboard_item setString:ns_string forType:type_name];
+		}
+
+		else
+		{
+			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+			[pasteboard_item setData:ns_data forType:type_name];
+		}
+
+}
+
+- (bool) usesFilePromise
+{
+	Ihandle* ih = [self ihandle];
+	Icallback file_promise_name_callback = IupGetCallback(ih, "DRAGFILECREATENAME_CB");
+	return(file_promise_name_callback);
+}
+
+- (bool) hasFilePromiseCallback
+{
+	Ihandle* ih = [self ihandle];
+	Icallback file_promise_callback = IupGetCallback(ih, "DRAGFILECREATE_CB");
+	return(file_promise_callback);
+}
+
+
+- (void) pasteboard:(nullable NSPasteboard*)paste_board item:(NSPasteboardItem*)pasteboard_item provideDataForType:(NSPasteboardType)type_name
+{
+//	NSLog(@"%@, %@, %@", NSStringFromSelector(_cmd), pasteboard_item, type_name);
+
+	// Because Cocoa
+	// 1. supports so many types
+	// 2. users expect these things to work
+	// 3. Iup lacks equivalent 1-to-1 easily mappable data types to the native Cocoa types
+	// 4. It is extra work to try to handle all these types manually
+	// I am trying to supply a way to automatically handle common cases without user intervention.
+	// So I am going to look at both
+	// 1. whether the user defined a callback
+	// 2. What return value did they hand back.
+	// Depending on these factors, I will call a default routine.
+	// Otherwise, I will try to use their data, but they must supply me data in a particular way depending on the type.
+	Ihandle* ih = [self ihandle];
+	bool use_default_implementation = true;
+	IFnsVi drag_data_callback = (IFnsVi)IupGetCallback(ih, "DRAGDATA_CB");
+	IFns drag_data_size_callback = (IFns)IupGetCallback(ih, "DRAGDATASIZE_CB");
+	void* data_buffer = NULL;
+	if(drag_data_callback && drag_data_size_callback)
+	{
+		const char* c_type_name = [type_name UTF8String];
+		int data_size = drag_data_size_callback(ih, (char*)c_type_name);
+	    if(data_size > 0)
+	    {
+			data_buffer = malloc(data_size);
+			// fill data
+			int ret_val = drag_data_callback(ih, (char*)c_type_name, data_buffer, data_size);
+			/*
+			Which value should we use to represent what?
+			- For legacy code, most people will probably be returning IUP_DEFAULT already.
+			- Do we assume if they implemented this, this will do the correct thing?
+			- If so, then IUP_DEFAULT should mean use the user's implementation (not the built-in-automatic-default-implementation.
+			- So for the built-in-automatic-default-implementation, that suggests IUP_IGNORE or IUP_CONTINUE.
+			- Do I want to reserve IUP_IGNORE to say skip entirely (i.e. don't do anything)?
+				- It seems like they should avoid registering the data type instead of relying on this,
+				- but maybe there is an edge case???
+			- So if we reserve that, then IUP_CONTINUE would be the logicial remainder. (I don't think IUP_CLOSE makes sense.)
+			*/
+			
+			if(IUP_IGNORE == ret_val)
+			{
+				free(data_buffer);
+				data_buffer = NULL;
+			}
+			else if(IUP_CONTINUE == ret_val)
+			{
+				free(data_buffer);
+				data_buffer = NULL;
+				use_default_implementation = true;
+			}
+			else
+			{
+				use_default_implementation = false;
+			}
+			
+			
+			if(!use_default_implementation)
+			{
+				NSView* main_view = [self mainView];
+				NSView* root_view = [self rootView];
+				cocoaSourceDragProvideDataForTypeUser(ih, paste_board, pasteboard_item, type_name, main_view, root_view, data_buffer, data_size);
+				free(data_buffer);
+				data_buffer = NULL;
+				return;
+			}
+		}
+		else
+		{
+			// Special case for file promise
+			//IFnsVi drag_data_callback = (IFnsVi)IupGetCallback(ih, "DRAGFILECREATE_CB");
+
+		}
+		
+	}
+	
+
+	NSView* main_view = [self mainView];
+	NSView* root_view = [self rootView];
+	cocoaSourceDragProvideDataForTypeDefault(ih, paste_board, pasteboard_item, type_name, main_view, root_view);
+	
+
+}
+
+- (NSDraggingItem*) defaultDraggingItem
+{
+	IupSourceDragAssociatedData* drag_source_data = self;
+	NSView* main_view = [self mainView];
+
+	NSArray* registered_types = [drag_source_data dragRegisteredTypes];
+	if([drag_source_data isDragSourceEnabled] && ([registered_types count] > 0))
+	{
+
+		
+			
+			
+	//		DRAGDATA_CB: request for drag data from source. It is called when the data is dropped.
+//int function(Ihandle* ih, char* type, void* data, int size) [in C]
+
+		// If not DRAGDATA_CB, try to do automatically?
+		// Else if DRAGDATA_CB, then
+		//	text, let the user fill it out
+		// 		if an image type, do automatically, or force them to provide RGBA? or IupImage?
+		
+
+
+
+		// We are using the new APIs
+		// https://stackoverflow.com/questions/7243668/nspasteboard-and-simple-custom-data
+		// The downside is that in the drop callback, we can't get the specific original type.
+		// But the major upside is that it allows us to specify multiple possible types for the source,
+		// so the user can drag it onto different things.
+//			[pasteboard_item setDataProvider:drag_source_data forTypes:@[NSPasteboardTypeTIFF, NSPasteboardTypePNG, NSPasteboardTypeFileURL]];
+
+
+		// I need to use NSFilePromiseProvider to allow generating a file from memory.
+		// Example: I drag an image from Safari to the desktop and it writes out a file.
+		// In this example, the type was a file URL. But there is no actual file URL since the image is loaded in memory from a website.
+		// So using NSFilePromiseProvider, we can get an addition series of callbacks to write a file when needed.
+	
+		bool wants_file_promise = [drag_source_data usesFilePromise];
+		NSDraggingItem* dragging_item = nil;
+		if(wants_file_promise)
+		{
+			//		NSFilePromiseProvider* promise_provider = [[NSFilePromiseProvider alloc] initWithFileType:kUTTypePNG delegate:self];
+			NSFilePromiseProvider* promise_provider = [[NSFilePromiseProvider alloc] initWithFileType:(NSString*)kUTTypeData delegate:self];
+			[promise_provider autorelease];
+			dragging_item = [[NSDraggingItem alloc] initWithPasteboardWriter:promise_provider];
+			[dragging_item autorelease];
+			// [promise_provider setDataProvider:drag_source_data forTypes:@[NSPasteboardTypeTIFF, NSPasteboardTypePNG, NSPasteboardTypeFileURL]];
+			// I'm a little worried about this, since NSFilePromiseProvider is not a NSPasteboardItem.
+			// But it seems to work, and I can't figure any other way of doing this.
+			[promise_provider setDataProvider:drag_source_data forTypes:registered_types];
+		}
+		else
+		{
+			NSPasteboardItem* pasteboard_item = [[NSPasteboardItem alloc] init];
+			[pasteboard_item autorelease];
+			[pasteboard_item setDataProvider:drag_source_data forTypes:registered_types];
+			dragging_item = [[NSDraggingItem alloc] initWithPasteboardWriter:pasteboard_item];
+			[dragging_item autorelease];
+		}
+
+
+		if([drag_source_data useAutoGenerateDragImage])
+		{
+			NSRect bounds_rect = [main_view bounds];
+			NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
+			NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
+			[image_data autorelease];
+			
+			//[dragging_item setDraggingFrame:bounds_rect contents:image_data];
+			[dragging_item setDraggingFrame:bounds_rect contents:image_data];
+		}
+		
+		// [self beginDraggingSessionWithItems:@[dragging_item, dragging_promise_item] event:the_event source:self];
+
+		return dragging_item;
+
+	}
+	return nil;
+}
+
+- (NSString *) filePromiseProvider:(NSFilePromiseProvider*)file_promise_provider fileNameForType:(NSString*)file_type
+{
+	Ihandle* ih = [self ihandle];
+	IFnssi file_promise_name_callback = (IFnssi)IupGetCallback(ih, "DRAGFILECREATENAME_CB");
+	if(NULL == file_promise_name_callback)
+	{
+		NSString* default_file_name = [self defaultFilePromiseName];
+		return default_file_name;
+	}
+	
+	char file_buffer[PATH_MAX] = { '\0' };
+	const char* c_file_type = [file_type UTF8String];
+	int ret_val = file_promise_name_callback(ih, (char*)c_file_type, file_buffer, PATH_MAX);
+	
+	// user wants to fallback to default routine
+	if(IUP_CONTINUE == ret_val)
+	{
+		NSString* default_file_name = [self defaultFilePromiseName];
+		return default_file_name;
+	}
+	
+	NSString* ret_string = [NSString stringWithUTF8String:file_buffer];
+	
+	return ret_string;
+//	return @"MyFile123.png";
+}
+
+// TODO: allow optional opt-in for writing files on background thread.
+// User's callback must be thread-safe, which includes any language bindings and VM.
+/*
+- (NSOperationQueue *)operationQueueForFilePromiseProvider:(NSFilePromiseProvider*)filePromiseProvider
+{
+}
+*/
+
+static bool cocoaSourceDragDoDefaultFileCreate(NSFilePromiseProvider* file_promise_provider, NSURL* write_url)
+{
+	// Convention: If userInfo is not nil, then that contains the data we need to write to disk.
+	id the_object = [file_promise_provider userInfo];
+	bool did_handle = false;
+	if(the_object != nil)
+	{
+		did_handle = true;
+
+		if([the_object isKindOfClass:[NSImage class]])
+		{
+			NSImage* the_image = the_object;
+			NSData* tiff_rep = [the_image TIFFRepresentation];
+			NSBitmapImageRep* bitmap_rep = [[NSBitmapImageRep alloc] initWithData:tiff_rep];
+			[bitmap_rep autorelease];
+			NSData* png_rep = [bitmap_rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+			[png_rep writeToURL:write_url atomically:NO];
+		}
+		else if([the_object isKindOfClass:[NSURL class]])
+		{
+			NSURL* ns_url = (NSURL*)the_object;
+			NSString* ns_string = [ns_url absoluteString];
+			[ns_string writeToURL:write_url atomically:NO encoding:NSUTF8StringEncoding error:nil];
+		}
+		else if([the_object isKindOfClass:[NSAttributedString class]])
+		{
+			NSAttributedString* ns_attributed_string = (NSAttributedString*)the_object;
+			NSData* ns_data = [ns_attributed_string RTFFromRange:NSMakeRange(0, [ns_attributed_string length]) documentAttributes:@{}];
+			[ns_data writeToURL:write_url atomically:NO];
+		}
+		else if([the_object isKindOfClass:[NSString class]])
+		{
+			NSString* ns_string = (NSString*)the_object;
+			[ns_string writeToURL:write_url atomically:NO encoding:NSUTF8StringEncoding error:nil];
+		}
+		else if([the_object isKindOfClass:[NSData class]])
+		{
+			NSData* ns_data = (NSData*)the_object;
+			[ns_data writeToURL:write_url atomically:NO];
+		}
+		else if([the_object isKindOfClass:[NSFont class]])
+		{
+			NSFont* ns_font = (NSFont*)the_object;
+			// requires 10.13. Probably better to write custom text file any way.
+//			NSData* ns_data = [NSKeyedArchiver archiveRootObject:ns_font requiringSecureCoding:YES error:nil];
+			//+ (BOOL)archiveRootObject:(id)rootObject toFile:(NSString *)path
+			//[ns_data writeToURL:write_url atomically:NO];
+
+			// FIXME: Does not include style
+			NSString* ns_string = [NSString stringWithFormat:@"%@, %lf", [ns_font fontName], [ns_font pointSize]];
+			[ns_string writeToURL:write_url atomically:NO encoding:NSUTF8StringEncoding error:nil];
+		}
+		else if([the_object isKindOfClass:[NSColor class]])
+		{
+			NSColor* ns_color = (NSColor*)the_object;
+			NSColor* rgb_color = [ns_color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+			int r = iupROUND([rgb_color redComponent] * 255.0);
+			int g = iupROUND([rgb_color greenComponent] * 255.0);
+			int b = iupROUND([rgb_color blueComponent] * 255.0);
+			int a = iupROUND([rgb_color alphaComponent] * 255.0);
+			NSString* ns_string = [NSString stringWithFormat:@"%d %d %d %d", r, g, b, a];
+			[ns_string writeToURL:write_url atomically:NO encoding:NSUTF8StringEncoding error:nil];
+		}
+		else
+		{
+			did_handle = false;
+		}
+	}
+	return did_handle;
+}
+
+- (void) filePromiseProvider:(NSFilePromiseProvider*)file_promise_provider writePromiseToURL:(NSURL*)write_url completionHandler:(void (^)(NSError * __nullable errorOrNil))completion_handler;
+{
+//	NSLog(@"%@, %@", NSStringFromSelector(_cmd), write_url);
+	
+
+#if 0
+	// This doesn't work. File promise provider isn't a NSPasteboardItem.
+	// I don't see any way to fetch an alternative data type from here.
+	// So unfortunately, the user will have to re-implement all that for the file write.
+	NSData* ns_data = [file_promise_provider dataForType:NSPasteboardTypePNG];
+//	NSData* ns_data = [self pasteboard:nil item:file_promise_provider provideDataForType:NSPasteboardTypePNG];
+
+	[ns_data writeToURL:write_url atomically:NO];
+#else
+
+	Ihandle* ih = [self ihandle];
+	IFns file_create_callback = (IFns)IupGetCallback(ih, "DRAGFILECREATE_CB");
+	
+	if(NULL == file_create_callback)
+	{
+		cocoaSourceDragDoDefaultFileCreate(file_promise_provider, write_url);
+		completion_handler(nil);
+		return;
+	}
+	
+	NSString* file_url = [write_url path]; // still has file://
+	const char* file_path = [file_url fileSystemRepresentation];
+	// User gets to write the file here.
+	int ret_val = file_create_callback(ih, (char*)file_path);
+
+	// user wants to fallback to default routine
+	if(IUP_CONTINUE == ret_val)
+	{
+		cocoaSourceDragDoDefaultFileCreate(file_promise_provider, write_url);
+		completion_handler(nil);
+		return;
+	}
+
+
+#endif
+}
+
+//- (BOOL) ignoreModifierKeysForDraggingSession:(NSDraggingSession *)session;
+
+- (void) draggingSession:(NSDraggingSession*)dragging_session willBeginAtPoint:(NSPoint)screen_point
+{
+//	NSLog(@"%@, %@, %@", NSStringFromSelector(_cmd), dragging_session, NSStringFromPoint(screen_point));
+
+	Ihandle* ih = [self ihandle];
+	IFnii call_back = (IFnii)IupGetCallback(ih, "DRAGBEGIN_CB");
+	if(NULL != call_back)
+	{
+		NSView* main_view = [self mainView];
+		NSWindow* the_window = [main_view window];
+		NSRect screen_rect = NSMakeRect(screen_point.x, screen_point.y, 0, 0);
+		NSRect window_rect = [the_window convertRectFromScreen:screen_rect];
+		
+		NSPoint window_point = window_rect.origin;
+		NSPoint view_point = [main_view convertPoint:window_point fromView:nil];
+		NSRect view_frame = [main_view frame];
+		CGFloat inverted_y = view_frame.size.height - view_point.y;
+		view_point.y = inverted_y;
+		call_back(ih, view_point.x, view_point.y);
+	}
+}
+/*
+- (void) draggingSession:(NSDraggingSession*)dragging_session movedToPoint:(NSPoint)screen_point
+{
+//	NSLog(@"%@, %@, %@", NSStringFromSelector(_cmd), dragging_session, NSStringFromPoint(screen_point));
+//	[super draggingSession:dragging_session movedToPoint:screen_point];
+}
+*/
+
+- (void) draggingSession:(NSDraggingSession*)dragging_session endedAtPoint:(NSPoint)screen_point operation:(NSDragOperation)drag_operation
+{
+//	NSLog(@"%@, %@, %@, %d", NSStringFromSelector(_cmd), dragging_session, NSStringFromPoint(screen_point), drag_operation);
+	Ihandle* ih = [self ihandle];
+	IFni call_back = (IFni)IupGetCallback(ih, "DRAGEND_CB");
+	if(NULL != call_back)
+	{
+		NSView* main_view = [self mainView];
+		NSWindow* the_window = [main_view window];
+		NSRect screen_rect = NSMakeRect(screen_point.x, screen_point.y, 0, 0);
+		NSRect window_rect = [the_window convertRectFromScreen:screen_rect];
+		
+		NSPoint window_point = window_rect.origin;
+		NSPoint view_point = [main_view convertPoint:window_point fromView:nil];
+		NSRect view_frame = [main_view frame];
+		CGFloat inverted_y = view_frame.size.height - view_point.y;
+		view_point.y = inverted_y;
+		// action: action performed by the operation (1 = move, 0 = copy, -1 = drag failed or aborted)
+/*
+    NSDragOperationNone		= 0,
+    NSDragOperationCopy		= 1,
+    NSDragOperationLink		= 2,
+    NSDragOperationGeneric	= 4,
+    NSDragOperationPrivate	= 8,
+    NSDragOperationMove		= 16,
+    NSDragOperationDelete	= 32,
+*/
+		int action_val = 0;
+		if(NSDragOperationNone == drag_operation)
+		{
+			action_val = -1;
+		}
+		else if(NSDragOperationCopy == drag_operation)
+		{
+			action_val = 0;
+		}
+		else if(NSDragOperationMove == drag_operation)
+		{
+			action_val = 1;
+		}
+		else
+		{
+			// No idea what to do.
+			action_val = (int)drag_operation;
+		}
+		call_back(ih, action_val);
+	}
+}
+
+
+@end
+
+IupTargetDropAssociatedData* cocoaTargetDropCreateAssociatedData(Ihandle* ih, NSView* main_view, NSView* root_view)
+{
+	if(!ih || !ih->handle)
+	{
+		return nil;
+	}
+	IupTargetDropAssociatedData* drag_drop_data = [[IupTargetDropAssociatedData alloc] init];
+	[drag_drop_data autorelease];
+	objc_setAssociatedObject(ih->handle, IUPTARGETDROP_ASSOCIATED_OBJ_KEY, (id)drag_drop_data, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+	[drag_drop_data setIhandle:ih];
+	[drag_drop_data setMainView:main_view];
+	[drag_drop_data setRootView:root_view];
+	
+	return drag_drop_data;
+}
+
+IupTargetDropAssociatedData* cocoaTargetDropGetAssociatedData(Ihandle* ih)
+{
+	if(!ih || !ih->handle)
+	{
+		return nil;
+	}
+	IupTargetDropAssociatedData* drag_drop_data = (IupTargetDropAssociatedData*)objc_getAssociatedObject((id)ih->handle, IUPTARGETDROP_ASSOCIATED_OBJ_KEY);
+	return drag_drop_data;
+}
+/*
+static IupTargetDropAssociatedData* cocoaTargetDropGetOrCreateAssociatedData(Ihandle* ih)
+{
+
+	IupTargetDropAssociatedData* drag_drop_data = cocoaTargetDropGetAssociatedData(ih);
+	if(nil == drag_drop_data)
+	{
+		drag_drop_data = cocoaTargetDropCreateAssociatedData(ih);
+	}
+	return drag_drop_data;
+}
+*/
+
+static int cocoaTargetDropSetDropTargetAttrib(Ihandle* ih, const char* value)
+{
+//	iupAttribSet(ih, "_IUPCOCOA_DROPTARGET", value);
+	id the_object = ih->handle;
+	IupTargetDropAssociatedData* drag_drop_data = cocoaTargetDropGetAssociatedData(ih);
+	if(iupStrBoolean(value))
+	{
+		[drag_drop_data setDropTargetEnabled:true];
+		if([the_object respondsToSelector:@selector(registerForDraggedTypes:)])
+		{
+			NSArray* array_of_types = [drag_drop_data dropRegisteredTypes];
+			[the_object registerForDraggedTypes:array_of_types];
+		}
+	}
+	else
+	{
+		[drag_drop_data setDropTargetEnabled:false];
+		if([the_object respondsToSelector:@selector(unregisterDraggedTypes)])
+		{
+			[the_object unregisterDraggedTypes];
+		}
+	}
+
+	return 0;
+
+}
+
+static int cocoaTargetDropSetDropTypesAttrib(Ihandle* ih, const char* value)
+{
+	
+	IupTargetDropAssociatedData* drag_drop_data = cocoaTargetDropGetAssociatedData(ih);
+//- (void)registerForDraggedTypes:(NSArray<NSPasteboardType> *)newTypes;
+//- (void)unregisterDraggedTypes;
+	id the_object = ih->handle;
+
+	if(NULL != value)
+	{
+		NSString* comma_separated_string = [NSString stringWithUTF8String:value];
+		// The Windows version doesn't worry about extra white space, so I won't either.
+		NSArray* array_of_types = [comma_separated_string componentsSeparatedByString:@","];
+		
+		// TODO: Introduce generic strings like TEXT, IMAGE, and map them to the native type, to allow easier cross-platform code.
+
+		[drag_drop_data setDropRegisteredTypes:array_of_types];
+
+		if([drag_drop_data isDropTargetEnabled])
+		{
+			if([the_object respondsToSelector:@selector(registerForDraggedTypes:)])
+			{
+				[the_object registerForDraggedTypes:array_of_types];
+			}
+		}
+	}
+	else
+	{
+		if([the_object respondsToSelector:@selector(unregisterDraggedTypes)])
+		{
+			[the_object unregisterDraggedTypes];
+		}
+		[drag_drop_data setDropRegisteredTypes:nil];
+	}
+
+	return 0;
+}
+
+
+
+IupSourceDragAssociatedData* cocoaSourceDragCreateAssociatedData(Ihandle* ih, NSView* main_view, NSView* root_view)
+{
+	if(!ih || !ih->handle)
+	{
+		return nil;
+	}
+	IupSourceDragAssociatedData* drag_drop_data = [[IupSourceDragAssociatedData alloc] init];
+	[drag_drop_data autorelease];
+	objc_setAssociatedObject(ih->handle, IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY, (id)drag_drop_data, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	[drag_drop_data setIhandle:ih];
+	[drag_drop_data setMainView:main_view];
+	[drag_drop_data setRootView:root_view];
+	return drag_drop_data;
+}
+
+IupSourceDragAssociatedData* cocoaSourceDragGetAssociatedData(Ihandle* ih)
+{
+	if(!ih || !ih->handle)
+	{
+		return nil;
+	}
+	IupSourceDragAssociatedData* drag_drop_data = (IupSourceDragAssociatedData*)objc_getAssociatedObject((id)ih->handle, IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY);
+	return drag_drop_data;
+}
+
+/*
+static IupSourceDragAssociatedData* cocoaSourceDragGetOrCreateAssociatedData(Ihandle* ih)
+{
+	IupSourceDragAssociatedData* drag_drop_data = cocoaSourceDragGetAssociatedData(ih);
+	if(nil == drag_drop_data)
+	{
+		drag_drop_data = cocoaSourceDragCreateAssociatedData(ih);
+	}
+	return drag_drop_data;
+}
+*/
+
+static int cocoaSourceDragSetDragSourceAttrib(Ihandle* ih, const char* value)
+{
+//	iupAttribSet(ih, "_IUPCOCOA_DROPTARGET", value);
+	IupSourceDragAssociatedData* drag_drop_data = cocoaSourceDragGetAssociatedData(ih);
+	if(iupStrBoolean(value))
+	{
+		[drag_drop_data setDragSourceEnabled:true];
+		/*
+		if([the_object respondsToSelector:@selector(registerForDraggedTypes:)])
+		{
+			NSArray* array_of_types = [drag_drop_data dropRegisteredTypes];
+			[the_object registerForDraggedTypes:array_of_types];
+		}
+		*/
+	}
+	else
+	{
+		[drag_drop_data setDragSourceEnabled:false];
+		/*
+		if([the_object respondsToSelector:@selector(unregisterDraggedTypes)])
+		{
+			[the_object unregisterDraggedTypes];
+		}
+		*/
+	}
+
+	return 0;
+
+}
+
+static int cocoaSourceDragSetDragTypesAttrib(Ihandle* ih, const char* value)
+{
+//	iupAttribSet(ih, "_IUPCOCOA_DROPTARGET", value);
+
+	IupSourceDragAssociatedData* drag_drop_data = cocoaSourceDragGetAssociatedData(ih);
+	if(value)
+	{
+		NSString* comma_separated_string = [NSString stringWithUTF8String:value];
+		// The Windows version doesn't worry about extra white space, so I won't either.
+		NSArray* array_of_types = [comma_separated_string componentsSeparatedByString:@","];
+		
+		// TODO: Introduce generic strings like TEXT, IMAGE, and map them to the native type, to allow easier cross-platform code.
+
+		[drag_drop_data setDragRegisteredTypes:array_of_types];
+
+	}
+	else
+	{
+		[drag_drop_data setDragRegisteredTypes:nil];
+	}
+
+	return 0;
+
+}
+
+static int cocoaSourceDragSetDragAutoImageAttrib(Ihandle* ih, const char* value)
+{
+	IupSourceDragAssociatedData* drag_drop_data = cocoaSourceDragGetAssociatedData(ih);
+	bool is_enabled = iupStrBoolean(value);
+	[drag_drop_data setUseAutoGenerateDragImage:is_enabled];
+	return 0;
+}
+
+/*
+static int cocoaSourceDragSetDragWantsFileCreateAttrib(Ihandle* ih, const char* value)
+{
+	IupSourceDragAssociatedData* drag_drop_data = cocoaSourceDragGetAssociatedData(ih);
+	bool is_enabled = iupStrBoolean(value);
+	[drag_drop_data setWantsFilePromise:is_enabled];
+	return 0;
+}
+*/
 
 void iupdrvRegisterDragDropAttrib(Iclass* ic)
 {
-#if 0
-  iupClassRegisterCallback(ic, "DROPFILES_CB", "siii");
-
   iupClassRegisterCallback(ic, "DRAGBEGIN_CB", "ii");
+  iupClassRegisterCallback(ic, "DRAGEND_CB", "i");
   iupClassRegisterCallback(ic, "DRAGDATASIZE_CB", "s");
   iupClassRegisterCallback(ic, "DRAGDATA_CB", "sCi");
-  iupClassRegisterCallback(ic, "DRAGEND_CB", "i");
-  iupClassRegisterCallback(ic, "DROPDATA_CB", "sCiii");
-  iupClassRegisterCallback(ic, "DROPMOTION_CB", "iis");
+	
+//	  iupClassRegisterCallback(ic, "DROPFILES_CB", "siii");
 
-  iupClassRegisterAttribute(ic, "DRAGTYPES",  NULL, gtkSetDragTypesAttrib,  NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "DROPTYPES",  NULL, gtkSetDropTypesAttrib,  NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "DRAGSOURCE", NULL, gtkSetDragSourceAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "DROPTARGET", NULL, gtkSetDropTargetAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterCallback(ic, "DROPDATA_CB", "sCiii");
+  iupClassRegisterCallback(ic, "DROPMOTION_CB", "iis"); // This must be
+
+
+  iupClassRegisterAttribute(ic, "DRAGTYPES",  NULL, cocoaSourceDragSetDragTypesAttrib,  NULL, NULL, IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "DRAGSOURCE", NULL, cocoaSourceDragSetDragSourceAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "DRAGSOURCEMOVE", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 
-  iupClassRegisterAttribute(ic, "DRAGDROP", NULL, gtkSetDropFilesTargetAttrib, NULL, NULL, IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "DROPFILESTARGET", NULL, gtkSetDropFilesTargetAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+
+	// NEW API:
+  iupClassRegisterAttribute(ic, "DRAGAUTOIMAGE", NULL, cocoaSourceDragSetDragAutoImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+//  iupClassRegisterAttribute(ic, "DRAGFILECREATE", NULL, cocoaSourceDragSetDragWantsFileCreateAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterCallback(ic, "DRAGFILECREATE_CB", "s");
+  iupClassRegisterCallback(ic, "DRAGFILECREATENAME_CB", "ssi");
+
+
+
+
+  iupClassRegisterAttribute(ic, "DROPTARGET", NULL, cocoaTargetDropSetDropTargetAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "DROPTYPES",  NULL, cocoaTargetDropSetDropTypesAttrib,  NULL, NULL, IUPAF_NO_INHERIT);
+//  iupClassRegisterAttribute(ic, "DRAGDROP", NULL, cocoaDragDropSetDropFilesTargetAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+//  iupClassRegisterAttribute(ic, "DROPFILESTARGET", NULL, cocoaDragDropSetDropFilesTargetAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+
+
+
+#if 0
+	NSLog(@"NSPasteboardTypeString: %@", NSPasteboardTypeString);
+	NSLog(@"NSPasteboardTypePDF: %@", NSPasteboardTypePDF);
+	NSLog(@"NSPasteboardTypeTIFF: %@", NSPasteboardTypeTIFF);
+	NSLog(@"NSPasteboardTypePNG: %@", NSPasteboardTypePNG);
+	NSLog(@"NSPasteboardTypeRTF: %@", NSPasteboardTypeRTF);
+	NSLog(@"NSPasteboardTypeRTFD: %@", NSPasteboardTypeRTFD);
+	NSLog(@"NSPasteboardTypeHTML: %@", NSPasteboardTypeHTML);
+	NSLog(@"NSPasteboardTypeTabularText: %@", NSPasteboardTypeTabularText);
+	NSLog(@"NSPasteboardTypeFont: %@", NSPasteboardTypeFont);
+	NSLog(@"NSPasteboardTypeRuler: %@", NSPasteboardTypeRuler);
+	NSLog(@"NSPasteboardTypeColor: %@", NSPasteboardTypeColor);
+	NSLog(@"NSPasteboardTypeSound: %@", NSPasteboardTypeSound);
+	NSLog(@"NSPasteboardTypeMultipleTextSelection: %@", NSPasteboardTypeMultipleTextSelection);
+	NSLog(@"NSPasteboardTypeTextFinderOptions: %@", NSPasteboardTypeTextFinderOptions);
+	NSLog(@"NSPasteboardTypeURL: %@", NSPasteboardTypeURL);
+	NSLog(@"NSPasteboardTypeFileURL: %@", NSPasteboardTypeFileURL);
 #endif
+/*
+NSPasteboardTypeString: public.utf8-plain-text
+NSPasteboardTypePDF: com.adobe.pdf
+NSPasteboardTypeTIFF: public.tiff
+NSPasteboardTypePNG: public.png
+NSPasteboardTypeRTF: public.rtf
+NSPasteboardTypeRTFD: com.apple.flat-rtfd
+NSPasteboardTypeHTML: public.html
+NSPasteboardTypeTabularText: public.utf8-tab-separated-values-text
+NSPasteboardTypeFont: com.apple.cocoa.pasteboard.character-formatting
+NSPasteboardTypeRuler: com.apple.cocoa.pasteboard.paragraph-formatting
+NSPasteboardTypeColor: com.apple.cocoa.pasteboard.color
+NSPasteboardTypeSound: com.apple.cocoa.pasteboard.sound
+NSPasteboardTypeMultipleTextSelection: com.apple.cocoa.pasteboard.multiple-text-selection
+NSPasteboardTypeTextFinderOptions: com.apple.cocoa.pasteboard.find-panel-search-options
+NSPasteboardTypeURL: public.url
+NSPasteboardTypeFileURL: public.file-url
+*/
+
+
 	
 }
 

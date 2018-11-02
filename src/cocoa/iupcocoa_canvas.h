@@ -25,17 +25,22 @@ struct _IdrawCanvas;
 	struct _IdrawCanvas* _dc;
 	bool _isCurrentKeyWindow;
 	bool _isCurrentFirstResponder;
+	bool _startedDrag;
 }
 @property(nonatomic, assign) Ihandle* ih;
 @property(nonatomic, assign) struct _IdrawCanvas* dc;
 @property(nonatomic, assign, getter=isCurrentKeyWindow, setter=setCurrentKeyWindow:) bool currentKeyWindow;
 @property(nonatomic, assign, getter=isCurrentFirstResponder, setter=setCurrentFirstResponder:) bool currentFirstResponder;
+@property(nonatomic, assign) bool startedDrag;
 //@property(nonatomic, assign, getter=isEnabled, setter=setEnabled:) BOOL enabled; // provided by NSControl, must define if we are NSView
 @property(nonatomic, assign) bool useNativeFocusRing;
 @property(nonatomic, assign) struct CGSize previousSize;
 - (void) updateFocus;
 - (NSGraphicsContext*) graphicsContext;
 - (CGContextRef) CGContext;
+
+@property(nonatomic, copy) NSColor* backgroundColor;
+
 @end
 
 #endif /* __IUPCOCOA_CANVASVIEW_H */

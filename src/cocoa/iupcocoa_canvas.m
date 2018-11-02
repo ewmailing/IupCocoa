@@ -4,7 +4,8 @@
  * See Copyright Notice in "iup.h"
  */
 
-#include <Cocoa/Cocoa.h>
+#import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,6 +34,7 @@
 #include "iupcocoa_draw.h" // struct _IdrawCanvas
 #import "iupcocoa_canvas.h"
 #include "iupcocoa_drv.h"
+#import "iupcocoa_dragdrop.h"
 
 
 @implementation IupCocoaCanvasView
@@ -40,6 +42,7 @@
 @synthesize dc = _dc;
 @synthesize currentKeyWindow = _isCurrentKeyWindow;
 @synthesize currentFirstResponder = _isCurrentFirstResponder;
+@synthesize startedDrag = _startedDrag;
 
 - (instancetype) initWithFrame:(NSRect)frame_rect ih:(Ihandle*)ih
 {
@@ -78,6 +81,8 @@
 		[self setEnabled:YES];
 #endif
 		
+		[self setBackgroundColor:[NSColor whiteColor]];
+
 	}
 	return self;
 }
@@ -86,6 +91,7 @@
 {
 	NSNotificationCenter* notification_center = [NSNotificationCenter defaultCenter];
 	[notification_center removeObserver:self];
+	[self setBackgroundColor:nil];
 	[super dealloc];
 }
 
@@ -125,6 +131,9 @@
 		CGContextScaleCTM(cg_context, 1.0,  -1.0);
 		CGContextTranslateCTM(cg_context, 0.0, -translate_y);
 	}
+	
+	[[self backgroundColor] set];
+    NSRectFill(the_rect);
 	
 	IFnff call_back = (IFnff)IupGetCallback(ih, "ACTION");
 	if(call_back)
@@ -484,6 +493,7 @@ But this means that the widgets will never get the focus ring.
 	}
 }
 
+
 - (void) mouseDragged:(NSEvent*)the_event
 {
 	// Don't respond if the control is inactive
@@ -498,10 +508,53 @@ But this means that the widgets will never get the focus ring.
 	{
 		[super mouseDragged:the_event];
 	}
+	
+	// Should this be before or after the user callback?
+	// And if after, should we consider their return value?
+	// Maybe the better thing to do is let the user directly invoke the drag?
+	if(([the_event associatedEventsMask] & NSLeftMouseDragged) && ![self startedDrag])
+	{
+		IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
+
+		NSDraggingItem* dragging_item = [drag_source_data defaultDraggingItem];
+
+		if(nil != dragging_item)
+		{
+			// Special case for Canvas. We want the default file promise action to write a png file of the snapshot.
+			if([drag_source_data usesFilePromise] && ![drag_source_data hasFilePromiseCallback])
+			{
+				NSFilePromiseProvider* file_promise = (NSFilePromiseProvider*)[dragging_item item];
+				// If the auto-generate drag setting was enabled, we already created an NSImage. So try reusing that.
+				// This may also capture the manual drag image if the user set it.
+				NSArray* images_array = [dragging_item imageComponents];
+				if(images_array && ([images_array count] > 0))
+				{
+					NSDraggingImageComponent* image_component = [images_array objectAtIndex:0];
+					id image_data = [image_component contents];
+					[file_promise setUserInfo:image_data];
+				}
+				else
+				{
+					NSRect bounds_rect = [self bounds];
+					NSData* pdf_data = [self dataWithPDFInsideRect:bounds_rect];
+					NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
+					[image_data autorelease];
+					[file_promise setUserInfo:image_data];
+				}
+			} // end special case
+
+
+			[self beginDraggingSessionWithItems:@[dragging_item] event:the_event source:drag_source_data];
+			[self setStartedDrag:true];
+		}
+
+	}
+	
 }
 
 - (void) mouseUp:(NSEvent*)the_event
 {
+	[self setStartedDrag:false];
 	// Don't respond if the control is inactive
 	if(![self isEnabled])
 	{
@@ -629,6 +682,165 @@ But this means that the widgets will never get the focus ring.
 		[super scrollWheel:the_event];
 	}
 }
+
+
+
+/******* Begin Drag & Drop ************/
+
+/*
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender;
+- (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender; // if the destination responded to draggingEntered: but not to draggingUpdated: the return value from draggingEntered: is used
+- (void)draggingExited:(nullable id <NSDraggingInfo>)sender;
+- (BOOL)prepareForDragOperation:(id <NSDraggingInfo>)sender;
+- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender;
+- (void)concludeDragOperation:(nullable id <NSDraggingInfo>)sender;
+// draggingEnded: is implemented as of Mac OS 10.5
+- (void)draggingEnded:(id<NSDraggingInfo>)sender;
+*/
+
+
+- (NSDragOperation) draggingEntered:(id<NSDraggingInfo>)the_sender
+{
+//	NSLog(@"%@, %@", NSStringFromSelector(_cmd), the_sender);
+	
+	Ihandle* ih = [self ih];
+	IupTargetDropAssociatedData* target_drop_data = cocoaTargetDropGetAssociatedData(ih);
+	NSArray* supported_types = [target_drop_data dropRegisteredTypes];
+
+	NSPasteboard* paste_board = [the_sender draggingPasteboard];
+//	NSString* available_type = [paste_board availableTypeFromArray:@[NSPasteboardTypeTIFF, NSPasteboardTypePNG, NSFilenamesPboardType]];
+	NSString* available_type = [paste_board availableTypeFromArray:supported_types];
+	if(available_type)
+	{
+	
+		IFniis call_back = (IFniis)IupGetCallback(ih, "DROPMOTION_CB");
+		if(NULL != call_back)
+		{
+			NSPoint window_point = [the_sender draggingLocation];
+			NSPoint view_point = [self convertPoint:window_point fromView:nil];
+			NSRect view_frame = [self frame];
+			CGFloat inverted_y = view_frame.size.height - view_point.y;
+			view_point.y = inverted_y;
+	
+			char mod_status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
+			NSEvent* the_event = [[NSApplication sharedApplication] currentEvent];
+			iupcocoaButtonKeySetStatus(the_event, mod_status);
+			call_back(ih, view_point.x, view_point.y, mod_status);
+		}
+	
+//		[self setNeedDisplay:YES];
+
+
+		bool is_move = iupAttribGetBoolean(ih, "DRAGSOURCEMOVE");
+		if(is_move)
+		{
+			return NSDragOperationMove;
+		}
+		else
+		{
+			return NSDragOperationCopy;
+		}
+	}
+	return NSDragOperationNone;
+}
+
+/*
+- (NSDragOperation) draggingUpdated:(id<NSDraggingInfo>)the_sender
+{
+//	NSLog(@"%@, %@", NSStringFromSelector(_cmd), the_sender);
+	Ihandle* ih = [self ih];
+	IupTargetDropAssociatedData* target_drop_data = cocoaTargetDropGetAssociatedData(ih);
+	NSArray* supported_types = [target_drop_data dropRegisteredTypes];
+	
+	NSPasteboard* paste_board = [the_sender draggingPasteboard];
+//	NSString* available_type = [paste_board availableTypeFromArray:@[NSPasteboardTypeTIFF, NSPasteboardTypePNG, NSFilenamesPboardType]];
+	NSString* available_type = [paste_board availableTypeFromArray:supported_types];
+	if(available_type)
+	{
+//		[self setNeedDisplay:YES];
+		return NSDragOperationCopy;
+	}
+	return NSDragOperationNone;
+}
+*/
+
+- (BOOL) performDragOperation:(id<NSDraggingInfo>)the_sender
+{
+//	NSLog(@"%@, %@", NSStringFromSelector(_cmd), the_sender);
+	
+	NSPasteboard* paste_board = [the_sender draggingPasteboard];
+	NSPoint drop_point = [the_sender draggingLocation];
+	NSPoint converted_point = [self convertPoint:drop_point fromView:nil];
+	NSRect view_frame = [self frame];
+	CGFloat inverted_y = view_frame.size.height - converted_point.y;
+	converted_point.y = inverted_y;
+
+	Ihandle* ih = [self ih];
+	cocoaTargetDropBasePerformDropCallback(ih, the_sender, paste_board, converted_point);
+
+	return YES;
+}
+
+/*
+- (BOOL) prepareForDragOperation:(id<NSDraggingInfo>)the_sender
+{
+	NSLog(@"%@, %@", NSStringFromSelector(_cmd), the_sender);
+	[the_sender setAnimatesToDestination:YES];
+	return YES;
+}
+*/
+/*
+- (void) concludeDragOperation:(id<NSDraggingInfo>)the_sender
+{
+	NSLog(@"%@, %@", NSStringFromSelector(_cmd), the_sender);
+}
+
+- (void) draggingEnded:(id<NSDraggingInfo>)the_sender
+{
+	NSLog(@"%@, %@", NSStringFromSelector(_cmd), the_sender);
+}
+*/
+//- (void)updateDraggingItemsForDrag:(nullable id <NSDraggingInfo>)sender NS_AVAILABLE_MAC(10_7);
+
+/*
+- (NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
+{
+    if (context == NSDraggingContextOutsideApplication) {
+        return NSDragOperationCopy;
+    }
+	
+    return NSDragOperationNone;
+}
+*/
+/*
+- (NSDraggingSession*) beginDraggingSessionWithItems:(NSArray<NSDraggingItem*>*)items_array event:(NSEvent*)the_event source:(id<NSDraggingSource>)dragging_source
+{
+	NSLog(@"beginDraggingSessionWithItems:%@, event:%@, source:%@", items_array, the_event, dragging_source);
+	NSDraggingSession* dragging_session = [super beginDraggingSessionWithItems:items_array event:the_event source:dragging_source];
+	NSLog(@"dragging_session:%@", dragging_session);
+	return dragging_session;
+}
+*/
+//@protocol NSDraggingSource <NSObject>
+/* Methods implemented by an object that initiates a drag session. The source application is sent these messages during dragging.  The first must be implemented, the others are sent if the source responds to them.
+*/
+
+//@required
+/* Declares what types of operations the source allows to be performed. Apple may provide more specific "within" values in the future. To account for this, for unrecongized localities, return the operation mask for the most specific context that you are concerned with. For example:
+    switch(context) {
+        case NSDraggingContextOutsideApplication:
+            return ...
+            break;
+
+        case NSDraggingContextWithinApplication:
+        default:
+            return ...
+            break;
+    }
+*/
+
+
+/******* End Drag & Drop ************/
 
 /*
 TODO: Menu Items / Responder Chain for Undo, Redo, Cut, Copy, Paste (and any other menu items)
@@ -837,8 +1049,11 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
-
 	
+	IupSourceDragAssociatedData* source_drag_associated_data = cocoaSourceDragCreateAssociatedData(ih, canvas_view, root_view);
+	cocoaTargetDropCreateAssociatedData(ih,  canvas_view, root_view);
+
+	[source_drag_associated_data setDefaultFilePromiseName:@"IupCanvas.png"];
 	
 	
 //  IupSetAttribute(ih, "NATIVEFOCUSRING", "YES");
@@ -878,10 +1093,11 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	ic->LayoutUpdate = gtkCanvasLayoutUpdateMethod;
 	
 	/* Driver Dependent Attribute functions */
-	
+#endif
 	/* Visual */
-	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, gtkCanvasSetBgColorAttrib, "255 255 255", NULL, IUPAF_DEFAULT);  /* force new default value */
-	
+	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, "255 255 255", NULL, IUPAF_DEFAULT);  /* force new default value */
+
+#if 0
 	/* IupCanvas only */
 #endif
 	iupClassRegisterAttribute(ic, "DRAWSIZE", cocoaCanvasGetDrawSizeAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);

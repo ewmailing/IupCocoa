@@ -101,6 +101,8 @@ void iupCocoaSetGlobalApplicationStatusItemMenuIh(Ihandle* menu_ih);
 IUP_EXPORTI IupCocoaFont* iupCocoaGetFont(Ihandle* ih);
 
 
+int iupCocoaCaluclateBytesPerRow(int width, int bytes_per_pixel);
+
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
 extern int iupmac_utf8autoconvert;         

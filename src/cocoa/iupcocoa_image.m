@@ -49,8 +49,14 @@ static int CalculateRowLength(int width, int bytes_per_pixel)
 	return pitch/bytes_per_pixel;
 }
 
+int iupCocoaCaluclateBytesPerRow(int width, int bytes_per_pixel)
+{
+	return CalculateBytesPerRow(width, bytes_per_pixel);
+}
+
 
 // FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
+#if 0
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 {
   int x,y;
@@ -81,57 +87,352 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
     }
   }
 }
+#else
+// Currently used by Drag & Drop. I'm not sure if the semantics match the original intent of this function.
+// I assume handle is an NSImage (which has a NSBitmapImageRep),
+// and that out_img_data is already allocated to be bytesPerRow*h.
+// This will write the pixel data to out_img_data.
+void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
+{
+	NSImage* ns_image = (__bridge NSImage*)handle;
 
-// FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
+    NSSize image_size = [ns_image size];
+    NSRect image_rect = NSMakeRect(0, 0, image_size.width, image_size.height);
+
+	int bpp = 32;
+	CGImageAlphaInfo alpha_info = kCGImageAlphaPremultipliedLast;
+
+	NSBitmapImageRep* bitmap = nil;
+	
+	if([[ns_image representations] count] > 0)
+	{
+		bitmap = (NSBitmapImageRep*)[[ns_image representations] objectAtIndex:0];
+	}
+	
+/*
+	{
+		NSInteger w = [bitmap pixelsWide];
+		NSInteger h = [bitmap pixelsHigh];
+		// NSInteger bpp = [bitmap bitsPerPixel];
+		NSInteger samplesPerPixel = [bitmap samplesPerPixel];
+		NSInteger bytesPerRow = [bitmap bytesPerRow];
+		NSInteger bytesPerPlane = [bitmap bytesPerPlane];
+		NSInteger numberOfPlanes = [bitmap numberOfPlanes];
+		NSLog(@"w: %ld", (long)w);
+		NSLog(@"h: %ld", (long)h);
+		NSLog(@"bpp: %ld", (long)bpp);
+		NSLog(@"samplesPerPixel: %ld", (long)samplesPerPixel);
+		NSLog(@"bytesPerRow: %ld", (long)bytesPerRow);
+		NSLog(@"bytesPerPlane: %ld", (long)bytesPerPlane);
+		NSLog(@"numberOfPlanes: %ld", (long)numberOfPlanes);
+ 
+ 
+	}
+*/
+	
+	if(bitmap==nil)
+	{
+		bpp = 32;
+	}
+	else
+	{
+		bpp = (int)[bitmap bitsPerPixel];
+	}
+	if(bpp == 32)
+	{
+		alpha_info = kCGImageAlphaPremultipliedLast;
+	}
+	else if(bpp == 24)
+	{
+		alpha_info = kCGImageAlphaNone;
+	}
+	else
+	{
+		NSLog(@"unsupported bpp: %d", bpp);
+		return;
+	}
+	
+  	int bytes_per_row = CalculateBytesPerRow(image_size.width, bpp/8);
+
+    CGColorSpaceRef color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+	// We are going to write directly to out_img_data here instead of passing NULL which will malloc new memory.
+	// this must be sizeof bytes_per_row*h
+    CGContextRef ctx = CGBitmapContextCreate(
+		out_img_data,
+		image_size.width,
+		image_size.height,
+		8,
+		bytes_per_row,
+		color_space,
+		alpha_info
+	);
+
+	NSGraphicsContext* saved_context = [NSGraphicsContext currentContext];
+//	[saved_context saveGraphicsState];
+
+    // Wrap graphics context
+    NSGraphicsContext* gctx = [NSGraphicsContext graphicsContextWithCGContext:ctx flipped:NO];
+
+    // Make our bitmap context current and render the NSImage into it
+    [NSGraphicsContext setCurrentContext:gctx];
+    [ns_image drawInRect:image_rect];
+	
+	/*
+	 size_t width = CGBitmapContextGetWidth(ctx);
+	 size_t height = CGBitmapContextGetHeight(ctx);
+	 uint32_t* pixel = (uint32_t*)CGBitmapContextGetData(ctx);
+	 
+	 // int bytes_per_row = CGBitmapContextGetBytesPerRow(ctx);
+	 int total_bytes = bytes_per_row*height;
+	 memcpy(out_img_data, pixel, total_bytes);
+*/
+
+    // Clean up
+	[NSGraphicsContext setCurrentContext:saved_context];
+//	[saved_context restoreGraphicsState];
+
+    CGContextRelease(ctx);
+    CGColorSpaceRelease(color_space);
+
+}
+#endif
+
+// FIXME:  Probably wrong. Untested, don't know what calls this, don't know how to test. Started using for drag/drop, but not sure if that usage is the same.
 void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
 {
-  int x,y;
-  unsigned char *red,*green,*blue,*alpha;
-  void *theArray[1];
-  unsigned char *pixels = malloc(width*height*bpp);
-  theArray[0] = (void*)pixels;
-  int planesize = width*height;
-  red = imgdata;
-  green = imgdata+planesize;
-  blue = imgdata+2*planesize;
-  alpha = imgdata+3*planesize;
-  for(y=0;y<height;y++){
-    for(x=0;x<width;x++) {
-      *pixels++ = *red++;
-      *pixels++ = *green++;
-      *pixels++ = *blue++;
-      if(bpp==32)
-        *pixels++ = *alpha;
-    }
-  }
-	NSBitmapImageRep* theRep;
-	
-if(bpp==32)
-{
- theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-			pixelsWide:width pixelsHigh:height bitsPerSample:8
-				samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
-				bitsPerPixel:bpp];
-}
-else
-{
-	theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-												   pixelsWide:width pixelsHigh:height bitsPerSample:8
-											  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-											   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
-												 bitsPerPixel:bpp];
-}
-  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  [image addRepresentation:theRep];
 
+  NSImage* ns_image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
+  if (!ns_image)
+  {
+    return NULL;
+  }
+	
+	NSBitmapImageRep* bitmap_image = nil;
+
+	
+	if(32 == bpp)
+	{
+		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+														 pixelsWide:width pixelsHigh:height bitsPerSample:8
+													samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+													 colorSpaceName:NSDeviceRGBColorSpace
+															// I thought this should be 0 because I thought I want pre-multipled alpha, but some png's I'm testing render better with this flag.
+															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
+														bytesPerRow:CalculateBytesPerRow(width, 4)
+													   bitsPerPixel:32
+						];
+	}
+	else if(24 == bpp)
+	{
+		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+															   pixelsWide:width pixelsHigh:height bitsPerSample:8
+														  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
+														   colorSpaceName:NSDeviceRGBColorSpace
+															// untested
+															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
+															  bytesPerRow:CalculateBytesPerRow(width, 3)
+													   bitsPerPixel:24
+						];
+	}
+	else if(8 == bpp)
+	{
+		
+		// We'll make a full 32-bit image for this case
+		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+															   pixelsWide:width pixelsHigh:height bitsPerSample:8
+														  samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+														   colorSpaceName:NSDeviceRGBColorSpace
+															// untested
+															bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
+															  bytesPerRow:CalculateBytesPerRow(width, 4)
+													   bitsPerPixel:32
+						];
+		
+	}
+	else
+	{
+		[ns_image release];
+		return NULL;
+	}
+	
+	
+	
+	if(32 == bpp)
+	{
+		//  unsigned char *red,*green,*blue,*alpha;
+		unsigned char* source_pixel;
+
+		//  unsigned char *pixels = malloc(width*height*bpp);
+		unsigned char *pixels = [bitmap_image bitmapData];
+		int row_length = CalculateRowLength(width, 4);
+
+
+		
+		source_pixel = imgdata;
+
+		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+				unsigned char s_a = *source_pixel;
+				source_pixel++;
+
+
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+			}
+		}
+
+		
+		
+		
+		
+	}
+	else if(24 == bpp)
+	{
+		//  unsigned char *red,*green,*blue,*alpha;
+		unsigned char* source_pixel;
+		
+		//  unsigned char *pixels = malloc(width*height*bpp);
+		unsigned char *pixels = [bitmap_image bitmapData];
+		
+		int row_length = CalculateRowLength(width, 3);
+		
+		source_pixel = imgdata;
+		
+		
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+
+
+
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+			}
+		}
+
+		
+		
+
+	}
+	else if(8 == bpp)
+	{
+#if 1
+		//  unsigned char *red,*green,*blue,*alpha;
+		unsigned char* source_pixel;
+		
+		//  unsigned char *pixels = malloc(width*height*bpp);
+		unsigned char *pixels = [bitmap_image bitmapData];
+		
+		int row_length = CalculateRowLength(width, 4);
+
+
+		
+		int has_alpha = 0;
+
+		
+
+		
+		
+		
+		source_pixel = imgdata;
+		
+		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char index = *source_pixel;
+				iupColor* c = &colors[index];
+
+				unsigned char s_r = c->r;
+				unsigned char s_g = c->g;
+				unsigned char s_b = c->b;
+				unsigned char s_a;
+
+				if(has_alpha)
+				{
+					s_a = c->a;
+				}
+				else
+				{
+					s_a = 255;
+				}
+
+
+
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+				
+				source_pixel++;
+			}
+		}
+
+		
+
+		
+#endif
+		
+	}
+	else
+	{
+
+		
+	}
+	
+
+	
+	
+  [ns_image addRepresentation:bitmap_image];
+	[bitmap_image release];
+	
+
+
+	// I originally thought I needed to return an autoreleased image, but IUP is putting this into a handle with a destroy hook.
+	// And I was crashing in NSAutoreleasePool drain when autoreleasing this.
+	// Update:
 	// The typical pattern is to call image = iupImageGetImage(),
 	// and then call [foo setImage:image];
 	// This might imply that we should return as autoreleased.
 	// But I think IUP is supposed to run iupdrvImageDestroy() if things are written correctly.
 	// That would mean we want to return with a retain count of 1
-	return (void*)image;
+	return ns_image;
 }
+
+
 
 int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colors, int *colors_count)
 {

@@ -33,6 +33,7 @@ typedef int (*IFnfiis)(Ihandle*,float,int,int,char*);  /* wheel_cb */
 typedef int (*IFnsVi)(Ihandle*, char*, void*, int);  /* dragdata_cb */
 typedef int (*IFnsViii)(Ihandle*, char*, void*, int, int, int);  /* dropdata_cb */
 typedef int (*IFnsiii)(Ihandle*, char*, int, int, int);  /* dropfiles_cb */
+typedef int (*IFnssi)(Ihandle*, char*, char*, int);  /* dragfilecreatename_cb */
 
 typedef int (*IFnnii)(Ihandle*, Ihandle*, int, int); /* drop_cb */
 typedef int (*IFnn)(Ihandle*, Ihandle*); /* savemarkers_cb, restoremarkers_cb */
