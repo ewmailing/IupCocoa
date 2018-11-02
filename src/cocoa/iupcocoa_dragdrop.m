@@ -318,11 +318,14 @@ static void cocoaSourceDragProvideDataForTypeDefault(Ihandle* ih, NSPasteboard* 
 		else if([type_name isEqualToString:NSPasteboardTypePNG])
 		{
 			NSRect bounds_rect = [main_view bounds];
-//			NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
-			
-			NSBitmapImageRep* bitmap_rep = [main_view bitmapImageRepForCachingDisplayInRect:bounds_rect];
+			NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
+			NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
+			[image_data autorelease];
+			NSData* tiff_data = [image_data TIFFRepresentation];
+			NSBitmapImageRep* bitmap_rep = [[NSBitmapImageRep alloc] initWithData:tiff_data];
+			[bitmap_rep autorelease];
 			NSData* png_rep = [bitmap_rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
-
+			
 			[pasteboard_item setData:png_rep forType:type_name];
 //			NSLog(@"Type:%@, value:%@", type_name, pdf_data);
 
