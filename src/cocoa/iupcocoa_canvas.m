@@ -723,8 +723,9 @@ But this means that the widgets will never get the focus ring.
 			view_point.y = inverted_y;
 	
 			char mod_status[IUPKEY_STATUS_SIZE] = IUPKEY_STATUS_INIT;
-			NSEvent* the_event = [[NSApplication sharedApplication] currentEvent];
-			iupcocoaButtonKeySetStatus(the_event, mod_status);
+			// We can't support this. The currentEvent may not be the right kind and will throw an exception when our code tries to call invalid methods for the wrong type.
+//			NSEvent* the_event = [[NSApplication sharedApplication] currentEvent];
+//			iupcocoaButtonKeySetStatus(the_event, mod_status);
 			call_back(ih, view_point.x, view_point.y, mod_status);
 		}
 	
