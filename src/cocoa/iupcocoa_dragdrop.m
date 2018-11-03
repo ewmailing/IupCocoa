@@ -163,7 +163,14 @@ NSPasteboardTypeFileURL: public.file-url
 */
 //- (nullable NSArray *)readObjectsForClasses:(NSArray<Class> *)classArray options:(nullable NSDictionary<NSPasteboardReadingOptionKey, id> *)options NS_AVAILABLE_MAC(10_6);
 
-  NSArray* acceptable_drop_items = [paste_board readObjectsForClasses:acceptable_classes options:nil];
+	NSArray* acceptable_drop_items = [paste_board readObjectsForClasses:acceptable_classes options:nil];
+
+	IFni drop_data_begin_callback = (IFni)IupGetCallback(ih, "DROPDATABEGIN_CB");
+	if(NULL != drop_data_begin_callback)
+	{
+		drop_data_begin_callback(ih, (int)[acceptable_drop_items count]);
+	}
+
 
 	for(id drop_item in acceptable_drop_items)
 	{
@@ -197,7 +204,7 @@ NSPasteboardTypeFileURL: public.file-url
 				NSString* file_url = [ns_url path]; // still has file://
 				const char* file_path = [file_url fileSystemRepresentation];
 				size_t buffer_size = strlen(file_path) + 1;
-				ret_val = drop_data_callback(ih, "FILEPATH", (char*)file_path, (int)buffer_size, drop_point.x, drop_point.y);
+				ret_val = drop_data_callback(ih, "FILE", (char*)file_path, (int)buffer_size, drop_point.x, drop_point.y);
 			}
 			else
 			{
@@ -280,6 +287,13 @@ NSPasteboardTypeFileURL: public.file-url
 		
 		
 	}
+	
+	Icallback drop_data_end_callback = (Icallback)IupGetCallback(ih, "DROPDATAEND_CB");
+	if(NULL != drop_data_end_callback)
+	{
+		drop_data_end_callback(ih);
+	}
+
 	
 	// Should I auto-update, or require the user to call IupUpdate?
 	// Only they know for sure if a redraw is actually needed.
@@ -1448,6 +1462,14 @@ void iupdrvRegisterDragDropAttrib(Iclass* ic)
 //  iupClassRegisterAttribute(ic, "DRAGFILECREATE", NULL, cocoaSourceDragSetDragWantsFileCreateAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterCallback(ic, "DRAGFILECREATE_CB", "s");
   iupClassRegisterCallback(ic, "DRAGFILECREATENAME_CB", "ssi");
+
+	// Because DROPDATA_CB will fire off multiple callbacks if multiple items are dropped at the same time,
+	// we want a way to know when this starts, and how many items there are.
+	// And when the callbacks stop.
+	// The passed number is a hint. If the data type cannot be supported, a callback may skip firing.
+	// Use the DROPDATAEND_CB to know for sure when you are done and don't rely on the count.
+  iupClassRegisterCallback(ic, "DROPDATABEGIN_CB", "i");
+  iupClassRegisterCallback(ic, "DROPDATAEND_CB", "s");
 
 
 
