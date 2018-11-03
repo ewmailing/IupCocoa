@@ -92,6 +92,7 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 // I assume handle is an NSImage (which has a NSBitmapImageRep),
 // and that out_img_data is already allocated to be bytesPerRow*h.
 // This will write the pixel data to out_img_data.
+#if 0
 void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
 {
 	NSImage* ns_image = (__bridge NSImage*)handle;
@@ -100,7 +101,6 @@ void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
     NSRect image_rect = NSMakeRect(0, 0, image_size.width, image_size.height);
 
 	int bpp = 32;
-	CGImageAlphaInfo alpha_info = kCGImageAlphaPremultipliedLast;
 
 	NSBitmapImageRep* bitmap = nil;
 	
@@ -140,62 +140,117 @@ void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
 	}
 	if(bpp == 32)
 	{
-		alpha_info = kCGImageAlphaPremultipliedLast;
+		CGImageAlphaInfo alpha_info = kCGImageAlphaPremultipliedLast;
+
+		int bytes_per_row = CalculateBytesPerRow(image_size.width, bpp/8);
+
+		CGColorSpaceRef color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+		// We are going to write directly to out_img_data here instead of passing NULL which will malloc new memory.
+		// this must be sizeof bytes_per_row*h
+		CGContextRef ctx = CGBitmapContextCreate(
+			out_img_data,
+			image_size.width,
+			image_size.height,
+			8,
+			bytes_per_row,
+			color_space,
+			alpha_info
+		);
+
+		NSGraphicsContext* saved_context = [NSGraphicsContext currentContext];
+	//	[saved_context saveGraphicsState];
+
+		// Wrap graphics context
+		NSGraphicsContext* gctx = [NSGraphicsContext graphicsContextWithCGContext:ctx flipped:NO];
+
+		// Make our bitmap context current and render the NSImage into it
+		[NSGraphicsContext setCurrentContext:gctx];
+		[ns_image drawInRect:image_rect];
+		
+		/*
+		 size_t width = CGBitmapContextGetWidth(ctx);
+		 size_t height = CGBitmapContextGetHeight(ctx);
+		 uint32_t* pixel = (uint32_t*)CGBitmapContextGetData(ctx);
+		 
+		 // int bytes_per_row = CGBitmapContextGetBytesPerRow(ctx);
+		 int total_bytes = bytes_per_row*height;
+		 memcpy(out_img_data, pixel, total_bytes);
+	*/
+
+		// Clean up
+		[NSGraphicsContext setCurrentContext:saved_context];
+	//	[saved_context restoreGraphicsState];
+
+		CGContextRelease(ctx);
+		CGColorSpaceRelease(color_space);
+		
+		
 	}
 	else if(bpp == 24)
 	{
-		alpha_info = kCGImageAlphaNone;
+		// Grrr. CGBitmapContextCreate only handles 32-bit.
+		// I'm tempted to change the entire backend to always handle convert to 32-bit images, but that may cause too many problems.
+		
+		
+		
+		int bytes_per_row = CalculateBytesPerRow(image_size.width, bpp/8);
+		int total_bytes = bytes_per_row*image_size.height;
+
+		unsigned char* bitmap_data = [bitmap bitmapData];
+		memcpy(out_img_data, bitmap_data, total_bytes);
+
+
 	}
 	else
 	{
-		NSLog(@"unsupported bpp: %d", bpp);
-		return;
+//		NSLog(@"unsupported bpp: %d", bpp);
+//		return;
+
+		
+		int bytes_per_row = CalculateBytesPerRow(image_size.width, bpp/8);
+		int total_bytes = bytes_per_row*image_size.height;
+
+		unsigned char* bitmap_data = [bitmap bitmapData];
+		memcpy(out_img_data, bitmap_data, total_bytes);
 	}
 	
-  	int bytes_per_row = CalculateBytesPerRow(image_size.width, bpp/8);
 
-    CGColorSpaceRef color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-
-	// We are going to write directly to out_img_data here instead of passing NULL which will malloc new memory.
-	// this must be sizeof bytes_per_row*h
-    CGContextRef ctx = CGBitmapContextCreate(
-		out_img_data,
-		image_size.width,
-		image_size.height,
-		8,
-		bytes_per_row,
-		color_space,
-		alpha_info
-	);
-
-	NSGraphicsContext* saved_context = [NSGraphicsContext currentContext];
-//	[saved_context saveGraphicsState];
-
-    // Wrap graphics context
-    NSGraphicsContext* gctx = [NSGraphicsContext graphicsContextWithCGContext:ctx flipped:NO];
-
-    // Make our bitmap context current and render the NSImage into it
-    [NSGraphicsContext setCurrentContext:gctx];
-    [ns_image drawInRect:image_rect];
-	
-	/*
-	 size_t width = CGBitmapContextGetWidth(ctx);
-	 size_t height = CGBitmapContextGetHeight(ctx);
-	 uint32_t* pixel = (uint32_t*)CGBitmapContextGetData(ctx);
-	 
-	 // int bytes_per_row = CGBitmapContextGetBytesPerRow(ctx);
-	 int total_bytes = bytes_per_row*height;
-	 memcpy(out_img_data, pixel, total_bytes);
-*/
-
-    // Clean up
-	[NSGraphicsContext setCurrentContext:saved_context];
-//	[saved_context restoreGraphicsState];
-
-    CGContextRelease(ctx);
-    CGColorSpaceRelease(color_space);
 
 }
+#else
+void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
+{
+	NSImage* ns_image = (__bridge NSImage*)handle;
+
+    NSSize image_size = [ns_image size];
+
+	NSBitmapImageRep* bitmap = nil;
+	
+	if([[ns_image representations] count] > 0)
+	{
+		bitmap = (NSBitmapImageRep*)[[ns_image representations] objectAtIndex:0];
+	}
+
+	if(bitmap == nil)
+	{
+		NSLog(@"Could not find NSBitmapImageRep");
+		return;
+	}
+
+	int bpp = (int)[bitmap bitsPerPixel];
+
+		
+	int bytes_per_row = CalculateBytesPerRow(image_size.width, bpp/8);
+	int total_bytes = bytes_per_row*image_size.height;
+
+	unsigned char* bitmap_data = [bitmap bitmapData];
+	memcpy(out_img_data, bitmap_data, total_bytes);
+
+
+}
+#endif
+
 #endif
 
 // FIXME:  Probably wrong. Untested, don't know what calls this, don't know how to test. Started using for drag/drop, but not sure if that usage is the same.
