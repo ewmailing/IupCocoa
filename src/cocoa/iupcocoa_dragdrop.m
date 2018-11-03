@@ -188,7 +188,7 @@ NSPasteboardTypeFileURL: public.file-url
 			int bytes_per_row = iupCocoaCaluclateBytesPerRow(w, bpp/8);
 			size_t buffer_size = bytes_per_row*h;
 			unsigned char* img_data = malloc(buffer_size);
-			iupdrvImageGetRawData(ns_image, img_data);
+			iupdrvImageGetData(ns_image, img_data);
 			char type_string[1024];
 			snprintf(type_string, 1024, "IMAGE %d %d %d", w, h, bpp);
 			ret_val = drop_data_callback(ih, type_string, (char*)img_data, (int)buffer_size, drop_point.x, drop_point.y);

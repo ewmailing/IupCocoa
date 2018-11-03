@@ -55,8 +55,10 @@ int iupCocoaCaluclateBytesPerRow(int width, int bytes_per_pixel)
 }
 
 
-// FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
-#if 0
+// The difference between iupdrvImageGetData and iupdrvImageGetRawData is in the output format.
+// The input is the same. But the iupdrvImageGetData (packed RGB, top-down) output used the IUP image data format,
+// and iupdrvImageGetRawData uses the IM image data format for the imImage (separated RGB planes, bottom-up).
+// FIXME: Carried over implementation. Untested.
 void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 {
   int x,y;
@@ -87,13 +89,17 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
     }
   }
 }
-#else
+
+// The input is the same. But the iupdrvImageGetData (packed RGB, top-down) output used the IUP image data format,
+// and iupdrvImageGetRawData uses the IM image data format for the imImage (separated RGB planes, bottom-up).
+
+
 // Currently used by Drag & Drop. I'm not sure if the semantics match the original intent of this function.
 // I assume handle is an NSImage (which has a NSBitmapImageRep),
 // and that out_img_data is already allocated to be bytesPerRow*h.
 // This will write the pixel data to out_img_data.
 #if 0
-void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
+void iupdrvImageGetData(void* handle, unsigned char* out_img_data)
 {
 	NSImage* ns_image = (__bridge NSImage*)handle;
 
@@ -219,7 +225,14 @@ void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
 
 }
 #else
-void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
+// The input is the same. But the iupdrvImageGetData (packed RGB, top-down) output used the IUP image data format,
+// and iupdrvImageGetRawData uses the IM image data format for the imImage (separated RGB planes, bottom-up).
+
+// This implementation assumes there is an NSBitmapImageRep backing the NSImage,
+// and that the pixels are already in the exact order we need.
+// So this makes it a fast memcpy, and is the best implementation we can hope for.
+// So far this seems to work well and I tested on 8-bit GIFs, 24-bit JPEGs, and 32-bit PNGs.
+void iupdrvImageGetData(void* handle, unsigned char* out_img_data)
 {
 	NSImage* ns_image = (__bridge NSImage*)handle;
 
@@ -251,7 +264,8 @@ void iupdrvImageGetRawData(void* handle, unsigned char* out_img_data)
 }
 #endif
 
-#endif
+
+
 
 // FIXME:  Probably wrong. Untested, don't know what calls this, don't know how to test. Started using for drag/drop, but not sure if that usage is the same.
 void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
