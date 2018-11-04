@@ -142,6 +142,10 @@ int cocoaTargetDropBasePerformDropCallback(Ihandle* ih, id<NSDraggingInfo> the_s
 		{
 			[acceptable_classes addObject:[NSURL class]];
 		}
+		else
+		{
+			[acceptable_classes addObject:[NSPasteboardItem class]];
+		}
 	}
 	/*
 	NSPasteboardTypeString: public.utf8-plain-text
