@@ -189,7 +189,7 @@ NSPasteboardTypeFileURL: public.file-url
 			int h;
 			int bpp;
 			iupdrvImageGetInfo(ns_image,&w, &h, &bpp);
-			int bytes_per_row = iupCocoaCaluclateBytesPerRow(w, bpp/8);
+			int bytes_per_row = iupCocoaImageCaluclateBytesPerRow(w, bpp/8);
 			size_t buffer_size = bytes_per_row*h;
 			unsigned char* img_data = malloc(buffer_size);
 			iupdrvImageGetData(ns_image, img_data);
@@ -609,21 +609,26 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
 			// But those binding from other languages will have to pay special attention here.
 			
-			if(data_size >= sizeof(intptr_t))
+			if(data_size == sizeof(intptr_t))
 			{
 				intptr_t int_ptr_for_iupimage = 0;
 				memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
 				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
 				Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
 				
-				int height;
-				int width;
-				int bpp;
-				iupdrvImageGetInfo(iup_image, &width, &height, &bpp);
+				int height = IupGetInt(iup_image, "WIDTH");
+				int width = IupGetInt(iup_image, "HEIGHT");
+				int bpp = IupGetInt(iup_image, "BPP");
 				const char* pixel_data = IupGetAttribute(iup_image, "WID");
 
-				NSBitmapImageRep* bitmap_image = (NSBitmapImageRep*)iupdrvImageCreateImageRaw(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
+				NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
 				NSData* ns_data = [bitmap_image TIFFRepresentation];
+				[pasteboard_item setData:ns_data forType:type_name];
+			}
+			else
+			{
+				// Assume the user has provided a proper TIFF buffer
+				NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
 				[pasteboard_item setData:ns_data forType:type_name];
 			}
 
@@ -645,22 +650,27 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
 			// But those binding from other languages will have to pay special attention here.
 			
-			if(data_size >= sizeof(intptr_t))
+			if(data_size == sizeof(intptr_t))
 			{
 				intptr_t int_ptr_for_iupimage = 0;
 				memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
 				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
 				Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
 				
-				int height;
-				int width;
-				int bpp;
-				iupdrvImageGetInfo(iup_image, &width, &height, &bpp);
+				int height = IupGetInt(iup_image, "WIDTH");
+				int width = IupGetInt(iup_image, "HEIGHT");
+				int bpp = IupGetInt(iup_image, "BPP");
 				const char* pixel_data = IupGetAttribute(iup_image, "WID");
 
-				NSBitmapImageRep* bitmap_image = (NSBitmapImageRep*)iupdrvImageCreateImageRaw(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
+				NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
 				NSData* ns_data = [bitmap_image representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
 
+				[pasteboard_item setData:ns_data forType:type_name];
+			}
+			else
+			{
+				// Assume the user has provided a proper PNG buffer
+				NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
 				[pasteboard_item setData:ns_data forType:type_name];
 			}
 

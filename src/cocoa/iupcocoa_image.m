@@ -49,7 +49,7 @@ static int CalculateRowLength(int width, int bytes_per_pixel)
 	return pitch/bytes_per_pixel;
 }
 
-int iupCocoaCaluclateBytesPerRow(int width, int bytes_per_pixel)
+int iupCocoaImageCaluclateBytesPerRow(int width, int bytes_per_pixel)
 {
 	return CalculateBytesPerRow(width, bytes_per_pixel);
 }
@@ -268,14 +268,12 @@ void iupdrvImageGetData(void* handle, unsigned char* out_img_data)
 
 
 // FIXME:  Probably wrong. Untested, don't know what calls this, don't know how to test. Started using for drag/drop, but not sure if that usage is the same.
-void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
+// Update: I'm now worried this is related to the IM library stuff, and is expecting pixels separate R, G, B, A arrays.
+// This is not how I'm using it.
+NSBitmapImageRep* iupCocoaImageNSBitmapImageRepFromPixels(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
 {
 
-  NSImage* ns_image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  if (!ns_image)
-  {
-    return NULL;
-  }
+
 	
 	NSBitmapImageRep* bitmap_image = nil;
 
@@ -321,7 +319,6 @@ void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors
 	}
 	else
 	{
-		[ns_image release];
 		return NULL;
 	}
 	
@@ -485,8 +482,7 @@ void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors
 
 	
 	
-  [ns_image addRepresentation:bitmap_image];
-	[bitmap_image release];
+	[bitmap_image autorelease];
 	
 
 
@@ -498,10 +494,42 @@ void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors
 	// This might imply that we should return as autoreleased.
 	// But I think IUP is supposed to run iupdrvImageDestroy() if things are written correctly.
 	// That would mean we want to return with a retain count of 1
-	return ns_image;
+	return bitmap_image;
 }
 
+// FIXME:  Probably wrong. Untested, don't know what calls this, don't know how to test. Started using for drag/drop, but not sure if that usage is the same.
+// Update: I'm now worried this is related to the IM library stuff, and is expecting pixels separate R, G, B, A arrays.
+// This is not how I'm using it.
+NSImage* iupCocoaImageNSImageFromPixels(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
+{
+	NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, colors, colors_count, imgdata);
+	
+	if(nil == bitmap_image)
+	{
+		return nil;
+	}
+	
+	NSImage* ns_image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
+	if(nil == ns_image)
+	{
+		return nil;
+	}
+	[ns_image autorelease];
+	
+	[ns_image addRepresentation:bitmap_image];
+	
+	return ns_image;
 
+}
+
+// FIXME:  Probably wrong. Untested, don't know what calls this, don't know how to test.
+// Update: I'm now worried this is related to the IM library stuff, and is expecting pixels separate R, G, B, A arrays.
+// This is not how I'm using it.
+// At one point, I used it for drag & drop, but I refactored it so it no longer calls this, but uses underlying functions.
+void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
+{
+	return iupCocoaImageNSImageFromPixels(width, height, bpp, colors, colors_count, imgdata);
+}
 
 int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colors, int *colors_count)
 {
@@ -994,7 +1022,46 @@ void iupdrvImageDestroy(void* handle, int type)
   }
 }
 
-void iupdrvImageGetData(void* handle, unsigned char* imgdata)
+
+
+
+// New: Why doesn't IUP have a Load from file?
+IUP_EXPORT Ihandle* IupImageLoadFile(const char* file_name)
 {
+	int w;
+	int h;
+	int bpp;
+	Ihandle* image_ih = NULL;
 	
+	NSImage* ns_image = (NSImage*)iupdrvImageLoad(file_name, IUPIMAGE_IMAGE);
+
+	if(nil == ns_image)
+	{
+		return NULL;
+	}
+	
+	iupdrvImageGetInfo(ns_image, &w, &h, &bpp);
+	int bytes_per_row = iupCocoaImageCaluclateBytesPerRow(w, bpp/8);
+	size_t buffer_size = bytes_per_row*h;
+	unsigned char* img_data = malloc(buffer_size);
+	iupdrvImageGetData(ns_image, img_data);
+	
+	if(bpp == 32)
+	{
+		image_ih = IupImageRGBA(w, h, img_data);
+
+	}
+	else if(bpp == 24)
+	{
+		image_ih = IupImageRGB(w, h, img_data);
+	}
+	else
+	{
+		image_ih = IupImage(w, h, img_data);
+	}
+	[ns_image release];
+
+	return image_ih;
 }
+
+

@@ -18,7 +18,9 @@ extern "C" {
 	#import <Foundation/Foundation.h>
 	#import "IupCocoaFont.h"
 #endif
-	
+
+#include "iup_image.h"
+
 // the point of this is we have a unique memory address for an identifier
 extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 
@@ -101,7 +103,9 @@ void iupCocoaSetGlobalApplicationStatusItemMenuIh(Ihandle* menu_ih);
 IUP_EXPORTI IupCocoaFont* iupCocoaGetFont(Ihandle* ih);
 
 
-int iupCocoaCaluclateBytesPerRow(int width, int bytes_per_pixel);
+int iupCocoaImageCaluclateBytesPerRow(int width, int bytes_per_pixel);
+NSBitmapImageRep* iupCocoaImageNSBitmapImageRepFromPixels(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata);
+NSImage* iupCocoaImageNSImageFromPixels(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata);
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */
