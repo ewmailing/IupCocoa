@@ -45,6 +45,15 @@
 		007E31A9204CDBC500ED15CB /* iup_flatscrollbar.c in Sources */ = {isa = PBXBuildFile; fileRef = 007E31A0204CDBC300ED15CB /* iup_flatscrollbar.c */; };
 		007E31AA204CDBC500ED15CB /* iup_colorhsi.h in Headers */ = {isa = PBXBuildFile; fileRef = 007E31A1204CDBC400ED15CB /* iup_colorhsi.h */; };
 		007E31AB204CDBC500ED15CB /* iup_colorhsi.c in Sources */ = {isa = PBXBuildFile; fileRef = 007E31A2204CDBC400ED15CB /* iup_colorhsi.c */; };
+		00A3F0CC218FD18900841C0E /* Encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 00ADF34E1F45AECD00F91890 /* Encoding.c */; };
+		00A3F0CD218FD18900841C0E /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 00E3A8F91B609B8700BEC175 /* main.c */; };
+		00A3F0CF218FD18900841C0E /* libiupimglib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E93A6D214E826C00BC6F5B /* libiupimglib.a */; };
+		00A3F0D0218FD18900841C0E /* iup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; };
+		00A3F0D2218FD18900841C0E /* tecgraf.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 00C69C452138C1AC00E7F8B4 /* tecgraf.bmp */; };
+		00A3F0D3218FD18900841C0E /* TecgrafLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E93A662148754800BC6F5B /* TecgrafLogo.png */; };
+		00A3F0D4218FD18900841C0E /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E3A8FB1B609B8700BEC175 /* Images.xcassets */; };
+		00A3F0D6218FD18900841C0E /* iup.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E3A5ED1B60578300BEC175 /* iup.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		00A3F0D7218FD18900841C0E /* iupim.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00E93AFD214E846100BC6F5B /* iupim.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		00ADF34F1F45AECD00F91890 /* Encoding.c in Sources */ = {isa = PBXBuildFile; fileRef = 00ADF34E1F45AECD00F91890 /* Encoding.c */; };
 		00B472CE207C43000019005D /* iup_flatseparator.c in Sources */ = {isa = PBXBuildFile; fileRef = 00B472CD207C42FF0019005D /* iup_flatseparator.c */; };
 		00BE4EEE1F4BF35C002B7C86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E3A8BD1B605D0B00BEC175 /* Cocoa.framework */; };
@@ -296,6 +305,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		00A3F0CA218FD18900841C0E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00E3A5E41B60578300BEC175 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00E93AFC214E846100BC6F5B;
+			remoteInfo = iupim;
+		};
 		00E3A5FA1B60578300BEC175 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00E3A5E41B60578300BEC175 /* Project object */;
@@ -328,6 +344,17 @@
 			files = (
 				0052B94A1F1D6BF40036F199 /* iup.framework in CopyFiles */,
 				00E93B05214E846200BC6F5B /* iupim.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00A3F0D5218FD18900841C0E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				00A3F0D6218FD18900841C0E /* iup.framework in CopyFiles */,
+				00A3F0D7218FD18900841C0E /* iupim.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -380,6 +407,9 @@
 		007E31A0204CDBC300ED15CB /* iup_flatscrollbar.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatscrollbar.c; sourceTree = "<group>"; };
 		007E31A1204CDBC400ED15CB /* iup_colorhsi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iup_colorhsi.h; sourceTree = "<group>"; };
 		007E31A2204CDBC400ED15CB /* iup_colorhsi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_colorhsi.c; sourceTree = "<group>"; };
+		00A3F0DB218FD18900841C0E /* TestAppSandbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestAppSandbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00A3F0DC218FD18C00841C0E /* TestApp copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "TestApp copy-Info.plist"; path = "/Users/ewing/Source/GIT/IupMac/iup315/Xcode/iup/TestApp copy-Info.plist"; sourceTree = "<absolute>"; };
+		00A3F0DD218FD1AC00841C0E /* TestAppSandbox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TestAppSandbox.entitlements; sourceTree = "<group>"; };
 		00ADF34E1F45AECD00F91890 /* Encoding.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Encoding.c; sourceTree = "<group>"; };
 		00B472CD207C42FF0019005D /* iup_flatseparator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iup_flatseparator.c; sourceTree = "<group>"; };
 		00BE4F4B1F4BF35C002B7C86 /* iupweb.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = iupweb.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -654,6 +684,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		00A3F0CE218FD18900841C0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00A3F0CF218FD18900841C0E /* libiupimglib.a in Frameworks */,
+				00A3F0D0218FD18900841C0E /* iup.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00BE4EED1F4BF35C002B7C86 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -779,6 +818,7 @@
 		00E3A5E31B60578200BEC175 = {
 			isa = PBXGroup;
 			children = (
+				00A3F0DD218FD1AC00841C0E /* TestAppSandbox.entitlements */,
 				00E3A8BD1B605D0B00BEC175 /* Cocoa.framework */,
 				00E3A5EF1B60578300BEC175 /* iup */,
 				00E3A5FC1B60578300BEC175 /* iupTests */,
@@ -789,6 +829,7 @@
 				00E3A5EE1B60578300BEC175 /* Products */,
 				00BE4F4C1F4BF35D002B7C86 /* iupweb-Info.plist */,
 				00BE4F691F4C7CCB002B7C86 /* Frameworks */,
+				00A3F0DC218FD18C00841C0E /* TestApp copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -804,6 +845,7 @@
 				00BE4F781F4C967F002B7C86 /* webbrowser.app */,
 				00E93A6D214E826C00BC6F5B /* libiupimglib.a */,
 				00E93AFD214E846100BC6F5B /* iupim.framework */,
+				00A3F0DB218FD18900841C0E /* TestAppSandbox.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1348,6 +1390,25 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		00A3F0C8218FD18900841C0E /* TestAppSandbox */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00A3F0D8218FD18900841C0E /* Build configuration list for PBXNativeTarget "TestAppSandbox" */;
+			buildPhases = (
+				00A3F0CB218FD18900841C0E /* Sources */,
+				00A3F0CE218FD18900841C0E /* Frameworks */,
+				00A3F0D1218FD18900841C0E /* Resources */,
+				00A3F0D5218FD18900841C0E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				00A3F0C9218FD18900841C0E /* PBXTargetDependency */,
+			);
+			name = TestAppSandbox;
+			productName = TestApp;
+			productReference = 00A3F0DB218FD18900841C0E /* TestAppSandbox.app */;
+			productType = "com.apple.product-type.application";
+		};
 		00BE4E761F4BF35C002B7C86 /* iupweb */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00BE4F481F4BF35C002B7C86 /* Build configuration list for PBXNativeTarget "iupweb" */;
@@ -1518,6 +1579,14 @@
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = "Tecgraf, PUC-Rio, Brazil";
 				TargetAttributes = {
+					00A3F0C8218FD18900841C0E = {
+						ProvisioningStyle = Manual;
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 1;
+							};
+						};
+					};
 					00BE4F771F4C967F002B7C86 = {
 						CreatedOnToolsVersion = 8.3.3;
 						ProvisioningStyle = Automatic;
@@ -1565,11 +1634,22 @@
 				00BE4F771F4C967F002B7C86 /* webbrowser */,
 				00E93A6C214E826C00BC6F5B /* iupimglib */,
 				00E93AFC214E846100BC6F5B /* iupim */,
+				00A3F0C8218FD18900841C0E /* TestAppSandbox */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		00A3F0D1218FD18900841C0E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00A3F0D2218FD18900841C0E /* tecgraf.bmp in Resources */,
+				00A3F0D3218FD18900841C0E /* TecgrafLogo.png in Resources */,
+				00A3F0D4218FD18900841C0E /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00BE4F411F4BF35C002B7C86 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1640,6 +1720,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		00A3F0CB218FD18900841C0E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00A3F0CC218FD18900841C0E /* Encoding.c in Sources */,
+				00A3F0CD218FD18900841C0E /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00BE4E771F4BF35C002B7C86 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1860,6 +1949,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		00A3F0C9218FD18900841C0E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00E93AFC214E846100BC6F5B /* iupim */;
+			targetProxy = 00A3F0CA218FD18900841C0E /* PBXContainerItemProxy */;
+		};
 		00E3A5FB1B60578300BEC175 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 00E3A5EC1B60578300BEC175 /* iup */;
@@ -1937,6 +2031,42 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		00A3F0D9218FD18900841C0E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TestAppSandbox.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "TestApp copy-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = Debug;
+		};
+		00A3F0DA218FD18900841C0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TestAppSandbox.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = "TestApp copy-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = Release;
+		};
 		00BE4F491F4BF35C002B7C86 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2420,6 +2550,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		00A3F0D8218FD18900841C0E /* Build configuration list for PBXNativeTarget "TestAppSandbox" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00A3F0D9218FD18900841C0E /* Debug */,
+				00A3F0DA218FD18900841C0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		00BE4F481F4BF35C002B7C86 /* Build configuration list for PBXNativeTarget "iupweb" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
