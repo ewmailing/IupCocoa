@@ -26,6 +26,11 @@
 #include "iupcocoa_drv.h"
 #import "iupcocoa_dragdrop.h"
 
+// To avoid problems on pre-10.13, redefine the strings.
+NSPasteboardType const kCompatNSPasteboardTypeFileURL = @"public.file-url";
+NSPasteboardType const kCompatNSPasteboardTypeFile = @"public.url";
+
+
 const void* IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY = @"IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
 const void* IUPTARGETDROP_ASSOCIATED_OBJ_KEY = @"IUPTARGETDROP_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
 
@@ -134,11 +139,11 @@ int cocoaTargetDropBasePerformDropCallback(Ihandle* ih, id<NSDraggingInfo> the_s
 		{
 			[acceptable_classes addObject:[NSURL class]];
 		}
-		else if([type_name isEqualToString:NSPasteboardTypeURL])
+		else if([type_name isEqualToString:kCompatNSPasteboardTypeFile])
 		{
 			[acceptable_classes addObject:[NSURL class]];
 		}
-		else if([type_name isEqualToString:NSPasteboardTypeFileURL])
+		else if([type_name isEqualToString:kCompatNSPasteboardTypeFileURL])
 		{
 			[acceptable_classes addObject:[NSURL class]];
 		}
@@ -147,6 +152,17 @@ int cocoaTargetDropBasePerformDropCallback(Ihandle* ih, id<NSDraggingInfo> the_s
 			[acceptable_classes addObject:[NSPasteboardItem class]];
 		}
 	}
+	
+	// Grrr. There is a complication with choosing the "best" type.
+	// I need to use NSPasteboardItem to handle custom types (and maybe fonts).
+	// But if it comes in order before the built-in types,
+	// the built-in types will be pre-empted and become a NSPasteboardItem.
+	// For example, I have a custom type at the beginning (highest priority).
+	// I drop a file-url onto the the target.
+	// Instead of getting the [NSURL class], I get the NSPasteboardItem.
+	// But if the item was at the end of the array, I would have gotten the [NSURL class].
+	// This seems messier than it should be.
+
 	/*
 	NSPasteboardTypeString: public.utf8-plain-text
 NSPasteboardTypePDF: com.adobe.pdf
@@ -266,7 +282,86 @@ NSPasteboardTypeFileURL: public.file-url
 
 			NSString* best_type = [pasteboard_item availableTypeFromArray:drop_types];
 			NSData* ns_data = [pasteboard_item dataForType:best_type];
-			
+	
+			// Grrr. There is a complication with choosing the "best" type.
+			// I need to use NSPasteboardItem to handle custom types (and maybe fonts).
+			// But if it comes in order before the built-in types,
+			// the built-in types will be pre-empted and become a NSPasteboardItem.
+			// For example, I have a custom type at the beginning (highest priority).
+			// I drop a file-url onto the the target.
+			// Instead of getting the [NSURL class], I get the NSPasteboardItem.
+			// But if the item was at the end of the array, I would have gotten the [NSURL class].
+			// This seems messier than it should be.
+			// So all the [Foo class] cases above are somewhat redundant with the below.
+			// Maybe I should remove the above cases, but they have been mostly tested already.
+
+			if([best_type isEqualToString:NSPasteboardTypePNG] || [best_type isEqualToString:NSPasteboardTypeTIFF])
+			{
+				NSImage* ns_image = [[[NSImage alloc] initWithData:ns_data] autorelease];
+				
+				int w;
+				int h;
+				int bpp;
+				iupdrvImageGetInfo(ns_image,&w, &h, &bpp);
+				int bytes_per_row = iupCocoaImageCaluclateBytesPerRow(w, bpp/8);
+				size_t buffer_size = bytes_per_row*h;
+				unsigned char* img_data = malloc(buffer_size);
+				iupdrvImageGetData(ns_image, img_data);
+				char type_string[1024];
+				snprintf(type_string, 1024, "IMAGE %d %d %d", w, h, bpp);
+				ret_val = drop_data_callback(ih, type_string, (char*)img_data, (int)buffer_size, drop_point.x, drop_point.y);
+
+				free(img_data);
+			}
+			else if([best_type isEqualToString:kCompatNSPasteboardTypeFileURL])
+			{
+				NSString* ns_string = [[[NSString alloc] initWithData:ns_data encoding:NSUTF8StringEncoding] autorelease];
+ 				NSURL* ns_url = [[[NSURL alloc] initWithString:ns_string] autorelease];
+
+				NSString* file_url = [ns_url path]; // still has file://
+				const char* file_path = [file_url fileSystemRepresentation];
+				size_t buffer_size = strlen(file_path) + 1;
+				ret_val = drop_data_callback(ih, "FILE", (char*)file_path, (int)buffer_size, drop_point.x, drop_point.y);
+
+			}
+			else if([best_type isEqualToString:kCompatNSPasteboardTypeFile])
+			{
+				NSString* ns_string = [[[NSString alloc] initWithData:ns_data encoding:NSUTF8StringEncoding] autorelease];
+ 				NSURL* ns_url = [[[NSURL alloc] initWithString:ns_string] autorelease];
+
+				NSString* ns_string2 = [ns_url absoluteString];
+				const char* c_str = [ns_string2 UTF8String];
+				size_t buffer_size = strlen(c_str) + 1;
+				ret_val = drop_data_callback(ih, "URL", (char*)c_str, (int)buffer_size, drop_point.x, drop_point.y);
+			}
+			if([best_type isEqualToString:NSPasteboardTypeString]
+				|| [best_type isEqualToString:NSPasteboardTypeHTML]
+				|| [best_type isEqualToString:NSPasteboardTypeTabularText]
+				|| [best_type isEqualToString:NSPasteboardTypeMultipleTextSelection]
+			)
+			{
+				NSString* ns_string = [[[NSString alloc] initWithData:ns_data encoding:NSUTF8StringEncoding] autorelease];
+				const char* c_str = [ns_string UTF8String];
+				size_t buffer_size = strlen(c_str) + 1;
+				ret_val = drop_data_callback(ih, "TEXT", (char*)c_str, (int)buffer_size, drop_point.x, drop_point.y);
+
+			}
+			else if([drop_item isKindOfClass:[NSColor class]])
+			{
+				NSColor* ns_color = (NSColor*)[NSUnarchiver unarchiveObjectWithData:ns_data];
+				NSColor* rgb_color = [ns_color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+				int r = iupROUND([rgb_color redComponent] * 255.0);
+				int g = iupROUND([rgb_color greenComponent] * 255.0);
+				int b = iupROUND([rgb_color blueComponent] * 255.0);
+				int a = iupROUND([rgb_color alphaComponent] * 255.0);
+
+				char color_string[20];
+				snprintf(color_string, 20, "%d %d %d %d", r, g, b, a);
+
+				size_t buffer_size = strlen(color_string) + 1;
+				ret_val = drop_data_callback(ih, "COLOR", (char*)color_string, (int)buffer_size, drop_point.x, drop_point.y);
+				
+			}
 			if([best_type isEqualToString:NSPasteboardTypeFont])
 			{
 //				NSLog(@"got NSFont2");
@@ -462,7 +557,7 @@ static void cocoaSourceDragProvideDataForTypeDefault(Ihandle* ih, NSPasteboard* 
 #endif
 
 		}
-		else if([type_name isEqualToString:NSPasteboardTypeFileURL])
+		else if([type_name isEqualToString:kCompatNSPasteboardTypeFileURL])
 		{
 			// This one is extra tricky.
 			// If the user wants to provide a file path, then we get to do the easy thing.
@@ -703,7 +798,7 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 			[ns_string autorelease];
 			[pasteboard_item setString:ns_string forType:type_name];
 		}
-		else if([type_name isEqualToString:NSPasteboardTypeFileURL])
+		else if([type_name isEqualToString:kCompatNSPasteboardTypeFileURL])
 		{
 			// This one is extra tricky.
 			// If the user wants to provide a file path, then we get to do the easy thing.
