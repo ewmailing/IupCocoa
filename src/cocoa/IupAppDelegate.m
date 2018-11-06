@@ -179,9 +179,21 @@ NOTE: If the application is not already open, opening the URL will launch your p
 // applicationWillTerminate: is not guaranteed to be invoked depending on the quit.
 // It seems that this will be called when using Cmd-Q (Menu quit)
 // But this will not be called when you use IUP_CLOSE or close the last window (IUP will automatically shutdown. We do not use applicationShouldTerminateAfterLastWindowClosed: because of that.)
+// Similatly, quitting the other way will skip this.
 - (void) applicationWillTerminate:(NSNotification*)a_notification
 {
-	// Invoke the IupEntry callback function to start the user code.
+	// BUG: NSPasteboard copy may invoke pastebord:provideDataForType: on Quit/terminate: if there is lazy data in the clipboard.
+	// But Apple seems to invoke this after this method returns.
+	// But by that point, we have already shutdown IUP and freed a lot of objects, which may lead to a crash in pasteboard:provideDataForType:
+	// Unfortunately, I don't know how to fix this.
+	// We have two options:
+	// 1) Clear out all pasteboard pointers when we tear down everything. But this will prevent the final copy of data being sent to the pasteboard before quit, so the data will not be pastable after this.
+	// 2) Don't call IupClose() in the IupExit callback.
+	// I'm starting to think in the loop redesign,
+	// we should not call IupClose and maybe the platform takes responsbility for calling it.
+	// In the Mac/Cocoa case, I don't think it is necessary to call IupClose at all which might solve this problem.
+
+	// Invoke the IupExit callback function to start the user shutdown code.
 	iupCocoaCommonLoopCallExitCb();
 }
 

@@ -246,6 +246,7 @@ But this means that the widgets will never get the focus ring.
 	Ihandle* ih = _ih;
 
 	// FOR NOW: Hardcode/hack until I sort this out
+/*
 	if(IupClassMatch(ih, "flatbutton")
 		|| IupClassMatch(ih, "flatseparator")
 		|| IupClassMatch(ih, "dropbutton")
@@ -268,6 +269,16 @@ But this means that the widgets will never get the focus ring.
 	{
 		return YES;
 	}
+*/
+	if(IupClassMatch(ih, "canvas"))
+	{
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
+
 }
 
 - (BOOL) canBecomeKeyView
@@ -869,43 +880,209 @@ to hook into it for Cocoa.
 We can extend this idea to cut, copy, paste as well.
 
 */
+
 /*
-- (void) undo:(id)the_sender
+static BOOL iupCocoaValidateMenuItemFromActionCallback(Ihandle* ih, const char* callback_name, bool default_for_continue)
 {
-	NSLog(@"Undo");
- 	// Provide a new callback, e.g. MENU_CB or MENUACTION_CB or MENUITEM_CB
- 	// We can provide pre-canned strings like "UNDO", "REDO", "CUT", "COPY", "PASTE"
- 	// telling them which action they need to handle.
- 
+	Icallback action_callback = (Icallback)IupGetCallback(ih, callback_name);
+	if(NULL != action_callback)
+	{
+		return YES;
+	}
+	return default_for_continue;
 }
+*/
+
+static bool iupCocoaHelperHasCallback(Ihandle* ih, const char* callback_name)
+{
+	Icallback action_callback = (Icallback)IupGetCallback(ih, callback_name);
+	if(NULL != action_callback)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 - (BOOL) validateMenuItem:(NSMenuItem*)menu_item
 {
 	// Instead of this, check for user callback, e.g. VALIDATEMENU_CB.
 	// User should return YES/NO (I can't seem to call super.)
 	// They should implement for all titles they need to support (Undo, Redo, Cut Copy Paste)
 	// Not sure how to handle localized strings
-
-	if([menu_item isEqualTo:@"Undo"])
+	Ihandle* ih = _ih;
+	NSString* menu_item_title = [menu_item title];
+	const char* c_menu_item_title = [menu_item_title UTF8String];
+	
+	IFns validate_menu_callback = (IFns)IupGetCallback(ih, "VALIDATEMENU_CB");
+	int ret_val = IUP_CONTINUE;
+	if(NULL != validate_menu_callback)
+	{
+		ret_val = validate_menu_callback(ih, (char*)c_menu_item_title);
+	}
+	if(1 == ret_val)
+	{
+		return YES;
+	}
+	else if(0 == ret_val)
 	{
 		return NO;
 	}
+	else if(IUP_CONTINUE == ret_val)
+	{
+//		bool is_canvas = (bool)IupClassMatch(ih, "canvas");
+		if([menu_item_title isEqualTo:NSLocalizedString(@"Undo", @"Undo")])
+		{
+			return iupCocoaHelperHasCallback(ih, "UNDO_CB");
+		}
+		else if([menu_item_title isEqualTo:NSLocalizedString(@"Redo", @"Redo")])
+		{
+			return iupCocoaHelperHasCallback(ih, "REDO_CB");
+		}
+		else if([menu_item_title isEqualTo:NSLocalizedString(@"Cut", @"Cut")])
+		{
+		   	bool is_move = iupAttribGetBoolean(ih, "DRAGSOURCEMOVE");
+			if(is_move)
+			{
+				IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
+				NSArray* registered_types = [drag_source_data dragRegisteredTypes];
+				if((registered_types != nil) && ([registered_types count] > 0))
+				{
+					return YES;
+				}
+			}
+			return iupCocoaHelperHasCallback(ih, "CUT_CB");
+		}
+		else if([menu_item_title isEqualTo:NSLocalizedString(@"Copy", @"Copy")])
+		{
+		   	bool is_move = iupAttribGetBoolean(ih, "DRAGSOURCEMOVE");
+			if(!is_move)
+			{
+				IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
+				NSArray* registered_types = [drag_source_data dragRegisteredTypes];
+				if((registered_types != nil) && ([registered_types count] > 0))
+				{
+					return YES;
+				}
+			}
+			return iupCocoaHelperHasCallback(ih, "COPY_CB");
+		}
+		else if([menu_item_title isEqualTo:NSLocalizedString(@"Paste", @"Paste")])
+		{
+			IupTargetDropAssociatedData* target_drop_data = cocoaTargetDropGetAssociatedData(ih);
+			NSArray* registered_types = [target_drop_data dropRegisteredTypes];
+			if((registered_types != nil) && ([registered_types count] > 0))
+			{
+				return YES;
+			}
+			return iupCocoaHelperHasCallback(ih, "PASTE_CB");
+		}
+		else if([menu_item_title isEqualTo:NSLocalizedString(@"Paste and Match Style", @"Paste and Match Style")])
+		{
+			/*
+			IupTargetDropAssociatedData* target_drop_data = cocoaTargetDropGetAssociatedData(ih);
+			NSArray* registered_types = [target_drop_data dropRegisteredTypes];
+			if((registered_types != nil) && ([registered_types count] > 0))
+			{
+				return YES;
+			}
+			*/
+			return iupCocoaHelperHasCallback(ih, "PASTESTYLE_CB");
+		}
+		else
+		{
+			return NO;
+		}
+	}
+	else
+	{
+		return NO;
+	}
+	
+
 	return NO;
 }
 
+static int iupCocoaRunMenuItemActionFromCallback(Ihandle* ih, const char* callback_name)
+{
+	Icallback action_callback = (Icallback)IupGetCallback(ih, callback_name);
+	int ret_val = IUP_CONTINUE;
+	if(NULL != action_callback)
+	{
+		ret_val = action_callback(ih);
+	}
+	return ret_val;
+}
+
+- (void) undo:(id)the_sender
+{
+//	NSLog(@"Undo");
+ 	// Provide a new callback, e.g. MENU_CB or MENUACTION_CB or MENUITEM_CB
+ 	// We can provide pre-canned strings like "UNDO", "REDO", "CUT", "COPY", "PASTE"
+ 	// telling them which action they need to handle.
+	Ihandle* ih = _ih;
+	int ret_val = iupCocoaRunMenuItemActionFromCallback(ih, "UNDO_CB");
+	if(IUP_CONTINUE == ret_val)
+	{
+	}
+}
 - (void) redo:(id)the_sender
 {
+	Ihandle* ih = _ih;
+	int ret_val = iupCocoaRunMenuItemActionFromCallback(ih, "REDO_CB");
+	if(IUP_CONTINUE == ret_val)
+	{
+	}
 }
 - (void) cut:(id)the_sender
 {
+	Ihandle* ih = _ih;
+	int ret_val = iupCocoaRunMenuItemActionFromCallback(ih, "CUT_CB");
+	if(IUP_CONTINUE == ret_val)
+	{
+	}
 }
 - (void) copy:(id)the_sender
 {
+	Ihandle* ih = _ih;
+	int ret_val = iupCocoaRunMenuItemActionFromCallback(ih, "COPY_CB");
+	if(IUP_CONTINUE == ret_val)
+	{
+		IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
+		
+		NSPasteboardItem* pasteboard_item = [drag_source_data defaultPasteboardItem];
+		NSPasteboard* paste_board = [NSPasteboard generalPasteboard];
+
+		[paste_board clearContents];
+		[paste_board writeObjects:@[pasteboard_item]];
+	}
 }
 - (void) paste:(id)the_sender
 {
+	Ihandle* ih = _ih;
+	int ret_val = iupCocoaRunMenuItemActionFromCallback(ih, "PASTE_CB");
+	if(IUP_CONTINUE == ret_val)
+	{
+		NSPasteboard* paste_board = [NSPasteboard generalPasteboard];
+		// TODO: Provide user a way to change the drop point value for paste (so they can differentiate from a drop if needed)
+		NSPoint drop_point = {0, 0};
+		cocoaTargetDropBasePerformDropCallback(ih, the_sender, paste_board, drop_point);
+	}
 }
 
-*/
+- (void) pasteAsPlainText:(id)the_sender
+{
+	Ihandle* ih = _ih;
+	int ret_val = iupCocoaRunMenuItemActionFromCallback(ih, "PASTESTYLE_CB");
+	if(IUP_CONTINUE == ret_val)
+	{
+
+	}
+}
+
+
 
 @end
 
@@ -1052,7 +1229,7 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	
 	
 	IupSourceDragAssociatedData* source_drag_associated_data = cocoaSourceDragCreateAssociatedData(ih, canvas_view, root_view);
-	cocoaTargetDropCreateAssociatedData(ih,  canvas_view, root_view);
+	IupTargetDropAssociatedData* target_drop_associated_data = cocoaTargetDropCreateAssociatedData(ih,  canvas_view, root_view);
 
 	[source_drag_associated_data setDefaultFilePromiseName:@"IupCanvas.png"];
 	
@@ -1066,6 +1243,10 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 static void cocoaCanvasUnMapMethod(Ihandle* ih)
 {
 	id root_view = ih->handle;
+	
+	
+	cocoaTargetDropDestroyAssociatedData(ih);
+	cocoaSourceDragDestroyAssociatedData(ih);
 	
 	// Destroy the context menu ih it exists
 	{
@@ -1142,5 +1323,14 @@ void iupdrvCanvasInitClass(Iclass* ic)
 
 	// TODO: We need a layer backed API for everything. But especially for here to workaround the native focus ring rendering corruption.
 	//iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL,  NULL, IUPAF_NO_DEFAULTVALUE);
+
+
+	iupClassRegisterCallback(ic, "VALIDATEMENU_CB", "s");
+	iupClassRegisterCallback(ic, "UNDO_CB", "");
+	iupClassRegisterCallback(ic, "REDO_CB", "");
+	iupClassRegisterCallback(ic, "CUT_CB", "");
+	iupClassRegisterCallback(ic, "COPY_CB", "");
+	iupClassRegisterCallback(ic, "PASTE_CB", "");
+	iupClassRegisterCallback(ic, "PASTESTYLE_CB", "");
 
 }

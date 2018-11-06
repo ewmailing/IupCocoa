@@ -47,6 +47,7 @@ extern const void* _Nonnull IUPTARGETDROP_ASSOCIATED_OBJ_KEY;
 
 
 - (NSDraggingItem*) defaultDraggingItem;
+- (NSPasteboardItem*) defaultPasteboardItem;
 
 
 // @protocol: NSFilePromiseProviderDelegate
@@ -66,6 +67,9 @@ IupSourceDragAssociatedData* cocoaSourceDragGetAssociatedData(Ihandle* ih);
 
 IupTargetDropAssociatedData* cocoaTargetDropCreateAssociatedData(Ihandle* ih, NSView* main_view, NSView* root_view);
 IupSourceDragAssociatedData* cocoaSourceDragCreateAssociatedData(Ihandle* ih, NSView* main_view, NSView* root_view);
+
+void cocoaTargetDropDestroyAssociatedData(Ihandle* ih);
+void cocoaSourceDragDestroyAssociatedData(Ihandle* ih);
 
 int cocoaTargetDropBasePerformDropCallback(Ihandle* ih, id<NSDraggingInfo> the_sender, NSPasteboard* paste_board, NSPoint drop_point);
 
