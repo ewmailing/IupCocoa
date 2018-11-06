@@ -314,8 +314,16 @@ NSPasteboardTypeFileURL: public.file-url
 			NSPasteboardItem* pasteboard_item = (NSPasteboardItem*)drop_item;
 
 			NSString* best_type = [pasteboard_item availableTypeFromArray:drop_types];
+			if(nil == best_type)
+			{
+				continue;
+			}
 			NSData* ns_data = [pasteboard_item dataForType:best_type];
-	
+			if(nil == ns_data)
+			{
+				continue;
+			}
+			
 			// Grrr. There is a complication with choosing the "best" type.
 			// I need to use NSPasteboardItem to handle custom types (and maybe fonts).
 			// But if it comes in order before the built-in types,
@@ -1073,10 +1081,33 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 				NSView* main_view = [self mainView];
 				NSView* root_view = [self rootView];
 				cocoaSourceDragProvideDataForTypeUser(ih, paste_board, pasteboard_item, type_name, main_view, root_view, data_buffer, data_size);
+
+				IFns drag_data_end_callback = (IFns)IupGetCallback(ih, "DRAGDATAEND_CB");
+				if(NULL != drag_data_end_callback)
+				{
+					drag_data_end_callback(ih, (char*)c_type_name);
+				}
+
 				free(data_buffer);
 				data_buffer = NULL;
 				return;
 			}
+			else
+			{
+				NSView* main_view = [self mainView];
+				NSView* root_view = [self rootView];
+				cocoaSourceDragProvideDataForTypeDefault(ih, paste_board, pasteboard_item, type_name, main_view, root_view);
+	
+	
+				IFns drag_data_end_callback = (IFns)IupGetCallback(ih, "DRAGDATAEND_CB");
+				if(NULL != drag_data_end_callback)
+				{
+					drag_data_end_callback(ih, (char*)c_type_name);
+				}
+
+				return;
+			}
+
 		}
 		else
 		{
@@ -1725,6 +1756,13 @@ void iupdrvRegisterDragDropAttrib(Iclass* ic)
   iupClassRegisterCallback(ic, "DRAGFILECREATE_CB", "s");
   iupClassRegisterCallback(ic, "DRAGFILECREATENAME_CB", "ssi");
 
+
+	// Because we may need to create an IupImage in the DRAGDATA_CB, we need a place to free it.
+	// The DRAGEND_CB is less than ideal because it will not fire for copy/paste and it is kind of ambiguous for multiple-drag.
+	// TODO: Need to add to other platforms
+	iupClassRegisterCallback(ic, "DRAGDATAEND_CB", "s");
+
+
 	// Because DROPDATA_CB will fire off multiple callbacks if multiple items are dropped at the same time,
 	// we want a way to know when this starts, and how many items there are.
 	// And when the callbacks stop.
@@ -1732,6 +1770,7 @@ void iupdrvRegisterDragDropAttrib(Iclass* ic)
 	// Use the DROPDATAEND_CB to know for sure when you are done and don't rely on the count.
   iupClassRegisterCallback(ic, "DROPDATABEGIN_CB", "i");
   iupClassRegisterCallback(ic, "DROPDATAEND_CB", "");
+
 
 
 
