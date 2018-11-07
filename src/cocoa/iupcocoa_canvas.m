@@ -1196,6 +1196,38 @@ static int cocoaCanvasSetContextMenuAttrib(Ihandle* ih, const char* value)
 	return 1;
 }
 
+
+static int cocoaCanvasSetSendActionAttrib(Ihandle* ih, const char* value)
+{
+	if(NULL == value)
+	{
+		return 0;
+	}
+	
+	NSView* target_view = nil;
+	id sender_object = nil;
+	if(NULL == ih)
+	{
+		// Send through the normal responder chain starting at the first responder
+		target_view = nil;
+		sender_object = nil;
+	}
+	else
+	{
+	 	target_view = cocoaCanvasGetCanvasView(ih);
+	 	sender_object = target_view;
+	}
+	
+	// TODO: Create well know aliases.
+	// For now, user must put the exact selector name, with the colon
+	// undo: redo: cut: copy: paste: pasteAsPlainText:
+	SEL the_selector = sel_registerName(value);
+	
+	[[NSApplication sharedApplication] sendAction:the_selector to:target_view from:sender_object];
+
+	return 0;
+}
+
 static int cocoaCanvasMapMethod(Ihandle* ih)
 {
 	NSView* root_view = nil;
@@ -1332,5 +1364,8 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterCallback(ic, "COPY_CB", "");
 	iupClassRegisterCallback(ic, "PASTE_CB", "");
 	iupClassRegisterCallback(ic, "PASTESTYLE_CB", "");
+	
+	iupClassRegisterAttribute(ic, "SENDACTION", NULL, cocoaCanvasSetSendActionAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
+
 
 }
