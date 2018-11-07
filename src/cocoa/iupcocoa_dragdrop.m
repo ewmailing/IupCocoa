@@ -1593,6 +1593,23 @@ static int cocoaTargetDropSetDropTypesAttrib(Ihandle* ih, const char* value)
 	return 0;
 }
 
+static int cocoaSourceDropSetPasteFromPasteboardAttrib(Ihandle* ih, const char* value)
+{
+	bool is_triggered = iupStrBoolean(value);
+	if(!is_triggered)
+	{
+		return 0;
+	}
+	
+	NSPasteboard* paste_board = [NSPasteboard generalPasteboard];
+	// TODO: Provide user a way to change the drop point value for paste (so they can differentiate from a drop if needed)
+	NSPoint drop_point = {0, 0};
+
+	IupTargetDropAssociatedData* drag_drop_data = cocoaTargetDropGetAssociatedData(ih);
+	id sender_object = [drag_drop_data mainView];
+	cocoaTargetDropBasePerformDropCallback(ih, sender_object, paste_board, drop_point);
+	return 0;
+}
 
 
 IupSourceDragAssociatedData* cocoaSourceDragCreateAssociatedData(Ihandle* ih, NSView* main_view, NSView* root_view)
@@ -1731,6 +1748,25 @@ static int cocoaSourceDragSetDragWantsFileCreateAttrib(Ihandle* ih, const char* 
 }
 */
 
+static int cocoaSourceDragSetCopyToPasteboardAttrib(Ihandle* ih, const char* value)
+{
+	bool is_triggered = iupStrBoolean(value);
+	if(!is_triggered)
+	{
+		return 0;
+	}
+	
+	IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
+
+	NSPasteboardItem* pasteboard_item = [drag_source_data defaultPasteboardItem];
+	NSPasteboard* paste_board = [NSPasteboard generalPasteboard];
+
+	[paste_board clearContents];
+	[paste_board writeObjects:@[pasteboard_item]];
+	return 0;
+}
+
+
 void iupdrvRegisterDragDropAttrib(Iclass* ic)
 {
   iupClassRegisterCallback(ic, "DRAGBEGIN_CB", "ii");
@@ -1772,6 +1808,12 @@ void iupdrvRegisterDragDropAttrib(Iclass* ic)
   iupClassRegisterCallback(ic, "DROPDATAEND_CB", "");
 
 
+	// Copy & Paste to Clipboard (Pasteboard)
+	// DD is for Drag & Drop.
+	// We need an API that the user can call to invoke/trigger copying or pasting an item.
+	// Since the data mechanisms are driven by the drag and drop implementation, everything else works through the drag & drop after the trigger.
+	iupClassRegisterAttribute(ic, "DRAGCOPY", NULL, cocoaSourceDragSetCopyToPasteboardAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
+	iupClassRegisterAttribute(ic, "DROPPASTE", NULL, cocoaSourceDropSetPasteFromPasteboardAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
 
 
