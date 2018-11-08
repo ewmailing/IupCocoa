@@ -288,7 +288,8 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 	
 	
 	ih->handle = the_button;
-	
+	iupCocoaSetAssociatedViews(ih, the_button, the_button);
+
 	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
 	objc_setAssociatedObject(the_button, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 	// I also need to track the memory of the buttion action receiver.
@@ -341,6 +342,7 @@ static void cocoaButtonUnMapMethod(Ihandle* ih)
 	[butten_receiver release];
 	
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 
 	[the_button release];
 	ih->handle = NULL;

@@ -65,7 +65,8 @@ static void cocoaCleanUpWindow(Ihandle* ih)
 	IupCocoaWindowDelegate* window_delegate = [the_window delegate];
 	[the_window setDelegate:nil];
 	[window_delegate release];
-	
+
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[the_window release];
 }
 
@@ -1067,6 +1068,10 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 	
 	ih->handle = (__unsafe_unretained void*)the_window;
 	
+	// This case may not make sense and nil might be the better value
+	iupCocoaSetAssociatedViews(ih, [the_window contentView], [the_window contentView]);
+
+	
 	IupCocoaWindowDelegate* window_delegate = [[IupCocoaWindowDelegate alloc] init];
 	[the_window setDelegate:window_delegate];
 //	[window setIupIhandle:ih];
@@ -1101,6 +1106,7 @@ static void cocoaDialogUnMapMethod(Ihandle* ih)
 		cocoaDialogEndModal(ih);
 	}
 	cocoaCleanUpWindow(ih);
+
 }
 
 static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)

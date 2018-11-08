@@ -343,6 +343,7 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 	objc_setAssociatedObject(the_toggle, IUP_COCOA_TOGGLE_RECEIVER_OBJ_KEY, (id)toggle_receiver, OBJC_ASSOCIATION_ASSIGN);
 	
 	
+	iupCocoaSetAssociatedViews(ih, the_toggle, the_toggle);
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
@@ -381,6 +382,7 @@ static void cocoaToggleUnMapMethod(Ihandle* ih)
 	
 	iupCocoaRemoveFromParent(ih);
 
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[the_toggle release];
 	ih->handle = NULL;
 	

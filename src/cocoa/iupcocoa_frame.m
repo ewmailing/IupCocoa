@@ -145,8 +145,8 @@ static int cocoaFrameMapMethod(Ihandle* ih)
 	
 	ih->handle = the_frame;
 	
-	
-	
+	iupCocoaSetAssociatedViews(ih, the_frame, the_frame);
+
 	iupCocoaAddToParent(ih);
 	
 
@@ -159,6 +159,7 @@ static void cocoaFrameUnMapMethod(Ihandle* ih)
 {
 	id the_frame = ih->handle;
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[the_frame release];
 	ih->handle = nil;
 }

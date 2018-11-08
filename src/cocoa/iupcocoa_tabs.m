@@ -478,6 +478,11 @@ static int cocoaTabsMapMethod(Ihandle* ih)
 //	ih->handle = tab_control;
 	ih->handle = tab_view_controller;
 	
+	// This is one of those cases where this may not make any sense and nil might be an acceptable value.
+//	iupCocoaSetAssociatedViews(ih, nil, nil);
+	iupCocoaSetAssociatedViews(ih, [tab_view_controller view], [tab_view_controller view]);
+
+	
 	// sanity checks
 /*
 	ih->data->is_multiline = 0;
@@ -536,6 +541,7 @@ static void cocoaTabsUnMapMethod(Ihandle* ih)
 	}
 
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[tab_control release];
 	ih->handle = NULL;
 	

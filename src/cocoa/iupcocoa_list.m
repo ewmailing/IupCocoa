@@ -1487,8 +1487,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 	*/
 
 	
-	NSView* the_view = nil;
-	
+	NSView* root_view = nil;
+	NSView* main_view = nil;
 	
 	IupCocoaListSubType sub_type = cocoaListGetSubType(ih);
 	switch(sub_type)
@@ -1497,7 +1497,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 		{
 			//NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 			NSPopUpButton* popup_button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0, 0, kIupCocoaDefaultWidthNSPopUpButton, kIupCocoaDefaultHeightNSPopUpButton) pullsDown:NO];
-			the_view = popup_button;
+			root_view = popup_button;
+			main_view = root_view;
 			
 			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
 			objc_setAssociatedObject(popup_button, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
@@ -1528,8 +1529,9 @@ static int cocoaListMapMethod(Ihandle* ih)
 
 			
 			
-			the_view = combo_box;
-			
+			root_view = combo_box;
+			main_view = root_view;
+
 			// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
 			objc_setAssociatedObject(combo_box, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
 			// I also need to track the memory of the buttion action receiver.
@@ -1579,7 +1581,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 			[scroll_view setDocumentView:table_view];
 			[table_view release];
-			the_view = scroll_view;
+			root_view = scroll_view;
+			main_view = table_view;
 			[scroll_view setHasVerticalScroller:YES];
 
 			break;
@@ -1617,7 +1620,8 @@ static int cocoaListMapMethod(Ihandle* ih)
 			NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 			[scroll_view setDocumentView:table_view];
 			[table_view release];
-			the_view = scroll_view;
+			root_view = scroll_view;
+			main_view = table_view;
 			[scroll_view setHasVerticalScroller:YES];
 
 			
@@ -1651,8 +1655,9 @@ static int cocoaListMapMethod(Ihandle* ih)
 //	iupgtkAddToParent(ih);
 	
 	
-	ih->handle = the_view;
-	
+	ih->handle = root_view;
+	iupCocoaSetAssociatedViews(ih, main_view, root_view);
+
 
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
@@ -1747,6 +1752,7 @@ static void cocoaListUnMapMethod(Ihandle* ih)
 	[list_receiver release];
 
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	// Only release the root_view; don't release base_view
 	[root_view release];
 	ih->handle = NULL;

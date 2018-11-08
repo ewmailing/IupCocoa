@@ -4894,7 +4894,8 @@ static int cocoaTreeMapMethod(Ihandle* ih)
 	[tree_delegate release];
 	
 	ih->handle = scroll_view;
-	
+	iupCocoaSetAssociatedViews(ih, outline_view, scroll_view);
+
 	
 	
 	// All Cocoa views shoud call this to add the new view to the parent view.
@@ -4970,6 +4971,7 @@ static void cocoaTreeUnMapMethod(Ihandle* ih)
 	[outline_view setMarkStartNode:nil];
 
 
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	iupCocoaRemoveFromParent(ih);
 	[root_view release];
 	ih->handle = NULL;

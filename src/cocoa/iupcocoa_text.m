@@ -6099,8 +6099,8 @@ static int cocoaTextSetContextMenuAttrib(Ihandle* ih, const char* value)
 
 static int cocoaTextMapMethod(Ihandle* ih)
 {
-	NSView* the_view = nil;
-	
+	NSView* root_view = nil;
+	NSView* main_view = nil;
 
 	
 	if (ih->data->is_multiline)
@@ -6141,8 +6141,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		
 		
-		the_view = scroll_view;
-		
+		root_view = scroll_view;
+		main_view = text_view;
 
 		
 
@@ -6227,7 +6227,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 //		[container_view setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 //		[text_field setAutoresizingMask:(NSViewWidthSizable)];
 		
-		the_view = container_view;
+		root_view = container_view;
+		main_view = text_field;
 
 #else
 
@@ -6284,8 +6285,10 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		objc_setAssociatedObject(stack_view, IUP_COCOA_TEXT_SPINNERCONTAINER_OBJ_KEY, (id)text_spinner_container, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
 		
-		the_view = [stack_view retain];
-		
+		root_view = [stack_view retain];
+		// This is one of those cases where main_view doesn't fully make sense. nil might be just as appropriate since we will need to manually handle this case any way.
+		main_view = text_field;
+
 		[text_spinner_container release];
 		[files_owner release];
 		// do not release top_level_objects because instantiateWithOwner did not retain (is is essentially autoreleased);
@@ -6415,7 +6418,8 @@ static int cocoaTextMapMethod(Ihandle* ih)
 		[stack_view setDistribution:NSStackViewDistributionEqualCentering]; // requires 10.11. In a complicated IB test, I needed this to keep the widget vertically centerd. But in practice, I'm not sure if this is needed. Maybe we can use respondsToSelector if 10.9/10.10 compat is needed.
 		[stack_view addView:text_field inGravity:NSStackViewGravityCenter];
 		[text_field release];
-		the_view = stack_view;
+		root_view = stack_view;
+		main_view = text_field;
 #elif defined(USE_CONTAINERVIEW_TEXTFIELD_CONTAINER)
 		NSView* container_view = [[NSView alloc] initWithFrame:NSZeroRect];
 		// Warning: This gets clobbered by AddParent
@@ -6424,9 +6428,11 @@ static int cocoaTextMapMethod(Ihandle* ih)
 
 		[container_view addSubview:text_field];
 		[text_field release];
-		the_view = container_view;
+		root_view = container_view;
+		main_view = text_field;
 #else
-		the_view = text_field;
+		root_view = text_field;
+		main_view = text_field;
 
 #endif
 		
@@ -6437,8 +6443,9 @@ static int cocoaTextMapMethod(Ihandle* ih)
 	
 	
 	
-	ih->handle = the_view;
-	
+	ih->handle = root_view;
+	iupCocoaSetAssociatedViews(ih, main_view, root_view);
+
 
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
@@ -6492,6 +6499,7 @@ static void cocoaTextUnMapMethod(Ihandle* ih)
 	// Because we used retain for the delegates, they should automatically release
 	
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[the_view release];
 	ih->handle = NULL;
 }

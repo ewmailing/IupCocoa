@@ -336,7 +336,8 @@ static int cocoaProgressBarMapMethod(Ihandle* ih)
 	ih->handle = container_view;
 
 	
-	
+	iupCocoaSetAssociatedViews(ih, progress_indicator, container_view);
+
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
@@ -364,6 +365,7 @@ static void cocoaProgressBarUnMapMethod(Ihandle* ih)
 	}
 
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[progress_bar release];
 	ih->handle = NULL;
 	

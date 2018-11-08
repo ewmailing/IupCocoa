@@ -1233,7 +1233,7 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	NSView* root_view = nil;
 	IupCocoaCanvasView* canvas_view = [[IupCocoaCanvasView alloc] initWithFrame:NSZeroRect ih:ih];
 	
-	if(iupAttribGetBoolean(ih, "SPIN"))
+	if(iupAttribGetBoolean(ih, "SCROLLBAR"))
 	{
 		NSScrollView* scroll_view = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 		[scroll_view setDocumentView:canvas_view];
@@ -1255,7 +1255,8 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	ih->handle = root_view;
 
 	
-	
+	iupCocoaSetAssociatedViews(ih, canvas_view, root_view);
+
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 	
@@ -1291,6 +1292,7 @@ static void cocoaCanvasUnMapMethod(Ihandle* ih)
 	}
 	
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[root_view release];
 	ih->handle = NULL;
 }

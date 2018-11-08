@@ -790,6 +790,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 	
 	
 	ih->handle = the_label;
+	iupCocoaSetAssociatedViews(ih, the_label, the_label);
 
 	
 	
@@ -827,6 +828,7 @@ static void cocoaLabelUnMapMethod(Ihandle* ih)
 	}
 
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[the_label release];
 	ih->handle = nil;
 

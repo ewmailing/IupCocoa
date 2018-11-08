@@ -48,6 +48,7 @@ extern const void* ROOTVIEW_ASSOCIATED_OBJ_KEY;
 NSObject* iupCocoaGetRootObject(Ihandle* ih);
 NSView* iupCocoaGetRootView(Ihandle* ih);
 NSView* iupCocoaGetMainView(Ihandle* ih);
+void iupCocoaSetAssociatedViews(Ihandle* ih, NSView* main_view, NSView* root_view);
 
 IUP_EXPORTI void iupCocoaAddToParent(Ihandle* ih);
 IUP_EXPORTI void iupCocoaRemoveFromParent(Ihandle* ih);

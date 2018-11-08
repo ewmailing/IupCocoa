@@ -142,7 +142,7 @@ static int cocoaCalendarMapMethod(Ihandle* ih)
 	
 	
 	ih->handle = date_picker;
-	
+	iupCocoaSetAssociatedViews(ih, date_picker, date_picker);
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
 
@@ -165,6 +165,8 @@ static void cocoaCalendarUnMapMethod(Ihandle* ih)
 	}
 	
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
+
 	[date_picker release];
 	ih->handle = NULL;
 	

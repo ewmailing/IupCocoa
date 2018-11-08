@@ -87,6 +87,18 @@ NSView* iupCocoaGetMainView(Ihandle* ih)
 	return main_view;
 }
 
+void iupCocoaSetAssociatedViews(Ihandle* ih, NSView* main_view, NSView* root_view)
+{
+	NSCAssert(ih->handle, @"Expected ih->handle to be set");
+
+	// Using assign because I don't want to accidentally create retain cycles.
+	// I expect these values to always be available as long as the ih->handle is alive.
+	objc_setAssociatedObject((id)ih->handle, MAINVIEW_ASSOCIATED_OBJ_KEY, main_view, OBJC_ASSOCIATION_ASSIGN);
+
+	objc_setAssociatedObject((id)ih->handle, ROOTVIEW_ASSOCIATED_OBJ_KEY, root_view, OBJC_ASSOCIATION_ASSIGN);
+}
+
+
 
 void iupCocoaAddToParent(Ihandle* ih)
 {
