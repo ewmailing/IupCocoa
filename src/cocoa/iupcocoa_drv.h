@@ -23,6 +23,12 @@ extern "C" {
 
 // the point of this is we have a unique memory address for an identifier
 extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
+// ih->handle is the root view, but often the main view is lower down, (e.g. scrollview contains the real widget).
+// This pattern turned up enough that it merited adding this key.
+// This was introduced late into the development process so a lot of code may continue to fetch this the hard way.
+extern const void* MAINVIEW_ASSOCIATED_OBJ_KEY;
+// Formalize the rootview in case the root object is not a view
+extern const void* ROOTVIEW_ASSOCIATED_OBJ_KEY;
 
 
 	
@@ -39,7 +45,10 @@ extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 #define iupAppleNSLog(...) asl_log(NULL, NULL, ASL_LEVEL_INFO, "%s", [[NSString stringWithFormat:__VA_ARGS__] UTF8String])
 #endif
 	
-	
+NSObject* iupCocoaGetRootObject(Ihandle* ih);
+NSView* iupCocoaGetRootView(Ihandle* ih);
+NSView* iupCocoaGetMainView(Ihandle* ih);
+
 IUP_EXPORTI void iupCocoaAddToParent(Ihandle* ih);
 IUP_EXPORTI void iupCocoaRemoveFromParent(Ihandle* ih);
 	

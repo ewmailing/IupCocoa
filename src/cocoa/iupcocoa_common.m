@@ -10,6 +10,7 @@
 #include <limits.h>             
 
 #import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
 
 #include "iup.h"
 #include "iupcbs.h"
@@ -36,6 +37,55 @@
 
 
 const void* IHANDLE_ASSOCIATED_OBJ_KEY = @"IHANDLE_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
+const void* MAINVIEW_ASSOCIATED_OBJ_KEY = @"MAINVIEW_ASSOCIATED_OBJ_KEY"; // ih->handle is the root object, but often the main view is lower down, (e.g. scrollview contains the real widget).
+const void* ROOTVIEW_ASSOCIATED_OBJ_KEY = @"ROOTVIEW_ASSOCIATED_OBJ_KEY"; // ih->handle is the root object, but in a few cases, this is not a View, e.g. NSWindow. Many times we want the root view.
+
+NSObject* iupCocoaGetRootObject(Ihandle* ih)
+{
+	if(NULL == ih)
+	{
+		return nil;
+	}
+	return (NSObject*)ih->handle;
+}
+
+NSView* iupCocoaGetRootView(Ihandle* ih)
+{
+	if(NULL == ih)
+	{
+		return nil;
+	}
+	id root_object = (NSObject*)ih->handle;
+
+	if(nil == root_object)
+	{
+		return nil;
+	}
+	
+	NSView* main_view = (NSView*)objc_getAssociatedObject(root_object, ROOTVIEW_ASSOCIATED_OBJ_KEY);
+
+	NSCAssert([main_view isKindOfClass:[NSView class]], @"Expected NSView");
+	return main_view;
+}
+
+NSView* iupCocoaGetMainView(Ihandle* ih)
+{
+	if(NULL == ih)
+	{
+		return nil;
+	}
+	id root_object = (NSObject*)ih->handle;
+
+	if(nil == root_object)
+	{
+		return nil;
+	}
+	
+	NSView* main_view = (NSView*)objc_getAssociatedObject(root_object, MAINVIEW_ASSOCIATED_OBJ_KEY);
+
+	NSCAssert([main_view isKindOfClass:[NSView class]], @"Expected NSView");
+	return main_view;
+}
 
 
 void iupCocoaAddToParent(Ihandle* ih)
@@ -473,11 +523,55 @@ void iupdrvDisplayRedraw(Ihandle *ih)
 	iupCocoaDisplayUpdate(ih);
 }
 
+// Untested: I'm not sure what actually uses/needs this. (I see an MDI reference, but we MDI shouldn't exist on anything but Windows.)
 void iupdrvScreenToClient(Ihandle* ih, int *x, int *y)
 {
+	// Do we need to invert the y?
+	// And is it the mainScreen or a different one?
+	NSRect main_screen = [[NSScreen mainScreen] frame];
+	
+
+	NSPoint screen_point = { *x, main_screen.size.height - *y };
+	
+	NSView* main_view = iupCocoaGetMainView(ih);
+	NSWindow* the_window = [main_view window];
+	NSRect screen_rect = NSMakeRect(screen_point.x, screen_point.y, 0, 0);
+	NSRect window_rect = [the_window convertRectFromScreen:screen_rect];
+
+	NSPoint window_point = window_rect.origin;
+	NSPoint view_point = [main_view convertPoint:window_point fromView:nil];
+	NSRect view_frame = [main_view frame];
+
+	CGFloat inverted_y = view_frame.size.height - view_point.y;
+	view_point.y = inverted_y;
+
+	*x = view_point.x;
+	*y = view_point.y;
 }
 
 
+void iupdrvClientToScreen(Ihandle* ih, int *x, int *y)
+{
+	
+	NSView* main_view = iupCocoaGetMainView(ih);
+	NSWindow* the_window = [main_view window];
+
+	NSRect view_frame = [main_view frame];
+	// Do we need to invert the y?
+	NSPoint start_point = { *x, view_frame.size.height - *y };
+
+	NSPoint window_point = [main_view convertPoint:start_point toView:nil];
+	
+	NSRect window_rect = NSMakeRect(window_point.x, window_point.y, 0, 0);
+	NSRect screen_rect = [the_window convertRectToScreen:window_rect];
+
+	
+	// And is it the mainScreen or a different one?
+	NSRect main_screen = [[NSScreen mainScreen] frame];
+	
+	*x = screen_rect.origin.x;
+	*y = main_screen.size.height - screen_rect.origin.y;
+}
 
 int iupdrvBaseSetZorderAttrib(Ihandle* ih, const char* value)
 {
@@ -690,10 +784,6 @@ void iupdrvBaseRegisterVisualAttrib(Iclass* ic)
 	
 }
 
-void iupdrvClientToScreen(Ihandle* ih, int *x, int *y)
-{
-	
-}
 
 void iupdrvPostRedraw(Ihandle *ih)
 {
