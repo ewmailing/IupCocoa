@@ -857,7 +857,7 @@ void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* dst_menu, Clas
 // this helper function lets us split out the ih from the widget, so we don't have to assume the widget is ih->handle.
 // So provide the ih, and provide the real core widget that provides [NSResponder setMenu:] that we should set.
 // The menu should be in menu_ih.
-void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_attach_menu_to, Ihandle* menu_ih)
+void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id widget_to_attach_menu_to, Ihandle* menu_ih)
 {
 	// Save the menu Ihandle in this widget's Ihandle so we can GetContextMenuAttrib
 	iupAttribSet(ih, "_COCOA_CONTEXT_MENU_IH", (const char*)menu_ih);
@@ -866,9 +866,9 @@ void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_atta
 	// Unset the existing menu
 	if(NULL == menu_ih)
 	{
-		if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
+		if([widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
 		{
-			[ih_widget_to_attach_menu_to setMenu:nil];
+			[widget_to_attach_menu_to setMenu:nil];
 		}
 		return;
 	}
@@ -896,10 +896,10 @@ void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_atta
 
 
 	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
-	if([ih_widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
+	if([widget_to_attach_menu_to respondsToSelector:@selector(setMenu:)])
 	{
-		iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(the_menu, [ih_widget_to_attach_menu_to class]);
-		[ih_widget_to_attach_menu_to setMenu:the_menu];
+		iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(the_menu, [widget_to_attach_menu_to class]);
+		[widget_to_attach_menu_to setMenu:the_menu];
 	}
 
 }
@@ -1101,7 +1101,19 @@ bool iupCocoaCommonBaseScrollWheelCallback(Ihandle* ih, NSEvent* the_event, NSVi
 int iupCocoaCommonBaseSetLayerBackedAttrib(Ihandle* ih, const char* value)
 {
 	id the_object = ih->handle;
-	if([the_object respondsToSelector:@selector(setWantsLayer:)])
+	
+	NSView* main_view = iupCocoaGetMainView(ih);
+	if(nil != main_view)
+	{
+		BOOL should_enable = (BOOL)iupStrBoolean(value);
+		[main_view setWantsLayer:should_enable];
+		NSView* root_view = iupCocoaGetMainView(ih);
+		if(root_view != main_view)
+		{
+			[root_view setWantsLayer:should_enable];
+		}
+	}
+	else if([the_object respondsToSelector:@selector(setWantsLayer:)])
 	{
 		BOOL should_enable = (BOOL)iupStrBoolean(value);
 		[the_object setWantsLayer:should_enable];
@@ -1118,7 +1130,13 @@ int iupCocoaCommonBaseSetLayerBackedAttrib(Ihandle* ih, const char* value)
 char* iupCocoaCommonBaseGetLayerBackedAttrib(Ihandle* ih)
 {
 	id the_object = ih->handle;
-	if([the_object respondsToSelector:@selector(wantsLayer)])
+	NSView* main_view = iupCocoaGetRootView(ih);
+	if(nil != main_view)
+	{
+		BOOL is_enabled = [main_view wantsLayer];
+		return iupStrReturnBoolean(is_enabled);
+	}
+	else if([the_object respondsToSelector:@selector(wantsLayer)])
 	{
 		BOOL is_enabled = [the_object wantsLayer];
 		return iupStrReturnBoolean(is_enabled);
@@ -1135,8 +1153,10 @@ char* iupCocoaCommonBaseGetLayerBackedAttrib(Ihandle* ih)
 int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value)
 {
 	Ihandle* menu_ih = (Ihandle*)value;
-	id ih_widget_to_attach_menu_to = ih->handle;
-	iupCocoaCommonBaseSetContextMenuForWidget(ih, ih_widget_to_attach_menu_to, menu_ih);
+//	id widget_to_attach_menu_to = ih->handle;
+	id widget_to_attach_menu_to = iupCocoaGetMainView(ih);
+
+	iupCocoaCommonBaseSetContextMenuForWidget(ih, widget_to_attach_menu_to, menu_ih);
 	
 	return 1;
 }
@@ -1146,4 +1166,34 @@ char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih)
 	return (char*)iupAttribGet(ih, "_COCOA_CONTEXT_MENU_IH");
 }
 
+int iupCocoaCommonBaseSetSendActionAttrib(Ihandle* ih, const char* value)
+{
+	if(NULL == value)
+	{
+		return 0;
+	}
+	
+	NSView* target_view = nil;
+	id sender_object = nil;
+	if(NULL == ih)
+	{
+		// Send through the normal responder chain starting at the first responder
+		target_view = nil;
+		sender_object = nil;
+	}
+	else
+	{
+	 	target_view = iupCocoaGetMainView(ih);
+	 	sender_object = target_view;
+	}
+	
+	// TODO: Create well know aliases.
+	// For now, user must put the exact selector name, with the colon
+	// undo: redo: cut: copy: paste: pasteAsPlainText:
+	SEL the_selector = sel_registerName(value);
+	
+	[[NSApplication sharedApplication] sendAction:the_selector to:target_view from:sender_object];
+
+	return 0;
+}
 

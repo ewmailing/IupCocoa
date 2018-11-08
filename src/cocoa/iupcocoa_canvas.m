@@ -1197,36 +1197,6 @@ static int cocoaCanvasSetContextMenuAttrib(Ihandle* ih, const char* value)
 }
 
 
-static int cocoaCanvasSetSendActionAttrib(Ihandle* ih, const char* value)
-{
-	if(NULL == value)
-	{
-		return 0;
-	}
-	
-	NSView* target_view = nil;
-	id sender_object = nil;
-	if(NULL == ih)
-	{
-		// Send through the normal responder chain starting at the first responder
-		target_view = nil;
-		sender_object = nil;
-	}
-	else
-	{
-	 	target_view = cocoaCanvasGetCanvasView(ih);
-	 	sender_object = target_view;
-	}
-	
-	// TODO: Create well know aliases.
-	// For now, user must put the exact selector name, with the colon
-	// undo: redo: cut: copy: paste: pasteAsPlainText:
-	SEL the_selector = sel_registerName(value);
-	
-	[[NSApplication sharedApplication] sendAction:the_selector to:target_view from:sender_object];
-
-	return 0;
-}
 
 static int cocoaCanvasMapMethod(Ihandle* ih)
 {
@@ -1356,7 +1326,7 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "NATIVEFOCUSRING", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL, "NO", IUPAF_DEFAULT);
 
 	// TODO: We need a layer backed API for everything. But especially for here to workaround the native focus ring rendering corruption.
-	//iupClassRegisterAttribute(ic, "LAYERBACKED", cocoaCanvasGetNativeFocusRingAttrib, cocoaCanvasSetNativeFocusRingAttrib, NULL,  NULL, IUPAF_NO_DEFAULTVALUE);
+	iupClassRegisterAttribute(ic, "LAYERBACKED", iupCocoaCommonBaseGetLayerBackedAttrib, iupCocoaCommonBaseSetLayerBackedAttrib, NULL,  NULL, IUPAF_NO_DEFAULTVALUE);
 
 
 	iupClassRegisterCallback(ic, "VALIDATEMENU_CB", "s");
@@ -1367,7 +1337,7 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	iupClassRegisterCallback(ic, "PASTE_CB", "");
 	iupClassRegisterCallback(ic, "PASTESTYLE_CB", "");
 	
-	iupClassRegisterAttribute(ic, "SENDACTION", NULL, cocoaCanvasSetSendActionAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
+	iupClassRegisterAttribute(ic, "SENDACTION", NULL, iupCocoaCommonBaseSetSendActionAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
 
 }

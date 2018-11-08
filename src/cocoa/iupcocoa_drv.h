@@ -22,13 +22,13 @@ extern "C" {
 #include "iup_image.h"
 
 // the point of this is we have a unique memory address for an identifier
-extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
+IUP_EXPORTI extern const void* IHANDLE_ASSOCIATED_OBJ_KEY;
 // ih->handle is the root view, but often the main view is lower down, (e.g. scrollview contains the real widget).
 // This pattern turned up enough that it merited adding this key.
 // This was introduced late into the development process so a lot of code may continue to fetch this the hard way.
-extern const void* MAINVIEW_ASSOCIATED_OBJ_KEY;
+IUP_EXPORTI extern const void* MAINVIEW_ASSOCIATED_OBJ_KEY;
 // Formalize the rootview in case the root object is not a view
-extern const void* ROOTVIEW_ASSOCIATED_OBJ_KEY;
+IUP_EXPORTI extern const void* ROOTVIEW_ASSOCIATED_OBJ_KEY;
 
 
 	
@@ -45,10 +45,10 @@ extern const void* ROOTVIEW_ASSOCIATED_OBJ_KEY;
 #define iupAppleNSLog(...) asl_log(NULL, NULL, ASL_LEVEL_INFO, "%s", [[NSString stringWithFormat:__VA_ARGS__] UTF8String])
 #endif
 	
-NSObject* iupCocoaGetRootObject(Ihandle* ih);
-NSView* iupCocoaGetRootView(Ihandle* ih);
-NSView* iupCocoaGetMainView(Ihandle* ih);
-void iupCocoaSetAssociatedViews(Ihandle* ih, NSView* main_view, NSView* root_view);
+IUP_EXPORTI NSObject* iupCocoaGetRootObject(Ihandle* ih);
+IUP_EXPORTI NSView* iupCocoaGetRootView(Ihandle* ih);
+IUP_EXPORTI NSView* iupCocoaGetMainView(Ihandle* ih);
+IUP_EXPORTI void iupCocoaSetAssociatedViews(Ihandle* ih, NSView* main_view, NSView* root_view);
 
 IUP_EXPORTI void iupCocoaAddToParent(Ihandle* ih);
 IUP_EXPORTI void iupCocoaRemoveFromParent(Ihandle* ih);
@@ -95,6 +95,12 @@ IUP_EXPORTI void iupCocoaCommonBaseAppendDefaultMenuItemsForClassType(NSMenu* ds
 IUP_EXPORTI void iupCocoaCommonBaseSetContextMenuForWidget(Ihandle* ih, id ih_widget_to_attach_menu_to, Ihandle* menu_ih);
 IUP_EXPORTI int iupCocoaCommonBaseSetContextMenuAttrib(Ihandle* ih, const char* value);
 IUP_EXPORTI char* iupCocoaCommonBaseGetContextMenuAttrib(Ihandle* ih);
+
+// Send an action through the responder chain.
+// @param ih The ih belonging to the widget you want to send to. (IupCocoaGetMainView(ih) must be valid). If ih is NULL, this will send to the first responder (similar to what happens when you select a menu item).
+// @param value Should be the selector name including the colon. Case sensitive. e.g. "undo:", "redo:", "cut:", "copy:", "paste:", "pasteAsPlainText:"
+IUP_EXPORT int iupCocoaCommonBaseSetSendActionAttrib(Ihandle* ih, const char* value);
+
 
 // All keyDown: and keyUp: overrides can call this method to handle K_ANY, the Canvas Keypress, and HELP_CB.
 // Returns a boolean specifying if the caller_should_not_propagate. (Trying to conform to the iupgtk counterpart.) So if false, call super, otherwise skip.
