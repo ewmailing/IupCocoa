@@ -932,7 +932,6 @@ static bool iupCocoaHelperHasCallback(Ihandle* ih, const char* callback_name)
 	}
 	else if(IUP_CONTINUE == ret_val)
 	{
-//		bool is_canvas = (bool)IupClassMatch(ih, "canvas");
 		if([menu_item_title isEqualTo:NSLocalizedString(@"Undo", @"Undo")])
 		{
 			return iupCocoaHelperHasCallback(ih, "UNDO_CB");
@@ -1237,7 +1236,29 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	[source_drag_associated_data setDefaultFilePromiseName:@"IupCanvas.png"];
 	
 	
-//  IupSetAttribute(ih, "NATIVEFOCUSRING", "YES");
+	// Ideally, we want IUP to automatically do the thing that gives users the best experience because devs may not know enough to turn on the right features.
+	// Native Focus Rings are one of those things that seem to provide the best user experience.
+	// But due to an Apple bug, the native focus ring causes draw corruption unless layerbacked is enabled.
+	// Historically, enabling layer backed views has been known to cause various problems.
+	// And even today, layer backed views are still off by default.
+	// So I'm hesitent to turn them on by default.
+	// Additionally, the Canvas drawing is classic CoreGrpahics, CPU based, so this is not necessarily the greatest performance path to take.
+	// But layer backed seems to be getting better over time, and this is a case where we need it on in order to work correctly.
+	// So for the fake widget case, I think we should turn on native focus rings.
+	// For regular, I'm less certain.
+	// But maybe we should only activate if needsPanelToBecomeKey (FOCUSMODE) is true, because that is the only time we care about the focus ring.
+/*
+	if(IupClassMatch(ih, "canvas"))
+	{
+		IupSetAttribute(ih, "LAYERBACKED", "YES");
+		IupSetAttribute(ih, "NATIVEFOCUSRING", "YES");
+	}
+	else
+	{
+		IupSetAttribute(ih, "LAYERBACKED", "YES");
+		IupSetAttribute(ih, "NATIVEFOCUSRING", "YES");
+	}
+*/
 
 	
 	return IUP_NOERROR;
