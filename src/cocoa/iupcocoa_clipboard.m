@@ -143,6 +143,7 @@ static char* cocoaClipboardGetNativeImageAttrib(Ihandle* ih)
 		if([array_of_objects count] > 0)
 		{
 			NSImage* ns_image = (NSImage*)[array_of_objects firstObject];
+			[ns_image retain]; // API says user needs to call release on this
 			return (char*)ns_image;
 		}
 	}
