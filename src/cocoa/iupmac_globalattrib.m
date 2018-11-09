@@ -135,6 +135,22 @@ int iupdrvSetGlobal(const char *name, const char *value)
 		return 1;
 	}
 	
+	if (iupStrEqual(name, "ACTIVATIONPOLICY"))
+	{
+		if(iupStrEqual(value, "REGULAR"))
+		{
+			[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+		}
+		else if(iupStrEqual(value, "ACCESSORY"))
+		{
+			[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+		}
+		else if(iupStrEqual(value, "PROHIBITED"))
+		{
+			[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyProhibited];
+		}
+	}
+	
   return 1;
 }
 
@@ -238,6 +254,30 @@ char *iupdrvGetGlobal(const char *name)
   {
 	  return (char*)iupCocoaMenuGetApplicationMenu();
   }
+	if (iupStrEqual(name, "ACTIVATIONPOLICY"))
+	{
+		NSApplicationActivationPolicy activation_policy = [[NSApplication sharedApplication] activationPolicy];
+		switch(activation_policy)
+		{
+			case NSApplicationActivationPolicyRegular:
+			{
+				return iupStrReturnStr("REGULAR");
+			}
+			case NSApplicationActivationPolicyAccessory:
+			{
+				return iupStrReturnStr("ACCESSORY");
+			}
+			case NSApplicationActivationPolicyProhibited:
+			{
+				return iupStrReturnStr("PROHIBITED");
+			}
+			default:
+			{
+				return NULL;
+			}
+		}
+	}
+
 	
   return NULL;
 }
