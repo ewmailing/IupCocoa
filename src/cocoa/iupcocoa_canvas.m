@@ -504,6 +504,53 @@ But this means that the widgets will never get the focus ring.
 	}
 }
 
+// WARNING: This may be unsupportable.
+// The currentEvent may not be the right kind ad will throw an exception when our code tries to call invalid methods for the wrong type.
+// The one reason I think this may work is If-and-only-if the user calls this in the mouseDragged: callback (mouseDown: might also work),
+// then the currentEvent should (I hope) be the event passed to mouseDragged:.
+// If that is true, this should work.
+// But calling anywhere else will probably not work.
+static int cocoaCanvasSetBeginDragAttrib(Ihandle* ih, const char* value)
+{
+	IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
+
+	if([drag_source_data isDragSourceEnabled])
+	{
+		NSDraggingItem* dragging_item = [drag_source_data defaultDraggingItem];
+
+		NSView* main_view = [drag_source_data mainView];
+		
+		
+		// Special case for Canvas. We want the default file promise action to write a png file of the snapshot.
+		if([drag_source_data usesFilePromise] && ![drag_source_data hasFilePromiseCallback])
+		{
+			NSFilePromiseProvider* file_promise = (NSFilePromiseProvider*)[dragging_item item];
+			// If the auto-generate drag setting was enabled, we already created an NSImage. So try reusing that.
+			// This may also capture the manual drag image if the user set it.
+			NSArray* images_array = [dragging_item imageComponents];
+			if(images_array && ([images_array count] > 0))
+			{
+				NSDraggingImageComponent* image_component = [images_array objectAtIndex:0];
+				id image_data = [image_component contents];
+				[file_promise setUserInfo:image_data];
+			}
+			else
+			{
+				NSRect bounds_rect = [main_view bounds];
+				NSData* pdf_data = [main_view dataWithPDFInsideRect:bounds_rect];
+				NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
+				[image_data autorelease];
+				[file_promise setUserInfo:image_data];
+			}
+		} // end special case
+		
+		
+		NSEvent* the_event = [[NSApplication sharedApplication] currentEvent];
+		[main_view beginDraggingSessionWithItems:@[dragging_item] event:the_event source:drag_source_data];
+	}
+
+	return 0;
+}
 
 - (void) mouseDragged:(NSEvent*)the_event
 {
@@ -520,43 +567,51 @@ But this means that the widgets will never get the focus ring.
 		[super mouseDragged:the_event];
 	}
 	
-	// Should this be before or after the user callback?
+	// Should this be before or after the user callback? Or should this only fire if super is allowed?
+	// (The super reasoning is that other more complex widgets will invoke the drag in their super implementation.)
 	// And if after, should we consider their return value?
 	// Maybe the better thing to do is let the user directly invoke the drag?
 	if(([the_event associatedEventsMask] & NSLeftMouseDragged) && ![self startedDrag])
 	{
+	
 		IupSourceDragAssociatedData* drag_source_data = cocoaSourceDragGetAssociatedData(ih);
-
-		NSDraggingItem* dragging_item = [drag_source_data defaultDraggingItem];
-
-		if(nil != dragging_item)
+		
+		if([drag_source_data isDragSourceEnabled] && [drag_source_data useAutoBeginDrag])
 		{
-			// Special case for Canvas. We want the default file promise action to write a png file of the snapshot.
-			if([drag_source_data usesFilePromise] && ![drag_source_data hasFilePromiseCallback])
+#if 0
+			NSDraggingItem* dragging_item = [drag_source_data defaultDraggingItem];
+			if(nil != dragging_item)
 			{
-				NSFilePromiseProvider* file_promise = (NSFilePromiseProvider*)[dragging_item item];
-				// If the auto-generate drag setting was enabled, we already created an NSImage. So try reusing that.
-				// This may also capture the manual drag image if the user set it.
-				NSArray* images_array = [dragging_item imageComponents];
-				if(images_array && ([images_array count] > 0))
+				// Special case for Canvas. We want the default file promise action to write a png file of the snapshot.
+				if([drag_source_data usesFilePromise] && ![drag_source_data hasFilePromiseCallback])
 				{
-					NSDraggingImageComponent* image_component = [images_array objectAtIndex:0];
-					id image_data = [image_component contents];
-					[file_promise setUserInfo:image_data];
-				}
-				else
-				{
-					NSRect bounds_rect = [self bounds];
-					NSData* pdf_data = [self dataWithPDFInsideRect:bounds_rect];
-					NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
-					[image_data autorelease];
-					[file_promise setUserInfo:image_data];
-				}
-			} // end special case
+					NSFilePromiseProvider* file_promise = (NSFilePromiseProvider*)[dragging_item item];
+					// If the auto-generate drag setting was enabled, we already created an NSImage. So try reusing that.
+					// This may also capture the manual drag image if the user set it.
+					NSArray* images_array = [dragging_item imageComponents];
+					if(images_array && ([images_array count] > 0))
+					{
+						NSDraggingImageComponent* image_component = [images_array objectAtIndex:0];
+						id image_data = [image_component contents];
+						[file_promise setUserInfo:image_data];
+					}
+					else
+					{
+						NSRect bounds_rect = [self bounds];
+						NSData* pdf_data = [self dataWithPDFInsideRect:bounds_rect];
+						NSImage* image_data = [[NSImage alloc] initWithData:pdf_data];
+						[image_data autorelease];
+						[file_promise setUserInfo:image_data];
+					}
+				} // end special case
 
 
-			[self beginDraggingSessionWithItems:@[dragging_item] event:the_event source:drag_source_data];
-			[self setStartedDrag:true];
+				[self beginDraggingSessionWithItems:@[dragging_item] event:the_event source:drag_source_data];
+				[self setStartedDrag:true];
+			}
+#else
+			cocoaCanvasSetBeginDragAttrib(ih, NULL);
+#endif
 		}
 
 	}
@@ -1234,6 +1289,7 @@ static int cocoaCanvasMapMethod(Ihandle* ih)
 	IupTargetDropAssociatedData* target_drop_associated_data = cocoaTargetDropCreateAssociatedData(ih,  canvas_view, root_view);
 
 	[source_drag_associated_data setDefaultFilePromiseName:@"IupCanvas.png"];
+//	[source_drag_associated_data setUseAutoBeginDrag:true];
 	
 	
 	// Ideally, we want IUP to automatically do the thing that gives users the best experience because devs may not know enough to turn on the right features.
@@ -1360,5 +1416,7 @@ void iupdrvCanvasInitClass(Iclass* ic)
 	
 	iupClassRegisterAttribute(ic, "SENDACTION", NULL, iupCocoaCommonBaseSetSendActionAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
+	// EXPERIMENTAL: May not work because it uses currentEvent. This is an override of cocoaSourceDragSetBeginDragAttrib
+  iupClassRegisterAttribute(ic, "DRAGINITIATE", NULL, cocoaCanvasSetBeginDragAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE);
 
 }

@@ -165,6 +165,7 @@ void iupdrvGetCursorPos(int *x, int *y)
 
 void iupdrvGetKeyState(char* key)
 {
+	// We can't support this. The currentEvent may not be the right kind and will throw an exception when our code tries to call invalid methods for the wrong type.
 	NSEvent* the_event = [[NSApplication sharedApplication] currentEvent];
 	if([the_event modifierFlags] & NSEventModifierFlagShift)
 	{
