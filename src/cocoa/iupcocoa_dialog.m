@@ -36,6 +36,22 @@
 
 #include "iupcocoa_drv.h"
 
+static void* TRAYMENUIHANDLE_ASSOCIATED_OBJ_KEY = "TRAYMENUIHANDLE_ASSOCIATED_OBJ_KEY";
+
+static NSWindow* cocoaDialogGetWindow(Ihandle* ih)
+{
+	NSWindow* root_object = (NSWindow*)ih->handle;
+	NSCAssert([root_object isKindOfClass:[NSWindow class]], @"Expected NSWindow");
+	return root_object;
+}
+
+static NSStatusItem* cocoaDialogGetStatusItem(Ihandle* ih)
+{
+	NSStatusItem* root_object = (NSStatusItem*)ih->handle;
+	NSCAssert([root_object isKindOfClass:[NSStatusItem class]], @"Expected NSStatusItem");
+	return root_object;
+}
+
 /*
 @interface NSWindow () 
 @property(readwrite, unsafe_unretained) Ihandle* iupIhandle;
@@ -135,7 +151,7 @@ static void cocoaDialogRunModalLoop(Ihandle* ih, NSWindow* the_window)
 {
 	Ihandle* ih = _ih;
 	
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 
 	// This blocks until done.
 	cocoaDialogRunModalLoop(ih, the_window);
@@ -166,8 +182,8 @@ static void cocoaDialogRunModalLoop(Ihandle* ih, NSWindow* the_window)
 
 static void cocoaDialogStartModal(Ihandle* ih)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
-	
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
+
 	
 	
 	// HACK:
@@ -541,8 +557,18 @@ static int cocoaDialogSetInternalIUPFullScreenAttrib(Ihandle* ih, const char* va
  Utilities
  ****************************************************************/
 
+
+
+
 int iupdrvDialogIsVisible(Ihandle* ih)
 {
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		NSStatusItem* status_item = (NSStatusItem*)root_object;
+		return [status_item isVisible];
+	}
+	
 //	return iupdrvIsVisible(ih);
 
 	// This is a little bit of a hack.
@@ -558,7 +584,7 @@ int iupdrvDialogIsVisible(Ihandle* ih)
 		return 0;
 	}
 
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	int ret_val = (int)[the_window isVisible];
 	return ret_val;
 }
@@ -566,7 +592,13 @@ int iupdrvDialogIsVisible(Ihandle* ih)
 
 void iupdrvDialogGetSize(Ihandle* ih, InativeHandle* handle, int *w, int *h)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return;
+	}
+	
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSRect the_rect = [the_window frame];
 	
 	if (w) *w = iupROUND(the_rect.size.width);
@@ -575,7 +607,15 @@ void iupdrvDialogGetSize(Ihandle* ih, InativeHandle* handle, int *w, int *h)
 
 void iupdrvDialogSetVisible(Ihandle* ih, int visible)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		NSStatusItem* status_item = (NSStatusItem*)root_object;
+		[status_item setVisible:visible];
+		return;
+	}
+	
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 
 	if(visible)
 	{
@@ -591,7 +631,12 @@ void iupdrvDialogSetVisible(Ihandle* ih, int visible)
 
 void iupdrvDialogGetPosition(Ihandle *ih, InativeHandle* handle, int *x, int *y)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return;
+	}
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSRect the_rect = [the_window frame];
 	
 	if (x) *x = the_rect.origin.x;
@@ -600,7 +645,13 @@ void iupdrvDialogGetPosition(Ihandle *ih, InativeHandle* handle, int *x, int *y)
 
 void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return;
+	}
+	
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSRect the_rect = [the_window frame];
 
 	if(ih->data->first_show)
@@ -646,8 +697,14 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return;
+	}
+
 //	NSLog(@"border=%d, caption%d, menu=%d", *border, *caption, *menu);
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 
 	
 	
@@ -727,10 +784,15 @@ void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu
 
 int iupdrvDialogSetPlacement(Ihandle* ih)
 {
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return 0;
+	}
 	
 	char* placement;
 	
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSRect the_rect = [the_window frame];
 	
 	
@@ -812,7 +874,7 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
 
 static int cocoaDialogSetFullScreenAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	cocoaDialogSetInternalIUPFullScreenAttrib(ih, value);
 	if (iupStrBoolean(value))
 	{
@@ -840,8 +902,14 @@ static int cocoaDialogSetFullScreenAttrib(Ihandle* ih, const char* value)
 // FIXME: Not sure what this is supposed to do. This implementation is a total guess.
 void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
 {
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return;
+	}
+	
 	NSWindow* parent_window = (NSWindow*)parent;
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSCAssert([parent_window isKindOfClass:[NSWindow class]], @"Expected NSWindow for parent");
 	
 	[parent_window addChildWindow:the_window ordered:NSWindowAbove];
@@ -855,8 +923,8 @@ void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
 
 static int cocoaDialogSetMinSizeAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
-	
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
+
 	int min_w = 1, min_h = 1;          /* MINSIZE default value */
 	iupStrToIntInt(value, &min_w, &min_h, 'x');
 
@@ -869,7 +937,7 @@ static int cocoaDialogSetMinSizeAttrib(Ihandle* ih, const char* value)
 
 static int cocoaDialogSetMaxSizeAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 
 	int max_w = 65535, max_h = 65535;  /* MAXSIZE default value */
 	iupStrToIntInt(value, &max_w, &max_h, 'x');
@@ -883,7 +951,12 @@ static int cocoaDialogSetMaxSizeAttrib(Ihandle* ih, const char* value)
 
 static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return 0;
+	}
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	if(value)
 	{
 		NSString* ns_string = [NSString stringWithUTF8String:value];
@@ -900,7 +973,7 @@ static int cocoaDialogSetTitleAttrib(Ihandle* ih, const char* value)
 
 static int cocoaDialogSetLayerBackedAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSView* the_view = [the_window contentView];
 	BOOL should_enable = (BOOL)iupStrBoolean(value);
 	[the_view setWantsLayer:should_enable];
@@ -909,7 +982,7 @@ static int cocoaDialogSetLayerBackedAttrib(Ihandle* ih, const char* value)
 
 static char* cocoaDialogGetLayerBackedAttrib(Ihandle* ih)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSView* the_view = [the_window contentView];
 	BOOL is_enabled = [the_view wantsLayer];
 	return iupStrReturnBoolean(is_enabled);
@@ -918,14 +991,14 @@ static char* cocoaDialogGetLayerBackedAttrib(Ihandle* ih)
 
 static char* cocoaDialogGetProxyIconAttrib(Ihandle* ih)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSString* ns_file_name = [the_window representedFilename];
 	return iupStrReturnStr([ns_file_name fileSystemRepresentation]);
 }
 
 static int cocoaDialogSetProxyIconAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	if(value)
 	{
 		NSString* ns_string = [NSString stringWithUTF8String:value];
@@ -943,7 +1016,7 @@ static int cocoaDialogSetProxyIconAttrib(Ihandle* ih, const char* value)
 // Setting the title to @"" doesn't work, and setting to nil is disallowed (assertion failure).
 static int cocoaDialogSetProxyIconTitleAttrib(Ihandle* ih, const char* value)
 {
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	if(value)
 	{
 		NSString* ns_string = [NSString stringWithUTF8String:value];
@@ -969,6 +1042,24 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 {
 	
 //	iupAttribSet(ih, "RASTERSIZE", "500x400");
+	
+	
+	// Special case to handle TRAY because it is part of IupDialog, yet completely unreleated to NSWindow.
+	if(iupAttribGetBoolean(ih, "TRAY"))
+	{
+		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+		NSStatusItem* status_item = [status_bar statusItemWithLength:NSSquareStatusItemLength];
+		[status_item retain];
+		ih->handle = status_item;
+		
+		// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars. And category extension isn't working for some reason...NSWindow might be too big/complicated and is expecting me to define Apple stuff.
+		objc_setAssociatedObject(status_item, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
+		
+		return IUP_DEFAULT;
+	}
+
+	
+	
 	
 	
 	// Warning: Don't make the initial window too big. There is code in the IUP core that does a MAX(current_size, needed_size)
@@ -1092,6 +1183,28 @@ static int cocoaDialogMapMethod(Ihandle* ih)
 
 static void cocoaDialogUnMapMethod(Ihandle* ih)
 {
+	id root_object = (id)ih->handle;
+	// Special case to handle TRAY because it is part of IupDialog, yet completely unreleated to NSWindow.
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		NSStatusItem* status_item = ih->handle;
+		NSStatusBar* status_bar = [NSStatusBar systemStatusBar];
+
+		Ihandle* menu_ih = (Ihandle*)objc_getAssociatedObject(status_item, TRAYMENUIHANDLE_ASSOCIATED_OBJ_KEY);
+		IupDestroy(menu_ih);
+		objc_setAssociatedObject(status_item, TRAYMENUIHANDLE_ASSOCIATED_OBJ_KEY, (id)nil, OBJC_ASSOCIATION_ASSIGN);
+
+
+		objc_setAssociatedObject(status_item, IHANDLE_ASSOCIATED_OBJ_KEY, (id)nil, OBJC_ASSOCIATION_ASSIGN);
+
+		[status_bar removeStatusItem:status_item];
+		[status_item release];
+		ih->handle = nil;
+		return;
+	}
+
+
+
 	// I am having problems with stuck ghost windows. I don't know what's causing it, but one theory I have is that tearing down a window while modal is bad.
 	// So this is my attempt to stop the modal stuff before we tear down the window.
 	// This means I need this code here and possilby if the user just closes the window first instead of triggered by IupDestroy.
@@ -1111,6 +1224,12 @@ static void cocoaDialogUnMapMethod(Ihandle* ih)
 
 static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 {
+	id root_object = (id)ih->handle;
+	if([root_object isKindOfClass:[NSStatusItem class]])
+	{
+		return;
+	}
+	
 #if 1
 	if(ih->data->ignore_resize)
 	{
@@ -1121,7 +1240,7 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 	
 	/* for dialogs the position is not updated here */
 	
-	NSWindow* the_window = (NSWindow*)ih->handle;
+	NSWindow* the_window = cocoaDialogGetWindow(ih);
 	NSRect the_frame = [the_window frame];
 	the_frame.size.width = ih->currentwidth;
 	the_frame.size.height = ih->currentheight;
@@ -1160,7 +1279,7 @@ static void cocoaDialogLayoutUpdateMethod(Ihandle* ih)
 
 static int cocoaDialogSetTrayAttrib(Ihandle* ih, const char* value)
 {
-	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();
+	NSStatusItem* status_item = cocoaDialogGetStatusItem(ih);
 	bool should_enable = (bool)iupStrBoolean(value);
 	if(should_enable)
 	{
@@ -1185,8 +1304,8 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 //	[user_image autorelease]; // I think IUP is caching. releasing here could mean a double-autorelease the next time it gets called since it does not retain when it fetches from the cache.
 	NSImageRep* user_image_rep = nil;
 
-	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();
-	
+	NSStatusItem* status_item = cocoaDialogGetStatusItem(ih);
+
 	NSArray* array_of_representations = [user_image representations];
 
 	if([array_of_representations count] > 0)
@@ -1291,7 +1410,10 @@ static int cocoaDialogSetTrayImageAttrib(Ihandle* ih, const char* value)
 // This returns the Ihandle* set via cocoaDialogSetTrayMenuAttrib
 static char* cocoaDialogGetTrayMenuAttrib(Ihandle* ih)
 {
-	return (char*)iupCocoaGetGlobalApplicationStatusItemMenuIh();
+	NSStatusItem* status_item = cocoaDialogGetStatusItem(ih);
+	Ihandle* menu_ih = (Ihandle*)objc_getAssociatedObject(status_item, TRAYMENUIHANDLE_ASSOCIATED_OBJ_KEY);
+
+	return (char*)menu_ih;
 }
 
 // IMPORTANT: We are taking ownership of the menu. User should never call IupDestroy on the menu item.
@@ -1300,17 +1422,25 @@ static char* cocoaDialogGetTrayMenuAttrib(Ihandle* ih)
 // So this is modeled after that.
 static int cocoaDialogSetTrayMenuAttrib(Ihandle* ih, const char* value)
 {
+	if((NULL == ih) || (NULL == ih->handle))
+	{
+		return 1;
+	}
+	
 	Ihandle* menu_ih = (Ihandle*)value;
 
-	NSStatusItem* status_item = iupCocoaGetGlobalApplicationStatusItem();
-	
+	NSStatusItem* status_item = cocoaDialogGetStatusItem(ih);
+	Ihandle* old_menu_ih = (Ihandle*)objc_getAssociatedObject(status_item, TRAYMENUIHANDLE_ASSOCIATED_OBJ_KEY);
 
 	// Unset the existing menu
 	if(NULL == menu_ih)
 	{
-		iupCocoaSetGlobalApplicationStatusItemMenuIh(NULL);
+		[status_item setMenu:nil];
+		IupDestroy(old_menu_ih);
+		objc_setAssociatedObject(status_item, IHANDLE_ASSOCIATED_OBJ_KEY, (id)nil, OBJC_ASSOCIATION_ASSIGN);
 		return 1;
 	}
+
 
 	// FIXME: The Menu might not be IupMap'd yet. (Presumably because we do not attach it directly to a dialog in this case.)
 	// I think calling IupMap() is the correct thing to do and fixes the problem.
@@ -1336,9 +1466,10 @@ static int cocoaDialogSetTrayMenuAttrib(Ihandle* ih, const char* value)
 
 	NSMenu* the_menu = (NSMenu*)menu_ih->handle;
 	[status_item setMenu:the_menu];
-	// Save the menu_ih and destroy the old one.
-	iupCocoaSetGlobalApplicationStatusItemMenuIh(menu_ih);
 
+	// Save the menu_ih and destroy the old one.
+	IupDestroy(old_menu_ih);
+	objc_setAssociatedObject(status_item, IHANDLE_ASSOCIATED_OBJ_KEY, (id)menu_ih, OBJC_ASSOCIATION_ASSIGN);
 
 	return 1;
 }
@@ -1415,10 +1546,12 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "TRAYIMAGE", NULL, cocoaDialogSetTrayImageAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "TRAYMENU", cocoaDialogGetTrayMenuAttrib, cocoaDialogSetTrayMenuAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 
-#if 0
-	iupClassRegisterAttribute(ic, "TRAYTIP", NULL, gtkDialogSetTrayTipAttrib, NULL, NULL, IUPAF_NO_INHERIT);
+#if 1
+
+	iupClassRegisterAttribute(ic, "TRAYTIP", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "TRAYTIPMARKUP", NULL, NULL, IUPAF_SAMEASSYSTEM, NULL, IUPAF_NOT_MAPPED);
 
+	iupClassRegisterAttribute(ic, "HIDETASKBAR", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
 
 	/* Not Supported */
 	iupClassRegisterAttribute(ic, "BRINGFRONT", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);

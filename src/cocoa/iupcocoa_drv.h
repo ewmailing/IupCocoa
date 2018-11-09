@@ -112,10 +112,6 @@ IUP_EXPORTI bool iupCocoaModifierEvent(Ihandle *ih, NSEvent* ns_event, int mac_k
 IUP_EXPORTI void iupcocoaButtonKeySetStatus(NSEvent* ns_event, char* out_status);
 
 
-NSStatusItem* iupCocoaGetGlobalApplicationStatusItem(void);
-Ihandle* iupCocoaGetGlobalApplicationStatusItemMenuIh(void);
-void iupCocoaSetGlobalApplicationStatusItemMenuIh(Ihandle* menu_ih);
-
 IUP_EXPORTI IupCocoaFont* iupCocoaGetFont(Ihandle* ih);
 
 
