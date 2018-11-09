@@ -28,7 +28,7 @@
 
 // To avoid problems on pre-10.13, redefine the strings.
 NSPasteboardType const kCompatNSPasteboardTypeFileURL = @"public.file-url";
-NSPasteboardType const kCompatNSPasteboardTypeFile = @"public.url";
+NSPasteboardType const kCompatNSPasteboardTypeURL = @"public.url";
 
 
 const void* IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY = @"IUPSOURCEDRAG_ASSOCIATED_OBJ_KEY"; // the point of this is we have a unique memory address for an identifier
@@ -154,7 +154,7 @@ int cocoaTargetDropBasePerformDropCallback(Ihandle* ih, id<NSDraggingInfo> the_s
 		{
 			[acceptable_classes addObject:[NSURL class]];
 		}
-		else if([type_name isEqualToString:kCompatNSPasteboardTypeFile])
+		else if([type_name isEqualToString:kCompatNSPasteboardTypeURL])
 		{
 			[acceptable_classes addObject:[NSURL class]];
 		}
@@ -365,7 +365,7 @@ NSPasteboardTypeFileURL: public.file-url
 				ret_val = drop_data_callback(ih, "FILE", (char*)file_path, (int)buffer_size, drop_point.x, drop_point.y);
 
 			}
-			else if([best_type isEqualToString:kCompatNSPasteboardTypeFile])
+			else if([best_type isEqualToString:kCompatNSPasteboardTypeURL])
 			{
 				NSString* ns_string = [[[NSString alloc] initWithData:ns_data encoding:NSUTF8StringEncoding] autorelease];
  				NSURL* ns_url = [[[NSURL alloc] initWithString:ns_string] autorelease];
@@ -748,30 +748,67 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 			// and we have to convert it back to a pointer here.
 			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
 			// But those binding from other languages will have to pay special attention here.
+
+
+			// Late Entry: Case 1: This is what IupClipboard does. It tries the associated string name for the loaded image.
+			bool found_image = false;
+			NSString* ns_string = [[[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding] autorelease];
+			if(nil != ns_string)
+			{
+				// This is an Iup mapped name, not a file name. So we use UTF8String, not fileSystemRepresentation
+				const char* c_string = [ns_string UTF8String];
+				NSImage* ns_image = (NSImage*)iupImageGetImage(c_string, ih, 0);
+				NSBitmapImageRep* bitmap_image = nil;
+				if([[ns_image representations] count] > 0)
+				{
+					bitmap_image = (NSBitmapImageRep*)[[ns_image representations] objectAtIndex:0];
+				}
+
+				if(nil != bitmap_image)
+				{
+					found_image = true;
+					
+					NSData* ns_data_image = [bitmap_image TIFFRepresentation];
+					[pasteboard_item setData:ns_data_image forType:type_name];
+				}
+			}
+
+			if(!found_image)
+			{
 			
-			if(data_size == sizeof(intptr_t))
-			{
-				intptr_t int_ptr_for_iupimage = 0;
-				memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
-				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
-				Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
-				
-				int height = IupGetInt(iup_image, "WIDTH");
-				int width = IupGetInt(iup_image, "HEIGHT");
-				int bpp = IupGetInt(iup_image, "BPP");
-				const char* pixel_data = IupGetAttribute(iup_image, "WID");
+				// Because of the IupClipboard 'name' technique, I don't need the IupImage intptr_t hack.
+				// There are things I still kind of like about it, but because the string length above
+				// could be the same as sizeof(intptr_t),
+				// if the name resolution fails for some reason,
+				// we end up in this block and crash on the IupGetInt(iup_image, "WIDTH").
+				// So it is safer to remove this hack.
+/*
+				if(data_size == sizeof(intptr_t))
+				{
+					intptr_t int_ptr_for_iupimage = 0;
+					memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
+					//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
+					Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
+					
+					int height = IupGetInt(iup_image, "WIDTH");
+					int width = IupGetInt(iup_image, "HEIGHT");
+					int bpp = IupGetInt(iup_image, "BPP");
+					const char* pixel_data = IupGetAttribute(iup_image, "WID");
 
-				NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
-				NSData* ns_data = [bitmap_image TIFFRepresentation];
-				[pasteboard_item setData:ns_data forType:type_name];
+					NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
+					NSData* ns_data_image = [bitmap_image TIFFRepresentation];
+					[pasteboard_item setData:ns_data_image forType:type_name];
+				}
+				else
+				{
+*/
+					// Assume the user has provided a proper TIFF buffer
+					NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+					[pasteboard_item setData:ns_data forType:type_name];
+/*
+				}
+*/
 			}
-			else
-			{
-				// Assume the user has provided a proper TIFF buffer
-				NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
-				[pasteboard_item setData:ns_data forType:type_name];
-			}
-
 
 		}
 		else if([type_name isEqualToString:NSPasteboardTypePNG])
@@ -790,30 +827,65 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 			// This will work fine as C99 allows this sort of thing if the platform provides intptr_t.
 			// But those binding from other languages will have to pay special attention here.
 			
-			if(data_size == sizeof(intptr_t))
+			// Late Entry: Case 1: This is what IupClipboard does. It tries the associated string name for the loaded image.
+			bool found_image = false;
+			NSString* ns_string = [[[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding] autorelease];
+			if(nil != ns_string)
 			{
-				intptr_t int_ptr_for_iupimage = 0;
-				memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
-				//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
-				Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
-				
-				int height = IupGetInt(iup_image, "WIDTH");
-				int width = IupGetInt(iup_image, "HEIGHT");
-				int bpp = IupGetInt(iup_image, "BPP");
-				const char* pixel_data = IupGetAttribute(iup_image, "WID");
+				// This is an Iup mapped name, not a file name. So we use UTF8String, not fileSystemRepresentation
+				const char* c_string = [ns_string UTF8String];
+				NSImage* ns_image = (NSImage*)iupImageGetImage(c_string, ih, 0);
+				NSBitmapImageRep* bitmap_image = nil;
+				if([[ns_image representations] count] > 0)
+				{
+					bitmap_image = (NSBitmapImageRep*)[[ns_image representations] objectAtIndex:0];
+				}
 
-				NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
-				NSData* ns_data = [bitmap_image representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
-
-				[pasteboard_item setData:ns_data forType:type_name];
+				if(nil != bitmap_image)
+				{
+					found_image = true;
+					
+					NSData* ns_data_image = [bitmap_image representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+					[pasteboard_item setData:ns_data_image forType:type_name];
+				}
 			}
-			else
+
+			if(!found_image)
 			{
-				// Assume the user has provided a proper PNG buffer
-				NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
-				[pasteboard_item setData:ns_data forType:type_name];
-			}
+				// Because of the IupClipboard 'name' technique, I don't need the IupImage intptr_t hack.
+				// There are things I still kind of like about it, but because the string length above
+				// could be the same as sizeof(intptr_t),
+				// if the name resolution fails for some reason,
+				// we end up in this block and crash on the IupGetInt(iup_image, "WIDTH").
+				// So it is safer to remove this hack.
+/*
+				if(data_size == sizeof(intptr_t))
+				{
+					intptr_t int_ptr_for_iupimage = 0;
+					memcpy(&int_ptr_for_iupimage, data_buffer, sizeof(intptr_t));
+					//NSLog(@"int_ptr_for_iupfont: %zu\n", int_ptr_for_iupfont);
+					Ihandle* iup_image = (Ihandle*)int_ptr_for_iupimage;
+					
+					int height = IupGetInt(iup_image, "WIDTH");
+					int width = IupGetInt(iup_image, "HEIGHT");
+					int bpp = IupGetInt(iup_image, "BPP");
+					const char* pixel_data = IupGetAttribute(iup_image, "WID");
 
+					NSBitmapImageRep* bitmap_image = iupCocoaImageNSBitmapImageRepFromPixels(width, height, bpp, NULL, 0, (unsigned char*)pixel_data);
+					NSData* ns_data_image = [bitmap_image representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+
+					[pasteboard_item setData:ns_data_image forType:type_name];
+				}
+				else
+				{
+*/
+					// Assume the user has provided a proper PNG buffer
+					NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
+					[pasteboard_item setData:ns_data forType:type_name];
+/*
+				}
+*/
+			}
 
 		}
 		else if([type_name isEqualToString:NSPasteboardTypeRTF])
@@ -838,8 +910,7 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 		// I don't understand what Apple intends this to be.
 		else if([type_name isEqualToString:NSPasteboardTypeTextFinderOptions])
 		{
-			NSData* ns_data = [NSData dataWithBytes:data_buffer length:data_size];
-			NSString* ns_string = [[NSString alloc] initWithData:ns_data encoding:NSUTF8StringEncoding];
+			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
 			[ns_string autorelease];
 			[pasteboard_item setString:ns_string forType:type_name];
 		}
@@ -858,7 +929,7 @@ static void cocoaSourceDragProvideDataForTypeUser(Ihandle* ih, NSPasteboard* pas
 			[pasteboard_item setData:ns_data forType:type_name];
 
 		}
-		else if([type_name isEqualToString:NSPasteboardTypeURL])
+		else if([type_name isEqualToString:kCompatNSPasteboardTypeURL])
 		{
 			NSString* ns_string = [[NSString alloc] initWithBytes:data_buffer length:data_size encoding:NSUTF8StringEncoding];
 			[ns_string autorelease];
