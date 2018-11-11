@@ -697,7 +697,15 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
+
+
 	id root_object = (id)ih->handle;
+	if(nil == root_object)
+	{
+		NSLog(@"WARNIng: ih->handle==nil in iupdrvDialogGetDecoration. Maybe alert dialog?");
+		return;
+	}
+	
 	if([root_object isKindOfClass:[NSStatusItem class]])
 	{
 		return;

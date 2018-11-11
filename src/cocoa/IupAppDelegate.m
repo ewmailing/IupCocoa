@@ -34,6 +34,9 @@
 
 - We should compare with other platforms before making a final decision.
 
+// Update: This is also the callback Apple uses to open a file from the Recent File Menu.
+// This adds an additional constraint because we cannot distinguish what action invoked this.
+
 */
 // NOTE: application:openFiles: overrides application:openFile:.
 // If application:openFiles: is defined, application:openFile: will never be invoked.
@@ -45,7 +48,7 @@
 #if 0
 - (BOOL) application:(NSApplication *)the_sender openFile:(NSString*)file_name
 {
-//    NSLog(@"application:openFile: %@", file_name);
+    NSLog(@"application:openFile: %@", file_name);
 	// For interest, I tried returning NO, but I did not see anything happen.
 	// So maybe it is not really important, especially since application:openFile: lacks a return value.
     return YES;
@@ -69,39 +72,44 @@
 
 - (void) doOpenFilesCallback:(NSArray<NSString*>*)file_names
 {
-	NSLog(@"doOpenFilesCallback: %@", file_names);
+//	NSLog(@"doOpenFilesCallback: %@", file_names);
 	// DROPFILES_CB is closest to this.
 	// "When several files are dropped at once, the callback is called several times, once for each file."
 	// typedef int (*IFnsiii)(Ihandle*, char*, int, int, int);  /* dropfiles_cb */
 	// We probably should create a new signature that doesn't have the trailing x,y pos at the end.
 	// Also, this is a global application callback which doesn't have a Ihandle*.
-	
-	IFnsiii open_callback = (IFnsiii)IupGetFunction("OPENFILES_CB");
+	//
+	// Update: After the RECENT_CB problem, I decided to use globalmotion_cb, IFiis
+	IFiis open_callback = (IFiis)IupGetFunction("OPENFILES_CB");
 	if(open_callback)
 	{
+		int total_number_of_files = (int)[file_names count];
 		int i = 0;
 		for(NSString* ns_current_file in file_names)
 		{
 			const char* c_current_file = [ns_current_file fileSystemRepresentation];
-			int ret_val = open_callback(NULL, (char*)c_current_file, i, 0, 0);
+			open_callback(i, total_number_of_files, (char*)c_current_file);
 			i++;
 		}
 	}
 }
 - (void) doOpenURLCallback:(NSString*)url_string
 {
-	NSLog(@"doOpenURLCallback: %@", url_string);
+//	NSLog(@"doOpenURLCallback: %@", url_string);
 	// DROPFILES_CB is closest to this.
 	// "When several files are dropped at once, the callback is called several times, once for each file."
 	// typedef int (*IFnsiii)(Ihandle*, char*, int, int, int);  /* dropfiles_cb */
 	// We probably should create a new signature that doesn't have the trailing x,y pos at the end.
 	// Also, this is a global application callback which doesn't have a Ihandle*.
+	//
+	// Update: After the RECENT_CB problem, I decided to create a new type IFs.
 	
-	IFnsiii open_callback = (IFnsiii)IupGetFunction("OPENURL_CB");
+	
+	IFs open_callback = (IFs)IupGetFunction("OPENURL_CB");
 	if(open_callback)
 	{
 		const char* c_url_string = [url_string UTF8String];
-		int ret_val = open_callback(NULL, (char*)c_url_string, 0, 0, 0);
+		open_callback((char*)c_url_string);
 	}
 }
 
@@ -198,3 +206,51 @@ NOTE: If the application is not already open, opening the URL will launch your p
 }
 
 @end
+
+
+
+#include "iup_config.h"
+// We need to override the built-in IUP implementation and use the native Cocoa API.
+// 1) Sandboxing requires we use the native API, otherwise we won't have permission to access files between launches.
+// (We could try to use Security Scoped Bookmarks directly, but because they are not referenced counted, we have to be careful if the user still wants a reference.
+// Also, Iup doesn't provide us a convenient API to work with that maps to SSB. It really would benefit from having an entire Ihandle* object, like IupClipboard does.)
+//
+// 2) Apple updates at least both the Main Menu Recent Files and also the Dock contextual menu. (Are there others?).
+//
+// 3) The standard .XIB Main Menu file has special hooks for Recent Files so NSDocumentController can modify it.
+// If we muck with it so we can manually modify it, we break that. We must pick one or the other.
+// In early versions, I went the manual modify route, but was not thinking about the Sandbox or Dock menu yet.
+// I reverted to the standard XIB because it is the most correct thing to do.
+//
+// For our override, we pretty much ignore EVERYTHING IUP normally does.
+// menu is useless to us.
+// recent_cb won't work for us using the legacy signature because ours must be shared with OPENFILES_CB due to how the native API works.
+// max_recent is useless to us because we can't programatically set the value. (Users set it in their System Preferences.)
+// ih is useless to use because we don't write any of these values to IupConfig and all our interaction is done through NSDocuementController.
+void IupConfigRecentInit(Ihandle* ih, Ihandle* menu, Icallback recent_cb, int max_recent)
+{
+/*
+  char* recent_name = IupGetAttribute(ih, "RECENTNAME");
+  const char* group_name = recent_name;
+  if (!group_name) group_name = "Recent";
+
+  IupSetAttribute(ih, iConfigGetRecentAttribName(recent_name, "RECENTMENU"), (char*)menu);
+  IupSetCallback(ih, iConfigGetRecentAttribName(recent_name, "RECENT_CB"), recent_cb);
+  IupSetInt(ih, iConfigGetRecentAttribName(recent_name, "RECENTMAX"), max_recent);
+*/
+//	NSDocumentController* document_controller = [NSDocumentController sharedDocumentController];
+	// maximumRecentDocumentCount is read-only
+}
+
+void IupConfigRecentUpdate(Ihandle* ih, const char* filename)
+{
+	if(NULL == filename)
+	{
+		return;
+	}
+	NSString* ns_string = [NSString stringWithUTF8String:filename];
+	NSURL* file_url = [NSURL fileURLWithPath:ns_string];
+	
+	NSDocumentController* document_controller = [NSDocumentController sharedDocumentController];
+	[document_controller noteNewRecentDocumentURL:file_url];
+}

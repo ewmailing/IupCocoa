@@ -20,6 +20,11 @@
 			<string>Viewer</string>
 			<key>LSItemContentTypes</key>
 			<array>
+				<string>public.text</string>
+				<string>public.txt</string>
+				<string>public.png</string>
+				<string>public.jpeg</string>
+				<string>public.jpg</string>
 				<string>public.folder</string>
 			</array>
 			<key>LSTypeIsPackage</key>

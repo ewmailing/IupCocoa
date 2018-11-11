@@ -19,6 +19,10 @@
 #include "iup_assert.h"
 #include "iup_drvinfo.h"
 
+#if defined(__APPLE__)
+#import <TargetConditionals.h>
+#endif
+
 #define GROUPKEYSIZE 100
 #define MAX_LINES 500
 
@@ -414,6 +418,9 @@ void IupConfigSetListVariable(Ihandle* ih, const char *group, const char* key, c
 
 /******************************************************************/
 
+/* macOS/Cocoa needs a completely different implementation, so exclude Mac/Cocoa from compiling this. */
+#if !defined(__APPLE__) || !defined(TARGET_OS_OSX)
+
 static const char* iConfigGetRecentAttribName(const char* recent_name, const char* base_name)
 {
   if (recent_name)
@@ -537,7 +544,7 @@ void IupConfigRecentUpdate(Ihandle* ih, const char* filename)
 
   iConfigBuildRecent(ih, menu, max_recent, group_name, recent_cb);
 }
-
+#endif
 
 /*******************************************************************/
 
