@@ -655,7 +655,7 @@ static int cocoaLabelMapMethod(Ihandle* ih)
 			else
 			{
     name = iupAttribGet(ih, "IMINACTIVE");
-    if (!name)
+    if (name)
 	{
 		name = iupAttribGet(ih, "IMAGE");
 		make_inactive = 1;

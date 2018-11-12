@@ -276,7 +276,7 @@ static int cocoaToggleMapMethod(Ihandle* ih)
 		int make_inactive = 0;
 		
 		
-		if(!iupAttribGet(ih, "IMINACTIVE"))
+		if(iupAttribGet(ih, "IMINACTIVE"))
 		{
 			make_inactive = 1;
 		}

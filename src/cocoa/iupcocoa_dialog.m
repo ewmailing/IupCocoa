@@ -437,7 +437,7 @@ static int cocoaDialogSetInternalIUPFullScreenAttrib(Ihandle* ih, const char* va
 
 - (void) windowWillEnterFullScreen:(NSNotification*)the_notification
 {
-	NSLog(@"windowWillEnterFullScreen");
+//	NSLog(@"windowWillEnterFullScreen");
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject([the_notification object], IHANDLE_ASSOCIATED_OBJ_KEY);
 	iupAttribSet(ih, "FULLSCREEN", "YES");
 	cocoaDialogSetInternalIUPFullScreenAttrib(ih, "YES");
@@ -446,7 +446,7 @@ static int cocoaDialogSetInternalIUPFullScreenAttrib(Ihandle* ih, const char* va
 - (void) windowDidEnterFullScreen:(NSNotification*)the_notification
 {
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject([the_notification object], IHANDLE_ASSOCIATED_OBJ_KEY);
-	NSLog(@"windowDidEnterFullScreen");
+//	NSLog(@"windowDidEnterFullScreen");
 
 
 	
@@ -464,7 +464,7 @@ static int cocoaDialogSetInternalIUPFullScreenAttrib(Ihandle* ih, const char* va
 
 - (void) windowDidExitFullScreen:(NSNotification*)the_notification
 {
-	NSLog(@"windowDidExitFullScreen");
+//	NSLog(@"windowDidExitFullScreen");
 	Ihandle* ih = (Ihandle*)objc_getAssociatedObject([the_notification object], IHANDLE_ASSOCIATED_OBJ_KEY);
 	iupAttribSet(ih, "FULLSCREEN", "NO");
 	cocoaDialogSetInternalIUPFullScreenAttrib(ih, "NO");
@@ -697,12 +697,16 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
-
-
 	id root_object = (id)ih->handle;
 	if(nil == root_object)
 	{
-		NSLog(@"WARNIng: ih->handle==nil in iupdrvDialogGetDecoration. Maybe alert dialog?");
+		// We are hitting this case for alert and file panels. Presumably other dialogs to.
+		*border = 2; // Maybe this is 0?
+		*menu = 0;
+		*caption = 24; // title bar height?
+	
+	
+//		NSLog(@"WARNIng: ih->handle==nil in iupdrvDialogGetDecoration. Maybe alert dialog?");
 		return;
 	}
 	

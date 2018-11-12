@@ -68,8 +68,129 @@ static void macFileDlgGetFolder(Ihandle *ih)
 
 
 // FIXME: NOOVERWRITEPROMPT This is going to require a delegate
-// FIXME: NOCHANGEDIR I don't know to support this. Apple manages this themselves.
+// FIXME: NOCHANGEDIR I don't know to support this. Apple manages this themselves. Maybe panel:didChangeToDirectoryURL:
 // TODO: FILTERUSED FILTERINFO
+
+@interface IupOpenFilePanelDelegate : NSObject <NSOpenSavePanelDelegate>
+
+@property(nonatomic, assign) Ihandle* ihandle;
+
+- (BOOL) panel:(id)the_sender shouldEnableURL:(NSURL*)file_url;
+
+@end
+
+@implementation IupOpenFilePanelDelegate
+
+- (void) dealloc
+{
+	[self setIhandle:nil];
+	[super dealloc];
+}
+
+// This allows us to filter acceptable files.
+// Apple BUG: I'm seeing something that looks like a race condition sometimes where the panel first opens,
+// but this delegate callback does not get invoked.
+// The early entries in the panel do not get filtered as a result.
+// With both NSLog and breakpoints, I see the early entries do not go through this callback.
+// Seen in 10.13.6. I've only noticed under sandboxing so far.
+- (BOOL) panel:(id)the_sender shouldEnableURL:(NSURL*)file_url
+{
+	Ihandle* ih = [self ihandle];
+	
+	
+	
+	char* value = iupAttribGet(ih, "FILTER");
+    if(NULL == value)
+    {
+		NSLog(@"Matched NULL == value");
+		return YES;
+	}
+	
+	
+	// Check if the URL points to a directory.
+	// We want to say yes to directories otherwise the user can't click on them to change directories.
+	NSNumber* is_directory = nil;
+	BOOL success = [file_url getResourceValue:&is_directory forKey:NSURLIsDirectoryKey error:nil];
+	if(success && [is_directory boolValue])
+	{
+		
+		// Make sure the directory is not a bundle.
+		success = [file_url getResourceValue:&is_directory forKey:NSURLIsPackageKey error:nil];
+		if(success && ![is_directory boolValue])
+		{
+			return YES;
+		}
+	}
+
+	NSString* file_path = [file_url path];
+	// We want to filter only against the file name, and not the path.
+	NSString* file_name = [file_path lastPathComponent];
+	
+	NSString* semicolon_separated_string = [NSString stringWithUTF8String:value];
+	// The Windows version doesn't worry about extra white space, so I won't either.
+	NSArray* array_of_filters = [semicolon_separated_string componentsSeparatedByString:@";"];
+
+
+#if 1 // Use NSPredicate
+	// Usually these things are case-insensitive, especially on Mac with its default-case-insensitive file-system.
+	file_name = [file_name lowercaseString];
+
+	for(NSString* match_pattern in array_of_filters)
+	{
+		match_pattern = [match_pattern lowercaseString];
+
+		NSPredicate* ns_predicate = [NSPredicate predicateWithFormat:@"self LIKE %@", match_pattern];
+		BOOL is_match = [ns_predicate evaluateWithObject:file_name];
+		if(YES == is_match)
+		{
+			// NSLog(@"Matched file: %@ to pattern: %@", file_path, match_pattern);
+			return YES;
+		}
+		else
+		{
+			//NSLog(@"NoMatch file: %@ to pattern: %@", file_path, match_pattern);
+		}
+	}
+	
+#else
+	// If the FILTER patterns are supposed to be regex, NSRegularExpression might map a little better than NSPredicate
+	// Oops: I don't think this interpretation is right because . (dot) is supposed to be explicit and not a any-character symbol.
+	// So I think NSPredicate is the correct solution.
+
+	NSRange search_range = NSMakeRange(0, [file_name length]);
+	NSError* ns_error = nil;
+
+
+	for(NSString* match_pattern in array_of_filters)
+	{
+		NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:match_pattern options:NSRegularExpressionCaseInsensitive error:&ns_error];
+		NSArray<NSTextCheckingResult*>* matches = [regex matchesInString:file_name options:0 range:search_range];
+		for(NSTextCheckingResult* match_result in matches)
+		{
+			NSRange match_range = [match_result range];
+			if(NSNotFound != match_range.location)
+			{
+				NSString* matched_text = [file_name substringWithRange:match_range];
+//				NSLog(@"matched_text: %@", matched_text);
+				return YES;
+			}
+		}
+
+	}
+
+#endif
+
+
+	// NSLog(@"NoMatch for file: %@", file_path);
+
+	return NO;
+}
+
+@end
+
+
+
+
 static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 {
 
@@ -84,6 +205,10 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 //	NSOpenPanel* open_panel = nil;
 
 	NSMutableArray* extention_array = nil;
+
+
+	NSObject* panel_delegate = nil;
+	
 
   iupAttribSetInt(ih, "_IUPDLG_X", x);   /* used in iupDialogUpdatePosition */
   iupAttribSetInt(ih, "_IUPDLG_Y", y);
@@ -107,15 +232,23 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 	  // Symlinks automatically get resolved by Cocoa which can be nice, but this differs from the other implementions. So try to shut if off.
 	  [open_panel setResolvesAliases:NO];
 	  file_panel = open_panel;
-	  
 
+		IupOpenFilePanelDelegate* iup_panel_delegate = [[IupOpenFilePanelDelegate alloc] init];
+		[iup_panel_delegate setIhandle:ih];
+		[open_panel setDelegate:iup_panel_delegate];
+		panel_delegate = iup_panel_delegate;
   }
   else
   {
     dialogtype = IUP_DIALOGOPEN;
 	  NSOpenPanel* open_panel = [NSOpenPanel openPanel];
+	  [open_panel setCanChooseDirectories:NO];
+	  [open_panel setCanChooseFiles:YES];
 	  file_panel = open_panel;
-
+		IupOpenFilePanelDelegate* iup_panel_delegate = [[IupOpenFilePanelDelegate alloc] init];
+		[iup_panel_delegate setIhandle:ih];
+		[open_panel setDelegate:iup_panel_delegate];
+		panel_delegate = iup_panel_delegate;
   }
 	
 	
@@ -345,8 +478,9 @@ static int cocoaFileDlgPopup(Ihandle *ih, int x, int y)
 		iupAttribSetStr(ih, "VALUE", NULL);
 		iupAttribSetInt(ih, "STATUS", -1);
 	}
-	
 
+
+	[panel_delegate release];
 	
   return IUP_NOERROR;
 

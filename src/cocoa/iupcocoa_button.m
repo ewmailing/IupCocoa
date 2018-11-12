@@ -248,11 +248,11 @@ static int cocoaButtonMapMethod(Ihandle* ih)
 		int make_inactive = 0;
 		
 
-		if(!iupAttribGet(ih, "IMINACTIVE"))
+		if(iupAttribGet(ih, "IMINACTIVE"))
 		{
 			make_inactive = 1;
 		}
-			
+
 		the_bitmap = iupImageGetImage(value, ih, make_inactive);
 		[the_button setImage:the_bitmap];
 		
