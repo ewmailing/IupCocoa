@@ -244,7 +244,13 @@ void iupCocoaCommonLoopCallExitCb()
 	}
 	else
 	{
-		NSLog(@"Warning: iupCocoaCommonLoopCallExitCb has been called too many times");
+		// Drat. I don't think I have a way around this.
+		// There seems to be at least 2 different possible exit triggers.
+		// 1. Apple stopping the native event loop (cmd-Q)
+		// 2. Iup manually terminating the event loop. (close/destroy last window or use IUP_CLOSE)
+		// Because of that, when I tried to put the callback in only one location, I sometimes missed doing the callback.
+		// But if I cover all the bases, I get multiple callbacks sometimes depending on the sequence of events.
+		NSLog(@"Warning: iupCocoaCommonLoopCallExitCb has been already been called. Skipping callback.");
 	}
 }
 

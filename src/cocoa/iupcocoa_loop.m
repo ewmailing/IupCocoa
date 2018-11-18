@@ -34,6 +34,7 @@ void IupExitLoop(void)
 		if(mac_main_loop <= 1)
 		{
 			//  [NSApp terminate:nil];
+			iupCocoaCommonLoopCallExitCb();
 			[NSApp stop:nil];
 		}
 		else
