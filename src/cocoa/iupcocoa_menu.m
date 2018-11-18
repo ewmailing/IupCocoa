@@ -657,7 +657,7 @@ static int cocoaMenuMapMethod(Ihandle* ih)
 		if(ih->parent)
 		{
 
-			NSLog(@"cocoaMenuMapMethod ih->parent %@", ih->parent->handle);
+//			NSLog(@"cocoaMenuMapMethod ih->parent %@", ih->parent->handle);
 		/* parent is a submenu, it is created here */
 
 
@@ -677,7 +677,7 @@ static int cocoaMenuMapMethod(Ihandle* ih)
 				// I earlier set the name on the parent (which isn't visible), and now set it on the correct widget.
 				// Not sure if I should unset the title on the NSMenuItem afterwards.
 				[the_menu setTitle:parent_menu_title];
-				NSLog(@"cocoaMenuMapMethod created NSMenu %@", the_menu);
+//				NSLog(@"cocoaMenuMapMethod created NSMenu %@", the_menu);
 			}
 			else
 			{
@@ -685,13 +685,13 @@ static int cocoaMenuMapMethod(Ihandle* ih)
 				[the_menu retain];
 				ih->handle = the_menu;
 				
-				NSLog(@"cocoaMenuMapMethod reused NSMenu %@", the_menu);
+//				NSLog(@"cocoaMenuMapMethod reused NSMenu %@", the_menu);
 
 			}
 			
 			
 
-			NSLog(@"cocoaMenuMapMethod [parent_menu setSubmenu:the_menu]");
+//			NSLog(@"cocoaMenuMapMethod [parent_menu setSubmenu:the_menu]");
 		}
 		else
 		{
@@ -700,7 +700,7 @@ static int cocoaMenuMapMethod(Ihandle* ih)
 			NSMenu* the_menu = [[NSMenu alloc] init];
 			ih->handle = the_menu;
 
-			NSLog(@"else cocoaMenuMapMethod created NSMenu %@", the_menu);
+//			NSLog(@"else cocoaMenuMapMethod created NSMenu %@", the_menu);
 
 			
 			//iupAttribSet(ih, "_IUPWIN_POPUP_MENU", "1");
@@ -837,7 +837,7 @@ static int cocoaItemMapMethod(Ihandle* ih)
 	{
 		/* top level menu used for MENU attribute in IupDialog (a menu bar) */
 		
-		NSLog(@"cocoaItemMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
+//		NSLog(@"cocoaItemMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
 		
 	}
 	else
@@ -845,12 +845,12 @@ static int cocoaItemMapMethod(Ihandle* ih)
 		if(ih->parent)
 		{
 			/* parent is a submenu, it is created here */
-			NSLog(@"cocoaItemMapMethod ih->parent %@", ih->parent->handle);
+//			NSLog(@"cocoaItemMapMethod ih->parent %@", ih->parent->handle);
 			
 		}
 		else
 		{
-			NSLog(@"cocoaItemMapMethod else");
+//			NSLog(@"cocoaItemMapMethod else");
 		}
 	}
 	
@@ -1023,7 +1023,7 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 	{
 		/* top level menu used for MENU attribute in IupDialog (a menu bar) */
 		
-		NSLog(@"cocoaSubmenuMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
+//		NSLog(@"cocoaSubmenuMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
 		
 	}
 	else
@@ -1031,12 +1031,12 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 		if(ih->parent)
 		{
 			/* parent is a submenu, it is created here */
-			NSLog(@"cocoaSubmenuMapMethod ih->parent %@", ih->parent->handle);
+//			NSLog(@"cocoaSubmenuMapMethod ih->parent %@", ih->parent->handle);
 			
 		}
 		else
 		{
-			NSLog(@"cocoaSubmenuMapMethod else");
+//			NSLog(@"cocoaSubmenuMapMethod else");
 		}
 	}
 	
@@ -1053,11 +1053,11 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 		NSMenuItem* parent_menu = (NSMenuItem*)(ih->parent->handle);
 		[parent_menu setSubmenu:the_menu];
 		
-		
+/*
 		NSLog(@"cocoaSubmenuMapMethod iupMenuIsMenuBar %@", ih->parent->handle);
 		NSLog(@"cocoaSubmenuMapMethod created NSMenu %@", the_menu);
 		NSLog(@"[parent_menu setSubmenu:the_menu]");
-
+*/
 		
 		
 	}
@@ -1105,7 +1105,7 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 		
 		if(found_menu_item)
 		{
-			NSLog(@"found menu item for Submenu");
+//			NSLog(@"found menu item for Submenu");
 			ih->handle = found_menu_item;
 			[found_menu_item retain];
 			
@@ -1163,11 +1163,11 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 			[menu_item setAction:@selector(onMenuItemAction:)];
 */
 
-			
+/*
 			NSLog(@"cocoaSubmenuMapMethod parent_menu %@", parent_menu);
 			NSLog(@"cocoaSubmenuMapMethod replacement_parent_menu_item %@", menu_item_for_submenu);
 			NSLog(@"[parent_menu setSubmenu:the_menu]");
-		
+*/
 		
 		}
 		//[replacement_parent_menu_item setSubmenu:the_menu];
@@ -1177,7 +1177,7 @@ static int cocoaSubmenuMapMethod(Ihandle* ih)
 		
 		
 		
-		NSLog(@"NSMenu swap");
+//		NSLog(@"NSMenu swap");
 		//NSCAssert(0==1, @"NSMenu");
 		
 		
