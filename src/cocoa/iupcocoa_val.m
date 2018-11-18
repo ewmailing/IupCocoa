@@ -307,6 +307,8 @@ static int cocoaValMapMethod(Ihandle* ih)
 
 	ih->handle = the_slider;
 
+	iupCocoaSetAssociatedViews(ih, the_slider, the_slider);
+
 	
 	// All Cocoa views shoud call this to add the new view to the parent view.
 	iupCocoaAddToParent(ih);
@@ -335,6 +337,7 @@ static void cocoaValUnMapMethod(Ihandle* ih)
 	}
 
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 	[the_slider release];
 	ih->handle = NULL;
 	

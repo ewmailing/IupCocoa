@@ -406,7 +406,8 @@ static int cocoaWebBrowserMapMethod(Ihandle* ih)
 	
 	
 	ih->handle = web_view;
-	
+	iupCocoaSetAssociatedViews(ih, web_view, web_view);
+
 	
 	
 	
@@ -440,6 +441,7 @@ static void cocoaWebBrowserUnMapMethod(Ihandle* ih)
 	[web_view release];
 */
 	iupCocoaRemoveFromParent(ih);
+	iupCocoaSetAssociatedViews(ih, nil, nil);
 
 	[web_view release];
 	ih->handle = NULL;
